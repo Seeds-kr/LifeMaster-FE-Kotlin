@@ -73,7 +73,8 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:contentPadding="12dp"
+        android:layout_marginBottom="8dp"
+        app:contentPadding="16dp"
         app:cardElevation="0dp"
         app:strokeColor="@color/blue_30"
         app:strokeWidth="1dp"

@@ -3,25 +3,47 @@ package com.example.lifemaster_xml
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.core.content.res.ResourcesCompat
+import com.example.lifemaster_xml.community.CommunityFragment
 import com.example.lifemaster_xml.data.Datas
 import com.example.lifemaster_xml.databinding.ActivityMainBinding
+import com.example.lifemaster_xml.group.GroupFragment
+import com.example.lifemaster_xml.home.HomeFragment
+import com.example.lifemaster_xml.total.TotalFragment
 import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         codeCacheDir.setReadOnly()
+        if(savedInstanceState == null) {
+            binding.navigation.selectedItemId = R.id.action_home
+            supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, HomeFragment()).commit()
+        }
 
-        binding.viewpager.adapter = ViewPagerAdapter(this@MainActivity)
-        // tabLayout 과 viewpager 연동
-        TabLayoutMediator(binding.tabLayout, binding.viewpager) { tab, position ->
-            tab.text = Datas.tabLayoutTexts[position]
-            tab.icon = ResourcesCompat.getDrawable(resources, Datas.tabLayoutIcons[position], null)
-        }.attach()
+        // [!] setOnClickListener 가 아니라 setOnItemSelectedListener 이기 때문에, 하단 개별 뷰를 누르지 않더라도 selectedItemId 를 해당 뷰로 바꿔주면 동작한다.
+        binding.navigation.setOnItemSelectedListener { item ->
+            when(item.itemId) {
+                R.id.action_home -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, HomeFragment()).commit()
+                    true
+                }
+                R.id.action_group -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, GroupFragment()).commit()
+                    true
+                }
+                R.id.action_community -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, CommunityFragment()).commit()
+                    true
+                }
+                R.id.action_total -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, TotalFragment()).commit()
+                    true
+                }
+                else -> false
+            }
+        }
     }
 }

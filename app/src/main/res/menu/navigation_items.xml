@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_home"
+        android:title="홈"
+        android:icon="@drawable/ic_home"/>
+    <item android:id="@+id/action_group"
+        android:title="그룹"
+        android:icon="@drawable/ic_group"/>
+    <item android:id="@+id/action_community"
+        android:title="커뮤니티"
+        android:icon="@drawable/ic_community"/>
+    <item android:id="@+id/action_total"
+        android:title="전체"
+        android:icon="@drawable/ic_total"/>
+</menu>

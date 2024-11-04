@@ -48,7 +48,7 @@ class HomeFragment : Fragment(), ToDoDialogInterface {
         super.onViewCreated(view, savedInstanceState)
         // [?] fragment 생명주기 공부하기. 일단 잘 몰라서 onViewCreated 에 몰빵
         // [?] requireContext vs context
-        binding.recyclerview.adapter = ToDoAdapter(Datas.todoItems, requireContext())
+        binding.recyclerview.adapter = ToDoAdapter(Datas.todoItems, requireContext(), requireActivity()) // [?] activity vs requireActivity
         binding.btnAddTodoItem.setOnClickListener {
             // 다이얼로그 띄우기
             val dialog = ToDoDialog(this)
