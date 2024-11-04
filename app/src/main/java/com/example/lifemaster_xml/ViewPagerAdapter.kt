@@ -7,9 +7,10 @@ import com.example.lifemaster_xml.community.CommunityFragment
 import com.example.lifemaster_xml.group.GroupFragment
 import com.example.lifemaster_xml.home.HomeFragment
 import com.example.lifemaster_xml.total.TotalFragment
+import com.example.lifemaster_xml.total.pomodoro.PomodoroFragment
 
 class ViewPagerAdapter(activity: FragmentActivity): FragmentStateAdapter(activity) {
-    private val fragments = listOf(HomeFragment(), GroupFragment(), CommunityFragment(), TotalFragment())
+    private val fragments = listOf(PomodoroFragment(), GroupFragment(), CommunityFragment(), TotalFragment())
 
     // 프래그먼트 항목 개수 반환
     override fun getItemCount(): Int = fragments.size
