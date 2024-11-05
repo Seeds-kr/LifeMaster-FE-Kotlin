@@ -10,4 +10,6 @@
     <color name="blue_100">#5C76C3</color>
     <color name="blue_30">#4D5C76C3</color>
     <color name="blue_10">#1A5C76C3</color>
+    <color name="light_gray_100">#F0F4F5</color>
+    <color name="gray_100">#6B6D6D</color>
 </resources>

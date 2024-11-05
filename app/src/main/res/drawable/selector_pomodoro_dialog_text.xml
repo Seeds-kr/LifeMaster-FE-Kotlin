@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- textColor 는 ColorStateList 를 요구하는데, 해당 방법은 ColorStateList 로 간주되어 올바르게 적용된다 -->
+    <item android:color="@color/blue_100" android:state_selected="true"/>
+    <item android:color="@color/gray_100" android:state_selected="false"/>
+
+    <!-- 아래 방법은 Drawable 로 간주되어 ColorStateList 로 해석되지 않는다. 따라서 textColor 가 제대로 적용되지 않는다.-->
+<!--    <item android:state_selected="true">-->
+<!--        <color android:color="@color/blue_100"/>-->
+<!--    </item>-->
+<!--    <item android:state_selected="false">-->
+<!--        <color android:color="@color/gray_100"/>-->
+<!--    </item>-->
+</selector>
+
