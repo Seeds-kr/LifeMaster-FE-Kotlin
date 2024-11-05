@@ -1,5 +1,6 @@
 package com.example.lifemaster_xml.home
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -77,8 +78,7 @@ class HomeFragment : Fragment(), ToDoDialogInterface {
             }
     }
 
-    override fun registerToDoItem(content: String) {
-        Datas.todoItems.add(content)
+    override fun registerToDoItem() {
         binding.recyclerview.adapter?.notifyDataSetChanged()
     }
 }

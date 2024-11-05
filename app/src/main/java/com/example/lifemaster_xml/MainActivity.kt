@@ -1,7 +1,9 @@
 package com.example.lifemaster_xml
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.core.content.res.ResourcesCompat
 import com.example.lifemaster_xml.community.CommunityFragment
 import com.example.lifemaster_xml.data.Datas
@@ -22,6 +24,10 @@ class MainActivity : AppCompatActivity() {
             binding.navigation.selectedItemId = R.id.action_home
             supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, HomeFragment()).commit()
         }
+
+        // 할일 목록 리스트 불러오기
+        val sharedPreferences = getSharedPreferences("todo_items", Context.MODE_PRIVATE)
+        Datas.todoItems.addAll(sharedPreferences.all.values as Collection<String>)
 
         // [!] setOnClickListener 가 아니라 setOnItemSelectedListener 이기 때문에, 하단 개별 뷰를 누르지 않더라도 selectedItemId 를 해당 뷰로 바꿔주면 동작한다.
         binding.navigation.setOnItemSelectedListener { item ->
