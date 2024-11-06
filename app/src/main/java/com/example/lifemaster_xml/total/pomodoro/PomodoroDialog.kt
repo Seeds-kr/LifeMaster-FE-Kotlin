@@ -5,10 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.lifemaster_xml.data.Datas
 import com.example.lifemaster_xml.databinding.DialogPomodoroBinding
+import kotlinx.coroutines.selects.select
 
 class PomodoroDialog: DialogFragment(), SendSelectedPositionInterface {
     lateinit var binding: DialogPomodoroBinding
@@ -31,8 +33,12 @@ class PomodoroDialog: DialogFragment(), SendSelectedPositionInterface {
         super.onViewCreated(view, savedInstanceState)
         binding.btnSelect.setOnClickListener {
             // viewmodel 의 live data 값으로 세팅하기
-            sharedViewModel.setPosition(selectedPosition!!)
-            dismiss()
+            if(selectedPosition != null) {
+                sharedViewModel.setPosition(selectedPosition!!)
+                dismiss()
+            } else {
+                Toast.makeText(context, "할일을 선택해주세요!", Toast.LENGTH_SHORT).show() // [?] context 와 requireContext 의 차이?
+            }
         }
         binding.btnCancel.setOnClickListener {
             dismiss()
