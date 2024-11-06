@@ -13,7 +13,8 @@ import com.example.lifemaster_xml.R
 
 class PomodoroAdapter(
     val todoItems: MutableList<String>,
-    val context: Context
+    val context: Context,
+    val sendSelectedPositionInterface: SendSelectedPositionInterface // 앞에 val 붙이는거랑 안붙이는거랑 차이가 뭐지?
 ) : RecyclerView.Adapter<PomodoroAdapter.PomodoroViewHolder>() {
 
     private var selectedPosition = RecyclerView.NO_POSITION
@@ -30,6 +31,7 @@ class PomodoroAdapter(
                 selectedPosition = adapterPosition
                 notifyItemChanged(previousPosition)
                 notifyItemChanged(selectedPosition)
+                sendSelectedPositionInterface.sendSelectedPosition(selectedPosition)
             }
         }
     }
@@ -47,4 +49,8 @@ class PomodoroAdapter(
     override fun getItemCount(): Int {
         return todoItems.size
     }
+}
+
+interface SendSelectedPositionInterface {
+    fun sendSelectedPosition(position: Int)
 }
