@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("onCreate", "true")
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         codeCacheDir.setReadOnly()
@@ -27,6 +28,7 @@ class MainActivity : AppCompatActivity() {
 
         // 할일 목록 리스트 불러오기
         val sharedPreferences = getSharedPreferences("todo_items", Context.MODE_PRIVATE)
+        Datas.todoItems.clear() // [?] todoItems 에 있는 값은 어떤 생명주기에서 사라지는걸까?
         Datas.todoItems.addAll(sharedPreferences.all.values as Collection<String>)
 
         // [!] setOnClickListener 가 아니라 setOnItemSelectedListener 이기 때문에, 하단 개별 뷰를 누르지 않더라도 selectedItemId 를 해당 뷰로 바꿔주면 동작한다.
