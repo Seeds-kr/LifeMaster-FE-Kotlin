@@ -28,6 +28,7 @@
         android:layout_marginBottom="36dp"
         android:orientation="horizontal">
         <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/rb_25_minutes"
             android:padding="18dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -38,6 +39,7 @@
             android:text="25분"
             android:textColor="@drawable/selector_pomodoro_timer_text"/> <!-- [?] @null vs @transparent -->
         <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/rb_50_minutes"
             android:padding="18dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -62,14 +64,18 @@
         android:textColor="@color/black"
         android:layout_gravity="center_horizontal"/>
     <TextView
+        android:id="@+id/tv_pomodoro_timer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="―:―:―"
+        android:text="@string/tv_pomodoro_timer_not_set"
         android:textSize="60sp"
         android:textColor="@color/black"
         android:textStyle="bold"
         android:layout_marginBottom="20dp"
         android:layout_gravity="center_horizontal"/>
+
+    <!-- [PM] 25분이랑 50분 중에 둘 중으로만 선택이 가능하면 맨 왼쪽의 '―' 가 의미가 있을까? -->
+
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -84,7 +90,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="할일 선택하기"
+            android:text="@string/tv_select_todo_item"
             android:textColor="@color/blue_100"/>
         <ImageView
             android:id="@+id/iv_open_todo_dialog"
@@ -94,6 +100,7 @@
             android:src="@drawable/ic_move_fragment"/>
     </com.google.android.material.card.MaterialCardView>
     <Button
+        android:id="@+id/btn_start_pomodoro"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"

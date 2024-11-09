@@ -2,4 +2,11 @@
     <string name="app_name">LifeMaster_XML</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="tv_pomodoro_timer_not_set">―:―:―</string>
+    <string name="tv_pomodoro_timer_zero">00:00:00</string>
+    <string name="tv_pomodoro_timer_25">00:25:00</string>
+    <string name="tv_pomodoro_timer_50">00:50:00</string>
+    <string name="tv_pomodoro_timer_25_half">00:12:30</string>
+    <string name="tv_pomodoro_timer_50_half">00:25:00</string>
+    <string name="tv_select_todo_item">할일 선택하기</string>
 </resources>
