@@ -1,5 +1,6 @@
 package com.example.lifemaster_xml.total.pomodoro
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.lifemaster_xml.R
 import com.example.lifemaster_xml.data.Datas
 import com.example.lifemaster_xml.databinding.FragmentPomodoroBinding
+import com.example.lifemaster_xml.total.pomodoro.emergency_escape.EmergencyEscapeActivity
 import java.util.*
 import kotlin.concurrent.timer
 
@@ -35,6 +37,7 @@ class PomodoroFragment : Fragment() {
     private var totalSecond = 0
 
     private var timer: Timer? = null
+    private var btnCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,14 +74,16 @@ class PomodoroFragment : Fragment() {
             binding.tvPomodoroTimer.text = getString(R.string.tv_pomodoro_timer_50)
         }
         binding.btnStartPomodoro.setOnClickListener {
-            if(binding.tvSelectTodoItem.text == getString(R.string.tv_select_todo_item)) {
+            if (binding.tvSelectTodoItem.text == getString(R.string.tv_select_todo_item)) {
                 Toast.makeText(context, "할일을 선택해주세요!", Toast.LENGTH_SHORT).show()
             } else {
                 when (binding.tvPomodoroTimer.text) {
                     getString(R.string.tv_pomodoro_timer_25) -> {
                         binding.rb25Minutes.isClickable = false
-                        binding.rb50Minutes.isClickable = false // [refactor] binding 도 많이 중복되니 scope function 으로 빼서 중복 피하기
-                        totalSecond = 5  // 25분 × 60초
+                        binding.rb50Minutes.isClickable =
+                            false // [refactor] binding 도 많이 중복되니 scope function 으로 빼서 중복 피하기
+                        sharedViewModel.clickButton()
+                        totalSecond = 25 * 60  // 25분 × 60초
                         // worker thread
                         timer = timer(
                             initialDelay = 0,
@@ -115,6 +120,7 @@ class PomodoroFragment : Fragment() {
                     getString(R.string.tv_pomodoro_timer_50) -> {
                         binding.rb25Minutes.isClickable = false
                         binding.rb50Minutes.isClickable = false
+                        sharedViewModel.clickButton()
                         totalSecond = 50 * 60
                         timer = timer(initialDelay = 0, period = 1000) { // worker thread
                             if (totalSecond > 0) { // [refactor] 반복되는 부분 함수로 빼기
@@ -144,17 +150,34 @@ class PomodoroFragment : Fragment() {
                             }
                         }
                     }
-                    else -> {
+                    getString(R.string.tv_pomodoro_timer_not_set) -> {
                         Toast.makeText(context, "시간을 설정해주세요!", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        sharedViewModel.clickButton()
                     }
                 }
             }
-            }
+        }
     }
 
     fun observeViewModel() {
         sharedViewModel.selectedPosition.observe(viewLifecycleOwner) { selectedPosition ->
             binding.tvSelectTodoItem.text = Datas.todoItems[selectedPosition]
+        }
+        sharedViewModel.buttonCount.observe(viewLifecycleOwner) { btnCount ->
+            when (btnCount) {
+                0 -> {
+                    binding.btnStartPomodoro.text = "시작하기"
+                }
+                1 -> {
+                    binding.btnStartPomodoro.text = "비상 탈출"
+                }
+                2 -> {
+                    val intent = Intent(requireContext(), EmergencyEscapeActivity::class.java)
+                    startActivity(intent)
+                }
+            }
         }
     }
 

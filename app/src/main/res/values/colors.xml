@@ -12,4 +12,8 @@
     <color name="blue_10">#1A5C76C3</color>
     <color name="light_gray_100">#F0F4F5</color>
     <color name="gray_100">#6B6D6D</color>
+    <color name="edit_text_gray">#C5C6C6</color>
+    <color name="green_100">#8DB83F</color>
+    <color name="light_green_100">#B4D775</color>
+    <color name="very_light_green_100">#F8FBF2</color>
 </resources>

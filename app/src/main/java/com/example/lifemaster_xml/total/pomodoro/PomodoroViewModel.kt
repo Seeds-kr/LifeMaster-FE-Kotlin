@@ -14,4 +14,13 @@ class PomodoroViewModel: ViewModel() {
         _selectedPosition.value = position
         Log.d("viewmodel", _selectedPosition.value.toString())
     }
+
+    // 버튼 옵져빙
+    private val _buttonCount = MutableLiveData<Int>()
+    val buttonCount: LiveData<Int> = _buttonCount
+    private var btnCnt = 0
+
+    fun clickButton() {
+        _buttonCount.value = ++btnCnt
+    }
 }

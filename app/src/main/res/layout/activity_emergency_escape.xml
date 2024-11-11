@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".total.pomodoro.emergency_escape.EmergencyEscapeActivity">
+
+    <TextView
+        android:id="@+id/tv_current_datetime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="@color/green_100"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="42dp"
+        tools:text="2024년 7월 30일"/>
+
+<!--    <TextView-->
+<!--        android:id="@+id/tv_pomodoro_timer"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:textSize="80sp"-->
+<!--        android:textStyle="bold"-->
+<!--        android:textColor="@color/black"-->
+<!--        android:layout_gravity="center_horizontal"-->
+<!--        tools:text="00:23:12"/>-->
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="총 15개의 문장을 따라 써주세요"
+        android:textColor="@color/green_100"
+        android:layout_marginTop="36dp"/>
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:contentPadding="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        android:backgroundTint="@color/very_light_green_100">
+        <TextView
+            android:id="@+id/tv_sentence_first"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="@color/green_100"
+            android:textStyle="bold"
+            tools:text="나의 꿈은 맑은 바람이 되어서"/>
+    </androidx.cardview.widget.CardView>
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="28dp"
+        app:contentPadding="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        android:backgroundTint="@color/light_gray_100">
+        <EditText
+            android:id="@+id/et_answer_first"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="@color/edit_text_gray"
+            android:background="@android:color/transparent"
+            android:textStyle="bold"
+            android:hint="여기에 따라 입력하세요"/>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:contentPadding="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        android:backgroundTint="@color/very_light_green_100">
+        <TextView
+            android:id="@+id/tv_sentence_second"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="@color/green_100"
+            android:textStyle="bold"
+            tools:text="너무 맑고 초롱한 그 중 하나 별이여"/>
+    </androidx.cardview.widget.CardView>
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="28dp"
+        app:contentPadding="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        android:backgroundTint="@color/light_gray_100">
+        <EditText
+            android:id="@+id/et_answer_second"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="@color/edit_text_gray"
+            android:background="@android:color/transparent"
+            android:textStyle="bold"
+            android:hint="여기에 따라 입력하세요"/>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:contentPadding="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        android:backgroundTint="@color/very_light_green_100">
+        <TextView
+            android:id="@+id/tv_sentence_third"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="@color/green_100"
+            android:textStyle="bold"
+            tools:text="햇빛이 선명하게 나뭇잎을 핥고 있었다"/>
+    </androidx.cardview.widget.CardView>
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="28dp"
+        app:contentPadding="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        android:backgroundTint="@color/light_gray_100">
+        <EditText
+            android:id="@+id/et_answer_third"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="@color/edit_text_gray"
+            android:background="@android:color/transparent"
+            android:textStyle="bold"
+            android:hint="여기에 따라 입력하세요"/>
+    </androidx.cardview.widget.CardView>
+
+    <Button
+        android:id="@+id/btn_next_page"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/light_green_100"
+        android:textSize="12sp"
+        tools:text="1/15 진행 중"/>
+</androidx.appcompat.widget.LinearLayoutCompat>
