@@ -12,4 +12,16 @@ class EmergencyEscapeViewModel : ViewModel() {
     fun clickButton() {
         _buttonCount.value = ++btnCount
     }
+
+    private val _writtenSentence = MutableLiveData<Int>()
+    val writtenSentence: LiveData<Int> = _writtenSentence
+    private var sentence = 0
+
+    fun increaseSentence() {
+        _writtenSentence.value = ++sentence
+    }
+
+    fun decreaseSentence() {
+        _writtenSentence.value = --sentence
+    }
 }

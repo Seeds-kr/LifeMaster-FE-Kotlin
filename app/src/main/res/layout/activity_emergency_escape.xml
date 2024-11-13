@@ -151,5 +151,6 @@
         android:layout_height="wrap_content"
         android:backgroundTint="@color/light_green_100"
         android:textSize="12sp"
-        tools:text="1/15 진행 중"/>
+        android:textColor="@color/white"
+        android:text="0/15 진행 중"/>
 </androidx.appcompat.widget.LinearLayoutCompat>
