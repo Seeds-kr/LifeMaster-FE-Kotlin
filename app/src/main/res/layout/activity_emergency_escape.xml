@@ -51,7 +51,8 @@
             android:textStyle="bold"
             tools:text="나의 꿈은 맑은 바람이 되어서"/>
     </androidx.cardview.widget.CardView>
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv_sentence_first"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -69,7 +70,7 @@
             android:background="@android:color/transparent"
             android:textStyle="bold"
             android:hint="여기에 따라 입력하세요"/>
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -88,7 +89,8 @@
             android:textStyle="bold"
             tools:text="너무 맑고 초롱한 그 중 하나 별이여"/>
     </androidx.cardview.widget.CardView>
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv_sentence_second"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -106,7 +108,7 @@
             android:background="@android:color/transparent"
             android:textStyle="bold"
             android:hint="여기에 따라 입력하세요"/>
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -125,7 +127,8 @@
             android:textStyle="bold"
             tools:text="햇빛이 선명하게 나뭇잎을 핥고 있었다"/>
     </androidx.cardview.widget.CardView>
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv_sentence_third"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -143,7 +146,7 @@
             android:background="@android:color/transparent"
             android:textStyle="bold"
             android:hint="여기에 따라 입력하세요"/>
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
     <Button
         android:id="@+id/btn_next_page"

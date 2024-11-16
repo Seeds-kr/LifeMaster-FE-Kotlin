@@ -1,13 +1,15 @@
 package com.example.lifemaster_xml.total.pomodoro.emergency_escape
 
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
-import android.text.TextWatcher
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.viewModels
+import com.example.lifemaster_xml.R
 import com.example.lifemaster_xml.data.Datas
 import com.example.lifemaster_xml.databinding.ActivityEmergencyEscapeBinding
+import com.google.android.material.internal.TextWatcherAdapter
 
 class EmergencyEscapeActivity : AppCompatActivity() {
     lateinit var binding: ActivityEmergencyEscapeBinding
@@ -80,96 +82,116 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.btnNextPage.setOnClickListener {
-            answerList.forEach {
-                if(it.isFocused) it.clearFocus()
+            if (binding.etAnswerFirst.text.isNotEmpty() && binding.etAnswerSecond.text.isNotEmpty() && binding.etAnswerThird.text.isNotEmpty()) { // [?] CharSequence vs String
+                answerList.forEach {
+                    if (it.isFocused) it.clearFocus()
+                }
+                viewModel.clickButton()
+            } else {
+                Toast.makeText(this, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()
             }
-            viewModel.clickButton()
         }
     }
 
-    // https://velog.io/@simsubeen/Android-Kotlin-TextWatcher%EC%99%80-%EC%A0%95%EA%B7%9C%EC%8B%9D%EC%9D%84-%EC%82%AC%EC%9A%A9%ED%95%9C-%ED%9A%8C%EC%9B%90-%EA%B0%80%EC%9E%85-%ED%99%94%EB%A9%B4
-    // 숫자 +1 / 문자(한글, 영어) +2
     fun edittextWatcher() {
-//        binding.etAnswerFirst.addTextChangedListener(object : TextWatcher {
-//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-//                // "the count characters beginning at start" are about to be replaced by new text with length after. (이해 완료)
-////                Log.d("textWatcher", "s:$s, start:$start, count: $count, after: $after")
-//            }
-//
-//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-////                if (s?.isNotEmpty() == true) {
-////                    viewModel.increaseSentence()
-////                } else {
-////                    viewModel.decreaseSentence()
-////                }
-//                // within s, "the count characters beginning at start" have just replaced old text that had length before. (이해 완료)
-////                Log.d("textWatcher", "s: $s, start: $start, before: $before, count: $count")
-//            }
-//
-//            override fun afterTextChanged(s: Editable?) {
-//                // somewhere within s, the text has been changed. (이해 완료)
-////                Log.d("textWatcher", "s: $s")
-//            }
-//        })
+
+        binding.etAnswerFirst.addTextChangedListener(@SuppressLint("RestrictedApi")
+        object: TextWatcherAdapter() {
+            override fun afterTextChanged(s: Editable) {
+                when(viewModel.btnCount) {
+                    0 -> checkUserInputSentence(s, 0, 1)
+                    1 -> checkUserInputSentence(s, 3, 1)
+                    2 -> checkUserInputSentence(s, 6, 1)
+                    3 -> checkUserInputSentence(s, 9, 1)
+                    4 -> checkUserInputSentence(s, 12, 1)
+                }
+            }
+        })
+
+        binding.etAnswerSecond.addTextChangedListener(@SuppressLint("RestrictedApi")
+        object: TextWatcherAdapter() {
+            override fun afterTextChanged(s: Editable) {
+                when(viewModel.btnCount) {
+                    0 -> checkUserInputSentence(s, 1, 2)
+                    1 -> checkUserInputSentence(s, 4, 2)
+                    2 -> checkUserInputSentence(s, 7, 2)
+                    3 -> checkUserInputSentence(s, 10, 2)
+                    4 -> checkUserInputSentence(s, 13, 2)
+                }
+            }
+        })
+
+        binding.etAnswerThird.addTextChangedListener(@SuppressLint("RestrictedApi")
+        object: TextWatcherAdapter() {
+            override fun afterTextChanged(s: Editable) {
+                when(viewModel.btnCount) {
+                    0 -> checkUserInputSentence(s, 2, 3)
+                    1 -> checkUserInputSentence(s, 5, 3)
+                    2 -> checkUserInputSentence(s, 8, 3)
+                    3 -> checkUserInputSentence(s, 11, 3)
+                    4 -> checkUserInputSentence(s, 14, 3)
+                }
+            }
+        })
 
         binding.etAnswerFirst.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-                Log.d("focus_first","true")
-                if(binding.etAnswerFirst.text.isEmpty()) viewModel.increaseSentence()
+                if (binding.etAnswerFirst.text.isEmpty()) viewModel.increaseSentence()
             } else {
-                Log.d("focus_first","false")
-                if(binding.etAnswerFirst.text.isEmpty()) viewModel.decreaseSentence()
+                if (binding.etAnswerFirst.text.isEmpty()) viewModel.decreaseSentence()
             }
         }
-
         binding.etAnswerSecond.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-                Log.d("focus_second","true")
-                if(binding.etAnswerSecond.text.isEmpty()) viewModel.increaseSentence() // [PM] 진행 중 숫자 상태를 empty 에 맞춰야 할까요 아니면 blank 에 맞춰야 할까요?
+                if (binding.etAnswerSecond.text.isEmpty()) viewModel.increaseSentence() // [PM] 진행 중 숫자 상태를 empty 에 맞춰야 할까요 아니면 blank 에 맞춰야 할까요?
             } else {
-                Log.d("focus_second","false")
-                if(binding.etAnswerSecond.text.isEmpty()) viewModel.decreaseSentence()
+                if (binding.etAnswerSecond.text.isEmpty()) viewModel.decreaseSentence()
             }
         }
-
         binding.etAnswerThird.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-                Log.d("focus_third","true")
-                if(binding.etAnswerThird.text.isEmpty()) viewModel.increaseSentence()
+                if (binding.etAnswerThird.text.isEmpty()) viewModel.increaseSentence()
             } else {
-                Log.d("focus_third","false")
-                if(binding.etAnswerThird.text.isEmpty()) {
-                    viewModel.decreaseSentence()
+                if (binding.etAnswerThird.text.isEmpty()) viewModel.decreaseSentence()
+            }
+        }
+    }
+
+    fun checkUserInputSentence(s: Editable, sentencePosition: Int, etPosition: Int) {
+        when(etPosition) {
+            1 -> {
+                val size = s.length
+                if(s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
+                    binding.cvSentenceFirst.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_success)
+                    binding.etAnswerFirst.setTextColor(getColor(R.color.edit_text_gray))
                 } else {
-                    Log.d("focus_third","isNotEmpty")
+                    binding.cvSentenceFirst.strokeColor = getColor(R.color.red_100)
+                    binding.cvSentenceFirst.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_error)
+                    binding.etAnswerFirst.setTextColor(getColor(R.color.red_100))
+                }
+            }
+            2 -> {
+                val size = s.length
+                if(s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
+                    binding.cvSentenceSecond.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_success)
+                    binding.etAnswerSecond.setTextColor(getColor(R.color.edit_text_gray))
+                } else {
+                    binding.cvSentenceSecond.strokeColor = getColor(R.color.red_100)
+                    binding.cvSentenceSecond.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_error)
+                    binding.etAnswerSecond.setTextColor(getColor(R.color.red_100))
+                }
+            }
+            3 -> {
+                val size = s.length
+                if(s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
+                    binding.cvSentenceThird.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_success)
+                    binding.etAnswerThird.setTextColor(getColor(R.color.edit_text_gray))
+                } else {
+                    binding.cvSentenceThird.strokeColor = getColor(R.color.red_100)
+                    binding.cvSentenceThird.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_error)
+                    binding.etAnswerThird.setTextColor(getColor(R.color.red_100))
                 }
             }
         }
-
-//        binding.etAnswerSecond.addTextChangedListener(object : TextWatcher {
-//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-//                if (s?.isNotEmpty() == true) {
-//                    viewModel.increaseSentence()
-//                } else {
-//                    viewModel.decreaseSentence()
-//                }
-//            }
-//
-//            override fun afterTextChanged(s: Editable?) {}
-//        })
-//
-//        binding.etAnswerThird.addTextChangedListener(object : TextWatcher {
-//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-//                if (s?.isNotEmpty() == true) {
-//                    viewModel.increaseSentence()
-//                } else {
-//                    viewModel.decreaseSentence()
-//                }
-//            }
-//
-//            override fun afterTextChanged(s: Editable?) {}
-//        })
     }
 }
