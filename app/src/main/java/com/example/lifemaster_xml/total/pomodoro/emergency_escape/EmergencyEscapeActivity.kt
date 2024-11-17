@@ -82,13 +82,18 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.btnNextPage.setOnClickListener {
-            if (binding.etAnswerFirst.text.isNotEmpty() && binding.etAnswerSecond.text.isNotEmpty() && binding.etAnswerThird.text.isNotEmpty()) { // [?] CharSequence vs String
+            if (binding.etAnswerFirst.text.toString() == binding.tvSentenceFirst.text.toString()
+                && binding.etAnswerSecond.text.toString() == binding.tvSentenceSecond.text.toString()
+                && binding.etAnswerThird.text.toString() == binding.tvSentenceThird.text.toString()
+            ) {
                 answerList.forEach {
                     if (it.isFocused) it.clearFocus()
                 }
                 viewModel.clickButton()
-            } else {
+            } else if (binding.etAnswerFirst.text.isBlank() || binding.etAnswerSecond.text.isBlank() || binding.etAnswerThird.text.isBlank()) {
                 Toast.makeText(this, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "문장을 정확하게 입력해주세요!", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -96,9 +101,9 @@ class EmergencyEscapeActivity : AppCompatActivity() {
     fun edittextWatcher() {
 
         binding.etAnswerFirst.addTextChangedListener(@SuppressLint("RestrictedApi")
-        object: TextWatcherAdapter() {
+        object : TextWatcherAdapter() {
             override fun afterTextChanged(s: Editable) {
-                when(viewModel.btnCount) {
+                when (viewModel.btnCount) {
                     0 -> checkUserInputSentence(s, 0, 1)
                     1 -> checkUserInputSentence(s, 3, 1)
                     2 -> checkUserInputSentence(s, 6, 1)
@@ -109,9 +114,9 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         })
 
         binding.etAnswerSecond.addTextChangedListener(@SuppressLint("RestrictedApi")
-        object: TextWatcherAdapter() {
+        object : TextWatcherAdapter() {
             override fun afterTextChanged(s: Editable) {
-                when(viewModel.btnCount) {
+                when (viewModel.btnCount) {
                     0 -> checkUserInputSentence(s, 1, 2)
                     1 -> checkUserInputSentence(s, 4, 2)
                     2 -> checkUserInputSentence(s, 7, 2)
@@ -122,9 +127,9 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         })
 
         binding.etAnswerThird.addTextChangedListener(@SuppressLint("RestrictedApi")
-        object: TextWatcherAdapter() {
+        object : TextWatcherAdapter() {
             override fun afterTextChanged(s: Editable) {
-                when(viewModel.btnCount) {
+                when (viewModel.btnCount) {
                     0 -> checkUserInputSentence(s, 2, 3)
                     1 -> checkUserInputSentence(s, 5, 3)
                     2 -> checkUserInputSentence(s, 8, 3)
@@ -158,37 +163,43 @@ class EmergencyEscapeActivity : AppCompatActivity() {
     }
 
     fun checkUserInputSentence(s: Editable, sentencePosition: Int, etPosition: Int) {
-        when(etPosition) {
+        when (etPosition) {
             1 -> {
                 val size = s.length
-                if(s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
-                    binding.cvSentenceFirst.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_success)
+                if (s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
+                    binding.cvSentenceFirst.strokeWidth =
+                        resources.getDimensionPixelSize(R.dimen.text_watcher_success)
                     binding.etAnswerFirst.setTextColor(getColor(R.color.edit_text_gray))
                 } else {
                     binding.cvSentenceFirst.strokeColor = getColor(R.color.red_100)
-                    binding.cvSentenceFirst.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_error)
+                    binding.cvSentenceFirst.strokeWidth =
+                        resources.getDimensionPixelSize(R.dimen.text_watcher_error)
                     binding.etAnswerFirst.setTextColor(getColor(R.color.red_100))
                 }
             }
             2 -> {
                 val size = s.length
-                if(s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
-                    binding.cvSentenceSecond.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_success)
+                if (s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
+                    binding.cvSentenceSecond.strokeWidth =
+                        resources.getDimensionPixelSize(R.dimen.text_watcher_success)
                     binding.etAnswerSecond.setTextColor(getColor(R.color.edit_text_gray))
                 } else {
                     binding.cvSentenceSecond.strokeColor = getColor(R.color.red_100)
-                    binding.cvSentenceSecond.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_error)
+                    binding.cvSentenceSecond.strokeWidth =
+                        resources.getDimensionPixelSize(R.dimen.text_watcher_error)
                     binding.etAnswerSecond.setTextColor(getColor(R.color.red_100))
                 }
             }
             3 -> {
                 val size = s.length
-                if(s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
-                    binding.cvSentenceThird.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_success)
+                if (s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
+                    binding.cvSentenceThird.strokeWidth =
+                        resources.getDimensionPixelSize(R.dimen.text_watcher_success)
                     binding.etAnswerThird.setTextColor(getColor(R.color.edit_text_gray))
                 } else {
                     binding.cvSentenceThird.strokeColor = getColor(R.color.red_100)
-                    binding.cvSentenceThird.strokeWidth = resources.getDimensionPixelSize(R.dimen.text_watcher_error)
+                    binding.cvSentenceThird.strokeWidth =
+                        resources.getDimensionPixelSize(R.dimen.text_watcher_error)
                     binding.etAnswerThird.setTextColor(getColor(R.color.red_100))
                 }
             }
