@@ -1,23 +1,21 @@
 package com.example.lifemaster_xml
 
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import androidx.core.content.res.ResourcesCompat
+import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster_xml.community.CommunityFragment
 import com.example.lifemaster_xml.data.Datas
 import com.example.lifemaster_xml.databinding.ActivityMainBinding
 import com.example.lifemaster_xml.group.GroupFragment
 import com.example.lifemaster_xml.home.HomeFragment
 import com.example.lifemaster_xml.total.TotalFragment
-import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("onCreate", "true")
+        Log.d("Activity_Main", "onCreate")
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         codeCacheDir.setReadOnly()
@@ -53,5 +51,35 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d("Activity_Main", "onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("Activity_Main", "onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d("Activity_Main", "onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d("Activity_Main", "onStop")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Log.d("Activity_Main", "onRestart")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("Activity_Main", "onDestroy")
     }
 }

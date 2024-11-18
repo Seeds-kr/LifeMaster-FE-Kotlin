@@ -1,12 +1,15 @@
 package com.example.lifemaster_xml.total.pomodoro.emergency_escape
 
 import android.annotation.SuppressLint
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
-import android.widget.Toast
+import android.util.Log
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import com.example.lifemaster_xml.R
+import com.example.lifemaster_xml.SharedViewModel
 import com.example.lifemaster_xml.data.Datas
 import com.example.lifemaster_xml.databinding.ActivityEmergencyEscapeBinding
 import com.google.android.material.internal.TextWatcherAdapter
@@ -14,10 +17,17 @@ import com.google.android.material.internal.TextWatcherAdapter
 class EmergencyEscapeActivity : AppCompatActivity() {
     lateinit var binding: ActivityEmergencyEscapeBinding
     private val viewModel by viewModels<EmergencyEscapeViewModel>()
+    lateinit var sharedViewModel: SharedViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("Activity_EmergencyEscape", "onCreate")
         binding = ActivityEmergencyEscapeBinding.inflate(layoutInflater)
+        sharedViewModel =
+            ViewModelProvider(application as ViewModelStoreOwner)[SharedViewModel::class.java]
+
+        val remainTimer = intent.getStringExtra("remain_timer")
+        binding.tvPomodoroTimer.text = remainTimer
 
         val sentenceList =
             listOf(binding.tvSentenceFirst, binding.tvSentenceSecond, binding.tvSentenceThird)
@@ -68,6 +78,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 }
                 else -> {
                     // 뽀모도로 화면으로 돌아오기
+                    sharedViewModel.onEscapeSuccess()
                     finish()
                 }
             }
@@ -82,19 +93,26 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.btnNextPage.setOnClickListener {
-            if (binding.etAnswerFirst.text.toString() == binding.tvSentenceFirst.text.toString()
-                && binding.etAnswerSecond.text.toString() == binding.tvSentenceSecond.text.toString()
-                && binding.etAnswerThird.text.toString() == binding.tvSentenceThird.text.toString()
-            ) {
-                answerList.forEach {
-                    if (it.isFocused) it.clearFocus()
-                }
-                viewModel.clickButton()
-            } else if (binding.etAnswerFirst.text.isBlank() || binding.etAnswerSecond.text.isBlank() || binding.etAnswerThird.text.isBlank()) {
-                Toast.makeText(this, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "문장을 정확하게 입력해주세요!", Toast.LENGTH_SHORT).show()
-            }
+//            if (binding.etAnswerFirst.text.toString() == binding.tvSentenceFirst.text.toString()
+//                && binding.etAnswerSecond.text.toString() == binding.tvSentenceSecond.text.toString()
+//                && binding.etAnswerThird.text.toString() == binding.tvSentenceThird.text.toString()
+//            ) {
+//                answerList.forEach {
+//                    if (it.isFocused) it.clearFocus()
+//                }
+//                viewModel.clickButton()
+//            } else if (binding.etAnswerFirst.text.isBlank() || binding.etAnswerSecond.text.isBlank() || binding.etAnswerThird.text.isBlank()) {
+//                Toast.makeText(this, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()
+//            } else {
+//                Toast.makeText(this, "문장을 정확하게 입력해주세요!", Toast.LENGTH_SHORT).show()
+//            }
+            viewModel.clickButton()
+        }
+
+        binding.ivBackToPomodoro.setOnClickListener {
+            EmergencyEscapeDialog().show(
+                supportFragmentManager, EmergencyEscapeDialog.TAG
+            )
         }
     }
 
@@ -205,4 +223,59 @@ class EmergencyEscapeActivity : AppCompatActivity() {
             }
         }
     }
+
+    // text watcher 에서 오류 판정 기준을 한글자가 아닌 자음과 모음까지 분리하기 위해 만든 함수인데 제대로 작동안해서 주석 처리함
+//    fun isUserInputValid(input: String, target: String): Boolean {
+//        val inputLength = input.length
+//        if (input.length > target.length) return false
+//
+//        val targetSub = target.take(inputLength)
+//        if (input == targetSub) return true
+//
+//        for (char in input) {
+//            if(!isValidHangulChar(char)) return false
+//        }
+//
+//        return true
+//    }
+
+//    fun isValidHangulChar(char: Char): Boolean {
+//        return (char in '\uAC00'..'\uD7A3') ||
+//                (char in '\u1100'..'\u11FF') ||
+//                (char in '\u3130'..'\u318F')
+//    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d("Activity_EmergencyEscape", "onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("Activity_EmergencyEscape", "onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d("Activity_EmergencyEscape", "onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d("Activity_EmergencyEscape", "onStop")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Log.d("Activity_EmergencyEscape", "onRestart")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("Activity_EmergencyEscape", "onDestroy")
+    }
+}
+
+interface OnEmergencyEscapeSuccess {
+    fun onEmergencyEscapeSuccess()
 }

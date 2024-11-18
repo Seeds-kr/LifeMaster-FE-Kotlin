@@ -29,7 +29,7 @@ class ToDoAdapter(
                 // 1. home tab -> total view 전환
                 activity.findViewById<BottomNavigationView>(R.id.navigation).selectedItemId = R.id.action_total
                 // 2. total view 중 포모도로 프래그먼트 화면에 보이기
-                activity.supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, PomodoroFragment()).commit()
+                activity.supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, PomodoroFragment(), "PomodoroFragment").commit()
             }
         }
     }
