@@ -1,6 +1,8 @@
 package com.example.lifemaster_xml.total.pomodoro.emergency_escape
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.util.Log
@@ -9,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import com.example.lifemaster_xml.R
-import com.example.lifemaster_xml.SharedViewModel
 import com.example.lifemaster_xml.data.Datas
 import com.example.lifemaster_xml.databinding.ActivityEmergencyEscapeBinding
 import com.google.android.material.internal.TextWatcherAdapter
@@ -17,14 +18,11 @@ import com.google.android.material.internal.TextWatcherAdapter
 class EmergencyEscapeActivity : AppCompatActivity() {
     lateinit var binding: ActivityEmergencyEscapeBinding
     private val viewModel by viewModels<EmergencyEscapeViewModel>()
-    lateinit var sharedViewModel: SharedViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Activity_EmergencyEscape", "onCreate")
         binding = ActivityEmergencyEscapeBinding.inflate(layoutInflater)
-        sharedViewModel =
-            ViewModelProvider(application as ViewModelStoreOwner)[SharedViewModel::class.java]
 
         val remainTimer = intent.getStringExtra("remain_timer")
         binding.tvPomodoroTimer.text = remainTimer
@@ -78,7 +76,8 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 }
                 else -> {
                     // 뽀모도로 화면으로 돌아오기
-                    sharedViewModel.onEscapeSuccess()
+                    val resultIntent = Intent().putExtra("isEscapeSuccess", true)
+                    setResult(Activity.RESULT_OK, resultIntent)
                     finish()
                 }
             }
