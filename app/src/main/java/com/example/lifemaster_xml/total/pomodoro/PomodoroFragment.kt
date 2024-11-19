@@ -1,6 +1,5 @@
 package com.example.lifemaster_xml.total.pomodoro
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -8,15 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.lifemaster_xml.R
-import com.example.lifemaster_xml.data.Datas
+import com.example.lifemaster_xml.data.SharedData
 import com.example.lifemaster_xml.databinding.FragmentPomodoroBinding
 import com.example.lifemaster_xml.total.pomodoro.emergency_escape.EmergencyEscapeActivity
-import com.example.lifemaster_xml.total.pomodoro.emergency_escape.OnEmergencyFailed
 import java.util.*
 import kotlin.concurrent.timer
 
@@ -30,13 +26,12 @@ private const val ARG_PARAM2 = "param2"
  * Use the [PomodoroFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class PomodoroFragment : Fragment(), OnEmergencyFailed {
+class PomodoroFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
 
     lateinit var binding: FragmentPomodoroBinding
-    lateinit var resultLauncher: ActivityResultLauncher<Intent>
 
     private val sharedViewModel by lazy {
         ViewModelProvider(requireActivity()).get(PomodoroViewModel::class.java) // https://black-jin0427.tistory.com/389
@@ -68,23 +63,6 @@ class PomodoroFragment : Fragment(), OnEmergencyFailed {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d("Fragment_Pomodoro", "onViewCreated")
-        resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if(result.resultCode == Activity.RESULT_OK) {
-                val isEscapeSuccess = result.data?.getBooleanExtra("isEscapeSuccess", false)
-                if(isEscapeSuccess == true) {
-                    timer?.cancel()
-                    timer = null
-                    totalSecond = 0
-                    binding.tvPomodoroTimer.text =
-                        getString(R.string.tv_pomodoro_timer_not_set) // [?] zero? not set?
-                    binding.rb25Minutes.isChecked = false
-                    binding.rb50Minutes.isChecked = false
-                    binding.rb25Minutes.isClickable = true
-                    binding.rb50Minutes.isClickable = true
-                    Toast.makeText(requireContext(), "비상탈출을 완료했습니다!", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
         setupListeners()
         observeViewModel()
     }
@@ -92,6 +70,50 @@ class PomodoroFragment : Fragment(), OnEmergencyFailed {
     override fun onStart() {
         super.onStart()
         Log.d("Fragment_Pomodoro", "onStart")
+        if(SharedData.pomodoroStatus == PomodoroStatus.ESCAPE_SUCCESS) {
+            timer?.cancel()
+            timer = null
+            totalSecond = 0
+            binding.tvPomodoroTimer.text =
+                getString(R.string.tv_pomodoro_timer_not_set) // [?] zero? not set?
+            binding.rb25Minutes.isChecked = false
+            binding.rb50Minutes.isChecked = false
+            binding.rb25Minutes.isClickable = true
+            binding.rb50Minutes.isClickable = true
+            Toast.makeText(requireContext(), "비상탈출을 완료했습니다!", Toast.LENGTH_SHORT).show()
+        } else if(SharedData.pomodoroStatus == PomodoroStatus.ESCAPE_FAILURE) {
+            timer = timer(
+                initialDelay = 1000,
+                period = 1000
+            ) { // period 단위 = millisecond ( 1000 millisecond = 1 second )
+                if (totalSecond > 0) {
+                    totalSecond -= 1
+                    val currentHour = totalSecond / 3600
+                    val currentMinute = totalSecond / 60
+                    val currentSecond = totalSecond % 60
+                    requireActivity().runOnUiThread {
+                        // worker thread 는 ui 에 접근할 수 없다. → Activity.runOnUiThread(Runnable) 이용
+                        binding.tvPomodoroTimer.text =
+                            String.format(
+                                "%02d:%02d:%02d",
+                                currentHour,
+                                currentMinute,
+                                currentSecond
+                            )
+                    }
+                } else {
+                    requireActivity().runOnUiThread {
+                        Toast.makeText(context, "시간이 종료되었습니다!", Toast.LENGTH_SHORT)
+                            .show()
+                        binding.rb25Minutes.isChecked = false
+                        binding.rb25Minutes.isClickable = true
+                        binding.rb50Minutes.isClickable = true
+                    } // [?] 왜 25분을 다시 클릭했을 때 ui 색상이 안변하지?
+                    timer?.cancel()
+                    timer = null
+                }
+            }
+        }
     }
 
     override fun onResume() {
@@ -223,7 +245,7 @@ class PomodoroFragment : Fragment(), OnEmergencyFailed {
 
     fun observeViewModel() {
         sharedViewModel.selectedPosition.observe(viewLifecycleOwner) { selectedPosition ->
-            binding.tvSelectTodoItem.text = Datas.todoItems[selectedPosition]
+            binding.tvSelectTodoItem.text = SharedData.todoItems[selectedPosition]
         }
         sharedViewModel.buttonCount.observe(viewLifecycleOwner) { btnCount ->
             when (btnCount) {
@@ -236,7 +258,7 @@ class PomodoroFragment : Fragment(), OnEmergencyFailed {
                 else -> {
                     val intent = Intent(requireContext(), EmergencyEscapeActivity::class.java)
                     intent.putExtra("remain_timer", binding.tvPomodoroTimer.text.toString())
-                    resultLauncher.launch(intent)
+                    startActivity(intent)
                 }
             }
         }
@@ -261,40 +283,5 @@ class PomodoroFragment : Fragment(), OnEmergencyFailed {
                     putString(ARG_PARAM2, param2)
                 }
             }
-    }
-
-    override fun onEmergencyFailed() {
-        Log.d("Fragment_Pomodoro", "interface work? remain count: $totalSecond")
-        timer = timer(
-            initialDelay = 1000,
-            period = 1000
-        ) { // period 단위 = millisecond ( 1000 millisecond = 1 second )
-            if (totalSecond > 0) {
-                totalSecond -= 1
-                val currentHour = totalSecond / 3600
-                val currentMinute = totalSecond / 60
-                val currentSecond = totalSecond % 60
-                requireActivity().runOnUiThread {
-                    // worker thread 는 ui 에 접근할 수 없다. → Activity.runOnUiThread(Runnable) 이용
-                    binding.tvPomodoroTimer.text =
-                        String.format(
-                            "%02d:%02d:%02d",
-                            currentHour,
-                            currentMinute,
-                            currentSecond
-                        )
-                }
-            } else {
-                requireActivity().runOnUiThread {
-                    Toast.makeText(context, "시간이 종료되었습니다!", Toast.LENGTH_SHORT)
-                        .show()
-                    binding.rb25Minutes.isChecked = false
-                    binding.rb25Minutes.isClickable = true
-                    binding.rb50Minutes.isClickable = true
-                } // [?] 왜 25분을 다시 클릭했을 때 ui 색상이 안변하지?
-                timer?.cancel()
-                timer = null
-            }
-        }
     }
 }

@@ -1,12 +1,11 @@
 package com.example.lifemaster_xml.home
 
-import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.lifemaster_xml.data.Datas
+import com.example.lifemaster_xml.data.SharedData
 import com.example.lifemaster_xml.databinding.FragmentHomeBinding
 import com.example.lifemaster_xml.home.todo.ToDoAdapter
 import com.example.lifemaster_xml.home.todo.ToDoDialog
@@ -49,7 +48,7 @@ class HomeFragment : Fragment(), ToDoDialogInterface {
         super.onViewCreated(view, savedInstanceState)
         // [?] fragment 생명주기 공부하기. 일단 잘 몰라서 onViewCreated 에 몰빵
         // [?] requireContext vs context
-        binding.recyclerview.adapter = ToDoAdapter(Datas.todoItems, requireContext(), requireActivity()) // [?] activity vs requireActivity
+        binding.recyclerview.adapter = ToDoAdapter(SharedData.todoItems, requireContext(), requireActivity()) // [?] activity vs requireActivity
         binding.btnAddTodoItem.setOnClickListener {
             // 다이얼로그 띄우기
             val dialog = ToDoDialog(this)

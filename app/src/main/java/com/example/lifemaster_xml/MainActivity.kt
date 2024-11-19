@@ -5,11 +5,12 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster_xml.community.CommunityFragment
-import com.example.lifemaster_xml.data.Datas
+import com.example.lifemaster_xml.data.SharedData
 import com.example.lifemaster_xml.databinding.ActivityMainBinding
 import com.example.lifemaster_xml.group.GroupFragment
 import com.example.lifemaster_xml.home.HomeFragment
 import com.example.lifemaster_xml.total.TotalFragment
+import com.example.lifemaster_xml.total.pomodoro.PomodoroFragment
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
@@ -26,8 +27,8 @@ class MainActivity : AppCompatActivity() {
 
         // 할일 목록 리스트 불러오기
         val sharedPreferences = getSharedPreferences("todo_items", Context.MODE_PRIVATE)
-        Datas.todoItems.clear() // [?] todoItems 에 있는 값은 어떤 생명주기에서 사라지는걸까?
-        Datas.todoItems.addAll(sharedPreferences.all.values as Collection<String>)
+        SharedData.todoItems.clear() // [?] todoItems 에 있는 값은 어떤 생명주기에서 사라지는걸까?
+        SharedData.todoItems.addAll(sharedPreferences.all.values as Collection<String>)
 
         // [!] setOnClickListener 가 아니라 setOnItemSelectedListener 이기 때문에, 하단 개별 뷰를 누르지 않더라도 selectedItemId 를 해당 뷰로 바꿔주면 동작한다.
         binding.navigation.setOnItemSelectedListener { item ->

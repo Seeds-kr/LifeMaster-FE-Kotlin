@@ -7,8 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.FragmentActivity
-import com.example.lifemaster_xml.data.Datas
+import com.example.lifemaster_xml.data.SharedData
 import com.example.lifemaster_xml.databinding.DialogTodoBinding
 
 // [?] dialog 와 dialog fragment 의 차이?
@@ -41,10 +40,10 @@ class ToDoDialog(
             if(content.isBlank()) {
                 Toast.makeText(requireContext(), "내용을 입력해주세요!", Toast.LENGTH_SHORT).show()
             } else {
-                Datas.todoItems.add(content)
+                SharedData.todoItems.add(content)
                 val sharedPreference = requireActivity().getSharedPreferences("todo_items", Context.MODE_PRIVATE)
                 val editor = sharedPreference?.edit()
-                editor?.putString("${Datas.todoItems.lastIndex}", content)
+                editor?.putString("${SharedData.todoItems.lastIndex}", content)
                 editor?.commit()
                 this.todoDialogInterface?.registerToDoItem() // [?] 꼭 인터페이스를 써야하는가?
                 dismiss()

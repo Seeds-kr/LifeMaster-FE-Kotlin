@@ -8,11 +8,11 @@ import android.text.Editable
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
+import com.example.lifemaster_xml.MainActivity
 import com.example.lifemaster_xml.R
-import com.example.lifemaster_xml.data.Datas
+import com.example.lifemaster_xml.data.SharedData
 import com.example.lifemaster_xml.databinding.ActivityEmergencyEscapeBinding
+import com.example.lifemaster_xml.total.pomodoro.PomodoroStatus
 import com.google.android.material.internal.TextWatcherAdapter
 
 class EmergencyEscapeActivity : AppCompatActivity() {
@@ -33,7 +33,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
             listOf(binding.etAnswerFirst, binding.etAnswerSecond, binding.etAnswerThird)
 
         sentenceList.forEachIndexed { idx, sentence ->
-            sentence.text = Datas.pomodoroEmergecyEscapeList[idx]
+            sentence.text = SharedData.pomodoroEmergecyEscapeList[idx]
         }
 
         viewModel.buttonCount.observe(this) { buttonCount ->
@@ -41,7 +41,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 1 -> {
                     // 2페이지
                     sentenceList.forEachIndexed { idx, sentence ->
-                        sentence.text = Datas.pomodoroEmergecyEscapeList[idx + 3] // [?] 좋지 않은 코드
+                        sentence.text = SharedData.pomodoroEmergecyEscapeList[idx + 3] // [?] 좋지 않은 코드
                     }
                     answerList.forEach {
                         it.text.clear()
@@ -50,7 +50,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 2 -> {
                     // 3페이지
                     sentenceList.forEachIndexed { idx, sentence ->
-                        sentence.text = Datas.pomodoroEmergecyEscapeList[idx + 6]
+                        sentence.text = SharedData.pomodoroEmergecyEscapeList[idx + 6]
                     }
                     answerList.forEach {
                         it.text.clear()
@@ -59,7 +59,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 3 -> {
                     // 4페이지
                     sentenceList.forEachIndexed { idx, sentence ->
-                        sentence.text = Datas.pomodoroEmergecyEscapeList[idx + 9]
+                        sentence.text = SharedData.pomodoroEmergecyEscapeList[idx + 9]
                     }
                     answerList.forEach {
                         it.text.clear()
@@ -68,7 +68,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 4 -> {
                     // 5페이지
                     sentenceList.forEachIndexed { idx, sentence ->
-                        sentence.text = Datas.pomodoroEmergecyEscapeList[idx + 12]
+                        sentence.text = SharedData.pomodoroEmergecyEscapeList[idx + 12]
                     }
                     answerList.forEach {
                         it.text.clear()
@@ -76,15 +76,14 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 }
                 else -> {
                     // 뽀모도로 화면으로 돌아오기
-                    val resultIntent = Intent().putExtra("isEscapeSuccess", true)
-                    setResult(Activity.RESULT_OK, resultIntent)
+                    SharedData.pomodoroStatus = PomodoroStatus.ESCAPE_SUCCESS
                     finish()
                 }
             }
         }
 
         viewModel.writtenSentence.observe(this) { sentence ->
-            binding.btnNextPage.text = "${sentence}/${Datas.pomodoroEmergecyEscapeList.size} 진행 중"
+            binding.btnNextPage.text = "${sentence}/${SharedData.pomodoroEmergecyEscapeList.size} 진행 중"
         }
 
         edittextWatcher()
@@ -183,7 +182,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         when (etPosition) {
             1 -> {
                 val size = s.length
-                if (s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
+                if (s.contentEquals(SharedData.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
                     binding.cvSentenceFirst.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_success)
                     binding.etAnswerFirst.setTextColor(getColor(R.color.edit_text_gray))
@@ -196,7 +195,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
             }
             2 -> {
                 val size = s.length
-                if (s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
+                if (s.contentEquals(SharedData.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
                     binding.cvSentenceSecond.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_success)
                     binding.etAnswerSecond.setTextColor(getColor(R.color.edit_text_gray))
@@ -209,7 +208,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
             }
             3 -> {
                 val size = s.length
-                if (s.contentEquals(Datas.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
+                if (s.contentEquals(SharedData.pomodoroEmergecyEscapeList[sentencePosition].take(size))) {
                     binding.cvSentenceThird.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_success)
                     binding.etAnswerThird.setTextColor(getColor(R.color.edit_text_gray))
@@ -273,8 +272,4 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         super.onDestroy()
         Log.d("Activity_EmergencyEscape", "onDestroy")
     }
-}
-
-interface OnEmergencyEscapeSuccess {
-    fun onEmergencyEscapeSuccess()
 }
