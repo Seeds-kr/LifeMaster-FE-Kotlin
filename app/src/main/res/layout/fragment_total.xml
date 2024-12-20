@@ -147,6 +147,7 @@
             android:textStyle="bold"
             android:textSize="18sp"/>
         <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_add_repeat_lock_app"
             android:layout_width="60dp"
             android:layout_height="32dp"
             android:text="추가"

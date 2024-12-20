@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -15,7 +15,7 @@
         android:textSize="18sp"/>
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:text="반복 잠금할 어플을 선택해주세요.\n또한, 사용 시간과 잠금 시간을 지정해주세요."
         android:textSize="16sp"
@@ -169,6 +169,7 @@
         android:orientation="horizontal"
         android:layout_marginTop="12dp">
         <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_delete"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
@@ -177,6 +178,7 @@
             android:backgroundTint="#F0F4F5"
             android:layout_marginEnd="8dp"/>
         <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_save"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
