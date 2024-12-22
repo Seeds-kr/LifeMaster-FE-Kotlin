@@ -8,7 +8,7 @@ import com.example.lifemaster_xml.databinding.DialogDitoxRepeatLockBinding
 
 class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_ditox_repeat_lock) {
 
-    lateinit var binding: DialogDitoxRepeatLockBinding
+    private lateinit var binding: DialogDitoxRepeatLockBinding
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -17,6 +17,11 @@ class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_ditox_repeat_lock) {
     }
 
     private fun setupListeners() {
+        binding.tvSelectTargetApp.setOnClickListener {
+            val dialog = DetoxRepeatLockTargetAppDialog()
+            dialog.isCancelable = false
+            dialog.show(childFragmentManager, DetoxRepeatLockTargetAppDialog.TAG)
+        }
         binding.btnDelete.setOnClickListener {
             dismiss()
         }
