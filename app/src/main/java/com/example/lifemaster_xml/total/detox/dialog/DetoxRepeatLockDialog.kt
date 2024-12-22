@@ -1,4 +1,4 @@
-package com.example.lifemaster_xml.total
+package com.example.lifemaster_xml.total.detox.dialog
 
 import android.os.Bundle
 import android.view.View

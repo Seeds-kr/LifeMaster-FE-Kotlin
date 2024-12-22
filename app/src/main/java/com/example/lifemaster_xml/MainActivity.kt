@@ -9,8 +9,7 @@ import com.example.lifemaster_xml.data.SharedData
 import com.example.lifemaster_xml.databinding.ActivityMainBinding
 import com.example.lifemaster_xml.group.GroupFragment
 import com.example.lifemaster_xml.home.HomeFragment
-import com.example.lifemaster_xml.total.TotalFragment
-import com.example.lifemaster_xml.total.pomodoro.PomodoroFragment
+import com.example.lifemaster_xml.total.detox.fragment.DetoxFragment
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
@@ -46,7 +45,7 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.action_total -> {
-                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, TotalFragment()).commit()
+                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, DetoxFragment()).commit()
                     true
                 }
                 else -> false

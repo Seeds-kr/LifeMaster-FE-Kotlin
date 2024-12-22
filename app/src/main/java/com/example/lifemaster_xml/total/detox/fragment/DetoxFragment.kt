@@ -1,12 +1,13 @@
-package com.example.lifemaster_xml.total
+package com.example.lifemaster_xml.total.detox.fragment
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.example.lifemaster_xml.R
 import com.example.lifemaster_xml.databinding.FragmentTotalBinding
+import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockDialog
 
-class TotalFragment : Fragment(R.layout.fragment_total) {
+class DetoxFragment : Fragment(R.layout.fragment_total) {
 
     lateinit var binding: FragmentTotalBinding
 
