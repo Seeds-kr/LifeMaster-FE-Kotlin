@@ -21,7 +21,7 @@ class DetoxFragment : Fragment(R.layout.fragment_total) {
         binding.btnAddRepeatLockApp.setOnClickListener {
             val dialog = DetoxRepeatLockDialog()
             dialog.isCancelable = false
-            dialog.show(activity?.supportFragmentManager!!, DetoxRepeatLockDialog.TAG)
+            dialog.show(childFragmentManager, DetoxRepeatLockDialog.TAG)
         }
     }
 }

@@ -19,9 +19,10 @@ class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_ditox_repeat_lock) {
 
     private fun setupListeners() {
         binding.tvSelectTargetApp.setOnClickListener {
+            dismiss()
             val dialog = DetoxRepeatLockTargetAppDialog()
             dialog.isCancelable = false
-            dialog.show(childFragmentManager, DetoxRepeatLockTargetAppDialog.TAG)
+            dialog.show(parentFragmentManager, DetoxRepeatLockTargetAppDialog.TAG)
         }
         binding.btnDelete.setOnClickListener {
             dismiss()
@@ -29,11 +30,6 @@ class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_ditox_repeat_lock) {
         binding.btnSave.setOnClickListener {
             dismiss()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        context?.dialogFragmentResize(this@DetoxRepeatLockDialog, 0.9f, 0.9f)
     }
 
     companion object {

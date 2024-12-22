@@ -20,15 +20,18 @@ class DetoxRepeatLockTargetAppDialog: DialogFragment(R.layout.dialog_detox_repea
     private fun setupListeners() {
         binding.btnCancel.setOnClickListener {
             dismiss()
+            showParentDialog()
         }
         binding.btnApply.setOnClickListener {
             dismiss()
+            showParentDialog()
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        context?.dialogFragmentResize(this@DetoxRepeatLockTargetAppDialog, 0.9f, 0.9f)
+    private fun showParentDialog() {
+        val dialog = DetoxRepeatLockDialog()
+        dialog.isCancelable = false
+        dialog.show(parentFragmentManager, DetoxRepeatLockDialog.TAG)
     }
 
     companion object {
