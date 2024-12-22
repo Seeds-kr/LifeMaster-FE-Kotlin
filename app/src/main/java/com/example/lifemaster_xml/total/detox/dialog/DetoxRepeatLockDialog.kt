@@ -18,6 +18,14 @@ class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_ditox_repeat_lock) {
     }
 
     private fun setupListeners() {
+        binding.ivOpenMaxTimeSetting.setOnClickListener {
+            binding.llMaxTimeClose.visibility = View.GONE
+            binding.llMaxTimeOpen.visibility = View.VISIBLE
+        }
+        binding.ivCloseMaxTimeSetting.setOnClickListener {
+            binding.llMaxTimeOpen.visibility = View.GONE
+            binding.llMaxTimeClose.visibility = View.VISIBLE
+        }
         binding.tvSelectTargetApp.setOnClickListener {
             dismiss()
             val dialog = DetoxRepeatLockTargetAppDialog()

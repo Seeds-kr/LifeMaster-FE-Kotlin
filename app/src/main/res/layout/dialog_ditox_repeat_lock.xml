@@ -146,15 +146,17 @@
         android:layout_marginTop="12dp"/>
 
     <LinearLayout
+        android:id="@+id/ll_max_time_close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:layout_marginTop="12dp">
         <ImageView
+            android:id="@+id/iv_open_max_time_setting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_add_repeat_lock"
+            android:src="@drawable/ic_repeat_lock_open"
             android:layout_marginEnd="8dp"/>
         <TextView
             android:layout_width="wrap_content"
@@ -162,6 +164,62 @@
             android:text="최대 사용 시간"
             android:textColor="#B4D775"
             android:textStyle="bold"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_max_time_open"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="12dp"
+        android:visibility="gone">
+        <ImageView
+            android:id="@+id/iv_close_max_time_setting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_repeat_lock_close"
+            android:layout_marginEnd="8dp"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="최대 사용 시간"
+            android:textColor="#B4D775"
+            android:textStyle="bold"/>
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:background="@drawable/bg_round_radius"
+            android:backgroundTint="#F0F4F5"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="시간"
+            android:textColor="@color/black"
+            android:layout_marginLeft="12dp"/>
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="20"
+            android:background="@drawable/bg_round_radius"
+            android:backgroundTint="#F0F4F5"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:layout_marginLeft="12dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="분"
+            android:textColor="@color/black"
+            android:layout_marginLeft="12dp"/>
     </LinearLayout>
 
     <LinearLayout
