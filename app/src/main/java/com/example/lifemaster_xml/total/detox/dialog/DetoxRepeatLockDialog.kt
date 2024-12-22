@@ -5,6 +5,7 @@ import android.view.View
 import androidx.fragment.app.DialogFragment
 import com.example.lifemaster_xml.R
 import com.example.lifemaster_xml.databinding.DialogDitoxRepeatLockBinding
+import com.example.lifemaster_xml.dialogFragmentResize
 
 class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_ditox_repeat_lock) {
 
@@ -28,6 +29,11 @@ class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_ditox_repeat_lock) {
         binding.btnSave.setOnClickListener {
             dismiss()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        context?.dialogFragmentResize(this@DetoxRepeatLockDialog, 0.9f, 0.9f)
     }
 
     companion object {
