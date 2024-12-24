@@ -4,16 +4,15 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.DialogFragment
 import com.example.lifemaster_xml.R
-import com.example.lifemaster_xml.databinding.DialogDitoxRepeatLockBinding
-import com.example.lifemaster_xml.dialogFragmentResize
+import com.example.lifemaster_xml.databinding.DialogDetoxRepeatLockBinding
 
-class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_ditox_repeat_lock) {
+class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_detox_repeat_lock) {
 
-    private lateinit var binding: DialogDitoxRepeatLockBinding
+    private lateinit var binding: DialogDetoxRepeatLockBinding
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding = DialogDitoxRepeatLockBinding.bind(view)
+        binding = DialogDetoxRepeatLockBinding.bind(view)
         setupListeners()
     }
 

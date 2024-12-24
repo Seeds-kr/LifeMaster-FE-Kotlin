@@ -8,13 +8,23 @@
     android:layout_marginBottom="12dp">
 
     <TextView
+        android:id="@+id/tv_week"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="4dp"
+        android:textColor="@color/black"
+        tools:text="매주"/>
+
+    <TextView
+        android:id="@+id/tv_day"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="12dp"
         android:textColor="@color/black"
-        tools:text="매주 월요일"/>
+        tools:text="월요일"/>
 
     <TextView
+        android:id="@+id/tv_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"

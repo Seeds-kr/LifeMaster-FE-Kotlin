@@ -342,10 +342,12 @@
             android:backgroundTint="@color/white"
             android:layout_marginTop="12dp">
             <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="16dp"
-                tools:listitem="@layout/item_detox_time_lock"/>
+                tools:listitem="@layout/item_detox_time_lock"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
         </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatButton
