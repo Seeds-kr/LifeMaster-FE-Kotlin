@@ -22,6 +22,22 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     }
 
     private fun setupViews() {
+
+        // 라디오 버튼 관련 ui 뷰
+        binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
+            when(checkedId) {
+                R.id.rb_repeat_lock -> {
+                    binding.llRepeatLock.visibility = View.VISIBLE
+                    binding.llTimeLock.visibility = View.GONE
+                }
+                R.id.rb_time_lock -> {
+                    binding.llTimeLock.visibility = View.VISIBLE
+                    binding.llRepeatLock.visibility = View.GONE
+                }
+            }
+        }
+
+        // 시간 잠금의 리스트 관련 뷰
         val dummyData = arrayListOf(
             DetoxTimeLockItem(0, "매주", "월요일", "01:00PM - 04:00PM"),
             DetoxTimeLockItem(1, "매일", "화요일", "04:00PM - 05:00PM"),
