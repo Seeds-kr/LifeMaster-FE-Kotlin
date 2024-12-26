@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import com.example.lifemaster_xml.R
 import com.example.lifemaster_xml.databinding.FragmentDetoxBinding
 import com.example.lifemaster_xml.total.detox.adapter.DetoxTimeLockAdapter
+import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockBlockServiceDialog
 import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockDialog
 import com.example.lifemaster_xml.total.detox.dialog.DetoxTimeLockDialog
 import com.example.lifemaster_xml.total.detox.model.DetoxTimeLockItem
@@ -22,7 +23,6 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     }
 
     private fun setupViews() {
-
         // 라디오 버튼 관련 ui 뷰
         binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
             when(checkedId) {
@@ -56,6 +56,12 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     private fun setupListeners() {
         // 반복 잠금
+        binding.btnEditRepeatLockBlockService.setOnClickListener {
+            val dialog = DetoxRepeatLockBlockServiceDialog()
+            dialog.isCancelable = false
+            dialog.show(childFragmentManager, DetoxRepeatLockDialog.TAG)
+        }
+
         binding.btnAddRepeatLockApp.setOnClickListener {
             val dialog = DetoxRepeatLockDialog()
             dialog.isCancelable = false
