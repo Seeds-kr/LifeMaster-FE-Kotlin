@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -17,106 +19,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="반복 잠금을 설정할 어플을 선택해주세요"/>
+        android:text="반복 잠금을 설정할 어플을 선택해주세요"
+        android:textSize="12sp"/>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="36dp">
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_kakaotalk"
-            android:layout_marginEnd="4dp"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_insta"
-            android:layout_marginEnd="4dp"
-            android:alpha="0.4"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_twitter"
-            android:layout_marginEnd="4dp"
-            android:alpha="0.4"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_line"
-            android:layout_marginEnd="4dp"
-            android:alpha="0.4"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_notion"
-            android:alpha="0.4"/>
-    </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerview"
+        android:layout_width="280dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="24dp"/>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="4dp"
-        android:alpha="0.4">
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_netflix"
-            android:layout_marginEnd="4dp"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_spotify"
-            android:layout_marginEnd="4dp"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_ticktock"
-            android:layout_marginEnd="4dp"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_kakaotalk"
-            android:layout_marginEnd="4dp"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_insta"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="4dp"
-        android:alpha="0.4">
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_twitter"
-            android:layout_marginEnd="4dp"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_notion"
-            android:layout_marginEnd="4dp"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_spotify"
-            android:layout_marginEnd="4dp"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_netflix"
-            android:layout_marginEnd="4dp"/>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_twitter"/>
-    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -124,7 +35,7 @@
         android:orientation="horizontal"
         android:layout_marginTop="36dp">
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_delete"
+            android:id="@+id/btn_cancel"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
@@ -133,7 +44,7 @@
             android:backgroundTint="#F0F4F5"
             android:layout_marginEnd="8dp"/>
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_save"
+            android:id="@+id/btn_apply"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
