@@ -6,3 +6,8 @@ data class DetoxTimeLockItem(
     val day: String,
     val time: String
 )
+
+data class DetoxTargetApp(
+    val appIcon: Int,
+    val isClicked: Boolean = false
+)
