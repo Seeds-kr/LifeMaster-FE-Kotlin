@@ -1,16 +1,21 @@
 package com.example.lifemaster_xml.total.detox.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster_xml.databinding.ItemDetoxRepeatLockTargetAppSettingBinding
 import com.example.lifemaster_xml.total.detox.model.DetoxTargetApp
 
-class DetoxRepeatLockTargetAppAdapter(
-    private val items: ArrayList<DetoxTargetApp>
-) : RecyclerView.Adapter<DetoxRepeatLockTargetAppAdapter.DetoxRepeatLockTargetAppViewHolder>() {
+class DetoxRepeatLockTargetAppAdapter: RecyclerView.Adapter<DetoxRepeatLockTargetAppAdapter.DetoxRepeatLockTargetAppViewHolder>() {
 
+    private var items: ArrayList<DetoxTargetApp> = arrayListOf()
     private var currentPosition = RecyclerView.NO_POSITION
+
+    fun setItems(newItems: ArrayList<DetoxTargetApp>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
 
     inner class DetoxRepeatLockTargetAppViewHolder(private val binding: ItemDetoxRepeatLockTargetAppSettingBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -22,7 +27,8 @@ class DetoxRepeatLockTargetAppAdapter(
 
         init {
             binding.ivAppLogo.setOnClickListener {
-                val previousPosition = currentPosition
+                currentPosition = items.indexOfFirst { it.isClicked }
+                val previousPosition = currentPosition // 다이얼로그를 나갔다가 다시 들어올 때 정상적으로 작동은 하지만 아쉬운 코드 (나갔다 들어올때만 한번 작동하면 되는건데, 코드상 위치로는 매번 클릭할 때마다 작동해서 낭비가 됨. 근데 다른 방법이 생각이 안남.)
                 if (previousPosition != RecyclerView.NO_POSITION) {
                     val previousItem = items[previousPosition]
                     currentPosition = adapterPosition
