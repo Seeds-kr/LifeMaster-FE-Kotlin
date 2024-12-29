@@ -3,7 +3,7 @@ package com.example.lifemaster_xml.total.detox.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster_xml.databinding.ItemDetoxRepeatLockTargetAppBinding
+import com.example.lifemaster_xml.databinding.ItemDetoxRepeatLockTargetAppSettingBinding
 import com.example.lifemaster_xml.total.detox.model.DetoxTargetApp
 
 class DetoxRepeatLockTargetAppAdapter(
@@ -12,7 +12,7 @@ class DetoxRepeatLockTargetAppAdapter(
 
     private var currentPosition = RecyclerView.NO_POSITION
 
-    inner class DetoxRepeatLockTargetAppViewHolder(private val binding: ItemDetoxRepeatLockTargetAppBinding) :
+    inner class DetoxRepeatLockTargetAppViewHolder(private val binding: ItemDetoxRepeatLockTargetAppSettingBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: DetoxTargetApp) {
@@ -48,7 +48,7 @@ class DetoxRepeatLockTargetAppAdapter(
         viewType: Int
     ): DetoxRepeatLockTargetAppViewHolder {
         return DetoxRepeatLockTargetAppViewHolder(
-            ItemDetoxRepeatLockTargetAppBinding.inflate(
+            ItemDetoxRepeatLockTargetAppSettingBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false

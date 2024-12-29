@@ -1,25 +1,49 @@
 package com.example.lifemaster_xml.total.detox.fragment
 
 import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster_xml.R
 import com.example.lifemaster_xml.databinding.FragmentDetoxBinding
+import com.example.lifemaster_xml.total.detox.adapter.DetoxAllowServiceMainAdapter
 import com.example.lifemaster_xml.total.detox.adapter.DetoxTimeLockAdapter
-import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockBlockServiceDialog
+import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockAllowServiceDialog
 import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockDialog
 import com.example.lifemaster_xml.total.detox.dialog.DetoxTimeLockDialog
 import com.example.lifemaster_xml.total.detox.model.DetoxTimeLockItem
+import com.example.lifemaster_xml.total.detox.viewmodel.DetoxViewModel
 
 class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     lateinit var binding: FragmentDetoxBinding
+    private val viewModel: DetoxViewModel by activityViewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d("DetoxFragment", "onCreate")
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        Log.d("DetoxFragment", "onCreateView")
+        return super.onCreateView(inflater, container, savedInstanceState)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.d("DetoxFragment", "onViewCreated")
         binding = FragmentDetoxBinding.bind(view)
         setupViews()
         setupListeners()
+        observing()
     }
 
     private fun setupViews() {
@@ -50,14 +74,18 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
             DetoxTimeLockItem(8, "격주", "토요일", "03:00PM - 04:00PM")
         )
         val detoxTimeLockAdapter = DetoxTimeLockAdapter()
-        binding.recyclerview.adapter = detoxTimeLockAdapter
+        binding.recyclerviewTimeLock.adapter = detoxTimeLockAdapter
         detoxTimeLockAdapter.submitList(dummyData)
+
+        // 허용할 서비스 설정
+        binding.recyclerviewAllowService.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false)
+        binding.recyclerviewAllowService.adapter = DetoxAllowServiceMainAdapter()
     }
 
     private fun setupListeners() {
         // 반복 잠금
         binding.btnEditRepeatLockBlockService.setOnClickListener {
-            val dialog = DetoxRepeatLockBlockServiceDialog()
+            val dialog = DetoxRepeatLockAllowServiceDialog()
             dialog.isCancelable = false
             dialog.show(childFragmentManager, DetoxRepeatLockDialog.TAG)
         }
@@ -74,5 +102,41 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
             dialog.isCancelable = false
             dialog.show(childFragmentManager, DetoxTimeLockDialog.TAG)
         }
+    }
+
+    private fun observing() {
+        viewModel.allowServices.observe(viewLifecycleOwner) {
+            (binding.recyclerviewAllowService.adapter as DetoxAllowServiceMainAdapter).setItems(it)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d("DetoxFragment", "onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("DetoxFragment", "onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d("DetoxFragment", "onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d("DetoxFragment", "onStop")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        Log.d("DetoxFragment", "onDestroyView")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("DetoxFragment", "onDestroy")
     }
 }

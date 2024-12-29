@@ -101,12 +101,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="차단할 서비스"
+            android:text="허용할 서비스"
             android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold" />
 
         <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_edit_repeat_lock_block_service"
             android:layout_width="60dp"
             android:layout_height="32dp"
             android:background="@drawable/bg_round_radius"
@@ -124,17 +125,10 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="16dp">
-
-        <ImageView
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginEnd="8dp"
-            android:src="@drawable/ic_insta" />
-
-        <ImageView
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:src="@drawable/ic_twitter" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerview_allow_service"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <LinearLayout
@@ -345,7 +339,7 @@
             android:backgroundTint="@color/white"
             android:layout_marginTop="12dp">
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerview"
+                android:id="@+id/recyclerview_time_lock"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="16dp"
