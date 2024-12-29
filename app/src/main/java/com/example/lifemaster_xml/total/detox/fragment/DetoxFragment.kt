@@ -11,17 +11,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster_xml.R
 import com.example.lifemaster_xml.databinding.FragmentDetoxBinding
 import com.example.lifemaster_xml.total.detox.adapter.DetoxAllowServiceMainAdapter
+import com.example.lifemaster_xml.total.detox.adapter.DetoxRepeatLockAdapter
 import com.example.lifemaster_xml.total.detox.adapter.DetoxTimeLockAdapter
 import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockAllowServiceDialog
 import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockDialog
 import com.example.lifemaster_xml.total.detox.dialog.DetoxTimeLockDialog
 import com.example.lifemaster_xml.total.detox.model.DetoxTimeLockItem
-import com.example.lifemaster_xml.total.detox.viewmodel.DetoxViewModel
+import com.example.lifemaster_xml.total.detox.viewmodel.DetoxRepeatLockViewModel
 
 class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     lateinit var binding: FragmentDetoxBinding
-    private val viewModel: DetoxViewModel by activityViewModels()
+    private val viewModel: DetoxRepeatLockViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,6 +81,10 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         // 허용할 서비스 설정
         binding.recyclerviewAllowService.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false)
         binding.recyclerviewAllowService.adapter = DetoxAllowServiceMainAdapter()
+
+        // 반복 잠금 리스트
+        binding.recyclerviewRepeatLock.layoutManager = LinearLayoutManager(context)
+        binding.recyclerviewRepeatLock.adapter = DetoxRepeatLockAdapter()
     }
 
     private fun setupListeners() {
@@ -106,7 +111,10 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     private fun observing() {
         viewModel.allowServices.observe(viewLifecycleOwner) {
-            (binding.recyclerviewAllowService.adapter as DetoxAllowServiceMainAdapter).setItems(it)
+            (binding.recyclerviewAllowService.adapter as DetoxAllowServiceMainAdapter).updateItems(it)
+        }
+        viewModel.repeatLockApp.observe(viewLifecycleOwner) {
+            (binding.recyclerviewRepeatLock.adapter as DetoxRepeatLockAdapter).updateItems(it)
         }
     }
 

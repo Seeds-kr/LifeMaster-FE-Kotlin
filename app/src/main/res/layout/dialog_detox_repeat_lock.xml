@@ -64,16 +64,22 @@
             android:text="사용 시간"
             android:layout_weight="1"
             android:textColor="@color/black"/>
+
         <EditText
+            android:id="@+id/et_use_time_hour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#F0F4F5"
+            android:hint="2"
+            android:inputType="number"
+            android:maxLength="1"
             android:paddingStart="20dp"
-            android:paddingEnd="20dp"
             android:paddingTop="8dp"
-            android:paddingBottom="8dp"/>
+            android:paddingEnd="20dp"
+            android:paddingBottom="8dp"
+            android:textColorHint="#989898" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -81,9 +87,13 @@
             android:textColor="@color/black"
             android:layout_marginLeft="12dp"/>
         <EditText
+            android:id="@+id/et_use_time_minutes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="20"
+            android:hint="20"
+            android:textColorHint="#989898"
+            android:inputType="number"
+            android:maxLength="2"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#F0F4F5"
             android:paddingStart="20dp"
@@ -112,9 +122,13 @@
             android:layout_weight="1"
             android:textColor="@color/black"/>
         <EditText
+            android:id="@+id/et_lock_time_hour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0"
+            android:hint="0"
+            android:textColorHint="#989898"
+            android:inputType="number"
+            android:maxLength="1"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#F0F4F5"
             android:paddingStart="20dp"
@@ -128,9 +142,13 @@
             android:textColor="@color/black"
             android:layout_marginLeft="12dp"/>
         <EditText
+            android:id="@+id/et_lock_time_minutes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="20"
+            android:hint="20"
+            android:textColorHint="#989898"
+            android:inputType="number"
+            android:maxLength="2"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#F0F4F5"
             android:paddingStart="20dp"
@@ -195,9 +213,13 @@
             android:textColor="#B4D775"
             android:textStyle="bold"/>
         <EditText
+            android:id="@+id/et_max_time_hour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0"
+            android:hint="0"
+            android:textColorHint="#989898"
+            android:inputType="number"
+            android:maxLength="1"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#F0F4F5"
             android:paddingStart="20dp"
@@ -211,9 +233,13 @@
             android:textColor="@color/black"
             android:layout_marginLeft="12dp"/>
         <EditText
+            android:id="@+id/et_max_time_minutes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="20"
+            android:hint="20"
+            android:textColorHint="#989898"
+            android:inputType="number"
+            android:maxLength="2"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#F0F4F5"
             android:paddingStart="20dp"
@@ -234,21 +260,23 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="12dp">
+
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_delete"
+            android:id="@+id/btn_cancel"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="삭제하기"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#F0F4F5"
-            android:layout_marginEnd="8dp"/>
+            android:text="취소하기" />
+
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_save"
+            android:id="@+id/btn_add"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="저장하기"
+            android:text="추가하기"
             android:textColor="@color/white"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#B4D775"/>
