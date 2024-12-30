@@ -6,25 +6,25 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.lifemaster_xml.R
-import com.example.lifemaster_xml.databinding.DialogDetoxRepeatLockAllowServiceBinding
-import com.example.lifemaster_xml.total.detox.adapter.DetoxAllowServiceSettingAdapter
-import com.example.lifemaster_xml.total.detox.viewmodel.DetoxViewModel
+import com.example.lifemaster_xml.databinding.DialogDetoxTimeLockAllowServiceBinding
+import com.example.lifemaster_xml.total.detox.adapter.DetoxServiceSettingAdapter
+import com.example.lifemaster_xml.total.detox.viewmodel.DetoxTimeLockViewModel
 
-class DetoxRepeatLockAllowServiceDialog: DialogFragment(R.layout.dialog_detox_repeat_lock_allow_service) {
+class DetoxTimeLockAllowServiceDialog: DialogFragment(R.layout.dialog_detox_time_lock_allow_service) {
 
-    private lateinit var binding: DialogDetoxRepeatLockAllowServiceBinding
-    private val viewModel: DetoxViewModel by activityViewModels()
+    private lateinit var binding: DialogDetoxTimeLockAllowServiceBinding
+    private val viewModel: DetoxTimeLockViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding = DialogDetoxRepeatLockAllowServiceBinding.bind(view)
+        binding = DialogDetoxTimeLockAllowServiceBinding.bind(view)
         setupViews()
         setupListeners()
     }
 
     private fun setupViews() {
         binding.recyclerview.layoutManager = GridLayoutManager(context, 5)
-        binding.recyclerview.adapter = DetoxAllowServiceSettingAdapter(viewModel.tempAppLogos)
+        binding.recyclerview.adapter = DetoxServiceSettingAdapter(viewModel.allowServiceApplications)
     }
 
     private fun setupListeners() {
@@ -32,7 +32,7 @@ class DetoxRepeatLockAllowServiceDialog: DialogFragment(R.layout.dialog_detox_re
             dismiss()
         }
         binding.btnApply.setOnClickListener {
-            val allowServices = viewModel.tempAppLogos.filter { app -> app.isClicked }
+            val allowServices = viewModel.allowServiceApplications.filter { app -> app.isClicked }
             viewModel.updateAllowServices(allowServices)
             dismiss()
         }

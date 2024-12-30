@@ -1,23 +1,22 @@
 package com.example.lifemaster_xml.total.detox.adapter
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster_xml.databinding.ItemDetoxRepeatLockTargetAppMainBinding
+import com.example.lifemaster_xml.databinding.ItemDetoxTargetAppMainBinding
 import com.example.lifemaster_xml.total.detox.model.DetoxTargetApp
 
-class DetoxAllowServiceMainAdapter: RecyclerView.Adapter<DetoxAllowServiceMainAdapter.DetoxAllowServiceMainViewHolder>() {
+class DetoxServiceMainAdapter: RecyclerView.Adapter<DetoxServiceMainAdapter.DetoxAllowServiceMainViewHolder>() {
 
     private var items: List<DetoxTargetApp> = listOf()
 
-    fun setItems(newItems: List<DetoxTargetApp>) {
+    fun updateItems(newItems: List<DetoxTargetApp>) {
         items = newItems
         notifyDataSetChanged() // 나중에 position 받아오는걸로 리팩토링 하기
     }
 
     // 나중에 ListAdapter 등 다른 어댑터로 마이그레이션 해보기
-    inner class DetoxAllowServiceMainViewHolder(private val binding: ItemDetoxRepeatLockTargetAppMainBinding): RecyclerView.ViewHolder(binding.root) {
+    inner class DetoxAllowServiceMainViewHolder(private val binding: ItemDetoxTargetAppMainBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(item: DetoxTargetApp) {
             binding.ivAppLogo.setImageResource(item.appIcon)
         }
@@ -25,7 +24,7 @@ class DetoxAllowServiceMainAdapter: RecyclerView.Adapter<DetoxAllowServiceMainAd
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DetoxAllowServiceMainViewHolder {
         return DetoxAllowServiceMainViewHolder(
-            ItemDetoxRepeatLockTargetAppMainBinding.inflate(
+            ItemDetoxTargetAppMainBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
@@ -34,7 +33,6 @@ class DetoxAllowServiceMainAdapter: RecyclerView.Adapter<DetoxAllowServiceMainAd
     }
 
     override fun getItemCount(): Int {
-        Log.d("adapter",""+items.size)
         return items.size
     }
 

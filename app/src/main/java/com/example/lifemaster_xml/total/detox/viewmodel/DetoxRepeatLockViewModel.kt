@@ -9,7 +9,7 @@ import com.example.lifemaster_xml.total.detox.model.DetoxTargetApp
 
 class DetoxRepeatLockViewModel: ViewModel() {
 
-    val allowServiceApplications = arrayListOf(
+    val blockServiceApplications = arrayListOf(
         DetoxTargetApp(R.drawable.ic_insta, "인스타그램"),
         DetoxTargetApp(R.drawable.ic_kakaotalk, "카카오톡"),
         DetoxTargetApp(R.drawable.ic_twitter, "트위터"),
@@ -52,11 +52,11 @@ class DetoxRepeatLockViewModel: ViewModel() {
         DetoxTargetApp(R.drawable.ic_spotify, "스포티파이")
     )
 
-    private val _allowServices : MutableLiveData<List<DetoxTargetApp>> = MutableLiveData()
-    val allowServices : LiveData<List<DetoxTargetApp>> get() = _allowServices
+    private val _blockServices : MutableLiveData<List<DetoxTargetApp>> = MutableLiveData()
+    val blockServices : LiveData<List<DetoxTargetApp>> get() = _blockServices
 
-    fun updateAllowServices(allowServices: List<DetoxTargetApp>) {
-        _allowServices.value = allowServices
+    fun updateblockServices(allowServices: List<DetoxTargetApp>) {
+        _blockServices.value = allowServices
     }
 
     //////////////////////////////     --- 구분선 입니다 ---  /////////////////////////////////////

@@ -8,8 +8,8 @@
 
     <ImageView
         android:id="@+id/iv_app_logo"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         tools:src="@drawable/ic_insta"/>
 
 </LinearLayout>

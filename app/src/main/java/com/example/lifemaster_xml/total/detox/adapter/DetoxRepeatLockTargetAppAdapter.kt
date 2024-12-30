@@ -1,10 +1,9 @@
 package com.example.lifemaster_xml.total.detox.adapter
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster_xml.databinding.ItemDetoxRepeatLockTargetAppSettingBinding
+import com.example.lifemaster_xml.databinding.ItemDetoxTargetAppSettingBinding
 import com.example.lifemaster_xml.total.detox.model.DetoxTargetApp
 
 class DetoxRepeatLockTargetAppAdapter: RecyclerView.Adapter<DetoxRepeatLockTargetAppAdapter.DetoxRepeatLockTargetAppViewHolder>() {
@@ -17,7 +16,7 @@ class DetoxRepeatLockTargetAppAdapter: RecyclerView.Adapter<DetoxRepeatLockTarge
         notifyDataSetChanged()
     }
 
-    inner class DetoxRepeatLockTargetAppViewHolder(private val binding: ItemDetoxRepeatLockTargetAppSettingBinding) :
+    inner class DetoxRepeatLockTargetAppViewHolder(private val binding: ItemDetoxTargetAppSettingBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: DetoxTargetApp) {
@@ -54,7 +53,7 @@ class DetoxRepeatLockTargetAppAdapter: RecyclerView.Adapter<DetoxRepeatLockTarge
         viewType: Int
     ): DetoxRepeatLockTargetAppViewHolder {
         return DetoxRepeatLockTargetAppViewHolder(
-            ItemDetoxRepeatLockTargetAppSettingBinding.inflate(
+            ItemDetoxTargetAppSettingBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false

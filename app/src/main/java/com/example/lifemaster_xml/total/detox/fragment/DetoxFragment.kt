@@ -10,19 +10,22 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster_xml.R
 import com.example.lifemaster_xml.databinding.FragmentDetoxBinding
-import com.example.lifemaster_xml.total.detox.adapter.DetoxAllowServiceMainAdapter
+import com.example.lifemaster_xml.total.detox.adapter.DetoxServiceMainAdapter
 import com.example.lifemaster_xml.total.detox.adapter.DetoxRepeatLockAdapter
 import com.example.lifemaster_xml.total.detox.adapter.DetoxTimeLockAdapter
-import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockAllowServiceDialog
+import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockBlockServiceDialog
+import com.example.lifemaster_xml.total.detox.dialog.DetoxTimeLockAllowServiceDialog
 import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockDialog
 import com.example.lifemaster_xml.total.detox.dialog.DetoxTimeLockDialog
 import com.example.lifemaster_xml.total.detox.model.DetoxTimeLockItem
 import com.example.lifemaster_xml.total.detox.viewmodel.DetoxRepeatLockViewModel
+import com.example.lifemaster_xml.total.detox.viewmodel.DetoxTimeLockViewModel
 
 class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     lateinit var binding: FragmentDetoxBinding
-    private val viewModel: DetoxRepeatLockViewModel by activityViewModels()
+    private val detoxTimeLockViewModel: DetoxTimeLockViewModel by activityViewModels()
+    private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +51,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     }
 
     private fun setupViews() {
-        // 라디오 버튼 관련 ui 뷰
+        // 공통 - 라디오 버튼 관련 ui 뷰
         binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
             when(checkedId) {
                 R.id.rb_repeat_lock -> {
@@ -62,7 +65,15 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
             }
         }
 
-        // 시간 잠금의 리스트 관련 뷰
+        // 반복 잠금 - 차단할 서비스 설정
+        binding.recyclerviewBlockService.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false)
+        binding.recyclerviewBlockService.adapter = DetoxServiceMainAdapter()
+
+        // 반복 잠금 - 아이템 리스트
+        binding.recyclerviewRepeatLock.layoutManager = LinearLayoutManager(context)
+        binding.recyclerviewRepeatLock.adapter = DetoxRepeatLockAdapter()
+
+        // 시간 잠금 - 리스트 관련 뷰
         val dummyData = arrayListOf(
             DetoxTimeLockItem(0, "매주", "월요일", "01:00PM - 04:00PM"),
             DetoxTimeLockItem(1, "매일", "화요일", "04:00PM - 05:00PM"),
@@ -78,30 +89,35 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         binding.recyclerviewTimeLock.adapter = detoxTimeLockAdapter
         detoxTimeLockAdapter.submitList(dummyData)
 
-        // 허용할 서비스 설정
+        // 시간 잠금 - 허용할 서비스 설정
         binding.recyclerviewAllowService.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false)
-        binding.recyclerviewAllowService.adapter = DetoxAllowServiceMainAdapter()
-
-        // 반복 잠금 리스트
-        binding.recyclerviewRepeatLock.layoutManager = LinearLayoutManager(context)
-        binding.recyclerviewRepeatLock.adapter = DetoxRepeatLockAdapter()
+        binding.recyclerviewAllowService.adapter = DetoxServiceMainAdapter()
     }
 
     private fun setupListeners() {
-        // 반복 잠금
+
+        // 반복 잠금 - 차단할 서비스 편집
         binding.btnEditRepeatLockBlockService.setOnClickListener {
-            val dialog = DetoxRepeatLockAllowServiceDialog()
+            val dialog = DetoxRepeatLockBlockServiceDialog()
             dialog.isCancelable = false
-            dialog.show(childFragmentManager, DetoxRepeatLockDialog.TAG)
+            dialog.show(childFragmentManager, DetoxRepeatLockBlockServiceDialog.TAG)
         }
 
+        // 반복 잠금 - 잠금 앱 추가
         binding.btnAddRepeatLockApp.setOnClickListener {
             val dialog = DetoxRepeatLockDialog()
             dialog.isCancelable = false
             dialog.show(childFragmentManager, DetoxRepeatLockDialog.TAG)
         }
 
-        // 시간 잠금
+        // 시간 잠금 - 허용할 서비스 편집
+        binding.btnEditTimeLockAllowService.setOnClickListener {
+            val dialog = DetoxTimeLockAllowServiceDialog()
+            dialog.isCancelable = false
+            dialog.show(childFragmentManager, DetoxTimeLockAllowServiceDialog.TAG)
+        }
+
+        // 시간 잠금 - 시간 잠금 설정
         binding.btnTimeLockSetting.setOnClickListener {
             val dialog = DetoxTimeLockDialog()
             dialog.isCancelable = false
@@ -110,11 +126,17 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     }
 
     private fun observing() {
-        viewModel.allowServices.observe(viewLifecycleOwner) {
-            (binding.recyclerviewAllowService.adapter as DetoxAllowServiceMainAdapter).updateItems(it)
+
+        detoxRepeatLockViewModel.blockServices.observe(viewLifecycleOwner) {
+            (binding.recyclerviewBlockService.adapter as DetoxServiceMainAdapter).updateItems(it)
         }
-        viewModel.repeatLockApp.observe(viewLifecycleOwner) {
+
+        detoxRepeatLockViewModel.repeatLockApp.observe(viewLifecycleOwner) {
             (binding.recyclerviewRepeatLock.adapter as DetoxRepeatLockAdapter).updateItems(it)
+        }
+
+        detoxTimeLockViewModel.allowServices.observe(viewLifecycleOwner) {
+            (binding.recyclerviewAllowService.adapter as DetoxServiceMainAdapter).updateItems(it)
         }
     }
 
