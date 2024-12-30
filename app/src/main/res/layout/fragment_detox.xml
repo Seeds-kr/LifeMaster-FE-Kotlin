@@ -45,9 +45,9 @@
             android:layout_height="wrap_content"
             android:background="@drawable/selector_ditox_lock_background"
             android:button="@null"
+            android:checked="true"
             android:gravity="center"
             android:padding="18dp"
-            android:checked="true"
             android:text="반복잠금"
             android:textColor="@drawable/selector_ditox_text_color" /> <!-- [?] @null vs @transparent -->
         <com.google.android.material.radiobutton.MaterialRadioButton
@@ -92,51 +92,55 @@
         android:background="#DADEDF" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="허용할 서비스"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_edit_repeat_lock_block_service"
-            android:layout_width="60dp"
-            android:layout_height="32dp"
-            android:background="@drawable/bg_round_radius"
-            android:backgroundTint="#B4D775"
-            android:text="편집"
-            android:textColor="@color/white" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/bg_round_radius"
-        android:backgroundTint="@color/white"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="4dp">
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerview_allow_service"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
-
-    <LinearLayout
         android:id="@+id/ll_repeat_lock"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="차단할 서비스"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_edit_repeat_lock_block_service"
+                android:layout_width="60dp"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_round_radius"
+                android:backgroundTint="#B4D775"
+                android:text="편집"
+                android:textColor="@color/white" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_round_radius"
+            android:backgroundTint="@color/white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerview_block_service"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                tools:listitem="@layout/item_detox_target_app_main"
+                tools:itemCount="1"/>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -221,7 +225,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            tools:listitem="@layout/item_detox_repeat_lock_item"/>
+            tools:listitem="@layout/item_detox_repeat_lock_item" />
 
     </LinearLayout>
 
@@ -231,6 +235,50 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="허용할 서비스"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_edit_time_lock_allow_service"
+                android:layout_width="60dp"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_round_radius"
+                android:backgroundTint="#B4D775"
+                android:text="편집"
+                android:textColor="@color/white" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_round_radius"
+            android:backgroundTint="@color/white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerview_allow_service"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                tools:listitem="@layout/item_detox_target_app_main"
+                tools:itemCount="1"/>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -260,28 +308,19 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_marginTop="12dp"
             android:layout_weight="1"
             android:background="@drawable/bg_round_radius"
-            android:backgroundTint="@color/white"
-            android:layout_marginTop="12dp">
+            android:backgroundTint="@color/white">
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerview_time_lock"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="16dp"
-                tools:listitem="@layout/item_detox_time_lock"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_detox_time_lock" />
         </LinearLayout>
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="시작하기"
-            android:textColor="@color/white"
-            android:background="@drawable/bg_round_radius"
-            android:backgroundTint="#B4D775"
-            android:layout_marginTop="12dp"/>
-
     </LinearLayout>
 
 </LinearLayout>
