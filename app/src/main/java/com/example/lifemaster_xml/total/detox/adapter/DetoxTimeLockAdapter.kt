@@ -13,9 +13,16 @@ class DetoxTimeLockAdapter : ListAdapter<DetoxTimeLockItem, DetoxTimeLockAdapter
     inner class DetoxTimeLockViewHolder(private val binding: ItemDetoxTimeLockBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: DetoxTimeLockItem) {
-            binding.tvWeek.text = item.week
-            binding.tvDay.text = item.day
-            binding.tvTime.text = item.time
+            binding.apply {
+                tvWeekType.text = item.weekType
+                tvDay.text = item.day
+                tvStartHour.text = item.startHour
+                tvStartMinutes.text = item.startMinutes
+                tvStartType.text = item.startType
+                tvEndHour.text = item.endHour
+                tvEndMinutes.text = item.endMinutes
+                tvEndType.text = item.endType
+            }
         }
     }
 

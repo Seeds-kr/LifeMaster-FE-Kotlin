@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.lifemaster_xml.R
 import com.example.lifemaster_xml.total.detox.model.DetoxTargetApp
+import com.example.lifemaster_xml.total.detox.model.DetoxTimeLockItem
 
 class DetoxTimeLockViewModel: ViewModel() {
 
@@ -56,5 +57,14 @@ class DetoxTimeLockViewModel: ViewModel() {
 
     fun updateAllowServices(allowServices: List<DetoxTargetApp>) {
         _allowServices.value = allowServices
+    }
+
+    private val _timeLockItems: MutableLiveData<ArrayList<DetoxTimeLockItem>> = MutableLiveData()
+    val timeLockItems: LiveData<ArrayList<DetoxTimeLockItem>> get() = _timeLockItems
+
+    fun addTimeLockItems(timeLockItem: DetoxTimeLockItem) {
+        val currentList = _timeLockItems.value ?: arrayListOf()
+        currentList.add(timeLockItem)
+        _timeLockItems.value = currentList
     }
 }

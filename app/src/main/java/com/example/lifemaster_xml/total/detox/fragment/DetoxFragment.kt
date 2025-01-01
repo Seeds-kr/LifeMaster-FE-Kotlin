@@ -74,20 +74,8 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         binding.recyclerviewRepeatLock.adapter = DetoxRepeatLockAdapter()
 
         // 시간 잠금 - 리스트 관련 뷰
-        val dummyData = arrayListOf(
-            DetoxTimeLockItem(0, "매주", "월요일", "01:00PM - 04:00PM"),
-            DetoxTimeLockItem(1, "매일", "화요일", "04:00PM - 05:00PM"),
-            DetoxTimeLockItem(2, "매일", "금요일", "02:00PM - 08:00PM"),
-            DetoxTimeLockItem(3, "매주", "수요일", "09:00PM - 10:00PM"),
-            DetoxTimeLockItem(4, "격주", "토요일", "03:00PM - 04:00PM"),
-            DetoxTimeLockItem(5, "격주", "토요일", "03:00PM - 04:00PM"),
-            DetoxTimeLockItem(6, "격주", "토요일", "03:00PM - 04:00PM"),
-            DetoxTimeLockItem(7, "격주", "토요일", "03:00PM - 04:00PM"),
-            DetoxTimeLockItem(8, "격주", "토요일", "03:00PM - 04:00PM")
-        )
         val detoxTimeLockAdapter = DetoxTimeLockAdapter()
         binding.recyclerviewTimeLock.adapter = detoxTimeLockAdapter
-        detoxTimeLockAdapter.submitList(dummyData)
 
         // 시간 잠금 - 허용할 서비스 설정
         binding.recyclerviewAllowService.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false)
@@ -137,6 +125,10 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
         detoxTimeLockViewModel.allowServices.observe(viewLifecycleOwner) {
             (binding.recyclerviewAllowService.adapter as DetoxServiceMainAdapter).updateItems(it)
+        }
+
+        detoxTimeLockViewModel.timeLockItems.observe(viewLifecycleOwner) {
+            (binding.recyclerviewTimeLock.adapter as DetoxTimeLockAdapter).submitList(it.toList()) // it 으로 전달되면 이전 리스트를 제출한 것이기 때문에 diffUtil 은 변화를 감지하지 못한다.
         }
     }
 
