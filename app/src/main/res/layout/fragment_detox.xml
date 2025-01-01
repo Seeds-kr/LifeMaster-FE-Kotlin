@@ -351,9 +351,9 @@
                 android:id="@+id/recyclerview_time_lock"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="16dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/item_detox_time_lock"
+                android:paddingBottom="12dp"
                 android:visibility="gone"/>
             <TextView
                 android:id="@+id/tv_time_lock_list_empty"
