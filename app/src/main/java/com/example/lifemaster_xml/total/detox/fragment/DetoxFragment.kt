@@ -116,18 +116,46 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     private fun observing() {
 
         detoxRepeatLockViewModel.blockServices.observe(viewLifecycleOwner) {
+            if(it.isNotEmpty()) {
+                binding.recyclerviewBlockService.visibility = View.VISIBLE
+                binding.tvBlockServiceEmpty.visibility = View.GONE
+            } else {
+                binding.recyclerviewBlockService.visibility = View.GONE
+                binding.tvBlockServiceEmpty.visibility = View.VISIBLE
+            }
             (binding.recyclerviewBlockService.adapter as DetoxServiceMainAdapter).updateItems(it)
         }
 
         detoxRepeatLockViewModel.repeatLockApp.observe(viewLifecycleOwner) {
+            if(it.isNotEmpty()) {
+                binding.recyclerviewRepeatLock.visibility = View.VISIBLE
+                binding.llRepeatLockListEmpty.visibility = View.GONE
+            } else {
+                binding.recyclerviewRepeatLock.visibility = View.GONE
+                binding.llRepeatLockListEmpty.visibility = View.VISIBLE
+            }
             (binding.recyclerviewRepeatLock.adapter as DetoxRepeatLockAdapter).updateItems(it)
         }
 
         detoxTimeLockViewModel.allowServices.observe(viewLifecycleOwner) {
+            if (it.isNotEmpty()) {
+                binding.recyclerviewAllowService.visibility = View.VISIBLE
+                binding.tvAllowServiceEmpty.visibility = View.GONE
+            } else {
+                binding.recyclerviewAllowService.visibility = View.GONE
+                binding.tvAllowServiceEmpty.visibility = View.VISIBLE
+            }
             (binding.recyclerviewAllowService.adapter as DetoxServiceMainAdapter).updateItems(it)
         }
 
         detoxTimeLockViewModel.timeLockItems.observe(viewLifecycleOwner) {
+            if (it.isNotEmpty()) {
+                binding.recyclerviewTimeLock.visibility = View.VISIBLE
+                binding.tvTimeLockListEmpty.visibility = View.GONE
+            } else {
+                binding.recyclerviewTimeLock.visibility = View.GONE
+                binding.tvTimeLockListEmpty.visibility = View.VISIBLE
+            }
             (binding.recyclerviewTimeLock.adapter as DetoxTimeLockAdapter).submitList(it.toList()) // it 으로 전달되면 이전 리스트를 제출한 것이기 때문에 diffUtil 은 변화를 감지하지 못한다.
         }
     }

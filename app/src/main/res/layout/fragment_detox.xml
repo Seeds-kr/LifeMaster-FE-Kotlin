@@ -125,21 +125,27 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:layout_marginTop="20dp"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="@color/white"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="4dp">
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerview_block_service"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:padding="4dp"
                 tools:listitem="@layout/item_detox_target_app_main"
-                tools:itemCount="1"/>
+                tools:itemCount="1"
+                android:visibility="gone"/>
+            <TextView
+                android:id="@+id/tv_block_service_empty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="차단할 서비스를 추가해주세요!"
+                android:padding="8dp"/>
         </LinearLayout>
 
         <LinearLayout
@@ -225,9 +231,28 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            tools:listitem="@layout/item_detox_repeat_lock_item" />
+            tools:listitem="@layout/item_detox_repeat_lock_item"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:id="@+id/ll_repeat_lock_list_empty"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_round_radius"
+            android:backgroundTint="@color/white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="반복 잠금 아이템을 추가해주세요!"/>
+        </LinearLayout>
 
     </LinearLayout>
+
+
 
     <LinearLayout
         android:id="@+id/ll_time_lock"
@@ -263,7 +288,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:layout_marginTop="20dp"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="@color/white"
@@ -277,7 +302,15 @@
                 android:layout_height="wrap_content"
                 android:padding="4dp"
                 tools:listitem="@layout/item_detox_target_app_main"
+                android:visibility="gone"
                 tools:itemCount="1"/>
+
+            <TextView
+                android:id="@+id/tv_allow_service_empty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="허용할 서비스를 추가해주세요!"
+                android:padding="8dp"/>
         </LinearLayout>
 
         <LinearLayout
@@ -311,6 +344,7 @@
             android:layout_marginTop="12dp"
             android:layout_weight="1"
             android:background="@drawable/bg_round_radius"
+            android:orientation="vertical"
             android:backgroundTint="@color/white">
 
             <androidx.recyclerview.widget.RecyclerView
@@ -319,7 +353,15 @@
                 android:layout_height="match_parent"
                 android:padding="16dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_detox_time_lock" />
+                tools:listitem="@layout/item_detox_time_lock"
+                android:visibility="gone"/>
+            <TextView
+                android:id="@+id/tv_time_lock_list_empty"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="시간 잠금 아이템을 추가해주세요!"
+                android:gravity="center_vertical"
+                android:padding="12dp"/>
         </LinearLayout>
     </LinearLayout>
 
