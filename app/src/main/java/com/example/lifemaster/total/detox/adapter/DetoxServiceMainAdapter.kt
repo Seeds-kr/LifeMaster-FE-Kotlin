@@ -1,10 +1,10 @@
-package com.example.lifemaster_xml.total.detox.adapter
+package com.example.lifemaster.total.detox.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster_xml.databinding.ItemDetoxTargetAppMainBinding
-import com.example.lifemaster_xml.total.detox.model.DetoxTargetApp
+import com.example.lifemaster.databinding.ItemDetoxTargetAppMainBinding
+import com.example.lifemaster.total.detox.model.DetoxTargetApp
 
 class DetoxServiceMainAdapter: RecyclerView.Adapter<DetoxServiceMainAdapter.DetoxAllowServiceMainViewHolder>() {
 
@@ -18,7 +18,7 @@ class DetoxServiceMainAdapter: RecyclerView.Adapter<DetoxServiceMainAdapter.Deto
     // 나중에 ListAdapter 등 다른 어댑터로 마이그레이션 해보기
     inner class DetoxAllowServiceMainViewHolder(private val binding: ItemDetoxTargetAppMainBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(item: DetoxTargetApp) {
-            binding.ivAppLogo.setImageResource(item.appIcon)
+            binding.ivAppLogo.setImageDrawable(item.appIcon)
         }
     }
 

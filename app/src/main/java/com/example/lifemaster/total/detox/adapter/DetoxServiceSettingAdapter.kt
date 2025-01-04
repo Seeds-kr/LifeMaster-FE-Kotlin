@@ -1,18 +1,19 @@
-package com.example.lifemaster_xml.total.detox.adapter
+package com.example.lifemaster.total.detox.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster_xml.databinding.ItemDetoxTargetAppSettingBinding
-import com.example.lifemaster_xml.total.detox.model.DetoxTargetApp
+import com.example.lifemaster.databinding.ItemDetoxTargetAppSettingBinding
+import com.example.lifemaster.total.detox.model.DetoxTargetApp
 
 // 반복 잠금과 시간 잠금 둘 다 공유 가능한 어댑터
 class DetoxServiceSettingAdapter(
     private val items: ArrayList<DetoxTargetApp>
 ) : RecyclerView.Adapter<DetoxServiceSettingAdapter.DetoxAllowServiceViewHolder>() {
     inner class DetoxAllowServiceViewHolder(private val binding: ItemDetoxTargetAppSettingBinding): RecyclerView.ViewHolder(binding.root) {
+
         fun bind(item: DetoxTargetApp) {
-            binding.ivAppLogo.setImageResource(item.appIcon)
+            binding.ivAppLogo.setImageDrawable(item.appIcon)
             binding.ivAppLogo.alpha = if (item.isClicked) 1.0f else 0.4f
         }
 

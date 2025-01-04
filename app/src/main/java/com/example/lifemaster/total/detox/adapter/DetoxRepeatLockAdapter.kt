@@ -1,10 +1,10 @@
-package com.example.lifemaster_xml.total.detox.adapter
+package com.example.lifemaster.total.detox.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster_xml.databinding.ItemDetoxRepeatLockItemBinding
-import com.example.lifemaster_xml.total.detox.model.DetoxRepeatLockItem
+import com.example.lifemaster.databinding.ItemDetoxRepeatLockItemBinding
+import com.example.lifemaster.total.detox.model.DetoxRepeatLockItem
 
 class DetoxRepeatLockAdapter: RecyclerView.Adapter<DetoxRepeatLockAdapter.DetoxRepeatLockViewHolder>() {
 
@@ -17,7 +17,7 @@ class DetoxRepeatLockAdapter: RecyclerView.Adapter<DetoxRepeatLockAdapter.DetoxR
 
     inner class DetoxRepeatLockViewHolder(private val binding: ItemDetoxRepeatLockItemBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(item: DetoxRepeatLockItem) {
-            binding.ivAppLogo.setImageResource(item.appIcon)
+            binding.ivAppLogo.setImageDrawable(item.appIcon)
             binding.tvAppName.text = item.appName
             binding.tvUseTime.text = "${item.useTime}분"
             binding.tvLockTime.text = "${item.lockTime}분"

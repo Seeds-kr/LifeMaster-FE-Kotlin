@@ -1,4 +1,6 @@
-package com.example.lifemaster_xml.total.detox.model
+package com.example.lifemaster.total.detox.model
+
+import android.graphics.drawable.Drawable
 
 data class DetoxTimeLockItem(
     val itemId: Int,
@@ -13,13 +15,13 @@ data class DetoxTimeLockItem(
 )
 
 data class DetoxTargetApp(
-    val appIcon: Int,
+    val appIcon: Drawable,
     val appName: String,
     val isClicked: Boolean = false
 )
 
 data class DetoxRepeatLockItem(
-    val appIcon: Int,
+    val appIcon: Drawable,
     val appName: String,
     val useTime: Int,
     val lockTime: Int,

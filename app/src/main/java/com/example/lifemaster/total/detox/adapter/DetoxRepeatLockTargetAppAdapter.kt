@@ -1,10 +1,10 @@
-package com.example.lifemaster_xml.total.detox.adapter
+package com.example.lifemaster.total.detox.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster_xml.databinding.ItemDetoxTargetAppSettingBinding
-import com.example.lifemaster_xml.total.detox.model.DetoxTargetApp
+import com.example.lifemaster.databinding.ItemDetoxTargetAppSettingBinding
+import com.example.lifemaster.total.detox.model.DetoxTargetApp
 
 class DetoxRepeatLockTargetAppAdapter: RecyclerView.Adapter<DetoxRepeatLockTargetAppAdapter.DetoxRepeatLockTargetAppViewHolder>() {
 
@@ -20,7 +20,7 @@ class DetoxRepeatLockTargetAppAdapter: RecyclerView.Adapter<DetoxRepeatLockTarge
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: DetoxTargetApp) {
-            binding.ivAppLogo.setImageResource(item.appIcon)
+            binding.ivAppLogo.setImageDrawable(item.appIcon)
             binding.ivAppLogo.alpha = if (item.isClicked) 1.0f else 0.4f
         }
 
