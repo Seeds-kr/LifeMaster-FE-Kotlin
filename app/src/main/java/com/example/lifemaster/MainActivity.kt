@@ -76,22 +76,16 @@ class MainActivity : AppCompatActivity() {
             !isSystemApp && !isUpdatedSystemApp
         }
 
-//        val requiredApps2 = totalApps.filter {
-//            it.flags and ApplicationInfo.FLAG_SYSTEM == 0
-//        }
-
-        Log.d("app(total)", ""+totalApps.size) // 542
-        Log.d("app(required)", ""+requiredApps.size) // 153
-
         for(app in requiredApps) {
             val appName = app.loadLabel(packageManager).toString()
             val appIcon = app.loadUnbadgedIcon(packageManager)
             applicationList.add(DetoxTargetApp(appIcon, appName))
         }
 
-        detoxRepeatLockViewModel.blockServiceApplications = applicationList
-        detoxRepeatLockViewModel.repeatLockTargetApplications = applicationList
-        detoxTimeLockViewModel.allowServiceApplications = applicationList
+        // 문제 원인 코드
+        detoxRepeatLockViewModel.blockServiceApplications = ArrayList(applicationList)
+        detoxRepeatLockViewModel.repeatLockTargetApplications = ArrayList(applicationList)
+        detoxTimeLockViewModel.allowServiceApplications = ArrayList(applicationList)
     }
 
     override fun onStart() {

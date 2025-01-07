@@ -1,14 +1,19 @@
 package com.example.lifemaster.total.detox.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemDetoxTargetAppSettingBinding
 import com.example.lifemaster.total.detox.model.DetoxTargetApp
+import com.example.lifemaster.total.detox.viewmodel.DetoxRepeatLockViewModel
+import com.example.lifemaster.total.detox.viewmodel.DetoxTimeLockViewModel
 
 // 반복 잠금과 시간 잠금 둘 다 공유 가능한 어댑터
 class DetoxServiceSettingAdapter(
-    private val items: ArrayList<DetoxTargetApp>
+    private val items: ArrayList<DetoxTargetApp>,
+    private val repeatLockViewModel: DetoxRepeatLockViewModel,
+    private val timeLockViewModel: DetoxTimeLockViewModel
 ) : RecyclerView.Adapter<DetoxServiceSettingAdapter.DetoxAllowServiceViewHolder>() {
     inner class DetoxAllowServiceViewHolder(private val binding: ItemDetoxTargetAppSettingBinding): RecyclerView.ViewHolder(binding.root) {
 
@@ -22,7 +27,12 @@ class DetoxServiceSettingAdapter(
                 val position = adapterPosition
                 val item = items[position]
                 val updateItem = item.copy(isClicked = !item.isClicked)
-                items[position] = updateItem // 로그로 찍어봤더니 실제 뷰모델의 값을 건든다. (정확한 근거는 잘 모르겠다. 동일한 객체를 참조하는건지 아니면 복사본을 참조하는건지 잘 모르겠다.)
+
+                items[position] = updateItem // 문제 추정 코드. 실제 뷰모델의 데이터가 변경된다.
+                Log.d("tt blockServiceApplications", ""+ repeatLockViewModel.blockServiceApplications[position].isClicked)
+                Log.d("tt repeatLockTargetApplications", ""+ repeatLockViewModel.repeatLockTargetApplications[position].isClicked)
+                Log.d("tt allowServiceApplications", ""+ timeLockViewModel.allowServiceApplications[position].isClicked)
+
                 notifyItemChanged(position)
             }
         }
