@@ -1,17 +1,17 @@
-package com.example.lifemaster_xml.total.detox.dialog
+package com.example.lifemaster.total.detox.dialog
 
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.example.lifemaster_xml.R
-import com.example.lifemaster_xml.databinding.DialogDetoxRepeatLockBinding
-import com.example.lifemaster_xml.total.detox.model.DetoxRepeatLockItem
-import com.example.lifemaster_xml.total.detox.model.DetoxTargetApp
-import com.example.lifemaster_xml.total.detox.viewmodel.DetoxRepeatLockViewModel
+import com.example.lifemaster.R
+import com.example.lifemaster.databinding.DialogDetoxRepeatLockBinding
+import com.example.lifemaster.total.detox.model.DetoxRepeatLockItem
+import com.example.lifemaster.total.detox.model.DetoxTargetApp
+import com.example.lifemaster.total.detox.viewmodel.DetoxRepeatLockViewModel
 
-class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_detox_repeat_lock) {
+class DetoxRepeatLockSettingDialog: DialogFragment(R.layout.dialog_detox_repeat_lock) {
 
     private lateinit var binding: DialogDetoxRepeatLockBinding
     private lateinit var targetApp: DetoxTargetApp
@@ -35,15 +35,15 @@ class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_detox_repeat_lock) {
         }
         binding.tvSelectTargetApp.setOnClickListener {
             dismiss()
-            val dialog = DetoxRepeatLockTargetAppDialog()
+            val dialog = DetoxRepeatLockSettingTargetDialog()
             dialog.isCancelable = false
-            dialog.show(parentFragmentManager, DetoxRepeatLockTargetAppDialog.TAG)
+            dialog.show(parentFragmentManager, DetoxRepeatLockSettingTargetDialog.TAG)
         }
         binding.ivSelectTargetApp.setOnClickListener {
             dismiss()
-            val dialog = DetoxRepeatLockTargetAppDialog()
+            val dialog = DetoxRepeatLockSettingTargetDialog()
             dialog.isCancelable = false
-            dialog.show(parentFragmentManager, DetoxRepeatLockTargetAppDialog.TAG)
+            dialog.show(parentFragmentManager, DetoxRepeatLockSettingTargetDialog.TAG)
         }
         binding.btnCancel.setOnClickListener {
             dismiss()
@@ -55,14 +55,17 @@ class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_detox_repeat_lock) {
                 binding.apply {
                     val appIcon = targetApp.appIcon
                     val appName = targetApp.appName
+                    val accumulatedTime = targetApp.accumulatedTime
                     val useTime = etUseTimeHour.text.toString().toInt()*60 + etUseTimeMinutes.text.toString().toInt()
                     val lockTime = etLockTimeHour.text.toString().toInt()*60 + etLockTimeMinutes.text.toString().toInt()
                     val maxTime = etMaxTimeHour.text.toString().toInt()*60 + etMaxTimeMinutes.text.toString().toInt()
+
                     val isMaxTimeLimitSet = etMaxTimeHour.text.isNotBlank() || etMaxTimeMinutes.text.isNotBlank() // 1차 작성 코드
                     viewModel.addRepeatLockApp(DetoxRepeatLockItem(
-                        appIcon, appName, useTime, lockTime, maxTime, isMaxTimeLimitSet
+                        appIcon, appName, useTime, lockTime, maxTime, accumulatedTime, isMaxTimeLimitSet
                     ))
                 }
+                dismiss()
             }
         }
     }
@@ -71,7 +74,7 @@ class DetoxRepeatLockDialog: DialogFragment(R.layout.dialog_detox_repeat_lock) {
         viewModel.repeatLockTargetApp.observe(viewLifecycleOwner) {
             targetApp = it
             binding.tvSelectTargetApp.visibility = View.GONE // 리팩토링 필요 (불필요)
-            binding.ivSelectTargetApp.setImageResource(it.appIcon)
+            binding.ivSelectTargetApp.setImageDrawable(it.appIcon)
             binding.ivSelectTargetApp.visibility = View.VISIBLE // 리팩토링 필요 (불필요)
         }
     }

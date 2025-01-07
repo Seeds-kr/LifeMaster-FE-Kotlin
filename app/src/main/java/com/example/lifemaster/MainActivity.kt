@@ -1,8 +1,11 @@
 package com.example.lifemaster
 
+import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +18,7 @@ import com.example.lifemaster.total.detox.fragment.DetoxFragment
 import com.example.lifemaster.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.total.detox.viewmodel.DetoxTimeLockViewModel
+import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,6 +39,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         fetchApplications()
+
+        requestPermission()
 
         // 할일 목록 리스트 불러오기
         val sharedPreferences = getSharedPreferences("todo_items", Context.MODE_PRIVATE)
@@ -76,16 +82,45 @@ class MainActivity : AppCompatActivity() {
             !isSystemApp && !isUpdatedSystemApp
         }
 
+        val usageStatsMap = getDailyUsageStats(this)
+
         for(app in requiredApps) {
             val appName = app.loadLabel(packageManager).toString()
             val appIcon = app.loadUnbadgedIcon(packageManager)
-            applicationList.add(DetoxTargetApp(appIcon, appName))
+            val accumulatedTime = usageStatsMap[app.packageName] ?: 0L
+            applicationList.add(DetoxTargetApp(appIcon, appName, accumulatedTime))
         }
 
-        // 문제 원인 코드
         detoxRepeatLockViewModel.blockServiceApplications = ArrayList(applicationList)
         detoxRepeatLockViewModel.repeatLockTargetApplications = ArrayList(applicationList)
         detoxTimeLockViewModel.allowServiceApplications = ArrayList(applicationList)
+    }
+
+    private fun getDailyUsageStats(context: Context): Map<String, Long> {
+        val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+
+        val startTime = calendar.timeInMillis
+        val endTime = System.currentTimeMillis()
+
+        val usageStats = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_DAILY,
+            startTime,
+            endTime
+        )
+
+        return usageStats.associate { it.packageName to it.totalTimeInForeground }
+    }
+
+    private fun requestPermission() {
+        // 앱 사용 시간에 대한 접근 권한 요청
+        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+        startActivity(intent)
     }
 
     override fun onStart() {

@@ -17,6 +17,7 @@ data class DetoxTimeLockItem(
 data class DetoxTargetApp(
     val appIcon: Drawable,
     val appName: String,
+    val accumulatedTime: Long = 0L,
     val isClicked: Boolean = false
 )
 
@@ -26,5 +27,6 @@ data class DetoxRepeatLockItem(
     val useTime: Int,
     val lockTime: Int,
     val maxTime: Int,
+    val accumulatedTime: Long = 0L, // 사용 시간 (unit: milliseconds)
     val isMaxTimeLimitSet: Boolean = false
 )

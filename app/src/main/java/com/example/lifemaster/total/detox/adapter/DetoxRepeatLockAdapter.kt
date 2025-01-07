@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemDetoxRepeatLockItemBinding
 import com.example.lifemaster.total.detox.model.DetoxRepeatLockItem
+import java.util.concurrent.TimeUnit
 
 class DetoxRepeatLockAdapter: RecyclerView.Adapter<DetoxRepeatLockAdapter.DetoxRepeatLockViewHolder>() {
 
@@ -21,6 +22,7 @@ class DetoxRepeatLockAdapter: RecyclerView.Adapter<DetoxRepeatLockAdapter.DetoxR
             binding.tvAppName.text = item.appName
             binding.tvUseTime.text = "${item.useTime}분"
             binding.tvLockTime.text = "${item.lockTime}분"
+            binding.tvAccumulateTime.text = "${TimeUnit.MILLISECONDS.toMinutes(item.accumulatedTime)}분"
             if(item.isMaxTimeLimitSet) {
                 binding.tvMaxUseTime.text = "최대 ${item.maxTime}분 사용 가능"
             } else {
