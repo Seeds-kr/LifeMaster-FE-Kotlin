@@ -1,25 +1,29 @@
-package com.example.lifemaster_xml.total.detox.fragment
+package com.example.lifemaster.total.detox.fragment
 
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.widget.TextView
+import android.widget.TextView.OnEditorActionListener
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.lifemaster_xml.R
-import com.example.lifemaster_xml.databinding.FragmentDetoxBinding
-import com.example.lifemaster_xml.total.detox.adapter.DetoxServiceMainAdapter
-import com.example.lifemaster_xml.total.detox.adapter.DetoxRepeatLockAdapter
-import com.example.lifemaster_xml.total.detox.adapter.DetoxTimeLockAdapter
-import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockBlockServiceDialog
-import com.example.lifemaster_xml.total.detox.dialog.DetoxTimeLockAllowServiceDialog
-import com.example.lifemaster_xml.total.detox.dialog.DetoxRepeatLockDialog
-import com.example.lifemaster_xml.total.detox.dialog.DetoxTimeLockDialog
-import com.example.lifemaster_xml.total.detox.model.DetoxTimeLockItem
-import com.example.lifemaster_xml.total.detox.viewmodel.DetoxRepeatLockViewModel
-import com.example.lifemaster_xml.total.detox.viewmodel.DetoxTimeLockViewModel
+import com.example.lifemaster.R
+import com.example.lifemaster.databinding.FragmentDetoxBinding
+import com.example.lifemaster.total.detox.adapter.DetoxRepeatLockAdapter
+import com.example.lifemaster.total.detox.adapter.DetoxServiceMainAdapter
+import com.example.lifemaster.total.detox.adapter.DetoxTimeLockAdapter
+import com.example.lifemaster.total.detox.dialog.DetoxRepeatLockBlockServiceDialog
+import com.example.lifemaster.total.detox.dialog.DetoxRepeatLockSettingDialog
+import com.example.lifemaster.total.detox.dialog.DetoxTimeLockAllowServiceDialog
+import com.example.lifemaster.total.detox.dialog.DetoxTimeLockDialog
+import com.example.lifemaster.total.detox.viewmodel.DetoxRepeatLockViewModel
+import com.example.lifemaster.total.detox.viewmodel.DetoxTimeLockViewModel
 
 class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
@@ -93,10 +97,36 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
         // 반복 잠금 - 잠금 앱 추가
         binding.btnAddRepeatLockApp.setOnClickListener {
-            val dialog = DetoxRepeatLockDialog()
+            val dialog = DetoxRepeatLockSettingDialog()
             dialog.isCancelable = false
-            dialog.show(childFragmentManager, DetoxRepeatLockDialog.TAG)
+            dialog.show(childFragmentManager, DetoxRepeatLockSettingDialog.TAG)
         }
+
+        // 반복 잠금 - 검색 기능
+        binding.etSearchApp.setOnEditorActionListener(object: OnEditorActionListener {
+            override fun onEditorAction(v: TextView?, actionId: Int, event: KeyEvent?): Boolean {
+                if(actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    val searchAppName = binding.etSearchApp.text.toString()
+                    if(searchAppName.isBlank()) {
+                        Toast.makeText(requireContext(), "입력 값이 올바르지 않습니다!", Toast.LENGTH_SHORT).show()
+                        return false
+                    }
+                    else {
+                        val currentListApps = detoxRepeatLockViewModel.repeatLockApp.value
+                        val searchApp = currentListApps?.find { it.appName == searchAppName }
+                        if(searchApp == null) {
+                            Toast.makeText(requireContext(), "해당 앱은 존재하지 않습니다!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            val singleValueList = arrayListOf(searchApp)
+                            (binding.recyclerviewRepeatLock.adapter as DetoxRepeatLockAdapter).updateItems(singleValueList)
+                        }
+                        return false // 왜 키보드가 안내려가지?
+                    }
+                } else {
+                    return true
+                }
+            }
+        })
 
         // 시간 잠금 - 허용할 서비스 편집
         binding.btnEditTimeLockAllowService.setOnClickListener {
