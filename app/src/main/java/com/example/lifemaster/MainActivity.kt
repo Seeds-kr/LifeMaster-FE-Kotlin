@@ -1,5 +1,6 @@
 package com.example.lifemaster
 
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -7,7 +8,9 @@ import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.view.accessibility.AccessibilityManager
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster.community.CommunityFragment
 import com.example.lifemaster.data.SharedData
@@ -28,19 +31,30 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("Activity_Main", "onCreate")
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         codeCacheDir.setReadOnly()
 
         if(savedInstanceState == null) {
-            binding.navigation.selectedItemId = R.id.action_home
-            supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, HomeFragment()).commit()
+            binding.navigation.selectedItemId = R.id.action_total
+            supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, DetoxFragment()).commit()
         }
 
         fetchApplications()
 
-        requestPermission()
+        // 차단할 앱 서비스 기능을 위한 접근성 권한 관련 코드
+        val isAccessibilityPermitted = checkAccessibilityPermissions()
+        if(!isAccessibilityPermitted) {
+            AlertDialog.Builder(this).apply {
+                setTitle("접근성 권한 허용 필요")
+                setMessage("앱을 사용하기 위해 접근성 권한이 필요합니다.")
+                setPositiveButton("허용") { _, _ ->
+                    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                }
+                setCancelable(false)
+                create().show()
+            }
+        }
 
         // 할일 목록 리스트 불러오기
         val sharedPreferences = getSharedPreferences("todo_items", Context.MODE_PRIVATE)
@@ -87,8 +101,9 @@ class MainActivity : AppCompatActivity() {
         for(app in requiredApps) {
             val appName = app.loadLabel(packageManager).toString()
             val appIcon = app.loadUnbadgedIcon(packageManager)
+            val appPackageName = app.packageName
             val accumulatedTime = usageStatsMap[app.packageName] ?: 0L
-            applicationList.add(DetoxTargetApp(appIcon, appName, accumulatedTime))
+            applicationList.add(DetoxTargetApp(appIcon, appName, appPackageName, accumulatedTime))
         }
 
         detoxRepeatLockViewModel.blockServiceApplications = ArrayList(applicationList)
@@ -117,8 +132,20 @@ class MainActivity : AppCompatActivity() {
         return usageStats.associate { it.packageName to it.totalTimeInForeground }
     }
 
+    // 접근성 권한을 확인하는 메서드
+    private fun checkAccessibilityPermissions(): Boolean {
+        val accessibilityManager = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val enabledServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
+
+        for(serviceInfo in enabledServices) {
+            if(serviceInfo.resolveInfo.serviceInfo.packageName == application.packageName) return true
+        }
+
+        return false
+    }
+
+    // 앱 사용 시간에 대한 설정 화면 이동
     private fun requestPermission() {
-        // 앱 사용 시간에 대한 접근 권한 요청
         val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
         startActivity(intent)
     }
