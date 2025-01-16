@@ -77,11 +77,12 @@
             android:text="오늘 누적 시간" />
 
         <TextView
+            android:id="@+id/tv_accumulated_time_of_day"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center_horizontal"
-            android:text="06:01:00"
+            tools:text="06:01:00"
             android:textSize="20sp" />
     </LinearLayout>
 

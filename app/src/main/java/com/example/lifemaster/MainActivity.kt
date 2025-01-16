@@ -19,6 +19,7 @@ import com.example.lifemaster.group.GroupFragment
 import com.example.lifemaster.home.HomeFragment
 import com.example.lifemaster.total.detox.fragment.DetoxFragment
 import com.example.lifemaster.total.detox.model.DetoxTargetApp
+import com.example.lifemaster.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.total.detox.viewmodel.DetoxTimeLockViewModel
 import java.util.Calendar
@@ -26,6 +27,7 @@ import java.util.Calendar
 class MainActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityMainBinding
+    private val detoxCommonViewModel: DetoxCommonViewModel by viewModels()
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by viewModels()
     private val detoxTimeLockViewModel: DetoxTimeLockViewModel by viewModels()
 
@@ -103,6 +105,7 @@ class MainActivity : AppCompatActivity() {
             val appIcon = app.loadUnbadgedIcon(packageManager)
             val appPackageName = app.packageName
             val accumulatedTime = usageStatsMap[app.packageName] ?: 0L
+            detoxCommonViewModel.totalAccumulatedAppUsageTimes += accumulatedTime
             applicationList.add(DetoxTargetApp(appIcon, appName, appPackageName, accumulatedTime))
         }
 

@@ -22,12 +22,14 @@ import com.example.lifemaster.total.detox.dialog.DetoxRepeatLockBlockServiceDial
 import com.example.lifemaster.total.detox.dialog.DetoxRepeatLockSettingDialog
 import com.example.lifemaster.total.detox.dialog.DetoxTimeLockAllowServiceDialog
 import com.example.lifemaster.total.detox.dialog.DetoxTimeLockDialog
+import com.example.lifemaster.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.total.detox.viewmodel.DetoxTimeLockViewModel
 
 class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     lateinit var binding: FragmentDetoxBinding
+    private val detoxCommonViewModel: DetoxCommonViewModel by activityViewModels()
     private val detoxTimeLockViewModel: DetoxTimeLockViewModel by activityViewModels()
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by activityViewModels()
 
@@ -68,6 +70,9 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                 }
             }
         }
+
+        // 공통 - 오늘 사용한 앱의 총 누적 시간
+        binding.tvAccumulatedTimeOfDay.text = convertLongFormat(detoxCommonViewModel.totalAccumulatedAppUsageTimes)
 
         // 반복 잠금 - 차단할 서비스 설정
         binding.recyclerviewBlockService.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false)
@@ -188,6 +193,15 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
             }
             (binding.recyclerviewTimeLock.adapter as DetoxTimeLockAdapter).submitList(it.toList()) // it 으로 전달되면 이전 리스트를 제출한 것이기 때문에 diffUtil 은 변화를 감지하지 못한다.
         }
+    }
+
+    private fun convertLongFormat(milliseconds: Long): String {
+        val totalSeconds = milliseconds / 1000
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val remainSeconds = totalSeconds % 60
+
+        return String.format("%02d:%02d:%02d", hours, minutes, remainSeconds)
     }
 
     override fun onStart() {
