@@ -1,17 +1,16 @@
-package com.example.lifemaster_xml.total.detox.dialog
+package com.example.lifemaster.total.detox.dialog
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.lifemaster_xml.R
-import com.example.lifemaster_xml.databinding.DialogDetoxRepeatLockTargetAppBinding
-import com.example.lifemaster_xml.total.detox.adapter.DetoxRepeatLockTargetAppAdapter
-import com.example.lifemaster_xml.total.detox.viewmodel.DetoxRepeatLockViewModel
+import com.example.lifemaster.R
+import com.example.lifemaster.databinding.DialogDetoxRepeatLockTargetAppBinding
+import com.example.lifemaster.total.detox.adapter.DetoxRepeatLockTargetAppAdapter
+import com.example.lifemaster.total.detox.viewmodel.DetoxRepeatLockViewModel
 
-class DetoxRepeatLockTargetAppDialog: DialogFragment(R.layout.dialog_detox_repeat_lock_target_app) {
+class DetoxRepeatLockSettingTargetDialog: DialogFragment(R.layout.dialog_detox_repeat_lock_target_app) {
 
     private lateinit var binding: DialogDetoxRepeatLockTargetAppBinding
     private val viewModel: DetoxRepeatLockViewModel by activityViewModels()
@@ -45,9 +44,9 @@ class DetoxRepeatLockTargetAppDialog: DialogFragment(R.layout.dialog_detox_repea
     }
 
     private fun showParentDialog() {
-        val dialog = DetoxRepeatLockDialog()
+        val dialog = DetoxRepeatLockSettingDialog()
         dialog.isCancelable = false
-        dialog.show(parentFragmentManager, DetoxRepeatLockDialog.TAG)
+        dialog.show(parentFragmentManager, DetoxRepeatLockSettingDialog.TAG)
     }
 
     companion object {

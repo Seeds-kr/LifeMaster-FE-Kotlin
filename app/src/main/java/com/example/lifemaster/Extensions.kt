@@ -1,4 +1,4 @@
-package com.example.lifemaster_xml
+package com.example.lifemaster
 
 import android.content.Context
 import android.view.WindowManager

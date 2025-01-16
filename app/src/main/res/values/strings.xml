@@ -12,8 +12,7 @@
     <!-- 디톡스 -->
     <string-array name="detox_time_lock_repeat_period">
         <item>매주</item>
-        <item>매달</item>
-        <item>매년</item>
+        <item>격주</item>
     </string-array>
     <string-array name="detox_time_lock_repeat_day">
         <item>월요일</item>

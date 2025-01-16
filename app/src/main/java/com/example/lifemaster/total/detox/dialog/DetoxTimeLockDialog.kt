@@ -1,17 +1,16 @@
-package com.example.lifemaster_xml.total.detox.dialog
+package com.example.lifemaster.total.detox.dialog
 
 import android.app.TimePickerDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.example.lifemaster_xml.R
-import com.example.lifemaster_xml.databinding.DialogDetoxTimeLockBinding
-import com.example.lifemaster_xml.total.detox.model.DetoxTimeLockItem
-import com.example.lifemaster_xml.total.detox.viewmodel.DetoxTimeLockViewModel
+import com.example.lifemaster.R
+import com.example.lifemaster.databinding.DialogDetoxTimeLockBinding
+import com.example.lifemaster.total.detox.model.DetoxTimeLockItem
+import com.example.lifemaster.total.detox.viewmodel.DetoxTimeLockViewModel
 
 class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
 

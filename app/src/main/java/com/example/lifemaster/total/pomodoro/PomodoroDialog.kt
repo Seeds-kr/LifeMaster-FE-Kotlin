@@ -1,4 +1,4 @@
-package com.example.lifemaster_xml.total.pomodoro
+package com.example.lifemaster.total.pomodoro
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,16 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.ViewModelProvider
-import com.example.lifemaster_xml.data.SharedData
-import com.example.lifemaster_xml.databinding.DialogPomodoroBinding
+import androidx.fragment.app.activityViewModels
+import com.example.lifemaster.data.SharedData
+import com.example.lifemaster.databinding.DialogPomodoroBinding
 
 class PomodoroDialog: DialogFragment(), SendSelectedPositionInterface {
     lateinit var binding: DialogPomodoroBinding
     private var selectedPosition: Int? = null
-    private val sharedViewModel by lazy {
-        ViewModelProvider(requireActivity()).get(PomodoroViewModel::class.java)
-    }
+    private val sharedViewModel: PomodoroViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,5 +43,9 @@ class PomodoroDialog: DialogFragment(), SendSelectedPositionInterface {
 
     override fun sendSelectedPosition(position: Int) {
         selectedPosition = position
+    }
+
+    companion object {
+        const val TAG = "PomodoroDialog"
     }
 }

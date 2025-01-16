@@ -1,15 +1,15 @@
-package com.example.lifemaster_xml.home
+package com.example.lifemaster.home
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.lifemaster_xml.data.SharedData
-import com.example.lifemaster_xml.databinding.FragmentHomeBinding
-import com.example.lifemaster_xml.home.todo.ToDoAdapter
-import com.example.lifemaster_xml.home.todo.ToDoDialog
-import com.example.lifemaster_xml.home.todo.ToDoDialogInterface
+import com.example.lifemaster.data.SharedData
+import com.example.lifemaster.databinding.FragmentHomeBinding
+import com.example.lifemaster.home.todo.ToDoAdapter
+import com.example.lifemaster.home.todo.ToDoDialog
+import com.example.lifemaster.home.todo.ToDoDialogInterface
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER

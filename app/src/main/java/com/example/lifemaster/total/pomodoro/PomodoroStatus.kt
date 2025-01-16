@@ -1,4 +1,4 @@
-package com.example.lifemaster_xml.total.pomodoro
+package com.example.lifemaster.total.pomodoro
 
 enum class PomodoroStatus {
     INITIAL,

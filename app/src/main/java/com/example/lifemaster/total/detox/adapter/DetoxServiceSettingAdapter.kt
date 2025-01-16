@@ -11,9 +11,7 @@ import com.example.lifemaster.total.detox.viewmodel.DetoxTimeLockViewModel
 
 // 반복 잠금과 시간 잠금 둘 다 공유 가능한 어댑터
 class DetoxServiceSettingAdapter(
-    private val items: ArrayList<DetoxTargetApp>,
-    private val repeatLockViewModel: DetoxRepeatLockViewModel,
-    private val timeLockViewModel: DetoxTimeLockViewModel
+    private val items: ArrayList<DetoxTargetApp>
 ) : RecyclerView.Adapter<DetoxServiceSettingAdapter.DetoxAllowServiceViewHolder>() {
     inner class DetoxAllowServiceViewHolder(private val binding: ItemDetoxTargetAppSettingBinding): RecyclerView.ViewHolder(binding.root) {
 
@@ -27,12 +25,7 @@ class DetoxServiceSettingAdapter(
                 val position = adapterPosition
                 val item = items[position]
                 val updateItem = item.copy(isClicked = !item.isClicked)
-
-                items[position] = updateItem // 문제 추정 코드. 실제 뷰모델의 데이터가 변경된다.
-                Log.d("tt blockServiceApplications", ""+ repeatLockViewModel.blockServiceApplications[position].isClicked)
-                Log.d("tt repeatLockTargetApplications", ""+ repeatLockViewModel.repeatLockTargetApplications[position].isClicked)
-                Log.d("tt allowServiceApplications", ""+ timeLockViewModel.allowServiceApplications[position].isClicked)
-
+                items[position] = updateItem // 실제 뷰모델의 데이터가 변경된다
                 notifyItemChanged(position)
             }
         }

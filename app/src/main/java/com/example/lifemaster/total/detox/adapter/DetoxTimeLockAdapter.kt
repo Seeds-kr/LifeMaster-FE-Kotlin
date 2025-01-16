@@ -1,12 +1,12 @@
-package com.example.lifemaster_xml.total.detox.adapter
+package com.example.lifemaster.total.detox.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster_xml.databinding.ItemDetoxTimeLockBinding
-import com.example.lifemaster_xml.total.detox.model.DetoxTimeLockItem
+import com.example.lifemaster.databinding.ItemDetoxTimeLockBinding
+import com.example.lifemaster.total.detox.model.DetoxTimeLockItem
 
 class DetoxTimeLockAdapter : ListAdapter<DetoxTimeLockItem, DetoxTimeLockAdapter.DetoxTimeLockViewHolder>(differ) {
 

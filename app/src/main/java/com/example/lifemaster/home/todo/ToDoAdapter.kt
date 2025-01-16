@@ -1,4 +1,4 @@
-package com.example.lifemaster_xml.home.todo
+package com.example.lifemaster.home.todo
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -8,9 +8,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster_xml.MainActivity
-import com.example.lifemaster_xml.R
-import com.example.lifemaster_xml.total.pomodoro.PomodoroFragment
+import com.example.lifemaster.R
+import com.example.lifemaster.total.pomodoro.PomodoroFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class ToDoAdapter(

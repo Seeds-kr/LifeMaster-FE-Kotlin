@@ -1,15 +1,13 @@
-package com.example.lifemaster_xml.total.pomodoro
+package com.example.lifemaster.total.pomodoro
 
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster_xml.R
+import com.example.lifemaster.R
 
 class PomodoroAdapter(
     val todoItems: MutableList<String>,

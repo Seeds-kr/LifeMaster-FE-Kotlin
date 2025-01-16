@@ -1,4 +1,4 @@
-package com.example.lifemaster_xml.home.todo
+package com.example.lifemaster.home.todo
 
 import android.content.Context
 import android.os.Bundle
@@ -7,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
-import com.example.lifemaster_xml.data.SharedData
-import com.example.lifemaster_xml.databinding.DialogTodoBinding
+import com.example.lifemaster.data.SharedData
+import com.example.lifemaster.databinding.DialogTodoBinding
 
 // [?] dialog 와 dialog fragment 의 차이?
 class ToDoDialog(

@@ -1,11 +1,11 @@
-package com.example.lifemaster_xml.total.pomodoro.emergency_escape
+package com.example.lifemaster.total.pomodoro.emergency_escape
 
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
-import com.example.lifemaster_xml.data.SharedData
-import com.example.lifemaster_xml.total.pomodoro.PomodoroStatus
+import com.example.lifemaster.data.SharedData
+import com.example.lifemaster.total.pomodoro.PomodoroStatus
 
 class EmergencyEscapeDialog: DialogFragment() {
 

@@ -1,4 +1,4 @@
-package com.example.lifemaster_xml.total.pomodoro.emergency_escape
+package com.example.lifemaster.total.pomodoro.emergency_escape
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

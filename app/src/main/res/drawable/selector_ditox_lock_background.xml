@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@drawable/bg_ditox_repeat_lock" android:state_checked="true"/> <!-- [?] 오른쪽이 checked 인가? -->
-    <item android:drawable="@drawable/bg_ditox_time_lock" android:state_checked="false"/>"
+    <item android:drawable="@drawable/bg_ditox_repeat_lock" android:state_checked="true"/>
+    <item android:drawable="@drawable/bg_ditox_time_lock" android:state_checked="false"/>
 </selector>
