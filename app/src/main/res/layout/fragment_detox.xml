@@ -186,19 +186,24 @@
                 android:background="@drawable/bg_round_radius"
                 android:backgroundTint="@color/white"
                 android:gravity="center_vertical"
+                android:padding="8dp"
                 android:orientation="horizontal">
 
-                <TextView
+                <EditText
+                    android:id="@+id/et_search_app"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="앱 이름으로 검색"
-                    android:textColor="@color/black" />
-
-                <SearchView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:textSize="14sp"
+                    android:hint="앱 이름으로 검색"
+                    android:inputType="text"
+                    android:background="@android:color/transparent"
+                    android:imeOptions="actionSearch"/>
+                <ImageButton
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_search"
+                    android:background="@null"/>
             </LinearLayout>
 
             <LinearLayout
