@@ -1,6 +1,7 @@
 package com.example.lifemaster.presentation
 
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.app.AppOpsManager
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -10,14 +11,12 @@ import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster.R
 import com.example.lifemaster.presentation.community.CommunityFragment
-import com.example.lifemaster.presentation.data.SharedData
 import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.presentation.group.GroupFragment
-import com.example.lifemaster.presentation.home.HomeFragment
+import com.example.lifemaster.presentation.home.ToDoFragment
 import com.example.lifemaster.presentation.total.detox.fragment.DetoxFragment
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
@@ -45,49 +44,27 @@ class MainActivity : AppCompatActivity() {
 
         fetchApplications()
 
-        // 차단할 앱 서비스 기능을 위한 접근성 권한 관련 코드
-        val isAccessibilityPermitted = checkAccessibilityPermissions()
-        if(!isAccessibilityPermitted) {
-            AlertDialog.Builder(this).apply {
-                setTitle("접근성 권한 허용 필요")
-                setMessage("앱을 사용하기 위해 접근성 권한이 필요합니다.")
-                setPositiveButton("허용") { _, _ ->
-                    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                }
-                setCancelable(false)
-                create().show()
-            }
-        }
+        setupListeners()
 
-        // 할일 목록 리스트 불러오기
-        val sharedPreferences = getSharedPreferences("todo_items", Context.MODE_PRIVATE)
-        SharedData.todoItems.clear() // [?] todoItems 에 있는 값은 어떤 생명주기에서 사라지는걸까?
-        SharedData.todoItems.addAll(sharedPreferences.all.values as Collection<String>)
+        requestUsageAccessPermission(this)
 
-        // [!] setOnClickListener 가 아니라 setOnItemSelectedListener 이기 때문에, 하단 개별 뷰를 누르지 않더라도 selectedItemId 를 해당 뷰로 바꿔주면 동작한다.
-        binding.navigation.setOnItemSelectedListener { item ->
-            when(item.itemId) {
-                R.id.action_home -> {
-                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, HomeFragment()).commit()
-                    true
-                }
-                R.id.action_group -> {
-                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, GroupFragment()).commit()
-                    true
-                }
-                R.id.action_community -> {
-                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, CommunityFragment()).commit()
-                    true
-                }
-                R.id.action_total -> {
-                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, DetoxFragment()).commit()
-                    true
-                }
-                else -> false
-            }
-        }
+//         차단할 앱 서비스 기능을 위한 접근성 권한 관련 코드
+//        val isAccessibilityPermitted = checkAccessibilityPermissions()
+//        Toast.makeText(this, "접근성 권한 허용되었는가? $isAccessibilityPermitted", Toast.LENGTH_SHORT).show()
+//        if(!isAccessibilityPermitted) {
+//            AlertDialog.Builder(this).apply {
+//                setTitle("접근성 권한 허용 필요")
+//                setMessage("앱을 사용하기 위해 접근성 권한이 필요합니다.")
+//                setPositiveButton("허용") { _, _ ->
+//                    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+//                }
+//                setCancelable(false)
+//                create().show()
+//            }
+//        }
     }
 
+    // 실제 디바이스에 설치된 어플리케이션을 가져오는 함수
     private fun fetchApplications() {
 
         val applicationList = arrayListOf<DetoxTargetApp>()
@@ -115,6 +92,33 @@ class MainActivity : AppCompatActivity() {
         detoxTimeLockViewModel.allowServiceApplications = ArrayList(applicationList)
     }
 
+    // 클릭 이벤트 관련 함수
+    private fun setupListeners() {
+        // [!] setOnClickListener 가 아니라 setOnItemSelectedListener 이기 때문에, 하단 개별 뷰를 누르지 않더라도 selectedItemId 를 해당 뷰로 바꿔주면 동작한다.
+        binding.navigation.setOnItemSelectedListener { item ->
+            when(item.itemId) {
+                R.id.action_home -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, ToDoFragment()).commit()
+                    true
+                }
+                R.id.action_group -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, GroupFragment()).commit()
+                    true
+                }
+                R.id.action_community -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, CommunityFragment()).commit()
+                    true
+                }
+                R.id.action_total -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, DetoxFragment()).commit()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    // 하루 앱 사용 시간을 측정하는 함수
     private fun getDailyUsageStats(context: Context): Map<String, Long> {
         val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
@@ -136,7 +140,7 @@ class MainActivity : AppCompatActivity() {
         return usageStats.associate { it.packageName to it.totalTimeInForeground }
     }
 
-    // 접근성 권한을 확인하는 메서드
+    // 접근성 권한 활성화 여부 확인
     private fun checkAccessibilityPermissions(): Boolean {
         val accessibilityManager = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
         val enabledServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
@@ -148,39 +152,22 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
-    // 앱 사용 시간에 대한 설정 화면 이동
-    private fun requestPermission() {
-        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-        startActivity(intent)
+    // 앱 사용 시간에 대한 설정 화면으로 이동하는 함수(권한 없을 시)
+    private fun requestUsageAccessPermission(context: Context) {
+        if(!isUsageAceessGranted(context)) {
+            val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+            context.startActivity(intent)
+        }
     }
 
-    override fun onStart() {
-        super.onStart()
-        Log.d("Activity_Main", "onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("Activity_Main", "onResume")
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Log.d("Activity_Main", "onPause")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.d("Activity_Main", "onStop")
-    }
-
-    override fun onRestart() {
-        super.onRestart()
-        Log.d("Activity_Main", "onRestart")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d("Activity_Main", "onDestroy")
+    // 앱 사용 시간 권한 활성화 여부를 확인하는 함수
+    private fun isUsageAceessGranted(context: Context): Boolean {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = appOps.checkOpNoThrow(
+            AppOpsManager.OPSTR_GET_USAGE_STATS,
+            android.os.Process.myUid(),
+            context.packageName
+        )
+        return mode == AppOpsManager.MODE_ALLOWED
     }
 }
