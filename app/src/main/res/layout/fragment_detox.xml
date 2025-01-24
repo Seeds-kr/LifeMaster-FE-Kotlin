@@ -74,7 +74,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:text="오늘 누적 시간" />
+            android:text="오늘 앱 사용 시간" />
 
         <TextView
             android:id="@+id/tv_accumulated_time_of_day"

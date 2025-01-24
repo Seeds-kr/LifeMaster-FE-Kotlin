@@ -33,6 +33,8 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     private val detoxTimeLockViewModel: DetoxTimeLockViewModel by activityViewModels()
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by activityViewModels()
 
+    private var totalAccumulatedAppUsageTimes: Long = 0L // 앱의 총 누적 사용 시간(lifemaster 앱의 현재 포그라운드 상태에서의 누적된 시간 제외)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("DetoxFragment", "onCreate")
@@ -70,9 +72,6 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                 }
             }
         }
-
-        // 공통 - 오늘 사용한 앱의 총 누적 시간
-        binding.tvAccumulatedTimeOfDay.text = convertLongFormat(detoxCommonViewModel.totalAccumulatedAppUsageTimes)
 
         // 반복 잠금 - 차단할 서비스 설정
         binding.recyclerviewBlockService.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false)
@@ -148,7 +147,18 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         }
     }
 
+    // 공통 - 오늘 사용한 앱의 총 누적 시간
     private fun observing() {
+
+        // lifemaster 앱이 포그라운드에 있을 때의 시간을 제외한 총 사용 누적 시간 -> 변수만 변경
+        detoxCommonViewModel.totalAccumulatedAppUsageTimes.observe(viewLifecycleOwner) { updatedTime ->
+            this.totalAccumulatedAppUsageTimes = updatedTime
+        }
+
+        // lifemaster 앱이 포그라운드에 있을 때의 시간을 포함한 총 사용 누적 시간 -> UI 실시간 업데이트
+        detoxCommonViewModel.tempElapsedForegroundTime.observe(viewLifecycleOwner) { elapsedForegroundTime ->
+            binding.tvAccumulatedTimeOfDay.text = convertLongFormat(totalAccumulatedAppUsageTimes + elapsedForegroundTime)
+        }
 
         detoxRepeatLockViewModel.blockServices.observe(viewLifecycleOwner) {
             if(it.isNotEmpty()) {

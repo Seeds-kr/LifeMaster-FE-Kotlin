@@ -7,6 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
@@ -26,16 +29,42 @@ import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var binding: ActivityMainBinding
+    // View 관련 변수
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var totalApps: MutableList<ApplicationInfo>
+    private lateinit var requiredApps: List<ApplicationInfo>
+    private var foregroundStartTime: Long = 0L
+
+    // ViewModel 변수
     private val detoxCommonViewModel: DetoxCommonViewModel by viewModels()
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by viewModels()
     private val detoxTimeLockViewModel: DetoxTimeLockViewModel by viewModels()
 
+    // 실시간 UI 변경을 위한 변수
+    private val handler = Handler(Looper.getMainLooper())
+    private lateinit var updateRunnable: Runnable
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        codeCacheDir.setReadOnly()
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        codeCacheDir.setReadOnly()
+
+        updateRunnable = object : Runnable {
+            override fun run() {
+                val elapsedForegroundTime = SystemClock.elapsedRealtime() - foregroundStartTime // 포그라운드로 전환 이후 누적된 시간
+                detoxCommonViewModel.updateTempElapsedForegroundTime(elapsedForegroundTime)
+                handler.postDelayed(this, 1000L)
+            }
+        }
+
+        totalApps = packageManager.getInstalledApplications(0)
+        requiredApps = totalApps.filter { app ->
+            val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+            val isUpdatedSystemApp = (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+            !isSystemApp && !isUpdatedSystemApp
+        }
 
         if(savedInstanceState == null) {
             binding.navigation.selectedItemId = R.id.action_total
@@ -64,32 +93,50 @@ class MainActivity : AppCompatActivity() {
 //        }
     }
 
+    override fun onResume() {
+        super.onResume()
+        foregroundStartTime = SystemClock.elapsedRealtime() // 앱이 포그라운드로 전환된 시간 기록
+        updateUsageStats()
+        handler.post(updateRunnable)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        handler.removeCallbacks(updateRunnable)
+    }
+
     // 실제 디바이스에 설치된 어플리케이션을 가져오는 함수
     private fun fetchApplications() {
 
         val applicationList = arrayListOf<DetoxTargetApp>()
-        val totalApps = packageManager.getInstalledApplications(0) // manifest 에 <queries> 에 intent 필터로 따로 추가
-
-        val requiredApps = totalApps.filter { app ->
-            val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-            val isUpdatedSystemApp = (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
-            !isSystemApp && !isUpdatedSystemApp
-        }
-
         val usageStatsMap = getDailyUsageStats(this)
 
         for(app in requiredApps) {
             val appName = app.loadLabel(packageManager).toString()
             val appIcon = app.loadUnbadgedIcon(packageManager)
             val appPackageName = app.packageName
-            val accumulatedTime = usageStatsMap[app.packageName] ?: 0L
-            detoxCommonViewModel.totalAccumulatedAppUsageTimes += accumulatedTime
+            val accumulatedTime = usageStatsMap[app.packageName] ?: 0L // 누적 사용 시간은 실시간으로 변동되지 않음 (리팩토링 필요)
             applicationList.add(DetoxTargetApp(appIcon, appName, appPackageName, accumulatedTime))
         }
 
         detoxRepeatLockViewModel.blockServiceApplications = ArrayList(applicationList)
         detoxRepeatLockViewModel.repeatLockTargetApplications = ArrayList(applicationList)
         detoxTimeLockViewModel.allowServiceApplications = ArrayList(applicationList)
+    }
+
+    // 앱 사용 시간을 실시간으로 업데이트하는 함수 (1초마다 실행됨)
+    private fun updateUsageStats() {
+
+        val usageStatsMap = getDailyUsageStats(this)
+
+        var totalUsageTime = 0L
+
+        for(app in requiredApps) {
+            val accumulatedUsageTime = usageStatsMap[app.packageName] ?: 0L
+            totalUsageTime += accumulatedUsageTime
+        }
+
+        detoxCommonViewModel.updateTotalAccumulatedAppUsageTimes(totalUsageTime)
     }
 
     // 클릭 이벤트 관련 함수
@@ -154,14 +201,14 @@ class MainActivity : AppCompatActivity() {
 
     // 앱 사용 시간에 대한 설정 화면으로 이동하는 함수(권한 없을 시)
     private fun requestUsageAccessPermission(context: Context) {
-        if(!isUsageAceessGranted(context)) {
+        if(!isUsageAccessGranted(context)) {
             val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
             context.startActivity(intent)
         }
     }
 
     // 앱 사용 시간 권한 활성화 여부를 확인하는 함수
-    private fun isUsageAceessGranted(context: Context): Boolean {
+    private fun isUsageAccessGranted(context: Context): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         val mode = appOps.checkOpNoThrow(
             AppOpsManager.OPSTR_GET_USAGE_STATS,
