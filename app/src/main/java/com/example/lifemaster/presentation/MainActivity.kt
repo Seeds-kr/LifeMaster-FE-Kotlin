@@ -2,6 +2,7 @@ package com.example.lifemaster.presentation
 
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.AppOpsManager
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -133,10 +134,22 @@ class MainActivity : AppCompatActivity() {
 
         for(app in requiredApps) {
             val accumulatedUsageTime = usageStatsMap[app.packageName] ?: 0L
+            if(accumulatedUsageTime>0) {
+                Log.d("debugging", "${app.loadLabel(packageManager)}: ${convertLongFormat(accumulatedUsageTime)}")
+            }
             totalUsageTime += accumulatedUsageTime
         }
 
         detoxCommonViewModel.updateTotalAccumulatedAppUsageTimes(totalUsageTime)
+    }
+
+    private fun convertLongFormat(milliseconds: Long): String {
+        val totalSeconds = milliseconds / 1000
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val remainSeconds = totalSeconds % 60
+
+        return String.format("%02d:%02d:%02d", hours, minutes, remainSeconds)
     }
 
     // 클릭 이벤트 관련 함수
@@ -165,7 +178,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 하루 앱 사용 시간을 측정하는 함수
+
+
+    // 자정을 기준으로 하루 앱 사용 시간을 측정하는 함수
     private fun getDailyUsageStats(context: Context): Map<String, Long> {
         val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
@@ -178,14 +193,36 @@ class MainActivity : AppCompatActivity() {
         val startTime = calendar.timeInMillis
         val endTime = System.currentTimeMillis()
 
-        val usageStats = usageStatsManager.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY,
-            startTime,
-            endTime
-        )
+        val eventMap = mutableMapOf<String, Long>()
 
-        return usageStats.associate { it.packageName to it.totalTimeInForeground }
+        val usageEvents = usageStatsManager.queryEvents(startTime, endTime)
+        val event = UsageEvents.Event()
+
+        var currentForegroundApp: String? = null
+        var lastEventTime = 0L
+
+        while (usageEvents.hasNextEvent()) {
+            usageEvents.getNextEvent(event)
+
+            when (event.eventType) {
+                UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                    currentForegroundApp = event.packageName
+                    lastEventTime = event.timeStamp
+                }
+                UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                    if (currentForegroundApp != null && lastEventTime != 0L) {
+                        val usageTime = event.timeStamp - lastEventTime
+                        eventMap[currentForegroundApp] = (eventMap[currentForegroundApp] ?: 0) + usageTime
+                    }
+                    currentForegroundApp = null
+                    lastEventTime = 0L
+                }
+            }
+        }
+
+        return eventMap
     }
+
 
     // 접근성 권한 활성화 여부 확인
     private fun checkAccessibilityPermissions(): Boolean {
