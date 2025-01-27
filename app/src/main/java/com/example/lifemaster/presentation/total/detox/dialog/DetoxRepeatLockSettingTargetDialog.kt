@@ -34,11 +34,11 @@ class DetoxRepeatLockSettingTargetDialog: DialogFragment(R.layout.dialog_detox_r
             showParentDialog()
         }
         binding.btnApply.setOnClickListener {
-            dismiss()
             val clickedApplication = viewModel.repeatLockTargetApplications.find { it.isClicked }
             if (clickedApplication != null) {
                 viewModel.updateRepeatLockTargetApp(clickedApplication)
             }
+            dismiss()
             showParentDialog()
         }
     }

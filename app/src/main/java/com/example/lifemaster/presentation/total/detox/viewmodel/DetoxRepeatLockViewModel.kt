@@ -40,4 +40,27 @@ class DetoxRepeatLockViewModel: ViewModel() {
         _repeatLockApp.value = currentList
     }
 
+    // 반복 잠금 아이템 시간(사용 시간)
+    private val _useTime: MutableLiveData<Pair<Int,Int>> = MutableLiveData()
+    val useTime: LiveData<Pair<Int,Int>> get() = _useTime
+
+    fun setUseTime(useTime: Pair<Int,Int>) {
+        _useTime.value = useTime
+    }
+
+    // 반복 잠금 아이템 시간(잠금 시간)
+    private val _lockTime: MutableLiveData<Pair<Int,Int>> = MutableLiveData()
+    val lockTime: LiveData<Pair<Int,Int>> get() = _lockTime
+
+    fun setLockTime(useTime: Pair<Int,Int>) {
+        _lockTime.value = useTime
+    }
+
+    // 반복 잠금 아이템 시간(최대 사용 시간)
+    private val _maxUseTime: MutableLiveData<Pair<Int,Int>> = MutableLiveData()
+    val maxUseTime: LiveData<Pair<Int,Int>> get() = _maxUseTime
+
+    fun setMaxUseTime(useTime: Pair<Int,Int>) {
+        _maxUseTime.value = useTime
+    }
 }
