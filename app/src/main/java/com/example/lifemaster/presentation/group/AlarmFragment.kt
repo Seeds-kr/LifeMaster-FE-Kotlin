@@ -4,14 +4,14 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.example.lifemaster.R
-import com.example.lifemaster.databinding.FragmentGroupBinding
+import com.example.lifemaster.databinding.FragmentAlarmBinding
 
-class GroupFragment : Fragment(R.layout.fragment_group) {
+class AlarmFragment : Fragment(R.layout.fragment_alarm) {
 
-    lateinit var binding: FragmentGroupBinding
+    lateinit var binding: FragmentAlarmBinding
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding = FragmentGroupBinding.bind(view)
+        binding = FragmentAlarmBinding.bind(view)
     }
 }

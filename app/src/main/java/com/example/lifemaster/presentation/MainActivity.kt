@@ -1,6 +1,7 @@
 package com.example.lifemaster.presentation
 
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.app.AlertDialog
 import android.app.AppOpsManager
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
@@ -12,14 +13,13 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
-import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster.R
 import com.example.lifemaster.presentation.community.CommunityFragment
 import com.example.lifemaster.databinding.ActivityMainBinding
-import com.example.lifemaster.presentation.group.GroupFragment
+import com.example.lifemaster.presentation.group.AlarmFragment
 import com.example.lifemaster.presentation.home.ToDoFragment
 import com.example.lifemaster.presentation.total.detox.fragment.DetoxFragment
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if(savedInstanceState == null) {
-            binding.navigation.selectedItemId = R.id.action_total
+            binding.navigation.selectedItemId = R.id.action_detox
             supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, DetoxFragment()).commit()
         }
 
@@ -161,15 +161,15 @@ class MainActivity : AppCompatActivity() {
                     supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, ToDoFragment()).commit()
                     true
                 }
-                R.id.action_group -> {
-                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, GroupFragment()).commit()
+                R.id.action_alarm -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, AlarmFragment()).commit()
                     true
                 }
                 R.id.action_community -> {
                     supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, CommunityFragment()).commit()
                     true
                 }
-                R.id.action_total -> {
+                R.id.action_detox -> {
                     supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, DetoxFragment()).commit()
                     true
                 }
@@ -177,8 +177,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-
 
     // 자정을 기준으로 하루 앱 사용 시간을 측정하는 함수
     private fun getDailyUsageStats(context: Context): Map<String, Long> {
