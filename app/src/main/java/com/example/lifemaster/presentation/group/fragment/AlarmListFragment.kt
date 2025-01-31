@@ -4,13 +4,19 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.LinearLayout
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmListBinding
+import com.example.lifemaster.presentation.group.adapter.AlarmAdapter
+import com.example.lifemaster.presentation.group.viewmodel.AlarmViewModel
 
 class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
+
     private lateinit var binding: FragmentAlarmListBinding
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
+    private val alarmAdapter = AlarmAdapter()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -23,6 +29,7 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
     private fun setupViews() {
         binding.apply {
             recyclerview.addItemDecoration(DividerItemDecoration(context, LinearLayout.VERTICAL)) // 구분선 넣기
+            recyclerview.adapter = alarmAdapter
         }
     }
 
@@ -35,6 +42,8 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
     }
 
     private fun setupObservers() {
-
+        alarmViewModel.alarmItems.observe(viewLifecycleOwner) { items ->
+            alarmAdapter.submitList(items.toMutableList())
+        }
     }
 }
