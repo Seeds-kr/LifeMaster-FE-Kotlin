@@ -6,6 +6,7 @@
     android:padding="12dp">
 
     <TextView
+        android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -14,20 +15,20 @@
         android:textSize="16sp" />
 
     <LinearLayout
-        android:layout_width="200dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginBottom="8dp">
 
         <NumberPicker
-            android:id="@+id/np_hour"
+            android:id="@+id/np_first"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"/>
 
         <NumberPicker
-            android:id="@+id/np_minutes"
+            android:id="@+id/np_second"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"/>
