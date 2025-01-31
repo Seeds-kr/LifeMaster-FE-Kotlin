@@ -19,7 +19,13 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     }
 
     private fun setupViews() {
-
+        binding.layoutSwitch.widget.setOnCheckedChangeListener { _, isChecked ->
+            if(isChecked) {
+                binding.llDelayStatusOn.visibility = View.VISIBLE
+            } else {
+                binding.llDelayStatusOn.visibility = View.GONE
+            }
+        }
     }
 
     private fun setupListeners() {
