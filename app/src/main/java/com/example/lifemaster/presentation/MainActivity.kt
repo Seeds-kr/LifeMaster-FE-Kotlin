@@ -16,10 +16,11 @@ import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.presentation.community.CommunityFragment
 import com.example.lifemaster.databinding.ActivityMainBinding
-import com.example.lifemaster.presentation.group.AlarmFragment
+import com.example.lifemaster.presentation.group.fragment.AlarmSettingFragment
 import com.example.lifemaster.presentation.home.ToDoFragment
 import com.example.lifemaster.presentation.total.detox.fragment.DetoxFragment
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
@@ -67,10 +68,7 @@ class MainActivity : AppCompatActivity() {
             !isSystemApp && !isUpdatedSystemApp
         }
 
-        if(savedInstanceState == null) {
-            binding.navigation.selectedItemId = R.id.action_detox
-            supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, DetoxFragment()).commit()
-        }
+        if(savedInstanceState == null) binding.bottomNavigation.selectedItemId = R.id.action_alarm
 
         fetchApplications()
 
@@ -78,20 +76,7 @@ class MainActivity : AppCompatActivity() {
 
         requestUsageAccessPermission(this)
 
-//         차단할 앱 서비스 기능을 위한 접근성 권한 관련 코드
-//        val isAccessibilityPermitted = checkAccessibilityPermissions()
-//        Toast.makeText(this, "접근성 권한 허용되었는가? $isAccessibilityPermitted", Toast.LENGTH_SHORT).show()
-//        if(!isAccessibilityPermitted) {
-//            AlertDialog.Builder(this).apply {
-//                setTitle("접근성 권한 허용 필요")
-//                setMessage("앱을 사용하기 위해 접근성 권한이 필요합니다.")
-//                setPositiveButton("허용") { _, _ ->
-//                    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-//                }
-//                setCancelable(false)
-//                create().show()
-//            }
-//        }
+//        requestAccessibilityPermission(this)
     }
 
     override fun onResume() {
@@ -134,9 +119,9 @@ class MainActivity : AppCompatActivity() {
 
         for(app in requiredApps) {
             val accumulatedUsageTime = usageStatsMap[app.packageName] ?: 0L
-            if(accumulatedUsageTime>0) {
-                Log.d("debugging", "${app.loadLabel(packageManager)}: ${convertLongFormat(accumulatedUsageTime)}")
-            }
+//            if(accumulatedUsageTime>0) {
+//                Log.d("debugging", "${app.loadLabel(packageManager)}: ${convertLongFormat(accumulatedUsageTime)}")
+//            }
             totalUsageTime += accumulatedUsageTime
         }
 
@@ -155,22 +140,22 @@ class MainActivity : AppCompatActivity() {
     // 클릭 이벤트 관련 함수
     private fun setupListeners() {
         // [!] setOnClickListener 가 아니라 setOnItemSelectedListener 이기 때문에, 하단 개별 뷰를 누르지 않더라도 selectedItemId 를 해당 뷰로 바꿔주면 동작한다.
-        binding.navigation.setOnItemSelectedListener { item ->
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
             when(item.itemId) {
                 R.id.action_home -> {
-                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, ToDoFragment()).commit()
+                    findNavController(R.id.fragmentContainerView).navigate(R.id.toDoFragment)
                     true
                 }
                 R.id.action_alarm -> {
-                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, AlarmFragment()).commit()
+                    findNavController(R.id.fragmentContainerView).navigate(R.id.alarmListFragment)
                     true
                 }
                 R.id.action_community -> {
-                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, CommunityFragment()).commit()
+                    findNavController(R.id.fragmentContainerView).navigate(R.id.communityFragment)
                     true
                 }
                 R.id.action_detox -> {
-                    supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, DetoxFragment()).commit()
+                    findNavController(R.id.fragmentContainerView).navigate(R.id.detoxFragment)
                     true
                 }
                 else -> false
@@ -221,10 +206,9 @@ class MainActivity : AppCompatActivity() {
         return eventMap
     }
 
-
-    // 접근성 권한 활성화 여부 확인
-    private fun checkAccessibilityPermissions(): Boolean {
-        val accessibilityManager = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+    // 차단 서비스 기능을 위한 접근성 권한 활성화 여부 확인
+    private fun isAccessibilityPermitted(context: Context): Boolean {
+        val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
         val enabledServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
 
         for(serviceInfo in enabledServices) {
@@ -232,6 +216,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         return false
+    }
+
+    private fun requestAccessibilityPermission(context: Context) {
+        if(!isAccessibilityPermitted(context)) {
+            AlertDialog.Builder(context).apply {
+                setTitle("접근성 권한 허용 필요")
+                setMessage("앱을 사용하기 위해서는 접근성 권한이 필요합니다.")
+                setPositiveButton("허용") { _, _ ->
+                    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                }
+                setCancelable(false)
+                create().show()
+            }
+        }
     }
 
     // 앱 사용 시간에 대한 설정 화면으로 이동하는 함수(권한 없을 시)
