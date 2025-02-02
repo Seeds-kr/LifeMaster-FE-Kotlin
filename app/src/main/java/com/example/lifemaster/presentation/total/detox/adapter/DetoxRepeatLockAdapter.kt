@@ -20,11 +20,11 @@ class DetoxRepeatLockAdapter: RecyclerView.Adapter<DetoxRepeatLockAdapter.DetoxR
         fun bind(item: DetoxRepeatLockItem) {
             binding.ivAppLogo.setImageDrawable(item.appIcon)
             binding.tvAppName.text = item.appName
-            binding.tvUseTime.text = "${item.useTime}분"
-            binding.tvLockTime.text = "${item.lockTime}분"
+            binding.tvUseTime.text = "${item.useTime}초"
+            binding.tvLockTime.text = "${item.lockTime}초"
             binding.tvAccumulateTime.text = "${TimeUnit.MILLISECONDS.toMinutes(item.accumulatedTime)}분"
             if(item.isMaxTimeLimitSet) {
-                binding.tvMaxUseTime.text = "최대 ${item.maxTime}분 사용 가능"
+                binding.tvMaxUseTime.text = "최대 ${item.maxTime}초 사용 가능"
             } else {
                 binding.tvMaxUseTime.text = "최대 사용 시간 제한 없음"
             }

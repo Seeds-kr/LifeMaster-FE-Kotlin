@@ -81,22 +81,22 @@
             android:text="사용 시간"
             android:textColor="@color/black" />
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_use_time_hour"
-            android:layout_width="60dp"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_round_radius"
-            android:backgroundTint="#F0F4F5"
-            android:text="0"
-            android:textColor="#989898"
-            android:textSize="16sp" />
+<!--        <androidx.appcompat.widget.AppCompatButton-->
+<!--            android:id="@+id/btn_use_time_hour"-->
+<!--            android:layout_width="60dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:background="@drawable/bg_round_radius"-->
+<!--            android:backgroundTint="#F0F4F5"-->
+<!--            android:text="0"-->
+<!--            android:textColor="#989898"-->
+<!--            android:textSize="16sp" />-->
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="12dp"
-            android:text="시간"
-            android:textColor="@color/black" />
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginLeft="12dp"-->
+<!--            android:text="시간"-->
+<!--            android:textColor="@color/black" />-->
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_use_time_minutes"
@@ -113,7 +113,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="12dp"
-            android:text="분"
+            android:text="초"
             android:textColor="@color/black" />
     </LinearLayout>
 
@@ -131,22 +131,22 @@
             android:text="잠금 시간"
             android:textColor="@color/black" />
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_lock_time_hour"
-            android:layout_width="60dp"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_round_radius"
-            android:backgroundTint="#F0F4F5"
-            android:text="0"
-            android:textColor="#989898"
-            android:textSize="16sp" />
+<!--        <androidx.appcompat.widget.AppCompatButton-->
+<!--            android:id="@+id/btn_lock_time_hour"-->
+<!--            android:layout_width="60dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:background="@drawable/bg_round_radius"-->
+<!--            android:backgroundTint="#F0F4F5"-->
+<!--            android:text="0"-->
+<!--            android:textColor="#989898"-->
+<!--            android:textSize="16sp" />-->
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="12dp"
-            android:text="시간"
-            android:textColor="@color/black" />
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginLeft="12dp"-->
+<!--            android:text="시간"-->
+<!--            android:textColor="@color/black" />-->
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_lock_time_minutes"
@@ -163,7 +163,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="12dp"
-            android:text="분"
+            android:text="초"
             android:textColor="@color/black" />
     </LinearLayout>
 
@@ -220,22 +220,22 @@
             android:textColor="#B4D775"
             android:textStyle="bold" />
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_max_time_hour"
-            android:layout_width="60dp"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_round_radius"
-            android:backgroundTint="#F0F4F5"
-            android:text="0"
-            android:textColor="#989898"
-            android:textSize="16sp" />
+<!--        <androidx.appcompat.widget.AppCompatButton-->
+<!--            android:id="@+id/btn_max_time_hour"-->
+<!--            android:layout_width="60dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:background="@drawable/bg_round_radius"-->
+<!--            android:backgroundTint="#F0F4F5"-->
+<!--            android:text="0"-->
+<!--            android:textColor="#989898"-->
+<!--            android:textSize="16sp" />-->
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="12dp"
-            android:text="시간"
-            android:textColor="@color/black" />
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginLeft="12dp"-->
+<!--            android:text="시간"-->
+<!--            android:textColor="@color/black" />-->
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_max_time_minutes"
@@ -252,7 +252,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="12dp"
-            android:text="분"
+            android:text="초"
             android:textColor="@color/black" />
     </LinearLayout>
 
