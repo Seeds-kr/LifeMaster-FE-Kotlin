@@ -1,17 +1,21 @@
 package com.example.lifemaster.presentation.group.fragment
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmSettingBinding
 import com.example.lifemaster.presentation.common.SelectTimeDialog
+import com.example.lifemaster.presentation.common.setAlarm
 import com.example.lifemaster.presentation.group.model.AlarmItem
 import com.example.lifemaster.presentation.group.viewmodel.AlarmViewModel
+import java.util.Calendar
 
 class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
@@ -19,6 +23,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     private val alarmViewModel: AlarmViewModel by activityViewModels()
     private var isDelaySet: Boolean = false
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmSettingBinding.bind(view)
@@ -39,6 +44,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun setupListeners() {
         binding.apply {
             ivBack.setOnClickListener {
@@ -53,10 +59,9 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
             btnSave.setOnClickListener {
                 val alarmTitle = etAlarmName.text.toString() // 알람 이름
                 val amPm = if(timePicker.hour in 0.. 11) "AM" else "PM"
-                val hour = if(timePicker.hour in 13..23) timePicker.hour-12 else timePicker.hour
                 val alarmTime = Triple<String, Int, Int>(
                     amPm,
-                    hour,
+                    timePicker.hour,
                     timePicker.minute
                 )
 
@@ -72,6 +77,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                         delayCount = tvDelayCounts.text.toString().toInt()
                     )
                     alarmViewModel.updateAlarmItems(alarmItem)
+                    setAlarm(requireContext(), convertTimeToMillis(alarmTime))
                     Toast.makeText(requireContext(), "알람이 추가되었습니다!", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
                 } else if(isDelaySet && tvDelayCounts.text.isBlank()) {
@@ -99,4 +105,19 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         }
     }
 
+}
+
+fun convertTimeToMillis(alarmTime: Triple<String, Int, Int>):Long {
+    val (_, hour, minute) = alarmTime
+    val calender = Calendar.getInstance()
+    calender.set(Calendar.HOUR_OF_DAY, hour)
+    calender.set(Calendar.MINUTE, minute)
+    calender.set(Calendar.SECOND, 0)
+    calender.set(Calendar.MILLISECOND, 0)
+
+    if(calender.timeInMillis < System.currentTimeMillis()) {
+        calender.add(Calendar.DAY_OF_MONTH, 1) // 시간이 이미 지난 경우, 다음날에 알람이 울리도록 해줌
+    }
+
+    return calender.timeInMillis
 }

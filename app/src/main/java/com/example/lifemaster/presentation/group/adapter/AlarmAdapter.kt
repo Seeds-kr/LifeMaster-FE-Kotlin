@@ -13,7 +13,8 @@ class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: AlarmItem) {
             binding.apply {
-                tvTime.text = "${item.time.second}:${item.time.third}" // 시간 계산 다시 하기
+                val hour = if(item.time.second in 13..23) item.time.second-12 else item.time.second
+                tvTime.text = "${hour}:${item.time.third}"
                 tvDayOrNight.text = "${item.time.first}"
                 tvAlarmName.text = "${item.title}"
                 tvAlarmDelay.text = if (item.isDelaySet) {
