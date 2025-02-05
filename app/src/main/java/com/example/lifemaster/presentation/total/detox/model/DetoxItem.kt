@@ -42,7 +42,8 @@ data class TestItem(
     val useTime: Int = 0,
     val lockTime: Int = 0,
     val maxTime: Int = 0,
-    val isMaxTimeLimitSet: Boolean = false
+    val isMaxTimeLimitSet: Boolean = false,
+    val isBlocked: Boolean = false
 )
 
 
