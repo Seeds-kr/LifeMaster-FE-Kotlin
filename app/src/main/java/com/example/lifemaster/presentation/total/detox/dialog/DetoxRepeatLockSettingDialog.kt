@@ -1,13 +1,14 @@
 package com.example.lifemaster.presentation.total.detox.dialog
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogDetoxRepeatLockSettingBinding
-import com.example.lifemaster.presentation.common.SelectTimeDialog
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
@@ -95,6 +96,7 @@ class DetoxRepeatLockSettingDialog : DialogFragment(R.layout.dialog_detox_repeat
                 binding.apply {
                     val appIcon = targetApp.appIcon
                     val appName = targetApp.appName
+                    val appPackageName = targetApp.appPackageName
                     val accumulatedTime = targetApp.accumulatedTime
 
 //                    val useTime = btnUseTimeHour.text.toString().toInt()*60 + btnUseTimeMinutes.text.toString().toInt()
@@ -103,15 +105,20 @@ class DetoxRepeatLockSettingDialog : DialogFragment(R.layout.dialog_detox_repeat
 
                     val useTime = btnUseTimeMinutes.text.toString().toInt()
                     val lockTime = btnLockTimeMinutes.text.toString().toInt()
-                    val maxTime = btnMaxTimeMinutes.text.toString().toInt()
+                    val maxUseTime = btnMaxTimeMinutes.text.toString().toInt()
 
 //                    val isMaxTimeLimitSet = if(btnMaxTimeHour.text.equals("0") && btnMaxTimeMinutes.text.equals("0")) false else true
                     val isMaxTimeLimitSet = if(btnMaxTimeMinutes.text.equals("0")) false else true
+                    val repeatLockItem = DetoxRepeatLockItem(
+                        appIcon, appName, appPackageName, useTime, lockTime, maxUseTime, accumulatedTime, isMaxTimeLimitSet
+                    )
 
-                    viewModel.addRepeatLockApp(DetoxRepeatLockItem(
-                        appIcon, appName, useTime, lockTime, maxTime, accumulatedTime, isMaxTimeLimitSet
-                    ))
+                    viewModel.addRepeatLockApp(repeatLockItem)
 
+                    // 해당 앱에 대한 반복 잠금 처리 기능 구현
+                    val intent = Intent("com.example.lifemaster.BROADCAST_RECEIVER")
+                    intent.putExtra("TEMPORARY_BLOCK_APP", repeatLockItem)
+                    LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
                 }
                 dismiss()
             }
