@@ -80,6 +80,53 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:alpha="1.0">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="반복"
+                android:textColor="@color/alarm_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <include
+                android:id="@+id/layoutMonday"
+                layout="@layout/layout_alarm_repeat_day"/>
+
+            <include
+                android:id="@+id/layoutTuesday"
+                layout="@layout/layout_alarm_repeat_day"/>
+
+            <include
+                android:id="@+id/layoutWednesday"
+                layout="@layout/layout_alarm_repeat_day"/>
+
+            <include
+                android:id="@+id/layoutThursday"
+                layout="@layout/layout_alarm_repeat_day"/>
+
+            <include
+                android:id="@+id/layoutFriday"
+                layout="@layout/layout_alarm_repeat_day"/>
+
+            <include
+                android:id="@+id/layoutSaturday"
+                layout="@layout/layout_alarm_repeat_day"/>
+
+            <include
+                android:id="@+id/layoutSunday"
+                layout="@layout/layout_alarm_repeat_day"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="12dp"
             android:paddingBottom="12dp">
 
             <TextView

@@ -33,15 +33,34 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     }
 
     private fun setupViews() {
-        binding.layoutSwitch.widget.setOnCheckedChangeListener { _, isChecked ->
-            if(isChecked) {
-                binding.llDelayStatusOn.visibility = View.VISIBLE
-                isDelaySet = true
-            } else {
-                binding.llDelayStatusOn.visibility = View.GONE
-                isDelaySet = false
+        binding.apply {
+            layoutSwitch.widget.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    llDelayStatusOn.visibility = View.VISIBLE
+                    isDelaySet = true
+                } else {
+                    llDelayStatusOn.visibility = View.GONE
+                    isDelaySet = false
+                }
             }
+            initRepeatDayView()
         }
+    }
+
+    private fun initRepeatDayView() {
+        val dayLabels = listOf("월", "화", "수", "목", "금", "토", "일")
+        val dayLayouts = with(binding) {
+            listOf(
+                layoutMonday,
+                layoutTuesday,
+                layoutWednesday,
+                layoutThursday,
+                layoutFriday,
+                layoutSaturday,
+                layoutSunday
+            )
+        } // scope function 의 차이점을 분명하게 이해할 수 있는 코드 -> run, with 만 가능
+        dayLayouts.zip(dayLabels).forEach { it.first.tvDayType.text = it.second }
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -58,16 +77,16 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
             btnSave.setOnClickListener {
                 val alarmTitle = etAlarmName.text.toString() // 알람 이름
-                val amPm = if(timePicker.hour in 0.. 11) "AM" else "PM"
+                val amPm = if (timePicker.hour in 0..11) "AM" else "PM"
                 val alarmTime = Triple<String, Int, Int>(
                     amPm,
                     timePicker.hour,
                     timePicker.minute
                 )
 
-                if(alarmTitle.isBlank()) {
+                if (alarmTitle.isBlank()) {
                     Toast.makeText(requireContext(), "제목을 입력 해주세요!", Toast.LENGTH_SHORT).show()
-                } else if(isDelaySet && tvDelayCounts.text.isNotBlank()) {
+                } else if (isDelaySet && tvDelayCounts.text.isNotBlank()) {
                     val alarmItem = AlarmItem(
                         id = alarmViewModel.alarmItems.value?.size ?: 0,
                         title = alarmTitle,
@@ -80,7 +99,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                     setAlarm(requireContext(), convertTimeToMillis(alarmTime))
                     Toast.makeText(requireContext(), "알람이 추가되었습니다!", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
-                } else if(isDelaySet && tvDelayCounts.text.isBlank()) {
+                } else if (isDelaySet && tvDelayCounts.text.isBlank()) {
                     Toast.makeText(requireContext(), "미루기 설정을 해주세요!", Toast.LENGTH_SHORT).show()
                 } else {
                     val alarmItem = AlarmItem(
@@ -107,7 +126,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
 }
 
-fun convertTimeToMillis(alarmTime: Triple<String, Int, Int>):Long {
+fun convertTimeToMillis(alarmTime: Triple<String, Int, Int>): Long {
     val (_, hour, minute) = alarmTime
     val calender = Calendar.getInstance()
     calender.set(Calendar.HOUR_OF_DAY, hour)
@@ -115,7 +134,7 @@ fun convertTimeToMillis(alarmTime: Triple<String, Int, Int>):Long {
     calender.set(Calendar.SECOND, 0)
     calender.set(Calendar.MILLISECOND, 0)
 
-    if(calender.timeInMillis < System.currentTimeMillis()) {
+    if (calender.timeInMillis < System.currentTimeMillis()) {
         calender.add(Calendar.DAY_OF_MONTH, 1) // 시간이 이미 지난 경우, 다음날에 알람이 울리도록 해줌
     }
 
