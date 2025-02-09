@@ -2,6 +2,7 @@ package com.example.lifemaster.presentation.group.fragment
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -21,6 +22,16 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     private lateinit var binding: FragmentAlarmSettingBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels()
     private var isDelaySet: Boolean = false
+    private var alarmRepeatDays = arrayListOf<String>()
+    private val dayLayouts by lazy { listOf(
+        binding.layoutMonday,
+        binding.layoutTuesday,
+        binding.layoutWednesday,
+        binding.layoutThursday,
+        binding.layoutFriday,
+        binding.layoutSaturday,
+        binding.layoutSunday
+    ) }
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -48,17 +59,6 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
     private fun initRepeatDayView() {
         val dayLabels = listOf("월", "화", "수", "목", "금", "토", "일")
-        val dayLayouts = with(binding) {
-            listOf(
-                layoutMonday,
-                layoutTuesday,
-                layoutWednesday,
-                layoutThursday,
-                layoutFriday,
-                layoutSaturday,
-                layoutSunday
-            )
-        } // scope function 의 차이점을 분명하게 이해할 수 있는 코드 -> run, with 만 가능
         dayLayouts.zip(dayLabels).forEach { it.first.tvDayType.text = it.second }
     }
 
@@ -67,6 +67,13 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         with(binding) {
             ivBack.setOnClickListener {
                 findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
+            }
+
+            dayLayouts.forEach { eachDay ->
+                eachDay.cardview.setOnClickListener {
+                    it.isSelected = !it.isSelected
+                    if (it.isSelected) alarmRepeatDays.add(eachDay.tvDayType.text.toString()) else alarmRepeatDays.remove(eachDay.tvDayType.text.toString())
+                }
             }
             llDelayStatusOn.setOnClickListener {
                 val dialog = SelectTimeDialog("delay")
@@ -85,42 +92,36 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                 if (alarmTitle.isBlank()) {
                     Toast.makeText(requireContext(), "제목을 입력 해주세요!", Toast.LENGTH_SHORT).show()
                 } else if (isDelaySet && tvDelayCounts.text.isNotBlank()) {
+                    // 미루기 설정 o
                     val alarmItem = AlarmItem(
                         id = alarmViewModel.alarmItems.value?.size ?: 0,
                         title = alarmTitle,
                         time = alarmTime,
                         isDelaySet = true,
+                        alarmRepeatDays = alarmRepeatDays,
                         delayMinute = tvDelayMinutes.text.toString().toInt(),
                         delayCount = tvDelayCounts.text.toString().toInt()
                     )
                     alarmViewModel.updateAlarmItems(alarmItem)
-                    setAlarm(requireContext(), convertTimeToMillis(alarmTime))
+                    setAlarm(requireContext(), convertTimeToMillis(alarmTime)) // ??????????
                     Toast.makeText(requireContext(), "알람이 추가되었습니다!", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
                 } else if (isDelaySet && tvDelayCounts.text.isBlank()) {
                     Toast.makeText(requireContext(), "미루기 설정을 해주세요!", Toast.LENGTH_SHORT).show()
                 } else {
+                    // 미루기 설정 x
                     val alarmItem = AlarmItem(
                         id = alarmViewModel.alarmItems.value?.size ?: 0,
                         title = alarmTitle,
                         time = alarmTime,
-                        isDelaySet = false
+                        isDelaySet = false,
+                        alarmRepeatDays = alarmRepeatDays
                     )
                     alarmViewModel.updateAlarmItems(alarmItem)
                     Toast.makeText(requireContext(), "알람이 추가되었습니다!", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
                 }
             }
-            val dayLayouts = listOf(
-                layoutMonday,
-                layoutTuesday,
-                layoutWednesday,
-                layoutThursday,
-                layoutFriday,
-                layoutSaturday,
-                layoutSunday
-            )
-            dayLayouts.forEach { it.cardview.setOnClickListener { it.isSelected = !it.isSelected } }
         }
     }
 

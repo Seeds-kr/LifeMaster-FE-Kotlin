@@ -11,9 +11,21 @@ import com.example.lifemaster.presentation.group.model.AlarmItem
 class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
     inner class ViewHolder(private val binding: ItemAlarmBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
+        private val dayMapping by lazy { mapOf(
+            "월" to binding.tvMonday,
+            "화" to binding.tvTuesday,
+            "수" to binding.tvWednesday,
+            "목" to binding.tvThursday,
+            "금" to binding.tvFriday,
+            "토" to binding.tvSaturday,
+            "일" to binding.tvSunday
+        ) }
+
         fun bind(item: AlarmItem) {
             binding.apply {
-                val hour = if(item.time.second in 13..23) item.time.second-12 else item.time.second
+                val hour =
+                    if (item.time.second in 13..23) item.time.second - 12 else item.time.second
                 tvTime.text = "${hour}:${item.time.third}"
                 tvDayOrNight.text = "${item.time.first}"
                 tvAlarmName.text = "${item.title}"
@@ -22,8 +34,12 @@ class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
                 } else {
                     "미루기 없음"
                 }
+                item.alarmRepeatDays.forEach { day ->
+                    dayMapping[day]?.isSelected = true
+                }
             }
         }
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

@@ -5,6 +5,7 @@ data class AlarmItem(
     val title: String,
     val time: Triple<String, Int, Int>,
     val isDelaySet: Boolean,
+    val alarmRepeatDays: List<String>,
     val delayMinute: Int = 0,
     val delayCount: Int = 0
 )
