@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_marginLeft="6dp">
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:contentPaddingLeft="10dp"
@@ -13,7 +14,7 @@
         app:contentPaddingBottom="6dp"
         app:cardCornerRadius="6dp"
         app:cardElevation="0dp"
-        app:strokeColor="@color/black"
+        app:strokeColor="@color/selector_alarm_repeat_day"
         app:strokeWidth="1dp">
         <TextView
             android:id="@+id/tv_day_type"
@@ -21,6 +22,6 @@
             android:layout_height="wrap_content"
             android:text="월"
             android:textSize="12sp"
-            android:textColor="@color/black"/>
+            android:textColor="@color/selector_alarm_repeat_day"/>
     </com.google.android.material.card.MaterialCardView>
 </LinearLayout>

@@ -2,7 +2,6 @@ package com.example.lifemaster.presentation.group.fragment
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -27,12 +26,12 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmSettingBinding.bind(view)
-        setupViews()
-        setupListeners()
-        setupObservers()
+        initViews()
+        initListeners()
+        initObservers()
     }
 
-    private fun setupViews() {
+    private fun initViews() {
         binding.apply {
             layoutSwitch.widget.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
@@ -64,8 +63,8 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    private fun setupListeners() {
-        binding.apply {
+    private fun initListeners() {
+        with(binding) {
             ivBack.setOnClickListener {
                 findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
             }
@@ -74,7 +73,6 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                 dialog.isCancelable = false
                 dialog.show(childFragmentManager, SelectTimeDialog.TAG)
             }
-
             btnSave.setOnClickListener {
                 val alarmTitle = etAlarmName.text.toString() // 알람 이름
                 val amPm = if (timePicker.hour in 0..11) "AM" else "PM"
@@ -113,11 +111,20 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                     findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
                 }
             }
-
+            val dayLayouts = listOf(
+                layoutMonday,
+                layoutTuesday,
+                layoutWednesday,
+                layoutThursday,
+                layoutFriday,
+                layoutSaturday,
+                layoutSunday
+            )
+            dayLayouts.forEach { it.cardview.setOnClickListener { it.isSelected = !it.isSelected } }
         }
     }
 
-    private fun setupObservers() {
+    private fun initObservers() {
         alarmViewModel.delayMinutesAndCount.observe(viewLifecycleOwner) {
             binding.tvDelayMinutes.text = "${it.first}"
             binding.tvDelayCounts.text = "${it.second}"
