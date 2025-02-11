@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     tools:context=".presentation.group.fragment.AlarmSettingFragment">
@@ -20,7 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
-        android:background="@drawable/bg_round_radius"
+        android:background="@drawable/bg_round_and_white"
         android:backgroundTint="#F0F4F5"
         android:hint="알람 이름"
         android:inputType="text"
@@ -49,8 +49,7 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:alpha="0.3">
+            android:paddingBottom="12dp">
 
             <TextView
                 android:layout_width="0dp"
@@ -68,6 +67,7 @@
                 tools:text="수학 문제 풀기" />
 
             <ImageView
+                android:id="@+id/iv_random_mission"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
                 android:layout_marginStart="6dp"
@@ -77,11 +77,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:alpha="1.0"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:alpha="1.0">
+            android:paddingBottom="12dp">
 
             <TextView
                 android:layout_width="0dp"
@@ -94,31 +94,31 @@
 
             <include
                 android:id="@+id/layoutMonday"
-                layout="@layout/layout_alarm_repeat_day"/>
+                layout="@layout/layout_alarm_repeat_day" />
 
             <include
                 android:id="@+id/layoutTuesday"
-                layout="@layout/layout_alarm_repeat_day"/>
+                layout="@layout/layout_alarm_repeat_day" />
 
             <include
                 android:id="@+id/layoutWednesday"
-                layout="@layout/layout_alarm_repeat_day"/>
+                layout="@layout/layout_alarm_repeat_day" />
 
             <include
                 android:id="@+id/layoutThursday"
-                layout="@layout/layout_alarm_repeat_day"/>
+                layout="@layout/layout_alarm_repeat_day" />
 
             <include
                 android:id="@+id/layoutFriday"
-                layout="@layout/layout_alarm_repeat_day"/>
+                layout="@layout/layout_alarm_repeat_day" />
 
             <include
                 android:id="@+id/layoutSaturday"
-                layout="@layout/layout_alarm_repeat_day"/>
+                layout="@layout/layout_alarm_repeat_day" />
 
             <include
                 android:id="@+id/layoutSunday"
-                layout="@layout/layout_alarm_repeat_day"/>
+                layout="@layout/layout_alarm_repeat_day" />
         </LinearLayout>
 
         <LinearLayout
@@ -140,69 +140,75 @@
 
             <include
                 android:id="@+id/layout_switch"
-                layout="@layout/layout_custom_switch"/>
+                layout="@layout/layout_custom_switch" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/ll_delay_status_on"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:gravity="center"
-            android:orientation="horizontal"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#EBE6DF"
+            android:gravity="center"
+            android:orientation="horizontal"
             android:visibility="gone">
+
             <androidx.cardview.widget.CardView
                 android:layout_width="32dp"
                 android:layout_height="28dp"
-                android:backgroundTint="@color/white"
                 android:layout_marginRight="8dp"
+                android:backgroundTint="@color/white"
                 app:cardCornerRadius="6dp"
                 app:cardElevation="0dp">
+
                 <TextView
                     android:id="@+id/tv_delay_minutes"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:hint="10"
-                    android:textColor="@color/black"
-                    android:layout_gravity="center"/>
+                    android:textColor="@color/black" />
             </androidx.cardview.widget.CardView>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginRight="8dp"
                 android:text="분씩 최대"
-                android:textColor="@color/black"
-                android:layout_marginRight="8dp"/>
+                android:textColor="@color/black" />
+
             <androidx.cardview.widget.CardView
                 android:layout_width="32dp"
                 android:layout_height="28dp"
-                android:backgroundTint="@color/white"
                 android:layout_marginRight="8dp"
+                android:backgroundTint="@color/white"
                 app:cardCornerRadius="6dp"
                 app:cardElevation="0dp">
+
                 <TextView
                     android:id="@+id/tv_delay_counts"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:hint="2"
-                    android:textColor="@color/black"
-                    android:layout_gravity="center"/>
+                    android:textColor="@color/black" />
             </androidx.cardview.widget.CardView>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="번"
-                android:textColor="@color/black"/>
+                android:textColor="@color/black" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:alpha="0.3"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:alpha="0.3">
+            android:paddingBottom="12dp">
 
             <TextView
                 android:layout_width="0dp"
@@ -236,6 +242,6 @@
         android:background="@drawable/bg_round_radius"
         android:backgroundTint="@color/alarm_primary"
         android:text="저장하기"
-        android:textColor="@color/white"/>
+        android:textColor="@color/white" />
 
 </LinearLayout>

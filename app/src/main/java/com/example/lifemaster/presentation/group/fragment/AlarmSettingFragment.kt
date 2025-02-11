@@ -13,6 +13,7 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmSettingBinding
 import com.example.lifemaster.presentation.common.SelectTimeDialog
 import com.example.lifemaster.presentation.common.setAlarm
+import com.example.lifemaster.presentation.group.fragment.dialog.AlarmRandomMissionDialog
 import com.example.lifemaster.presentation.group.model.AlarmItem
 import com.example.lifemaster.presentation.group.viewmodel.AlarmViewModel
 import java.util.Calendar
@@ -64,11 +65,16 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun initListeners() {
-        with(binding) {
+        with(binding) { // scope function: apply 보다 with 가 적절하다고 판단
             ivBack.setOnClickListener {
                 findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
             }
-
+            ivRandomMission.setOnClickListener {
+                // 다이얼로그 띄우기
+                val dialog = AlarmRandomMissionDialog()
+                dialog.isCancelable = true
+                dialog.show(childFragmentManager, AlarmRandomMissionDialog.TAG)
+            }
             dayLayouts.forEach { eachDay ->
                 eachDay.cardview.setOnClickListener {
                     it.isSelected = !it.isSelected

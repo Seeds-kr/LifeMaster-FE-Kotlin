@@ -4,6 +4,7 @@
     android:orientation="vertical"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_round_and_white"
     android:padding="20dp">
 
     <TextView
@@ -21,7 +22,8 @@
         android:text="알람이 울린 뒤 랜덤미션을 완료해야 알람이 꺼져요"
         android:layout_marginBottom="32dp"/>
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv_math"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
@@ -38,20 +40,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_random_mission_math"
-                android:layout_marginEnd="8dp"/>
+                android:layout_marginEnd="8dp"
+                app:tint="@color/selector_alarm_random_mission_image"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="간단한 수학 문제 풀기"/>
+                android:text="간단한 수학 문제 풀기"
+                android:textColor="@color/selector_alarm_random_mission_text"/>
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_check"/>
+                android:src="@drawable/ic_check"
+                app:tint="@color/selector_alarm_random_mission_image"/>
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/cv_level"
         android:layout_width="match_parent"
         android:layout_height="88dp"
         android:layout_marginBottom="12dp"
@@ -71,6 +77,7 @@
             android:layout_gravity="bottom"
             android:orientation="horizontal">
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cv_level_high"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -79,20 +86,24 @@
                 app:cardBackgroundColor="@android:color/transparent"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#927448"
+                app:strokeColor="@color/selector_alarm_random_mission_level_background"
                 app:strokeWidth="1dp">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:text="상"
-                    android:textColor="#927448"/>
+                    android:textColor="@color/selector_alarm_random_mission_level_text"/>
             </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cv_level_medium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
+                app:strokeColor="@color/selector_alarm_random_mission_level_background"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/transparent"
                 app:contentPadding="6dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="0dp">
@@ -100,12 +111,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="중"/>
+                    android:text="중"
+                    android:textColor="@color/selector_alarm_random_mission_level_text"/>
             </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cv_level_low"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                app:strokeColor="@color/selector_alarm_random_mission_level_background"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/transparent"
                 app:contentPadding="6dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="0dp">
@@ -113,12 +129,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="하"/>
+                    android:text="하"
+                    android:textColor="@color/selector_alarm_random_mission_level_text"/>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv_click"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
@@ -131,24 +149,29 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:orientation="horizontal">
+
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:src="@drawable/ic_random_mission_click"
-                android:layout_marginEnd="8dp"/>
+                app:tint="@color/selector_alarm_random_mission_image" />
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="따라 누르기"/>
+                android:text="따라 누르기"
+                android:textColor="@color/selector_alarm_random_mission_text"/>
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_check"/>
+                android:src="@drawable/ic_check"
+                app:tint="@color/selector_alarm_random_mission_image"/>
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv_write"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
@@ -165,20 +188,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_random_mission_write"
-                android:layout_marginEnd="8dp"/>
+                android:layout_marginEnd="8dp"
+                app:tint="@color/selector_alarm_random_mission_image"/>
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="글 따라쓰기"/>
+                android:text="글 따라쓰기"
+                android:textColor="@color/selector_alarm_random_mission_text"/>
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_check"/>
+                android:src="@drawable/ic_check"
+                app:tint="@color/selector_alarm_random_mission_image"/>
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
     <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_apply"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_round_radius"
