@@ -58,7 +58,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".presentation.MyService"
+            android:name=".presentation.total.detox.service.DetoxBlockService"
             android:exported="true"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
