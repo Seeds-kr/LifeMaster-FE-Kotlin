@@ -12,7 +12,8 @@ import com.example.lifemaster.databinding.DialogAlarmRandomMissionBinding
 class AlarmRandomMissionDialog: DialogFragment(R.layout.dialog_alarm_random_mission) {
 
     private lateinit var binding: DialogAlarmRandomMissionBinding
-    private val cardViews by lazy { listOf(binding.cvMath, binding.cvClick, binding.cvWrite, binding.cvLevelHigh, binding.cvLevelMedium, binding.cvLevelLow) }
+    private val randomMissionType by lazy { listOf(binding.cvMath, binding.cvClick, binding.cvWrite) }
+    private val randomMissionLevel by lazy { listOf(binding.cvLevelHigh, binding.cvLevelMedium, binding.cvLevelLow)}
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return Dialog(requireContext()).apply {
@@ -29,16 +30,27 @@ class AlarmRandomMissionDialog: DialogFragment(R.layout.dialog_alarm_random_miss
 
     private fun initViews() {
         with(binding) {
-            cvLevel.visibility = View.GONE // default 값
+            cvLevel.visibility = View.GONE // default
+            cvLevelMedium.isSelected = true // default
         }
     }
 
     private fun initListeners() {
         with(binding) {
-            cardViews.forEach { cardView ->
-                cardView.setOnClickListener {
+            randomMissionType.forEach { type ->
+                type.setOnClickListener {
                     it.isSelected = !it.isSelected
                     if (cvMath.isSelected) cvLevel.visibility = View.VISIBLE else cvLevel.visibility = View.GONE
+                }
+            }
+            randomMissionLevel.forEach { level ->
+                level.setOnClickListener {
+                    if(it.isSelected == false) it.isSelected = true
+                    if(it.isSelected) {
+                        randomMissionLevel.filterNot { it == level }.forEach { otherLevel ->
+                            if(otherLevel.isSelected) otherLevel.isSelected = false
+                        }
+                    }
                 }
             }
             btnApply.setOnClickListener { dismiss() }
