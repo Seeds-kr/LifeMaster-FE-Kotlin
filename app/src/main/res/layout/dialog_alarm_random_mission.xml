@@ -43,6 +43,7 @@
                 android:layout_marginEnd="8dp"
                 app:tint="@color/selector_alarm_random_mission_image"/>
             <TextView
+                android:id="@+id/tv_math"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
@@ -89,6 +90,7 @@
                 app:strokeColor="@color/selector_alarm_random_mission_level_background"
                 app:strokeWidth="1dp">
                 <TextView
+                    android:id="@+id/tv_level_high"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -108,6 +110,7 @@
                 app:cardCornerRadius="8dp"
                 app:cardElevation="0dp">
                 <TextView
+                    android:id="@+id/tv_level_medium"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -126,6 +129,7 @@
                 app:cardCornerRadius="8dp"
                 app:cardElevation="0dp">
                 <TextView
+                    android:id="@+id/tv_level_low"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -157,6 +161,7 @@
                 android:src="@drawable/ic_random_mission_click"
                 app:tint="@color/selector_alarm_random_mission_image" />
             <TextView
+                android:id="@+id/tv_click"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
@@ -191,6 +196,7 @@
                 android:layout_marginEnd="8dp"
                 app:tint="@color/selector_alarm_random_mission_image"/>
             <TextView
+                android:id="@+id/tv_write"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"

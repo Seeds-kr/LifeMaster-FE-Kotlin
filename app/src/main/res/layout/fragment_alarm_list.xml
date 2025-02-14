@@ -11,42 +11,47 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginTop="24dp"
         android:gravity="center_vertical"
-        android:layout_marginTop="24dp">
+        android:orientation="horizontal">
+
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_app_logo"
-            app:tint="@color/alarm_primary"/>
+            app:tint="@color/alarm_primary" />
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
             android:layout_weight="1"
             android:text="알람"
             android:textColor="@color/black"
-            android:textStyle="bold"
             android:textSize="20sp"
-            android:layout_marginStart="4dp"/>
+            android:textStyle="bold" />
+
         <TextView
             android:id="@+id/tv_add_alarm_item"
             android:layout_width="48dp"
             android:layout_height="match_parent"
-            android:text="추가"
             android:gravity="right|center_vertical"
-            android:textColor="@color/black"/>
+            android:text="추가"
+            android:textColor="@color/black" />
     </LinearLayout>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#DADEDF"
-        android:layout_marginTop="24dp"/>
+        android:layout_marginTop="24dp"
+        android:background="#DADEDF" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="4dp"
         android:layout_weight="1"
-        android:layout_marginTop="20dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/item_alarm"/>
+        tools:listitem="@layout/item_alarm" />
 </LinearLayout>
