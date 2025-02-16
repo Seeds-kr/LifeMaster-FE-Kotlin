@@ -4,16 +4,27 @@ import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogAlarmRandomMissionBinding
+import com.example.lifemaster.presentation.group.viewmodel.AlarmViewModel
+import com.google.android.material.card.MaterialCardView
 
 class AlarmRandomMissionDialog: DialogFragment(R.layout.dialog_alarm_random_mission) {
 
     private lateinit var binding: DialogAlarmRandomMissionBinding
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
     private val randomMissionType by lazy { listOf(binding.cvMath, binding.cvClick, binding.cvWrite) }
-    private val randomMissionLevel by lazy { listOf(binding.cvLevelHigh, binding.cvLevelMedium, binding.cvLevelLow)}
+    private val randomMissionLevel by lazy {
+        listOf(
+            binding.cvLevelHigh,
+            binding.cvLevelMedium,
+            binding.cvLevelLow
+        )
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return Dialog(requireContext()).apply {
@@ -53,7 +64,37 @@ class AlarmRandomMissionDialog: DialogFragment(R.layout.dialog_alarm_random_miss
                     }
                 }
             }
-            btnApply.setOnClickListener { dismiss() }
+
+            btnApply.setOnClickListener {
+                val selectedRandomMissions = getSelectedMissions()
+                alarmViewModel.setRandomMissions(selectedRandomMissions)
+                dismiss()
+            }
+        }
+    }
+
+    private fun getSelectedMissions(): MutableList<Any> {
+        with(binding) {
+            val selectedMissions = mutableListOf<Any>()
+            if(cvMath.isSelected) {
+                val selectedLevel = randomMissionLevel.first { it.isSelected } // null 일 가능성이 없음
+                val selectedLevelText = getLevelText(selectedLevel)
+                selectedMissions.add(mapOf(tvMath.text.toString() to selectedLevelText))
+            }
+            if(cvClick.isSelected) selectedMissions.add(tvClick.text.toString())
+            if(cvWrite.isSelected) selectedMissions.add(tvWrite.text.toString())
+            return selectedMissions
+        }
+    }
+
+    private fun getLevelText(selectedLevel: MaterialCardView): String {
+        with(binding) {
+            return when(selectedLevel) {
+                cvLevelHigh -> tvLevelHigh.text.toString()
+                cvLevelMedium -> tvLevelMedium.text.toString()
+                cvLevelLow -> tvLevelLow.text.toString()
+                else -> ""
+            }
         }
     }
 

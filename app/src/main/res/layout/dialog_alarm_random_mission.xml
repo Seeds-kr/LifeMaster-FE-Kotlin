@@ -47,7 +47,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="간단한 수학 문제 풀기"
+                android:text="수학 문제 풀기"
                 android:textColor="@color/selector_alarm_random_mission_text"/>
             <ImageView
                 android:layout_width="wrap_content"

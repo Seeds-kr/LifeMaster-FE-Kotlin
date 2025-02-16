@@ -136,6 +136,16 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
             binding.tvDelayMinutes.text = "${it.first}"
             binding.tvDelayCounts.text = "${it.second}"
         }
+        alarmViewModel.randomMissions.observe(viewLifecycleOwner) { randomMissions ->
+            val formattedText = randomMissions.joinToString(", ") { mission ->
+                when(mission) {
+                    is Map<*, *> -> mission.entries.first().let { "${it.key}-${it.value}" }
+                    is String -> mission
+                    else -> ""
+                }
+            }
+            binding.tvSelectedRandomMission.text = formattedText
+        }
     }
 
 }
