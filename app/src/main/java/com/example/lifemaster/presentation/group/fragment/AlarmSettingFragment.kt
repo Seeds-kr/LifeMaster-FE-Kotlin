@@ -15,6 +15,8 @@ import com.example.lifemaster.presentation.common.SelectTimeDialog
 import com.example.lifemaster.presentation.common.setAlarm
 import com.example.lifemaster.presentation.group.fragment.dialog.AlarmRandomMissionDialog
 import com.example.lifemaster.presentation.group.model.AlarmItem
+import com.example.lifemaster.presentation.group.model.MathProblemLevel
+import com.example.lifemaster.presentation.group.model.RandomMissionType
 import com.example.lifemaster.presentation.group.viewmodel.AlarmViewModel
 import java.util.Calendar
 
@@ -22,6 +24,8 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
     private lateinit var binding: FragmentAlarmSettingBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels()
+    private var randomMissionList = arrayListOf<RandomMissionType>()
+    private var randomMissionMathLevel = MathProblemLevel.NONE
     private var isDelaySet: Boolean = false
     private var alarmRepeatDays = arrayListOf<String>()
     private val dayLayouts by lazy { listOf(
@@ -65,12 +69,11 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun initListeners() {
-        with(binding) { // scope function: apply 보다 with 가 적절하다고 판단
+        with(binding) {
             ivBack.setOnClickListener {
                 findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
             }
             ivRandomMission.setOnClickListener {
-                // 다이얼로그 띄우기
                 val dialog = AlarmRandomMissionDialog()
                 dialog.isCancelable = true
                 dialog.show(childFragmentManager, AlarmRandomMissionDialog.TAG)
@@ -87,6 +90,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                 dialog.show(childFragmentManager, SelectTimeDialog.TAG)
             }
             btnSave.setOnClickListener {
+
                 val alarmTitle = etAlarmName.text.toString() // 알람 이름
                 val amPm = if (timePicker.hour in 0..11) "AM" else "PM"
                 val alarmTime = Triple<String, Int, Int>(
@@ -103,13 +107,16 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                         id = alarmViewModel.alarmItems.value?.size ?: 0,
                         title = alarmTitle,
                         time = alarmTime,
-                        isDelaySet = true,
+                        randomMissions = randomMissionList,
+                        randomMissionMathLevel = randomMissionMathLevel,
                         alarmRepeatDays = alarmRepeatDays,
+                        isDelaySet = true,
                         delayMinute = tvDelayMinutes.text.toString().toInt(),
                         delayCount = tvDelayCounts.text.toString().toInt()
                     )
                     alarmViewModel.updateAlarmItems(alarmItem)
-                    setAlarm(requireContext(), convertTimeToMillis(alarmTime)) // ??????????
+                    alarmViewModel.clearRandomMissions()
+//                    setAlarm(requireContext(), convertTimeToMillis(alarmTime)) // ??????????
                     Toast.makeText(requireContext(), "알람이 추가되었습니다!", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
                 } else if (isDelaySet && tvDelayCounts.text.isBlank()) {
@@ -120,10 +127,13 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                         id = alarmViewModel.alarmItems.value?.size ?: 0,
                         title = alarmTitle,
                         time = alarmTime,
-                        isDelaySet = false,
-                        alarmRepeatDays = alarmRepeatDays
+                        randomMissions = randomMissionList,
+                        randomMissionMathLevel = randomMissionMathLevel,
+                        alarmRepeatDays = alarmRepeatDays,
+                        isDelaySet = false
                     )
                     alarmViewModel.updateAlarmItems(alarmItem)
+                    alarmViewModel.clearRandomMissions()
                     Toast.makeText(requireContext(), "알람이 추가되었습니다!", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
                 }
@@ -145,9 +155,27 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                 }
             }
             binding.tvSelectedRandomMission.text = formattedText
+
+            randomMissions.forEach { randomMission ->
+                when(randomMission) {
+                    is Map<*,*> -> {
+                        randomMissionList.add(RandomMissionType.MATHEMATICAL_PROBLEM_SOLVING)
+                        when(randomMission.entries.first().value) {
+                            "상" -> randomMissionMathLevel = MathProblemLevel.HIGH
+                            "중" -> randomMissionMathLevel = MathProblemLevel.MEDIUM
+                            "하" -> randomMissionMathLevel = MathProblemLevel.LOW
+                        }
+                    }
+                    is String -> {
+                        when(randomMission) {
+                            "따라 누르기" -> randomMissionList.add(RandomMissionType.TOUCH_ALONG)
+                            "글 따라쓰기" -> randomMissionList.add(RandomMissionType.WRITE_ALONG)
+                        }
+                    }
+                }
+            }
         }
     }
-
 }
 
 fun convertTimeToMillis(alarmTime: Triple<String, Int, Int>): Long {

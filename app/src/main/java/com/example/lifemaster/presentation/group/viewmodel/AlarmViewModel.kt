@@ -23,6 +23,10 @@ class AlarmViewModel: ViewModel() {
         _randomMissions.value = randomMissions
     }
 
+    fun clearRandomMissions() {
+        _randomMissions.value = emptyList()
+    }
+
     // adapter 에 전달할 알람 아이템들
     private val _alarmItems: MutableLiveData<ArrayList<AlarmItem>> = MutableLiveData()
     val alarmItems: LiveData<ArrayList<AlarmItem>> get() = _alarmItems

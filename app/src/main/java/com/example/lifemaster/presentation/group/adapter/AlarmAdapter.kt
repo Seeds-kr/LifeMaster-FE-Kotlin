@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemAlarmBinding
 import com.example.lifemaster.presentation.group.model.AlarmItem
+import com.example.lifemaster.presentation.group.model.RandomMissionType
 
 class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
     inner class ViewHolder(private val binding: ItemAlarmBinding) :
@@ -37,9 +38,15 @@ class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
                 item.alarmRepeatDays.forEach { day ->
                     dayMapping[day]?.isSelected = true
                 }
+                item.randomMissions.forEach { randomMissionType ->
+                    when(randomMissionType) {
+                        RandomMissionType.MATHEMATICAL_PROBLEM_SOLVING -> ivRandomMissionMath.isSelected = true
+                        RandomMissionType.TOUCH_ALONG -> ivRandomMissionTouch.isSelected = true
+                        RandomMissionType.WRITE_ALONG -> ivRandomMissionWrite.isSelected = true
+                    }
+                }
             }
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
