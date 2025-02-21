@@ -27,14 +27,14 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
     }
 
     private fun setupViews() {
-        binding.apply {
+        with(binding) {
             recyclerview.addItemDecoration(DividerItemDecoration(context, LinearLayout.VERTICAL)) // 구분선 넣기
             recyclerview.adapter = alarmAdapter
         }
     }
 
     private fun setupListeners() {
-        binding.apply {
+        with(binding) {
             tvAddAlarmItem.setOnClickListener {
                 findNavController().navigate(R.id.action_alarmListFragment_to_alarmSettingFragment)
             }
@@ -43,6 +43,10 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
     private fun setupObservers() {
         alarmViewModel.alarmItems.observe(viewLifecycleOwner) { items ->
+            if(binding.llNoAlarmItem.visibility == View.VISIBLE) { // 리팩토링하기
+                binding.llNoAlarmItem.visibility = View.GONE
+                binding.recyclerview.visibility = View.VISIBLE
+            }
             alarmAdapter.submitList(items.toMutableList())
         }
     }
