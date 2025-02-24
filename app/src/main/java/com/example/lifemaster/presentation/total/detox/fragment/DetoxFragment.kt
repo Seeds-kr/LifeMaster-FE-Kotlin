@@ -122,7 +122,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                             Toast.makeText(requireContext(), "해당 앱은 존재하지 않습니다!", Toast.LENGTH_SHORT).show()
                         } else {
                             val singleValueList = arrayListOf(searchApp)
-                            (binding.recyclerviewRepeatLock.adapter as DetoxRepeatLockAdapter).updateItems(singleValueList)
+                            (binding.recyclerviewRepeatLock.adapter as DetoxRepeatLockAdapter).submitList(singleValueList.toList())
                         }
                         return false // 왜 키보드가 안내려가지?
                     }
@@ -179,7 +179,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                 binding.recyclerviewRepeatLock.visibility = View.GONE
                 binding.llRepeatLockListEmpty.visibility = View.VISIBLE
             }
-            (binding.recyclerviewRepeatLock.adapter as DetoxRepeatLockAdapter).updateItems(it)
+            (binding.recyclerviewRepeatLock.adapter as DetoxRepeatLockAdapter).submitList(it.toList())
         }
 
         detoxTimeLockViewModel.allowServices.observe(viewLifecycleOwner) {
@@ -201,7 +201,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                 binding.recyclerviewTimeLock.visibility = View.GONE
                 binding.tvTimeLockListEmpty.visibility = View.VISIBLE
             }
-            (binding.recyclerviewTimeLock.adapter as DetoxTimeLockAdapter).submitList(it.toList()) // it 으로 전달되면 이전 리스트를 제출한 것이기 때문에 diffUtil 은 변화를 감지하지 못한다.
+            (binding.recyclerviewTimeLock.adapter as DetoxTimeLockAdapter).submitList(it.toList())
         }
     }
 

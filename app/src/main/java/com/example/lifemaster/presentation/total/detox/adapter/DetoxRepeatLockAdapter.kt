@@ -2,19 +2,15 @@ package com.example.lifemaster.presentation.total.detox.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemDetoxRepeatLockItemBinding
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockItem
 import java.util.concurrent.TimeUnit
 
-class DetoxRepeatLockAdapter: RecyclerView.Adapter<DetoxRepeatLockAdapter.DetoxRepeatLockViewHolder>() {
-
-    private var items: ArrayList<DetoxRepeatLockItem> = arrayListOf()
-
-    fun updateItems(newItems: ArrayList<DetoxRepeatLockItem>) {
-        items = newItems
-        notifyDataSetChanged()
-    }
+class DetoxRepeatLockAdapter: ListAdapter<DetoxRepeatLockItem, DetoxRepeatLockAdapter.DetoxRepeatLockViewHolder>(
+    differ) {
 
     inner class DetoxRepeatLockViewHolder(private val binding: ItemDetoxRepeatLockItemBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(item: DetoxRepeatLockItem) {
@@ -41,11 +37,18 @@ class DetoxRepeatLockAdapter: RecyclerView.Adapter<DetoxRepeatLockAdapter.DetoxR
         )
     }
 
-    override fun getItemCount(): Int {
-        return items.size
+    override fun onBindViewHolder(holder: DetoxRepeatLockViewHolder, position: Int) {
+        holder.bind(currentList[position])
     }
 
-    override fun onBindViewHolder(holder: DetoxRepeatLockViewHolder, position: Int) {
-        holder.bind(items[position])
+    companion object {
+        val differ = object: DiffUtil.ItemCallback<DetoxRepeatLockItem>() {
+            override fun areContentsTheSame(oldItem: DetoxRepeatLockItem, newItem: DetoxRepeatLockItem): Boolean {
+                return oldItem == newItem
+            }
+            override fun areItemsTheSame(oldItem: DetoxRepeatLockItem, newItem: DetoxRepeatLockItem): Boolean {
+                return oldItem === newItem
+            }
+        }
     }
 }
