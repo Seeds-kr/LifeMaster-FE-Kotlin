@@ -14,5 +14,5 @@ interface NetworkService {
     fun registerTodoItem(
         @Query("date") date: String,
         @Query("title") title: String
-    ): Call<Any>
+    ): Call<TodoItem>
 }

@@ -8,6 +8,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogTodoBinding
+import com.example.lifemaster.model.TodoItem
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.ToDoViewModel
 import retrofit2.Call
@@ -31,22 +32,29 @@ class ToDoDialog : DialogFragment(R.layout.dialog_todo) {
 
         btnAdd.setOnClickListener {
             val title = etTitle.text.toString()
-            if (title.isBlank()) Toast.makeText(requireContext(), "내용을 입력해 주세요!", Toast.LENGTH_SHORT).show()
+            if (title.isBlank()) Toast.makeText(
+                requireContext(),
+                "내용을 입력해 주세요!",
+                Toast.LENGTH_SHORT
+            ).show()
             else {
                 RetrofitInstance.networkService.registerTodoItem(
                     date = getTodayDate(),
                     title = title
-                ).enqueue(object: Callback<Any> {
-                    override fun onResponse(call: Call<Any>, response: Response<Any>) {
+                ).enqueue(object : Callback<TodoItem> {
+                    override fun onResponse(call: Call<TodoItem>, response: Response<TodoItem>) {
                         if (response.isSuccessful) {
-                            Toast.makeText(context, "할일이 등록되었습니다.", Toast.LENGTH_SHORT).show()
+                            val newItem = response.body()
+                            newItem?.let { toDoViewModel.updateTodoItems(it) }
+                            Toast.makeText(requireContext(), "할일이 등록되었습니다!", Toast.LENGTH_SHORT).show()
                             dismiss()
                         } else {
                             Log.d("server success", "else")
                         }
                     }
-                    override fun onFailure(call: Call<Any>, t: Throwable) {
-                        Log.d("server error", ""+t.message)
+
+                    override fun onFailure(call: Call<TodoItem>, t: Throwable) {
+                        Log.d("server error", "" + t.message)
                     }
                 })
             }
