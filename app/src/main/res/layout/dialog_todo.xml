@@ -23,36 +23,41 @@
         android:textStyle="bold"
         android:textColor="#131313"
         android:layout_marginBottom="8dp"
-        android:text="내용"/>
+        android:text="제목"/>
+
     <EditText
-        android:id="@+id/et_todo_content"
+        android:id="@+id/et_title"
         android:layout_width="280dp"
         android:layout_height="48dp"
-        android:hint="내용을 입력하세요"
-        android:textStyle="bold"
+        android:hint="제목을 입력하세요"
         android:textSize="12sp"
         android:padding="12dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/bg_edittext"/>
+
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_cancel"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:backgroundTint="#F0F4F5"
+            android:background="@drawable/bg_round_radius"
             android:text="취소하기"
             android:textColor="@color/black"/>
-        <Button
-            android:id="@+id/btn_add_todo_item"
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_add"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="추가하기"/>
+            android:text="추가하기"
+            android:textColor="@color/white"
+            android:background="@drawable/bg_round_radius"
+            android:backgroundTint="#5C76C3"/>
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 </LinearLayout>
