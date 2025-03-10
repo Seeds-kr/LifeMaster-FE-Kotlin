@@ -6,6 +6,13 @@ data class TodoItem(
     val id: Int = 0,
     val date: String = "",
     val title: String = "",
-    val description: String = "",
-    @SerializedName("completed") val isCompleted: Boolean = false
+    @SerializedName("completed") val isCompleted: Boolean = false,
+    val calendar: CalendarItem
+)
+
+data class CalendarItem(
+    val id: Int = 0,
+    val date: String = "",
+    val day: String = "",
+    val events: List<String>
 )

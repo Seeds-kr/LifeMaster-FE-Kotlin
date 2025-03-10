@@ -15,12 +15,12 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
         <CheckBox
-            android:id="@+id/ch_todo_item"
+            android:id="@+id/ch_isCompleted"
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:layout_marginEnd="8dp"/>
         <TextView
-            android:id="@+id/tv_todo_item"
+            android:id="@+id/tv_title"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
