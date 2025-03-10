@@ -20,6 +20,7 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
 
     lateinit var binding: FragmentHomeBinding
 
+    // bottom navigation tab 을 넘어갈 때마다 호출된다.
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentHomeBinding.bind(view)
@@ -45,7 +46,6 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
 
             override fun onFailure(call: Call<List<TodoItem>>, t: Throwable) {
                 Log.d("server error", ""+t.message)
-                t.printStackTrace()
             }
         })
     }
@@ -54,7 +54,7 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
         binding.btnAddTodoItem.setOnClickListener {
             val dialog = ToDoDialog()
             dialog.isCancelable = false
-            dialog.show(activity?.supportFragmentManager!!, "ToDoDialog")
+            dialog.show(childFragmentManager, ToDoDialog.TAG)
         }
     }
 }

@@ -2,9 +2,9 @@ package com.example.lifemaster.network
 
 import com.example.lifemaster.model.TodoItem
 import retrofit2.Call
-import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface NetworkService {
     @GET("/schedule/todo")
@@ -12,6 +12,7 @@ interface NetworkService {
 
     @POST("/schedule/todo/create")
     fun registerTodoItem(
-        @Body todoItem: TodoItem
+        @Query("date") date: String,
+        @Query("title") title: String
     ): Call<Any>
 }
