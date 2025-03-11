@@ -1,20 +1,22 @@
 package com.example.lifemaster.presentation.home.todo
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.fragment.app.FragmentActivity
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster.R
-import com.example.lifemaster.model.TodoItem
 import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemTodoBinding
+import com.example.lifemaster.model.TodoItem
+import com.example.lifemaster.network.RetrofitInstance
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-class ToDoAdapter: ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
+class ToDoAdapter(private val context: Context): ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding): RecyclerView.ViewHolder(binding.root) {
 //        val content: TextView
 //        val goToPomodoro: ImageView
@@ -32,6 +34,10 @@ class ToDoAdapter: ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
 
         fun bind(item: TodoItem) = with(binding) {
             tvTitle.text = item.title
+            itemView.setOnLongClickListener {
+                showDialog(currentList[adapterPosition].id)
+                true
+            }
         }
     }
 
@@ -41,6 +47,28 @@ class ToDoAdapter: ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
 
     override fun onBindViewHolder(holder: ToDoViewHolder, position: Int) {
         holder.bind(currentList[position])
+    }
+
+    private fun showDialog(deleteItemId: Int) {
+        AlertDialog.Builder(context)
+            .setTitle("할일 목록 삭제")
+            .setMessage("할일 목록을 삭제하시겠습니까?")
+            .setPositiveButton("예") { _, _ ->
+                RetrofitInstance.networkService.deleteTodoItem(deleteItemId).enqueue(object : Callback<Any> {
+                    override fun onResponse(call: Call<Any>, response: Response<Any>) {
+                        if(response.isSuccessful) {
+                            Toast.makeText(context, "할일이 삭제되었습니다!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Log.d("server success", "else")
+                        }
+                    }
+                    override fun onFailure(call: Call<Any>, t: Throwable) {
+                        Log.d("server error", ""+t.message)
+                    }
+                })
+            }
+            .setNegativeButton("아니요", null)
+            .show()
     }
 
     companion object {
