@@ -16,8 +16,10 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ToDoAdapter(private val context: Context): ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
-    inner class ToDoViewHolder(private val binding: ItemTodoBinding): RecyclerView.ViewHolder(binding.root) {
+class ToDoAdapter(private val context: Context) :
+    ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
+    inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 //        val content: TextView
 //        val goToPomodoro: ImageView
 //        init {
@@ -33,16 +35,67 @@ class ToDoAdapter(private val context: Context): ListAdapter<TodoItem, ToDoAdapt
 //        }
 
         fun bind(item: TodoItem) = with(binding) {
-            tvTitle.text = item.title
+            bindViews(item)
+            bindEvents(item)
+        }
+
+        private fun bindEvents(item: TodoItem) = with(binding) {
             itemView.setOnLongClickListener {
-                showDialog(currentList[adapterPosition].id)
+                showDialog(item.id)
                 true
             }
+            chIsCompleted.setOnCheckedChangeListener { _, _ ->
+                toggleTodoStatus(item)
+            }
+        }
+
+        private fun toggleTodoStatus(item: TodoItem) {
+            RetrofitInstance.networkService.toggleTodoItem(item.id)
+                .enqueue(object : Callback<TodoItem> {
+                    override fun onResponse(
+                        call: Call<TodoItem>,
+                        response: Response<TodoItem>
+                    ) {
+                        if (response.isSuccessful) {
+                            val todoItem = response.body() ?: return
+                            if (todoItem.isCompleted) {
+                                Toast.makeText(
+                                    context,
+                                    "할일이 완료되었습니다!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "할일이 해제되었습니다!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        } else {
+
+                        }
+                    }
+
+                    override fun onFailure(call: Call<TodoItem>, t: Throwable) {
+                        TODO("Not yet implemented")
+                    }
+                })
+        }
+
+        private fun bindViews(item: TodoItem) = with(binding) {
+            tvTitle.text = item.title
+            chIsCompleted.isChecked = currentList[adapterPosition].isCompleted
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToDoViewHolder {
-        return ToDoViewHolder(ItemTodoBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        return ToDoViewHolder(
+            ItemTodoBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+        )
     }
 
     override fun onBindViewHolder(holder: ToDoViewHolder, position: Int) {
@@ -54,25 +107,27 @@ class ToDoAdapter(private val context: Context): ListAdapter<TodoItem, ToDoAdapt
             .setTitle("할일 목록 삭제")
             .setMessage("할일 목록을 삭제하시겠습니까?")
             .setPositiveButton("예") { _, _ ->
-                RetrofitInstance.networkService.deleteTodoItem(deleteItemId).enqueue(object : Callback<Any> {
-                    override fun onResponse(call: Call<Any>, response: Response<Any>) {
-                        if(response.isSuccessful) {
-                            Toast.makeText(context, "할일이 삭제되었습니다!", Toast.LENGTH_SHORT).show()
-                        } else {
-                            Log.d("server success", "else")
+                RetrofitInstance.networkService.deleteTodoItem(deleteItemId)
+                    .enqueue(object : Callback<Any> {
+                        override fun onResponse(call: Call<Any>, response: Response<Any>) {
+                            if (response.isSuccessful) {
+                                Toast.makeText(context, "할일이 삭제되었습니다!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Log.d("server success", "else")
+                            }
                         }
-                    }
-                    override fun onFailure(call: Call<Any>, t: Throwable) {
-                        Log.d("server error", ""+t.message)
-                    }
-                })
+
+                        override fun onFailure(call: Call<Any>, t: Throwable) {
+                            Log.d("server error", "" + t.message)
+                        }
+                    })
             }
             .setNegativeButton("아니요", null)
             .show()
     }
 
     companion object {
-        val differ = object: DiffUtil.ItemCallback<TodoItem>() {
+        val differ = object : DiffUtil.ItemCallback<TodoItem>() {
             override fun areContentsTheSame(oldItem: TodoItem, newItem: TodoItem): Boolean {
                 return oldItem == newItem
             }
