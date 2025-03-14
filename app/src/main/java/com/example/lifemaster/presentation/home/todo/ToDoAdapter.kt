@@ -12,14 +12,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemTodoBinding
 import com.example.lifemaster.model.TodoItem
 import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.home.ToDoViewModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ToDoAdapter(private val context: Context) :
+class ToDoAdapter(
+    private val context: Context,
+    private val toDoViewModel: ToDoViewModel
+) :
     ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
 //        val content: TextView
 //        val goToPomodoro: ImageView
 //        init {
@@ -41,7 +46,7 @@ class ToDoAdapter(private val context: Context) :
 
         private fun bindEvents(item: TodoItem) = with(binding) {
             itemView.setOnLongClickListener {
-                showDialog(item.id)
+                showDialog(item)
                 true
             }
             chIsCompleted.setOnCheckedChangeListener { _, _ ->
@@ -102,16 +107,17 @@ class ToDoAdapter(private val context: Context) :
         holder.bind(currentList[position])
     }
 
-    private fun showDialog(deleteItemId: Int) {
+    private fun showDialog(deleteItem: TodoItem) {
         AlertDialog.Builder(context)
             .setTitle("할일 목록 삭제")
             .setMessage("할일 목록을 삭제하시겠습니까?")
             .setPositiveButton("예") { _, _ ->
-                RetrofitInstance.networkService.deleteTodoItem(deleteItemId)
+                RetrofitInstance.networkService.deleteTodoItem(deleteItem.id)
                     .enqueue(object : Callback<Any> {
                         override fun onResponse(call: Call<Any>, response: Response<Any>) {
                             if (response.isSuccessful) {
                                 Toast.makeText(context, "할일이 삭제되었습니다!", Toast.LENGTH_SHORT).show()
+                                toDoViewModel.deleteTodoItems(deleteItem)
                             } else {
                                 Log.d("server success", "else")
                             }
