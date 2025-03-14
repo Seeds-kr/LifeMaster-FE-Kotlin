@@ -17,7 +17,10 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.time.format.DateTimeFormatter
 
-class ToDoDialog : DialogFragment(R.layout.dialog_todo) {
+class ToDoDialog(
+    private val caller: TODO,
+    private val id: Int = 0,
+) : DialogFragment(R.layout.dialog_todo) {
 
     lateinit var binding: DialogTodoBinding
     private val toDoViewModel: ToDoViewModel by activityViewModels()
@@ -25,41 +28,92 @@ class ToDoDialog : DialogFragment(R.layout.dialog_todo) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = DialogTodoBinding.bind(view)
-        setupListeners()
+        initViews()
+        initListeners()
     }
 
-    private fun setupListeners() = with(binding) {
+    private fun initViews() = with(binding) {
+        when(caller) {
+            TODO.ADD -> {
+                tvTitle.text = "할일 추가"
+                btnChange.text = "추가하기"
+            }
+            TODO.EDIT -> {
+                tvTitle.text = "할일 수정"
+                btnChange.text = "수정하기"
+            }
+        }
+    }
 
-        btnAdd.setOnClickListener {
-            val title = etTitle.text.toString()
-            if (title.isBlank()) Toast.makeText(
-                requireContext(),
-                "내용을 입력해 주세요!",
-                Toast.LENGTH_SHORT
-            ).show()
-            else {
-                RetrofitInstance.networkService.registerTodoItem(
-                    date = getTodayDate(),
-                    title = title
-                ).enqueue(object : Callback<TodoItem> {
-                    override fun onResponse(call: Call<TodoItem>, response: Response<TodoItem>) {
-                        if (response.isSuccessful) {
-                            val newItem = response.body()
-                            newItem?.let { toDoViewModel.updateTodoItems(it) }
-                            Toast.makeText(requireContext(), "할일이 등록되었습니다!", Toast.LENGTH_SHORT).show()
-                            dismiss()
-                        } else {
-                            Log.d("server success", "else")
-                        }
-                    }
+    private fun initListeners() = with(binding) {
 
-                    override fun onFailure(call: Call<TodoItem>, t: Throwable) {
-                        Log.d("server error", "" + t.message)
+        when(caller) {
+            TODO.ADD -> {
+                btnChange.setOnClickListener {
+                    val title = etTitle.text.toString()
+                    if (title.isBlank()) Toast.makeText(
+                        requireContext(),
+                        "내용을 입력해 주세요!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    else {
+                        RetrofitInstance.networkService.registerTodoItem(
+                            date = getTodayDate(),
+                            title = title
+                        ).enqueue(object : Callback<TodoItem> {
+                            override fun onResponse(call: Call<TodoItem>, response: Response<TodoItem>) {
+                                if (response.isSuccessful) {
+                                    val newItem = response.body()
+                                    newItem?.let { toDoViewModel.addTodoItems(it) }
+                                    Toast.makeText(requireContext(), "할일이 등록되었습니다!", Toast.LENGTH_SHORT).show()
+                                    dismiss()
+                                } else {
+                                    Log.d("server success", "else")
+                                }
+                            }
+
+                            override fun onFailure(call: Call<TodoItem>, t: Throwable) {
+                                Log.d("server error", "" + t.message)
+                            }
+                        })
                     }
-                })
+                }
+            }
+            TODO.EDIT -> {
+                btnChange.setOnClickListener {
+                    val title = etTitle.text.toString()
+                    if (title.isBlank()) Toast.makeText(
+                        requireContext(),
+                        "내용을 입력해 주세요!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    else {
+                        RetrofitInstance.networkService.updateTodoItem(
+                            id = id,
+                            title = title,
+                            date = getTodayDate()
+                        ).enqueue(object : Callback<TodoItem> {
+                            override fun onResponse(
+                                call: Call<TodoItem>,
+                                response: Response<TodoItem>
+                            ) {
+                                if(response.isSuccessful) {
+                                    val response = response.body()
+                                    response?.let { toDoViewModel.changeTodoItems(it) }
+                                    Toast.makeText(context, "할일이 수정되었습니다!", Toast.LENGTH_SHORT).show()
+                                    dismiss()
+                                }
+                            }
+                            override fun onFailure(call: Call<TodoItem>, t: Throwable) {
+                                TODO("Not yet implemented")
+                            }
+                        })
+                    }
+                }
             }
         }
 
+        // 공통
         btnCancel.setOnClickListener {
             dismiss()
         }

@@ -9,6 +9,7 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
 import com.example.lifemaster.model.TodoItem
 import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.home.todo.TODO
 import com.example.lifemaster.presentation.home.todo.ToDoAdapter
 import com.example.lifemaster.presentation.home.todo.ToDoDialog
 import retrofit2.Call
@@ -30,7 +31,7 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun initViews() {
-        binding.recyclerview.adapter = ToDoAdapter(requireContext(), toDoViewModel)
+        binding.recyclerview.adapter = ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager)
         RetrofitInstance.networkService.getTodoItems().enqueue(object : Callback<List<TodoItem>> {
             override fun onResponse(
                 call: Call<List<TodoItem>>,
@@ -52,7 +53,7 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
 
     private fun initListeners() {
         binding.btnAddTodoItem.setOnClickListener {
-            val dialog = ToDoDialog()
+            val dialog = ToDoDialog(TODO.ADD)
             dialog.isCancelable = false
             dialog.show(childFragmentManager, ToDoDialog.TAG)
         }

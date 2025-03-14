@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:padding="20dp"
     android:layout_width="wrap_content"
@@ -8,9 +9,10 @@
     <!-- [?] 다이얼로그 사이즈가 원하는 대로 잘 안나오는 문제 발생 -->
 
     <TextView
+        android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="할일 추가"
+        tools:text="할일 추가"
         android:textColor="@color/black"
         android:textStyle="bold"
         android:layout_marginBottom="32dp"
@@ -50,11 +52,11 @@
             android:text="취소하기"
             android:textColor="@color/black"/>
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_add"
+            android:id="@+id/btn_change"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="추가하기"
+            tools:text="추가하기"
             android:textColor="@color/white"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#5C76C3"/>

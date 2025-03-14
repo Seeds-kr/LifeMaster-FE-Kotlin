@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -19,7 +20,8 @@ import retrofit2.Response
 
 class ToDoAdapter(
     private val context: Context,
-    private val toDoViewModel: ToDoViewModel
+    private val toDoViewModel: ToDoViewModel,
+    private val fragmentManager: FragmentManager
 ) :
     ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
@@ -39,7 +41,7 @@ class ToDoAdapter(
 //            }
 //        }
 
-        fun bind(item: TodoItem) = with(binding) {
+        fun bind(item: TodoItem) = {
             bindViews(item)
             bindEvents(item)
         }
@@ -51,6 +53,11 @@ class ToDoAdapter(
             }
             chIsCompleted.setOnCheckedChangeListener { _, _ ->
                 toggleTodoStatus(item)
+            }
+            ivEdit.setOnClickListener {
+                val dialog = ToDoDialog(TODO.EDIT, item.id)
+                dialog.isCancelable = false
+                dialog.show(fragmentManager, ToDoDialog.TAG)
             }
         }
 
