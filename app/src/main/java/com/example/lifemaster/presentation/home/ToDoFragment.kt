@@ -20,9 +20,7 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
 
     lateinit var binding: FragmentHomeBinding
     private val toDoViewModel: ToDoViewModel by activityViewModels()
-    private var todoItems: ArrayList<TodoItem> = arrayListOf()
 
-    // bottom navigation tab 을 넘어갈 때마다 호출된다.
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentHomeBinding.bind(view)
@@ -32,16 +30,15 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun initViews() {
+        binding.recyclerview.adapter = ToDoAdapter(requireContext(), toDoViewModel)
         RetrofitInstance.networkService.getTodoItems().enqueue(object : Callback<List<TodoItem>> {
             override fun onResponse(
                 call: Call<List<TodoItem>>,
                 response: Response<List<TodoItem>>
             ) {
                 if(response.isSuccessful) {
-                    todoItems = response.body() as ArrayList<TodoItem>
-                    Log.d("ttest", ""+todoItems)
-                    binding.recyclerview.adapter = ToDoAdapter()
-                    (binding.recyclerview.adapter as ToDoAdapter).submitList(todoItems.toList())
+                    val todoItems = response.body() as ArrayList<TodoItem>
+                    toDoViewModel.updateTodoItems(todoItems)
                 } else {
                     Log.d("server success", "else")
                 }
@@ -62,9 +59,8 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun initObservers() {
-        toDoViewModel.todoItems.observe(viewLifecycleOwner) { newItem ->
-            todoItems.add(newItem)
-            (binding.recyclerview.adapter as ToDoAdapter).submitList(todoItems.toList())
+        toDoViewModel.todoItems.observe(viewLifecycleOwner) { updateItems ->
+            updateItems?.let { (binding.recyclerview.adapter as ToDoAdapter).submitList(it.toList()) }
         }
     }
 }
