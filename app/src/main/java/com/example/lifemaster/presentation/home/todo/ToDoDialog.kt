@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter
 
 class ToDoDialog(
     private val caller: TODO,
-    private val id: Int = 0,
+    private val todoItem: TodoItem? = null
 ) : DialogFragment(R.layout.dialog_todo) {
 
     lateinit var binding: DialogTodoBinding
@@ -39,6 +39,7 @@ class ToDoDialog(
                 btnChange.text = "추가하기"
             }
             TODO.EDIT -> {
+                etTitle.setText(todoItem?.title)
                 tvTitle.text = "할일 수정"
                 btnChange.text = "수정하기"
             }
@@ -89,7 +90,7 @@ class ToDoDialog(
                     ).show()
                     else {
                         RetrofitInstance.networkService.updateTodoItem(
-                            id = id,
+                            id = todoItem?.id ?: 0,
                             title = title,
                             date = getTodayDate()
                         ).enqueue(object : Callback<TodoItem> {
@@ -98,8 +99,8 @@ class ToDoDialog(
                                 response: Response<TodoItem>
                             ) {
                                 if(response.isSuccessful) {
-                                    val response = response.body()
-                                    response?.let { toDoViewModel.changeTodoItems(it) }
+                                    val todoItem = response.body()
+                                    todoItem?.let { toDoViewModel.changeTodoItems(it) }
                                     Toast.makeText(context, "할일이 수정되었습니다!", Toast.LENGTH_SHORT).show()
                                     dismiss()
                                 }

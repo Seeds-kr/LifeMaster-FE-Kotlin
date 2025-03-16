@@ -41,7 +41,7 @@ class ToDoAdapter(
 //            }
 //        }
 
-        fun bind(item: TodoItem) = {
+        fun bind(item: TodoItem) {
             bindViews(item)
             bindEvents(item)
         }
@@ -55,7 +55,7 @@ class ToDoAdapter(
                 toggleTodoStatus(item)
             }
             ivEdit.setOnClickListener {
-                val dialog = ToDoDialog(TODO.EDIT, item.id)
+                val dialog = ToDoDialog(TODO.EDIT, item)
                 dialog.isCancelable = false
                 dialog.show(fragmentManager, ToDoDialog.TAG)
             }
