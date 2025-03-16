@@ -1,6 +1,7 @@
 package com.example.lifemaster.presentation.home.todo
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -13,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemTodoBinding
 import com.example.lifemaster.model.TodoItem
 import com.example.lifemaster.network.RetrofitInstance
-import com.example.lifemaster.presentation.home.ToDoViewModel
+import com.example.lifemaster.presentation.home.pomodoro.PomodoroActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -26,20 +27,6 @@ class ToDoAdapter(
     ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
         RecyclerView.ViewHolder(binding.root) {
-
-//        val content: TextView
-//        val goToPomodoro: ImageView
-//        init {
-//            content = itemView.findViewById(R.id.tv_todo_item)
-//            goToPomodoro = itemView.findViewById(R.id.iv_go_to_pomodoro)
-//
-//            goToPomodoro.setOnClickListener {
-////                // 1. home tab -> total view 전환
-////                activity.findViewById<BottomNavigationView>(R.id.navigation).selectedItemId = R.id.action_total
-////                // 2. total view 중 포모도로 프래그먼트 화면에 보이기
-////                activity.supportFragmentManager.beginTransaction().replace(R.id.fragmentContainerView, PomodoroFragment(), "PomodoroFragment").commit()
-//            }
-//        }
 
         fun bind(item: TodoItem) {
             bindViews(item)
@@ -58,6 +45,10 @@ class ToDoAdapter(
                 val dialog = ToDoDialog(TODO.EDIT, item)
                 dialog.isCancelable = false
                 dialog.show(fragmentManager, ToDoDialog.TAG)
+            }
+            ivGoToPomodoro.setOnClickListener {
+                val intent = Intent(context, PomodoroActivity::class.java)
+                context.startActivity(intent)
             }
         }
 

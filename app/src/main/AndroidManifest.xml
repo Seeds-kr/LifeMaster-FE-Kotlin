@@ -27,6 +27,7 @@
         android:theme="@style/Theme.LifeMaster_XML"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+
         <activity
             android:name=".ComposeActivity"
             android:exported="false"
@@ -34,9 +35,9 @@
             android:theme="@style/Theme.LifeMaster_XML" />
         <activity
             android:name=".presentation.authentication.LoginActivity"
-            android:exported="false"></activity>
+            android:exported="false" />
         <activity
-            android:name=".presentation.total.pomodoro.emergency_escape.EmergencyEscapeActivity"
+            android:name=".presentation.home.pomodoro.emergency_escape.EmergencyEscapeActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustUnspecified">
             <meta-data
@@ -57,6 +58,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".presentation.home.pomodoro.PomodoroActivity"/>
+
         <service
             android:name=".presentation.total.detox.service.DetoxBlockService"
             android:exported="true"
@@ -69,8 +73,6 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
-        <receiver android:name=".presentation.group.receiver.AlarmReceiver"
-            android:exported="false"/>
     </application>
 
 </manifest>
