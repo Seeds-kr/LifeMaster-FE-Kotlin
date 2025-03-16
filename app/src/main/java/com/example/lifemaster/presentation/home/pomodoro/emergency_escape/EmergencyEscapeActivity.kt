@@ -1,4 +1,4 @@
-package com.example.lifemaster.presentation.total.pomodoro.emergency_escape
+package com.example.lifemaster.presentation.home.pomodoro.emergency_escape
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster.R
 import com.example.lifemaster.presentation.data.SharedData
 import com.example.lifemaster.databinding.ActivityEmergencyEscapeBinding
-import com.example.lifemaster.presentation.total.pomodoro.PomodoroStatus
+import com.example.lifemaster.presentation.home.pomodoro.PomodoroStatus
 import com.google.android.material.internal.TextWatcherAdapter
 
 class EmergencyEscapeActivity : AppCompatActivity() {

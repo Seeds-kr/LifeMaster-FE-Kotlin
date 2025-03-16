@@ -1,4 +1,4 @@
-package com.example.lifemaster.presentation.total.pomodoro
+package com.example.lifemaster.presentation.home.pomodoro
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,7 +12,7 @@ import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.presentation.data.SharedData
 import com.example.lifemaster.databinding.FragmentPomodoroBinding
-import com.example.lifemaster.presentation.total.pomodoro.emergency_escape.EmergencyEscapeActivity
+import com.example.lifemaster.presentation.home.pomodoro.emergency_escape.EmergencyEscapeActivity
 import java.util.*
 import kotlin.concurrent.timer
 

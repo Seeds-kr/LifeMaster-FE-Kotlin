@@ -10,7 +10,6 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogTodoBinding
 import com.example.lifemaster.model.TodoItem
 import com.example.lifemaster.network.RetrofitInstance
-import com.example.lifemaster.presentation.home.ToDoViewModel
 import retrofit2.Call
 import java.time.LocalDate
 import retrofit2.Callback

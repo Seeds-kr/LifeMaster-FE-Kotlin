@@ -1,4 +1,4 @@
-package com.example.lifemaster.presentation.total.pomodoro
+package com.example.lifemaster.presentation.home.pomodoro
 
 import android.content.Context
 import android.view.LayoutInflater

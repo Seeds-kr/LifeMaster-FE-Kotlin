@@ -1,4 +1,4 @@
-package com.example.lifemaster.presentation.home
+package com.example.lifemaster.presentation.home.todo
 
 import android.os.Bundle
 import android.util.Log
@@ -9,9 +9,6 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
 import com.example.lifemaster.model.TodoItem
 import com.example.lifemaster.network.RetrofitInstance
-import com.example.lifemaster.presentation.home.todo.TODO
-import com.example.lifemaster.presentation.home.todo.ToDoAdapter
-import com.example.lifemaster.presentation.home.todo.ToDoDialog
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".presentation.total.pomodoro.emergency_escape.EmergencyEscapeActivity">
+    tools:context=".presentation.home.pomodoro.emergency_escape.EmergencyEscapeActivity">
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"

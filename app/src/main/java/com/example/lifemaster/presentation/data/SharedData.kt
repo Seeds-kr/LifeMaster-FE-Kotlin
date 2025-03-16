@@ -1,6 +1,6 @@
 package com.example.lifemaster.presentation.data
 
-import com.example.lifemaster.presentation.total.pomodoro.PomodoroStatus
+import com.example.lifemaster.presentation.home.pomodoro.PomodoroStatus
 
 object SharedData {
     val todoItems = mutableListOf<String>()
