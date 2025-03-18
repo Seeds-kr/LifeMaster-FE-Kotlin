@@ -27,8 +27,9 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
         initObservers()
     }
 
-    private fun initViews() {
-        binding.recyclerview.adapter = ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager)
+    private fun initViews() = with(binding) {
+        recyclerview.adapter = ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager)
+        (recyclerview.adapter as ToDoAdapter).submitList(toDoViewModel.dummyData.toList())
         RetrofitInstance.networkService.getTodoItems().enqueue(object : Callback<List<TodoItem>> {
             override fun onResponse(
                 call: Call<List<TodoItem>>,

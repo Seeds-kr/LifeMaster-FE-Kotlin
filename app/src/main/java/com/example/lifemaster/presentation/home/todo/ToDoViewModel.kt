@@ -3,9 +3,16 @@ package com.example.lifemaster.presentation.home.todo
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.lifemaster.model.CalendarItem
 import com.example.lifemaster.model.TodoItem
 
 class ToDoViewModel: ViewModel() {
+
+    val dummyData = arrayListOf(
+        TodoItem(0, "20250318", "밥먹기", false, CalendarItem(0, "20250318", "TUESDAY", listOf())),
+        TodoItem(1, "20250317", "운동하기", false, CalendarItem(1, "20250317", "MONDAY", listOf())),
+        TodoItem(2, "20250316", "카페가기", false, CalendarItem(2, "20250316", "SUNDAY", listOf()))
+    )
 
     private val _todoItems: MutableLiveData<ArrayList<TodoItem>> = MutableLiveData()
     val todoItems: LiveData<ArrayList<TodoItem>> get() = _todoItems
