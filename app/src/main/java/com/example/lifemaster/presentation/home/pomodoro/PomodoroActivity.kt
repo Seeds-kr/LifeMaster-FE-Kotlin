@@ -1,5 +1,6 @@
 package com.example.lifemaster.presentation.home.pomodoro
 
+import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -45,6 +46,10 @@ class PomodoroActivity : AppCompatActivity() {
         btnStartPomodoro.setOnClickListener {
             if (tvMinutesAndSeconds.text.toString() == getString(R.string.tv_pomodoro_timer_25)) {
                 rgTimer.visibility = View.INVISIBLE
+                ObjectAnimator.ofFloat(cardviewTodo, "translationY", cardviewTodo.translationY, rgTimer.y-cardviewTodo.y).apply {
+                    duration = 500
+                    start()
+                }
 //                sharedViewModel.clickButton()
                 totalDeciSecond = 25 * 60 * 10  // 25분 × 60초
                 // worker thread
@@ -117,9 +122,11 @@ class PomodoroActivity : AppCompatActivity() {
                         timer = null
                     }
                 }
-            } else if (tvMinutesAndSeconds.text == getString(R.string.tv_pomodoro_timer_not_set)) {
+            }
+            else if (tvMinutesAndSeconds.text == getString(R.string.tv_pomodoro_timer_not_set)) {
                 Toast.makeText(this@PomodoroActivity, "시간을 설정해주세요!", Toast.LENGTH_SHORT).show()
-            } else {
+            }
+            else {
 //                sharedViewModel.clickButton()
             }
         }

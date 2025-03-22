@@ -68,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="4dp"
-        android:text="다음 휴식 시간까지"
+        android:text="할일 종료까지"
         android:textColor="@color/black" />
 
     <LinearLayout
@@ -95,6 +95,7 @@
     </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardview_todo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
