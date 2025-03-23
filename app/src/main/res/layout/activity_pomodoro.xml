@@ -111,12 +111,20 @@
             android:layout_gravity="center_vertical"
             android:text="@string/item_is_not_selected"
             android:textColor="@color/blue_100" />
-        <!--        <ImageView-->
-        <!--            android:id="@+id/iv_open_todo_dialog"-->
-        <!--            android:layout_width="wrap_content"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            android:layout_gravity="center_vertical|end"-->
-        <!--            android:src="@drawable/ic_move_fragment"/>-->
+        <ImageView
+            android:id="@+id/iv_timer_25"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|end"
+            android:src="@drawable/ic_timer_25"
+            android:visibility="invisible"/>
+        <ImageView
+            android:id="@+id/iv_timer_50"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|end"
+            android:src="@drawable/ic_timer_50"
+            android:visibility="invisible"/>
     </com.google.android.material.card.MaterialCardView>
 
     <Button
@@ -126,5 +134,5 @@
         android:layout_marginTop="8dp"
         android:padding="16dp"
         android:text="시작하기"
-        android:textSize="12sp" />
+        android:textSize="12sp"/>
 </androidx.appcompat.widget.LinearLayoutCompat>

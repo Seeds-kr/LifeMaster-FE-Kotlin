@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityPomodoroBinding
 import com.example.lifemaster.presentation.data.SharedData
@@ -46,6 +47,8 @@ class PomodoroActivity : AppCompatActivity() {
         btnStartPomodoro.setOnClickListener {
             if (tvMinutesAndSeconds.text.toString() == getString(R.string.tv_pomodoro_timer_25)) {
                 rgTimer.visibility = View.INVISIBLE
+                ivTimer25.visibility = View.VISIBLE // 할일로 data class 관련된 변수 값 넣어서 데이터 전송해야함
+                cardviewTodo.setStrokeColor(ContextCompat.getColor(this@PomodoroActivity, R.color.blue_100))
                 ObjectAnimator.ofFloat(cardviewTodo, "translationY", cardviewTodo.translationY, rgTimer.y-cardviewTodo.y).apply {
                     duration = 500
                     start()
@@ -91,6 +94,8 @@ class PomodoroActivity : AppCompatActivity() {
             else if (tvMinutesAndSeconds.text.toString() == getString(R.string.tv_pomodoro_timer_50)) {
 //                sharedViewModel.clickButton()
                 rgTimer.visibility = View.INVISIBLE
+                ivTimer50.visibility = View.VISIBLE
+                cardviewTodo.setStrokeColor(ContextCompat.getColor(this@PomodoroActivity, R.color.blue_100))
                 totalDeciSecond = 50 * 60 * 10
                 timer = timer(initialDelay = 0, period = 100) { // worker thread
                     if (totalDeciSecond > 0) {
