@@ -27,9 +27,23 @@
             android:textSize="14sp"
             tools:text="구체적으로 할 일을 적으세요."/>
         <ImageView
+            android:id="@+id/iv_timer_25"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:src="@drawable/ic_timer_25"/>
+        <ImageView
+            android:id="@+id/iv_timer_50"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:src="@drawable/ic_timer_50"/>
+        <ImageView
             android:id="@+id/iv_edit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+
             android:src="@drawable/ic_edit"/>
 <!--        <ImageView-->
 <!--            android:layout_width="wrap_content"-->

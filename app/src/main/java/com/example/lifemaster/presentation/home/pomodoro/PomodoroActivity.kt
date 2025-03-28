@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityPomodoroBinding
+import com.example.lifemaster.model.PomodoroTimer
 import com.example.lifemaster.model.TodoItem
 import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.data.SharedData
@@ -97,6 +98,7 @@ class PomodoroActivity : AppCompatActivity() {
                         // PomodoroActivity 가 TodoItem 을 가지고 있어야 함.
                         todoItem?.let {
                             it.isCompleted = true
+                            it.timer = PomodoroTimer.TIMER_25
                         }
 
                         val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
@@ -146,6 +148,18 @@ class PomodoroActivity : AppCompatActivity() {
                         }
                         timer?.cancel()
                         timer = null
+
+                        todoItem?.let {
+                            it.isCompleted = true
+                            it.timer = PomodoroTimer.TIMER_50
+                        }
+
+                        val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
+                            putExtra("pomodoro", todoItem)
+                        }
+
+                        // 해당 아이템의 할일 체크 상태 변경 알리기
+                        startActivity(intent)
                     }
                 }
             }

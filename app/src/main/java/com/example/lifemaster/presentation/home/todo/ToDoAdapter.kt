@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemTodoBinding
+import com.example.lifemaster.model.PomodoroTimer
 import com.example.lifemaster.model.TodoItem
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.pomodoro.PomodoroActivity
@@ -90,6 +92,7 @@ class ToDoAdapter(
         private fun bindViews(item: TodoItem) = with(binding) {
             tvTitle.text = item.title
             chIsCompleted.isChecked = currentList[adapterPosition].isCompleted
+            if(item.timer == PomodoroTimer.TIMER_25) ivTimer25.visibility = View.VISIBLE else if(item.timer == PomodoroTimer.TIMER_50) ivTimer50.visibility = View.VISIBLE
         }
     }
 

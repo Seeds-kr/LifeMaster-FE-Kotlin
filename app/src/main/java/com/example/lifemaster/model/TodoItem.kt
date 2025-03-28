@@ -10,8 +10,9 @@ data class TodoItem(
     val date: String = "",
     val title: String = "",
     @SerializedName("completed") var isCompleted: Boolean = false,
+    var timer: PomodoroTimer,
     val calendar: CalendarItem
-): Parcelable
+) : Parcelable
 
 @Parcelize
 data class CalendarItem(
@@ -19,4 +20,11 @@ data class CalendarItem(
     val date: String = "",
     val day: String = "",
     val events: List<String>
-): Parcelable
+) : Parcelable
+
+// enum class 작성하는 위치?
+enum class PomodoroTimer {
+    NONE,
+    TIMER_25,
+    TIMER_50
+}
