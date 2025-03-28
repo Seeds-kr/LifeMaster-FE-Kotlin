@@ -8,6 +8,7 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,14 +16,13 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import com.example.lifemaster.R
-import com.example.lifemaster.presentation.community.CommunityFragment
 import com.example.lifemaster.databinding.ActivityMainBinding
-import com.example.lifemaster.presentation.group.fragment.AlarmSettingFragment
-import com.example.lifemaster.presentation.home.ToDoFragment
-import com.example.lifemaster.presentation.total.detox.fragment.DetoxFragment
+import com.example.lifemaster.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.ToDoViewModel
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
@@ -41,17 +41,23 @@ class MainActivity : AppCompatActivity() {
     private val detoxCommonViewModel: DetoxCommonViewModel by viewModels()
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by viewModels()
     private val detoxTimeLockViewModel: DetoxTimeLockViewModel by viewModels()
+    private val toDoViewModel: ToDoViewModel by viewModels()
 
     // 실시간 UI 변경을 위한 변수
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var updateRunnable: Runnable
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         codeCacheDir.setReadOnly()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 포모도로 → 할일 업데이트
+        val updateItem = intent.getParcelableExtra("pomodoro", TodoItem::class.java)
+        updateItem?.let { toDoViewModel.changeTodoItems(it) }
 
         // 알람 화면 띄우기
         val fragmentType = intent.getStringExtra("fragment type")

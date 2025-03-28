@@ -47,8 +47,9 @@ class ToDoAdapter(
                 dialog.show(fragmentManager, ToDoDialog.TAG)
             }
             ivGoToPomodoro.setOnClickListener {
-                val intent = Intent(context, PomodoroActivity::class.java)
-                intent.putExtra("title", item.title)
+                val intent = Intent(context, PomodoroActivity::class.java).apply {
+                    putExtra("item", item)
+                }
                 context.startActivity(intent)
             }
         }

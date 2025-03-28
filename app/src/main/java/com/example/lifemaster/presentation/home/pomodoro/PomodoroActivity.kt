@@ -1,14 +1,19 @@
 package com.example.lifemaster.presentation.home.pomodoro
 
 import android.animation.ObjectAnimator
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityPomodoroBinding
+import com.example.lifemaster.model.TodoItem
+import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.data.SharedData
 import java.util.*
 import kotlin.concurrent.timer
@@ -20,9 +25,10 @@ class PomodoroActivity : AppCompatActivity() {
 //    private val sharedViewModel: PomodoroViewModel by viewModels()
 
     private var totalDeciSecond = 0
-
     private var timer: Timer? = null
+    private var todoItem: TodoItem? = null
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPomodoroBinding.inflate(layoutInflater)
@@ -32,9 +38,10 @@ class PomodoroActivity : AppCompatActivity() {
         initObservers()
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun initViews() = with(binding) {
-        val title = intent.getStringExtra("title")
-        tvTodoItemTitle.text = title
+        todoItem = intent.getParcelableExtra("item", TodoItem::class.java)
+        todoItem?.let { tvTodoItemTitle.text = it.title }
     }
 
     private fun initListeners() = with(binding) {
@@ -54,7 +61,8 @@ class PomodoroActivity : AppCompatActivity() {
                     start()
                 }
 //                sharedViewModel.clickButton()
-                totalDeciSecond = 25 * 60 * 10  // 25분 × 60초
+//                totalDeciSecond = 25 * 60 * 10  // 25분 × 60초
+                totalDeciSecond = 5 * 10  // 테스트용 5초
                 // worker thread
                 timer = timer(
                     initialDelay = 0,
@@ -82,12 +90,21 @@ class PomodoroActivity : AppCompatActivity() {
                                 "시간이 종료되었습니다!",
                                 Toast.LENGTH_SHORT
                             ).show()
-                            // PomodoroActivity → MainActivity 의 Home Fragment 로 이동
-                            // 해당 아이템의 할일 체크 상태 변경 알리기
                             // sharedViewModel.resetButtonCount()
                         }
                         timer?.cancel()
                         timer = null
+                        // PomodoroActivity 가 TodoItem 을 가지고 있어야 함.
+                        todoItem?.let {
+                            it.isCompleted = true
+                        }
+
+                        val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
+                            putExtra("pomodoro", todoItem)
+                        }
+
+                        // 해당 아이템의 할일 체크 상태 변경 알리기
+                        startActivity(intent)
                     }
                 }
             }
@@ -96,6 +113,10 @@ class PomodoroActivity : AppCompatActivity() {
                 rgTimer.visibility = View.INVISIBLE
                 ivTimer50.visibility = View.VISIBLE
                 cardviewTodo.setStrokeColor(ContextCompat.getColor(this@PomodoroActivity, R.color.blue_100))
+                ObjectAnimator.ofFloat(cardviewTodo, "translationY", cardviewTodo.translationY, rgTimer.y-cardviewTodo.y).apply {
+                    duration = 500
+                    start()
+                }
                 totalDeciSecond = 50 * 60 * 10
                 timer = timer(initialDelay = 0, period = 100) { // worker thread
                     if (totalDeciSecond > 0) {

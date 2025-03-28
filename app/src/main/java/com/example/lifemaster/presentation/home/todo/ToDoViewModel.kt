@@ -36,7 +36,8 @@ class ToDoViewModel: ViewModel() {
     fun changeTodoItems(changeItem: TodoItem) {
         val currentList = _todoItems.value ?: arrayListOf()
         val i = currentList.indexOfFirst { it.id == changeItem.id }
-        currentList[i] = currentList[i].copy(date = changeItem.date, title = changeItem.title) // currentList[i] = changeItem 보다 더 안전한 방식. 전체를 바꾸는 것보단 일부만 바꾸는 것이 더 안전하다.
+//        currentList[i] = currentList[i].copy(date = changeItem.date, title = changeItem.title) // 수정 관점에서 사용
+        currentList[i] = changeItem
         _todoItems.value = currentList
     }
 }
