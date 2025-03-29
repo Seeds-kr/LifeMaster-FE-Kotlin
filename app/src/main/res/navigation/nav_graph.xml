@@ -20,7 +20,7 @@
     </fragment>
     <fragment
         android:id="@+id/toDoFragment"
-        android:name="com.example.lifemaster.presentation.home.ToDoFragment"
+        android:name="com.example.lifemaster.presentation.home.todo.ToDoFragment"
         android:label="ToDoFragment" />
     <fragment
         android:id="@+id/communityFragment"

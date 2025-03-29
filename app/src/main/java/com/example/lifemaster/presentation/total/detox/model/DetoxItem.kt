@@ -38,12 +38,12 @@ data class DetoxRepeatLockItem(
 ): Parcelable
 
 data class TestItem(
-    val appPackageName: String,
-    val useTime: Int = 0,
-    val lockTime: Int = 0,
-    val maxTime: Int = 0,
+    val appPackageName: String = "",
+    val useTime: Long = 0L,
+    val lockTime: Long = 0L,
+    val maxTime: Long = 0L,
     val isMaxTimeLimitSet: Boolean = false,
-    val isBlocked: Boolean = false
+    var isBlocked: Boolean = false
 )
 
 

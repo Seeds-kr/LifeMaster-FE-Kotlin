@@ -34,7 +34,6 @@ class DetoxRepeatLockTestDialog(private val type: String) : DialogFragment(R.lay
         binding.apply {
             btnSelect.setOnClickListener {
                 val tempValue = (binding.npSecond.value+1)*5
-                Log.d("ttest",""+tempValue)
                 when(type) {
                     "useTime" -> { detoxRepeatLockViewModel.setTempUseTime(tempValue)}
                     "lockTime" -> { detoxRepeatLockViewModel.setTempLockTime(tempValue)}
