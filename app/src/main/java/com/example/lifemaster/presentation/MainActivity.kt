@@ -14,6 +14,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
+import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -55,9 +56,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 포모도로 → 할일 업데이트
-        val updateItem = intent.getParcelableExtra("pomodoro", TodoItem::class.java)
-        updateItem?.let { toDoViewModel.changeTodoItems(it) }
 
         // 알람 화면 띄우기
         val fragmentType = intent.getStringExtra("fragment type")
@@ -94,6 +92,14 @@ class MainActivity : AppCompatActivity() {
         foregroundStartTime = SystemClock.elapsedRealtime() // 앱이 포그라운드로 전환된 시간 기록
         updateUsageStats()
         handler.post(updateRunnable)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // 포모도로 → 할일 업데이트
+        val updateItem = intent.getParcelableExtra("pomodoro", TodoItem::class.java)
+        updateItem?.let { toDoViewModel.changeTodoItems(it) }
     }
 
     override fun onPause() {

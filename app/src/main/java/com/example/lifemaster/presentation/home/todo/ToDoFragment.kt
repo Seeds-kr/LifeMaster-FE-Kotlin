@@ -30,6 +30,7 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
     private fun initViews() = with(binding) {
         recyclerview.adapter = ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager)
         (recyclerview.adapter as ToDoAdapter).submitList(toDoViewModel.dummyData.toList())
+        toDoViewModel.initTodoItems()
         RetrofitInstance.networkService.getTodoItems().enqueue(object : Callback<List<TodoItem>> {
             override fun onResponse(
                 call: Call<List<TodoItem>>,
@@ -37,7 +38,7 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
             ) {
                 if(response.isSuccessful) {
                     val todoItems = response.body() as ArrayList<TodoItem>
-                    toDoViewModel.updateTodoItems(todoItems)
+//                    toDoViewModel.initTodoItems(todoItems)
                 } else {
                     Log.d("server success", "else")
                 }
@@ -52,7 +53,6 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
     private fun initListeners() {
         binding.btnAddTodoItem.setOnClickListener {
             val dialog = ToDoDialog(TODO.ADD)
-            dialog.isCancelable = false
             dialog.show(childFragmentManager, ToDoDialog.TAG)
         }
     }

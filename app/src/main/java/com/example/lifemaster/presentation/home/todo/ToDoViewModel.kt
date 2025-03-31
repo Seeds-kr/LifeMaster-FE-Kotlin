@@ -18,8 +18,8 @@ class ToDoViewModel: ViewModel() {
     private val _todoItems: MutableLiveData<ArrayList<TodoItem>> = MutableLiveData()
     val todoItems: LiveData<ArrayList<TodoItem>> get() = _todoItems
 
-    fun updateTodoItems(items: ArrayList<TodoItem>) {
-        _todoItems.value = items
+    fun initTodoItems() {
+        _todoItems.value = dummyData
     }
 
     fun addTodoItems(newItem: TodoItem) {

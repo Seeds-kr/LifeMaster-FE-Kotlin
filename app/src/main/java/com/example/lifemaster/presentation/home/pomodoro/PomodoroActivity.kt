@@ -103,6 +103,7 @@ class PomodoroActivity : AppCompatActivity() {
 
                         val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
                             putExtra("pomodoro", todoItem)
+                            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
                         }
 
                         // 해당 아이템의 할일 체크 상태 변경 알리기
@@ -119,7 +120,8 @@ class PomodoroActivity : AppCompatActivity() {
                     duration = 500
                     start()
                 }
-                totalDeciSecond = 50 * 60 * 10
+//                totalDeciSecond = 50 * 60 * 10
+                totalDeciSecond = 3 * 10  // 테스트용 3초
                 timer = timer(initialDelay = 0, period = 100) { // worker thread
                     if (totalDeciSecond > 0) {
                         totalDeciSecond -= 1
@@ -156,6 +158,7 @@ class PomodoroActivity : AppCompatActivity() {
 
                         val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
                             putExtra("pomodoro", todoItem)
+                            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT // onCreate 가 아닌 onResume 부터 시작
                         }
 
                         // 해당 아이템의 할일 체크 상태 변경 알리기
