@@ -64,6 +64,8 @@ class PomodoroActivity : AppCompatActivity() {
 //                sharedViewModel.clickButton()
 //                totalDeciSecond = 25 * 60 * 10  // 25분 × 60초
                 totalDeciSecond = 5 * 10  // 테스트용 5초
+                totalDeciSecond = 3 * 10  // 테스트용 3초
+                progressbar.max = totalDeciSecond
                 // worker thread
                 timer = timer(
                     initialDelay = 0,
@@ -83,6 +85,7 @@ class PomodoroActivity : AppCompatActivity() {
                                     seconds
                                 )
                             tvMillisecond.text = deciseconds.toString()
+                            progressbar.progress -= 1
                         }
                     } else {
                         runOnUiThread {
@@ -122,6 +125,8 @@ class PomodoroActivity : AppCompatActivity() {
                 }
 //                totalDeciSecond = 50 * 60 * 10
                 totalDeciSecond = 3 * 10  // 테스트용 3초
+                totalDeciSecond = 5 * 10  // 테스트용 5초
+                progressbar.max = totalDeciSecond
                 timer = timer(initialDelay = 0, period = 100) { // worker thread
                     if (totalDeciSecond > 0) {
                         totalDeciSecond -= 1
@@ -136,6 +141,7 @@ class PomodoroActivity : AppCompatActivity() {
                                     seconds
                                 )
                             tvMillisecond.text = deciseconds.toString()
+                            progressbar.progress = -1
                         }
                     } else {
                         runOnUiThread {
