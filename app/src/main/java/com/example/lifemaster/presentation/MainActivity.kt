@@ -56,6 +56,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // 사용자 토큰 받아오기
+        val token = intent.getStringExtra("user_token")
+        Log.d("ttest", token!!)
 
         // 알람 화면 띄우기
         val fragmentType = intent.getStringExtra("fragment type")

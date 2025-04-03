@@ -12,7 +12,12 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityLoginBinding
+import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.authentication.model.LoginInfo
 import com.kakao.sdk.user.UserApiClient
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
 
@@ -31,20 +36,43 @@ class LoginActivity : AppCompatActivity() {
         setupListeners()
     }
 
-    private fun setupListeners() {
-        binding.btnKakaoLogin.setOnClickListener {
+    private fun setupListeners() = with(binding) {
+        btnKakaoLogin.setOnClickListener {
             loginWithKaKao(
-                context = this,
+                context = this@LoginActivity,
                 onSuccess = { token ->
                     Log.d("kakao login token : ", token)
-                    Toast.makeText(this, "로그인에 성공하였습니다!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, "로그인에 성공하였습니다!", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                 },
                 onFailure = { error ->
                     Log.d("kakao login error : ", error.toString())
-                    Toast.makeText(this, "로그인에 실패하였습니다!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, "로그인에 실패하였습니다!", Toast.LENGTH_SHORT).show()
                 }
             )
+        }
+        btnGeneralLogin.setOnClickListener {
+            RetrofitInstance.networkService.enterUserLogin(loginInfo = LoginInfo(email = "seyeongb18@gmail.com", password = "0324")).enqueue(object: Callback<String> {
+                override fun onResponse(
+                    call: Call<String?>,
+                    response: Response<String?>
+                ) {
+                    if(response.isSuccessful) {
+                        val token = response.body()
+                        Toast.makeText(this@LoginActivity, "로그인이 성공했습니다!", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java).apply {
+                            putExtra("user_token", token)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                        startActivity(intent)
+                    }
+                }
+
+                override fun onFailure(call: Call<String?>, t: Throwable) {
+                    Log.d("server error: ", t.message!!)
+                }
+
+            })
         }
     }
 

@@ -1,7 +1,10 @@
 package com.example.lifemaster.network
 
+import com.example.lifemaster.model.PomodoroItem
 import com.example.lifemaster.model.TodoItem
+import com.example.lifemaster.presentation.authentication.model.LoginInfo
 import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
@@ -12,6 +15,13 @@ import retrofit2.http.Query
 
 interface NetworkService {
 
+    // 유저 로그인 API
+    @POST("/user/login")
+    fun enterUserLogin(
+        @Body loginInfo: LoginInfo
+    ): Call<String>
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
     // 모든 To-Do 항목 조회
     @GET("/schedule/todo")
     fun getTodoItems(): Call<List<TodoItem>>
