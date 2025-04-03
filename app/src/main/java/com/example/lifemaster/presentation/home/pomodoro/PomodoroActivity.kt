@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import retrofit2.Callback
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -12,10 +13,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityPomodoroBinding
-import com.example.lifemaster.model.PomodoroTimer
+import com.example.lifemaster.model.PomodoroItem
+import com.example.lifemaster.model.PomodoroTimerType
 import com.example.lifemaster.model.TodoItem
+import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.data.SharedData
+import retrofit2.Call
+import retrofit2.Response
 import java.util.*
 import kotlin.concurrent.timer
 
@@ -25,7 +30,7 @@ class PomodoroActivity : AppCompatActivity() {
 
 //    private val sharedViewModel: PomodoroViewModel by viewModels()
 
-    private var totalDeciSecond = 0
+    private var time = 0
     private var timer: Timer? = null
     private var todoItem: TodoItem? = null
 
@@ -55,37 +60,97 @@ class PomodoroActivity : AppCompatActivity() {
         btnStartPomodoro.setOnClickListener {
             if (tvMinutesAndSeconds.text.toString() == getString(R.string.tv_pomodoro_timer_25)) {
                 rgTimer.visibility = View.INVISIBLE
-                ivTimer25.visibility = View.VISIBLE // 할일로 data class 관련된 변수 값 넣어서 데이터 전송해야함
-                cardviewTodo.setStrokeColor(ContextCompat.getColor(this@PomodoroActivity, R.color.blue_100))
+                ivTimer25.visibility = View.VISIBLE
+                cardviewTodo.strokeColor = ContextCompat.getColor(this@PomodoroActivity, R.color.blue_100)
+                tvTimerTitle.text = "다음 휴식 시간까지"
                 ObjectAnimator.ofFloat(cardviewTodo, "translationY", cardviewTodo.translationY, rgTimer.y-cardviewTodo.y).apply {
                     duration = 500
                     start()
                 }
+
 //                sharedViewModel.clickButton()
-//                totalDeciSecond = 25 * 60 * 10  // 25분 × 60초
-                totalDeciSecond = 5 * 10  // 테스트용 5초
-                totalDeciSecond = 3 * 10  // 테스트용 3초
-                progressbar.max = totalDeciSecond
+                val firstStudyTime = 5 * 10
+                val breakTime = 3 * 10
+                val secondStudyTime = 4 * 10
+                val totalTime = firstStudyTime + breakTime + secondStudyTime  // 테스트용 3초 ( 25 * 60 * 10 )
+                var remainTime = totalTime
+
                 // worker thread
                 timer = timer(
                     initialDelay = 0,
                     period = 100 // period 단위 = millisecond ( 100 millisecond = 0.1 second = 1 decisecond )
                 ) {
-                    if (totalDeciSecond > 0) {
-                        totalDeciSecond -= 1
-                        val minutes = totalDeciSecond.div(10) / 60
-                        val seconds = totalDeciSecond.div(10) % 60
-                        val deciseconds = totalDeciSecond % 10
-                        runOnUiThread {
-                            // worker thread 는 ui 에 접근할 수 없다. → Activity.runOnUiThread(Runnable) 이용
-                            tvMinutesAndSeconds.text =
-                                String.format(
-                                    "%02d:%02d",
-                                    minutes,
-                                    seconds
-                                )
-                            tvMillisecond.text = deciseconds.toString()
-                            progressbar.progress -= 1
+                    if (remainTime > 0) {
+                        if(remainTime == totalTime) {
+                            time = firstStudyTime
+                            val minutes = time.div(10) / 60
+                            val seconds = time.div(10) % 60
+                            val deciseconds = time % 10
+                            runOnUiThread {
+                                // worker thread 는 ui 에 접근할 수 없다. → Activity.runOnUiThread(Runnable) 이용
+                                tvMinutesAndSeconds.text =
+                                    String.format(
+                                        "%02d:%02d",
+                                        minutes,
+                                        seconds
+                                    )
+                                tvMillisecond.text = deciseconds.toString()
+                            }
+                            remainTime -= 1
+                            time -= 1
+                        }
+                        else if(remainTime == totalTime - firstStudyTime) {
+                            // 휴식 시간 시작
+                            time = breakTime
+                            val minutes = time.div(10) / 60
+                            val seconds = time.div(10) % 60
+                            val deciseconds = time % 10
+                            runOnUiThread {
+                                tvTimerTitle.text = "휴식 시간 종료까지"
+                                tvMinutesAndSeconds.text =
+                                    String.format(
+                                        "%02d:%02d",
+                                        minutes,
+                                        seconds
+                                    )
+                                tvMillisecond.text = deciseconds.toString()
+                            }
+                            remainTime -= 1
+                            time -= 1
+                        } else if(remainTime == secondStudyTime) {
+                            // 두번째 공부 시간 시작
+                            time = secondStudyTime
+                            val minutes = time.div(10) / 60
+                            val seconds = time.div(10) % 60
+                            val deciseconds = time % 10
+                            runOnUiThread {
+                                tvTimerTitle.text = "할일 종료까지"
+                                tvMinutesAndSeconds.text =
+                                    String.format(
+                                        "%02d:%02d",
+                                        minutes,
+                                        seconds
+                                    )
+                                tvMillisecond.text = deciseconds.toString()
+                            }
+                            remainTime -= 1
+                            time -= 1
+                        } else {
+                            val minutes = time.div(10) / 60
+                            val seconds = time.div(10) % 60
+                            val deciseconds = time % 10
+                            runOnUiThread {
+                                // worker thread 는 ui 에 접근할 수 없다. → Activity.runOnUiThread(Runnable) 이용
+                                tvMinutesAndSeconds.text =
+                                    String.format(
+                                        "%02d:%02d",
+                                        minutes,
+                                        seconds
+                                    )
+                                tvMillisecond.text = deciseconds.toString()
+                            }
+                            remainTime -= 1
+                            time -= 1
                         }
                     } else {
                         runOnUiThread {
@@ -98,10 +163,10 @@ class PomodoroActivity : AppCompatActivity() {
                         }
                         timer?.cancel()
                         timer = null
-                        // PomodoroActivity 가 TodoItem 을 가지고 있어야 함.
+
                         todoItem?.let {
                             it.isCompleted = true
-                            it.timer = PomodoroTimer.TIMER_25
+                            it.timer = PomodoroTimerType.TIMER_25
                         }
 
                         val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
@@ -109,7 +174,6 @@ class PomodoroActivity : AppCompatActivity() {
                             flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
                         }
 
-                        // 해당 아이템의 할일 체크 상태 변경 알리기
                         startActivity(intent)
                     }
                 }
