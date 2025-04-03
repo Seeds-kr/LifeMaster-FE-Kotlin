@@ -56,12 +56,10 @@
             android:textColor="@drawable/selector_pomodoro_timer_text" />
     </RadioGroup>
 
-    <me.zhanghai.android.materialprogressbar.MaterialProgressBar
-        android:id="@+id/progressbar"
-        android:minWidth="160dp"
-        android:minHeight="160dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <com.example.lifemaster.presentation.home.pomodoro.CircularTimerView
+        android:id="@+id/circularTimerView"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
         android:layout_marginBottom="20dp"
         android:layout_gravity="center_horizontal"
         style="@style/Widget.MaterialProgressBar.ProgressBar"

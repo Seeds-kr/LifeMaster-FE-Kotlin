@@ -67,6 +67,7 @@ class PomodoroActivity : AppCompatActivity() {
                     duration = 500
                     start()
                 }
+                circularTimerView.startTimer(5000)
 
 //                sharedViewModel.clickButton()
                 val firstStudyTime = 5 * 10
