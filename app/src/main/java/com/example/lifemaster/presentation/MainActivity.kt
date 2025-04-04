@@ -22,8 +22,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityMainBinding
-import com.example.lifemaster.model.TodoItem
 import com.example.lifemaster.presentation.home.todo.ToDoViewModel
+import com.example.lifemaster.presentation.home.todo.TodoItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val token = intent.getStringExtra("user_token")
-        val sharedPreferences = getSharedPreferences("USER_TABLE", Context.MODE_PRIVATE)
+        val sharedPreferences = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putString("token", token)
         editor.commit()

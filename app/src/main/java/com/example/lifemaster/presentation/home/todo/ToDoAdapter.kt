@@ -13,8 +13,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemTodoBinding
-import com.example.lifemaster.model.PomodoroTimer
-import com.example.lifemaster.model.TodoItem
+import com.example.lifemaster.model.PomodoroTimerType
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.pomodoro.PomodoroActivity
 import retrofit2.Call
@@ -24,7 +23,8 @@ import retrofit2.Response
 class ToDoAdapter(
     private val context: Context,
     private val toDoViewModel: ToDoViewModel,
-    private val fragmentManager: FragmentManager
+    private val fragmentManager: FragmentManager,
+    private val userToken: String?
 ) :
     ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
@@ -44,7 +44,7 @@ class ToDoAdapter(
                 toggleTodoStatus(item)
             }
             ivEdit.setOnClickListener {
-                val dialog = ToDoDialog(TODO.EDIT, item)
+                val dialog = ToDoDialog(TODO.EDIT, item, userToken)
                 dialog.isCancelable = false
                 dialog.show(fragmentManager, ToDoDialog.TAG)
             }
@@ -57,7 +57,7 @@ class ToDoAdapter(
         }
 
         private fun toggleTodoStatus(item: TodoItem) {
-            RetrofitInstance.networkService.toggleTodoItem(item.id)
+            RetrofitInstance.networkService.toggleTodoItem(token = "Bearer $userToken", item.id)
                 .enqueue(object : Callback<TodoItem> {
                     override fun onResponse(
                         call: Call<TodoItem>,
@@ -92,7 +92,7 @@ class ToDoAdapter(
         private fun bindViews(item: TodoItem) = with(binding) {
             tvTitle.text = item.title
             chIsCompleted.isChecked = currentList[adapterPosition].isCompleted
-            if(item.timer == PomodoroTimer.TIMER_25) ivTimer25.visibility = View.VISIBLE else if(item.timer == PomodoroTimer.TIMER_50) ivTimer50.visibility = View.VISIBLE
+            if(item.timer == PomodoroTimerType.TIMER_25) ivTimer25.visibility = View.VISIBLE else if(item.timer == PomodoroTimerType.TIMER_50) ivTimer50.visibility = View.VISIBLE
         }
     }
 
@@ -115,7 +115,7 @@ class ToDoAdapter(
             .setTitle("할일 목록 삭제")
             .setMessage("할일 목록을 삭제하시겠습니까?")
             .setPositiveButton("예") { _, _ ->
-                RetrofitInstance.networkService.deleteTodoItem(deleteItem.id)
+                RetrofitInstance.networkService.deleteTodoItem(token = "Bearer $userToken", deleteItem.id)
                     .enqueue(object : Callback<Any> {
                         override fun onResponse(call: Call<Any>, response: Response<Any>) {
                             if (response.isSuccessful) {

@@ -8,7 +8,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogTodoBinding
-import com.example.lifemaster.model.TodoItem
 import com.example.lifemaster.network.RetrofitInstance
 import retrofit2.Call
 import java.time.LocalDate
@@ -18,7 +17,8 @@ import java.time.format.DateTimeFormatter
 
 class ToDoDialog(
     private val caller: TODO,
-    private val todoItem: TodoItem? = null
+    private val todoItem: TodoItem? = null,
+    private val userToken: String? = null
 ) : DialogFragment(R.layout.dialog_todo) {
 
     lateinit var binding: DialogTodoBinding
@@ -58,8 +58,12 @@ class ToDoDialog(
                     ).show()
                     else {
                         RetrofitInstance.networkService.registerTodoItem(
-                            date = getTodayDate(),
-                            title = title
+                            token = "Bearer $userToken",
+                            todoItem = TodoItem(
+                                date = getTodayDate(),
+                                title = title,
+                                isCompleted = false
+                            ),
                         ).enqueue(object : Callback<TodoItem> {
                             override fun onResponse(call: Call<TodoItem>, response: Response<TodoItem>) {
                                 if (response.isSuccessful) {
@@ -89,6 +93,7 @@ class ToDoDialog(
                     ).show()
                     else {
                         RetrofitInstance.networkService.updateTodoItem(
+                            token = "Bearer $userToken",
                             id = todoItem?.id ?: 0,
                             title = title,
                             date = getTodayDate()
@@ -105,7 +110,7 @@ class ToDoDialog(
                                 }
                             }
                             override fun onFailure(call: Call<TodoItem>, t: Throwable) {
-                                TODO("Not yet implemented")
+                                Log.d("server", t.message!!)
                             }
                         })
                     }
