@@ -56,8 +56,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 사용자 토큰 받아오기
         val token = intent.getStringExtra("user_token")
+        val sharedPreferences = getSharedPreferences("USER_TABLE", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("token", token)
+        editor.commit()
+
         Log.d("ttest", token!!)
 
         // 알람 화면 띄우기
