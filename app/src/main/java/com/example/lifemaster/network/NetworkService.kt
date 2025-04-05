@@ -65,4 +65,19 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Path("id") id: Int
     ):Call<TodoItem>
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // 새로운 포모도로 타이머 생성
+    @POST("/time/pomodoro/create")
+    fun registerPomodoroTimer(
+        @Header("Authorization") token: String,
+        @Body pomodoroItem: PomodoroItem
+    ):Call<Any>
+
+    // 모든 포모도로 타이머 조회
+    @GET("/time/pomodoro")
+    fun getPomodoroItems(
+        @Header("Authorization") token: String
+    ):Call<List<PomodoroItem>>
+
 }
