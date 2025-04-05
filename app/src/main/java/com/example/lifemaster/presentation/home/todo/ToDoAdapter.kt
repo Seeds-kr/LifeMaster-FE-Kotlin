@@ -1,11 +1,14 @@
 package com.example.lifemaster.presentation.home.todo
 
+import com.example.lifemaster.R
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentManager
@@ -13,12 +16,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemTodoBinding
-import com.example.lifemaster.model.PomodoroTimerType
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.pomodoro.PomodoroActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import com.example.lifemaster.dp
 
 class ToDoAdapter(
     private val context: Context,
@@ -49,6 +52,7 @@ class ToDoAdapter(
                 dialog.show(fragmentManager, ToDoDialog.TAG)
             }
             ivGoToPomodoro.setOnClickListener {
+                Log.d("ttest", ""+item)
                 val intent = Intent(context, PomodoroActivity::class.java).apply {
                     putExtra("item", item)
                 }
@@ -92,7 +96,44 @@ class ToDoAdapter(
         private fun bindViews(item: TodoItem) = with(binding) {
             tvTitle.text = item.title
             chIsCompleted.isChecked = currentList[adapterPosition].isCompleted
-            if(item.timer == PomodoroTimerType.TIMER_25) ivTimer25.visibility = View.VISIBLE else if(item.timer == PomodoroTimerType.TIMER_50) ivTimer50.visibility = View.VISIBLE
+            // 타이머 뷰 업데이트
+            Log.d("ttest final", "(${item.title}: ${item.timer25Number}, ${item.timer50Number})")
+            val timer25 = item.timer25Number
+            val timer50 = item.timer50Number
+            // 25분 타이머 동적 추가
+            llTimerContainer25.removeAllViews()
+            if(item.timer25Number > 0) {
+                llTimerContainer25.visibility = View.VISIBLE
+                repeat(item.timer25Number) {
+                    val timer25ImageView = ImageView(root.context).apply {
+                        setImageResource(R.drawable.ic_timer_25)
+                        val size = 32
+                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
+                            marginEnd = 4.dp
+                        }
+                    }
+                    llTimerContainer25.addView(timer25ImageView)
+                }
+            } else {
+                llTimerContainer25.visibility = View.GONE
+            }
+            // 50분 타이머 동적 추가
+            llTimerContainer50.removeAllViews()
+            if(item.timer50Number > 0) {
+                llTimerContainer50.visibility = View.VISIBLE
+                repeat(item.timer50Number) {
+                    val timer50ImageView = ImageView(root.context).apply {
+                        setImageResource(R.drawable.ic_timer_50)
+                        val size = 32
+                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
+                            marginEnd = 4.dp
+                        }
+                    }
+                    llTimerContainer50.addView(timer50ImageView)
+                }
+            } else {
+                llTimerContainer50.visibility = View.GONE
+            }
         }
     }
 

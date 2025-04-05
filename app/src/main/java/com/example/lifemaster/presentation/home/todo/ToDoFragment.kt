@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
+import com.example.lifemaster.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
 import retrofit2.Call
 import retrofit2.Callback
@@ -32,7 +33,10 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
         val sharedPreference =
             requireContext().getSharedPreferences("USER_TABLE", Context.MODE_PRIVATE)
         userToken = sharedPreference.getString("token", "null")
-        recyclerview.adapter = ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager, userToken)
+
+        recyclerview.adapter =
+            ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager, userToken)
+
         RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
             .enqueue(object : Callback<List<TodoItem>> {
                 override fun onResponse(
@@ -41,6 +45,45 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
                 ) {
                     if (response.isSuccessful) {
                         val todoItems = response.body() as ArrayList<TodoItem>
+                        RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
+                            .enqueue(object : Callback<List<PomodoroItem>> {
+                                override fun onResponse(
+                                    call: Call<List<PomodoroItem>?>,
+                                    response: Response<List<PomodoroItem>?>
+                                ) {
+                                    if (response.isSuccessful) {
+                                        val response = response.body()
+                                        val filterData1 = response?.groupBy { it.taskName }
+                                        val filterData2 = filterData1?.mapValues { (_, list) ->
+                                            val pomodoro25 =
+                                                list.count { it.focusTime == 20 } // 25분
+                                            val pomodoro50 =
+                                                list.count { it.focusTime == 40 } // 50분
+                                            Pair(pomodoro25, pomodoro50)
+                                        }
+                                        Log.d("ttest1", ""+todoItems)
+                                        Log.d("ttest2", "" + filterData2)
+                                        todoItems.forEach { todoItem ->
+                                            val pair = filterData2?.get(todoItem.title)
+                                            if(pair != null) {
+                                                todoItem.timer25Number = pair.first
+                                                todoItem.timer50Number = pair.second
+                                            }
+                                        }
+                                        Log.d("ttest3", ""+todoItems)
+                                        toDoViewModel.getTodoItems(todoItems)
+                                    }
+
+                                }
+
+                                override fun onFailure(
+                                    call: Call<List<PomodoroItem>?>,
+                                    t: Throwable
+                                ) {
+                                    TODO("Not yet implemented")
+                                }
+
+                            })
                         toDoViewModel.getTodoItems(todoItems)
                     } else {
                         Log.d("server success", "else")
