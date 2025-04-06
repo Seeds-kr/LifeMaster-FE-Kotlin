@@ -81,7 +81,7 @@ class PomodoroActivity : AppCompatActivity() {
                             if (response.isSuccessful) {
                                 Toast.makeText(
                                     this@PomodoroActivity,
-                                    "서버 통신 성공!",
+                                    "포모도로를 시작합니다!",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } else {
@@ -217,7 +217,10 @@ class PomodoroActivity : AppCompatActivity() {
                         timer?.cancel()
                         timer = null
 
-                        val intent = Intent(this@PomodoroActivity, MainActivity::class.java)
+                        val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
+                            putExtra("todoItemTitle", todoItem?.title)
+                            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                        }
                         startActivity(intent)
                     }
                 }
@@ -378,7 +381,11 @@ class PomodoroActivity : AppCompatActivity() {
                         timer?.cancel()
                         timer = null
 
-                        val intent = Intent(this@PomodoroActivity, MainActivity::class.java)
+                        val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
+                            putExtra("todoItemTitle", todoItem?.title)
+                            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                        }
+
                         startActivity(intent)
                     }
                 }

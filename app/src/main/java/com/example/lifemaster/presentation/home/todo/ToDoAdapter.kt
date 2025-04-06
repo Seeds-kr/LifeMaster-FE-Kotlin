@@ -38,6 +38,45 @@ class ToDoAdapter(
             bindEvents(item)
         }
 
+        private fun bindViews(item: TodoItem) = with(binding) {
+            tvTitle.text = item.title
+            chIsCompleted.isChecked = currentList[adapterPosition].isCompleted
+            llTimerContainer25.removeAllViews()
+            if(item.timer25Number > 0) {
+                llTimerContainer25.visibility = View.VISIBLE
+                repeat(item.timer25Number) {
+                    val timer25ImageView = ImageView(root.context).apply {
+                        setImageResource(R.drawable.ic_timer_25)
+                        val size = 18
+                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
+                            marginEnd = 4.dp
+                        }
+                    }
+                    llTimerContainer25.addView(timer25ImageView)
+                }
+            } else {
+                llTimerContainer25.visibility = View.GONE
+            }
+
+            // 50분 타이머 동적 추가
+            llTimerContainer50.removeAllViews()
+            if(item.timer50Number > 0) {
+                llTimerContainer50.visibility = View.VISIBLE
+                repeat(item.timer50Number) {
+                    val timer50ImageView = ImageView(root.context).apply {
+                        setImageResource(R.drawable.ic_timer_50)
+                        val size = 18
+                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
+                            marginEnd = 4.dp
+                        }
+                    }
+                    llTimerContainer50.addView(timer50ImageView)
+                }
+            } else {
+                llTimerContainer50.visibility = View.GONE
+            }
+        }
+
         private fun bindEvents(item: TodoItem) = with(binding) {
             itemView.setOnLongClickListener {
                 showDialog(item)
@@ -52,7 +91,6 @@ class ToDoAdapter(
                 dialog.show(fragmentManager, ToDoDialog.TAG)
             }
             ivGoToPomodoro.setOnClickListener {
-                Log.d("ttest", ""+item)
                 val intent = Intent(context, PomodoroActivity::class.java).apply {
                     putExtra("item", item)
                 }
@@ -91,49 +129,6 @@ class ToDoAdapter(
                         TODO("Not yet implemented")
                     }
                 })
-        }
-
-        private fun bindViews(item: TodoItem) = with(binding) {
-            tvTitle.text = item.title
-            chIsCompleted.isChecked = currentList[adapterPosition].isCompleted
-            // 타이머 뷰 업데이트
-            Log.d("ttest final", "(${item.title}: ${item.timer25Number}, ${item.timer50Number})")
-            val timer25 = item.timer25Number
-            val timer50 = item.timer50Number
-            // 25분 타이머 동적 추가
-            llTimerContainer25.removeAllViews()
-            if(item.timer25Number > 0) {
-                llTimerContainer25.visibility = View.VISIBLE
-                repeat(item.timer25Number) {
-                    val timer25ImageView = ImageView(root.context).apply {
-                        setImageResource(R.drawable.ic_timer_25)
-                        val size = 32
-                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
-                            marginEnd = 4.dp
-                        }
-                    }
-                    llTimerContainer25.addView(timer25ImageView)
-                }
-            } else {
-                llTimerContainer25.visibility = View.GONE
-            }
-            // 50분 타이머 동적 추가
-            llTimerContainer50.removeAllViews()
-            if(item.timer50Number > 0) {
-                llTimerContainer50.visibility = View.VISIBLE
-                repeat(item.timer50Number) {
-                    val timer50ImageView = ImageView(root.context).apply {
-                        setImageResource(R.drawable.ic_timer_50)
-                        val size = 32
-                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
-                            marginEnd = 4.dp
-                        }
-                    }
-                    llTimerContainer50.addView(timer50ImageView)
-                }
-            } else {
-                llTimerContainer50.visibility = View.GONE
-            }
         }
     }
 
@@ -179,7 +174,9 @@ class ToDoAdapter(
     companion object {
         val differ = object : DiffUtil.ItemCallback<TodoItem>() {
             override fun areContentsTheSame(oldItem: TodoItem, newItem: TodoItem): Boolean {
-                return oldItem == newItem
+                val result = oldItem == newItem
+                Log.d("DiffUtil", "Comparing: $oldItem vs $newItem => $result")
+                return result
             }
 
             override fun areItemsTheSame(oldItem: TodoItem, newItem: TodoItem): Boolean {

@@ -22,12 +22,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityMainBinding
+import com.example.lifemaster.model.PomodoroItem
+import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.todo.ToDoViewModel
 import com.example.lifemaster.presentation.home.todo.TodoItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockViewModel
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
@@ -37,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var totalApps: MutableList<ApplicationInfo>
     private lateinit var requiredApps: List<ApplicationInfo>
     private var foregroundStartTime: Long = 0L
+    private var userToken: String? = ""
 
     // ViewModel 변수
     private val detoxCommonViewModel: DetoxCommonViewModel by viewModels()
@@ -56,13 +62,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val token = intent.getStringExtra("user_token")
+        userToken = intent.getStringExtra("user_token")
         val sharedPreferences = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
-        editor.putString("token", token)
+        editor.putString("token", userToken)
         editor.commit()
 
-        Log.d("ttest", token!!)
+        Log.d("ttest", userToken!!)
 
         // 알람 화면 띄우기
         val fragmentType = intent.getStringExtra("fragment type")
@@ -106,6 +112,38 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         // 포모도로 → 할일 업데이트
         val updateItem = intent.getParcelableExtra("pomodoro", TodoItem::class.java)
+        val todoItemTitle = intent.getStringExtra("todoItemTitle")
+        if(todoItemTitle != null) {
+            RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
+                .enqueue(object : Callback<List<PomodoroItem>> {
+                    override fun onResponse(
+                        call: Call<List<PomodoroItem>?>,
+                        response: Response<List<PomodoroItem>?>
+                    ) {
+                        if (response.isSuccessful) {
+                            val response = response.body()
+                            val filterData = response?.filter { it.taskName == todoItemTitle }
+                            val todoItems = toDoViewModel.todoItems.value
+                            var todoItem = todoItems?.find { it.title == todoItemTitle }
+                            Log.d("ttest",""+todoItem)
+                            val pomodoro25Num = filterData?.count { it.focusTime == 20 } ?: 0
+                            val pomodoro50Num = filterData?.count { it.focusTime == 40 } ?: 0
+                            todoItem?.timer25Number = pomodoro25Num
+                            todoItem?.timer50Number = pomodoro50Num
+                            Log.d("ttest",""+todoItem)
+                            todoItem?.let { toDoViewModel.changeTodoItems(it) }
+                        }
+                    }
+
+                    override fun onFailure(
+                        call: Call<List<PomodoroItem>?>,
+                        t: Throwable
+                    ) {
+                        TODO("Not yet implemented")
+                    }
+
+                })
+        }
         updateItem?.let { toDoViewModel.changeTodoItems(it) }
     }
 

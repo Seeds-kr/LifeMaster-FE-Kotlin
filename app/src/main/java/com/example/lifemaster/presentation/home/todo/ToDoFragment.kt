@@ -3,10 +3,11 @@ package com.example.lifemaster.presentation.home.todo
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
 import com.example.lifemaster.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
@@ -15,14 +16,80 @@ import retrofit2.Callback
 import retrofit2.Response
 
 
-class ToDoFragment : Fragment(R.layout.fragment_home) {
+class ToDoFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding
+    lateinit var todoItems: ArrayList<TodoItem>
     private val toDoViewModel: ToDoViewModel by activityViewModels()
     private var userToken: String? = null
 
+    companion object {
+        var isPomodoroRequestRequired = false
+    }
+
+    private val TAG = "MainFragment"
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        Log.d(TAG, "onAttach")
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate")
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        Log.d(TAG, "onCreateView")
+        binding = FragmentHomeBinding.inflate(inflater)
+        return binding.root
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (isPomodoroRequestRequired) {
+            isPomodoroRequestRequired = false
+            Log.d(TAG, "onResume")
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "onStop")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        Log.d(TAG, "onDestroyView")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy")
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        Log.d(TAG, "onDetach")
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.d(TAG, "onViewCreated")
         binding = FragmentHomeBinding.bind(view)
         initViews()
         initListeners()
@@ -30,6 +97,7 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun initViews() = with(binding) {
+
         val sharedPreference =
             requireContext().getSharedPreferences("USER_TABLE", Context.MODE_PRIVATE)
         userToken = sharedPreference.getString("token", "null")
@@ -44,7 +112,7 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
                     response: Response<List<TodoItem>>
                 ) {
                     if (response.isSuccessful) {
-                        val todoItems = response.body() as ArrayList<TodoItem>
+                        todoItems = response.body() as ArrayList<TodoItem>
                         RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
                             .enqueue(object : Callback<List<PomodoroItem>> {
                                 override fun onResponse(
@@ -61,19 +129,15 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
                                                 list.count { it.focusTime == 40 } // 50분
                                             Pair(pomodoro25, pomodoro50)
                                         }
-                                        Log.d("ttest1", ""+todoItems)
-                                        Log.d("ttest2", "" + filterData2)
                                         todoItems.forEach { todoItem ->
                                             val pair = filterData2?.get(todoItem.title)
-                                            if(pair != null) {
+                                            if (pair != null) {
                                                 todoItem.timer25Number = pair.first
                                                 todoItem.timer50Number = pair.second
                                             }
                                         }
-                                        Log.d("ttest3", ""+todoItems)
                                         toDoViewModel.getTodoItems(todoItems)
                                     }
-
                                 }
 
                                 override fun onFailure(
@@ -84,7 +148,6 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
                                 }
 
                             })
-                        toDoViewModel.getTodoItems(todoItems)
                     } else {
                         Log.d("server success", "else")
                     }
@@ -105,7 +168,9 @@ class ToDoFragment : Fragment(R.layout.fragment_home) {
 
     private fun initObservers() {
         toDoViewModel.todoItems.observe(viewLifecycleOwner) { updateItems ->
-            updateItems?.let { (binding.recyclerview.adapter as ToDoAdapter).submitList(it.toList()) }
+            Log.d("ttest", "" + updateItems)
+            val newList = updateItems.map { it.copy() }
+            (binding.recyclerview.adapter as ToDoAdapter).submitList(newList)
         }
     }
 }
