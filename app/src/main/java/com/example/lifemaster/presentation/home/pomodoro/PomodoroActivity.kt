@@ -4,10 +4,13 @@ import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.lifemaster.R
@@ -402,9 +405,27 @@ class PomodoroActivity : AppCompatActivity() {
 //                sharedViewModel.clickButton()
             }
         }
+        onBackPressedDispatcher.addCallback(this@PomodoroActivity, object: OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                showExitDialog()
+            }
+        })
     }
 
-    fun initObservers() {
+    private fun showExitDialog() {
+        AlertDialog.Builder(this@PomodoroActivity).apply {
+            setTitle("포모도로 타이머 종료하시겠습니까?")
+            setMessage("뒤로가면 타이머 저장이 되지 않고, 해당 시간 기록도 삭제됩니다. 😢")
+            setPositiveButton("예") { _, _ ->
+                finish()
+            }
+            setNegativeButton("아니요") { dialog, _ -> dialog.dismiss() }
+            setCancelable(false)
+            create().show()
+        }
+    }
+
+    private fun initObservers() {
 //        sharedViewModel.selectedPosition.observe(viewLifecycleOwner) { selectedPosition ->
 //            binding.tvSelectTodoItem.text = SharedData.todoItems[selectedPosition]
 //        }
