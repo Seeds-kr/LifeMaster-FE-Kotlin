@@ -79,16 +79,13 @@ class ToDoAdapter(
 
         private fun bindEvents(item: TodoItem) = with(binding) {
             itemView.setOnLongClickListener {
-                showDialog(item)
+                val dialog = ToDoLongClickDialog(item, toDoViewModel, userToken)
+                dialog.isCancelable = false
+                dialog.show(fragmentManager, ToDoLongClickDialog.TAG) // childFragmentManager
                 true
             }
             chIsCompleted.setOnCheckedChangeListener { _, _ ->
                 toggleTodoStatus(item)
-            }
-            ivEdit.setOnClickListener {
-                val dialog = ToDoDialog(TODO.EDIT, item, userToken)
-                dialog.isCancelable = false
-                dialog.show(fragmentManager, ToDoDialog.TAG)
             }
             ivGoToPomodoro.setOnClickListener {
                 val intent = Intent(context, PomodoroActivity::class.java).apply {
@@ -144,31 +141,6 @@ class ToDoAdapter(
 
     override fun onBindViewHolder(holder: ToDoViewHolder, position: Int) {
         holder.bind(currentList[position])
-    }
-
-    private fun showDialog(deleteItem: TodoItem) {
-        AlertDialog.Builder(context)
-            .setTitle("할일 목록 삭제")
-            .setMessage("할일 목록을 삭제하시겠습니까?")
-            .setPositiveButton("예") { _, _ ->
-                RetrofitInstance.networkService.deleteTodoItem(token = "Bearer $userToken", deleteItem.id)
-                    .enqueue(object : Callback<Any> {
-                        override fun onResponse(call: Call<Any>, response: Response<Any>) {
-                            if (response.isSuccessful) {
-                                Toast.makeText(context, "할일이 삭제되었습니다!", Toast.LENGTH_SHORT).show()
-                                toDoViewModel.deleteTodoItems(deleteItem)
-                            } else {
-                                Log.d("server success", "else")
-                            }
-                        }
-
-                        override fun onFailure(call: Call<Any>, t: Throwable) {
-                            Log.d("server error", "" + t.message)
-                        }
-                    })
-            }
-            .setNegativeButton("아니요", null)
-            .show()
     }
 
     companion object {
