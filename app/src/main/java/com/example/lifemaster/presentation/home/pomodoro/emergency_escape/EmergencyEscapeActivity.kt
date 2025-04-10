@@ -74,53 +74,39 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         sentenceList: List<TextView>,
         answerList: List<EditText>
     ) {
-        pomodoroViewModel.buttonCount.observe(this) { buttonCount ->
+        emergencyEscapeViewModel.buttonCount.observe(this) { buttonCount ->
             when (buttonCount) {
-                1 -> {
-                    // 2페이지
-                    sentenceList.forEachIndexed { idx, sentence ->
-                        sentence.text =
-                            SharedData.pomodoroEmergecyEscapeList[idx + 3] // [?] 좋지 않은 코드
+                1, 2, 3, 4 -> {
+                    // 2페이지, 3페이지, 4페이지, 5페이지
+                    sentenceList.forEach { sentence ->
+                        RetrofitInstance.networkService.getEscapeSentence(token = "Bearer $userToken")
+                            .enqueue(object : Callback<String> {
+                                override fun onResponse(
+                                    call: Call<String?>,
+                                    response: Response<String?>
+                                ) {
+                                    if (response.isSuccessful) {
+                                        sentence.text =
+                                            response.body()?.substringAfter("Type this phrase to escape:")?.trim()
+                                    }
+                                }
+
+                                override fun onFailure(call: Call<String?>, t: Throwable) {
+                                    TODO("Not yet implemented")
+                                }
+                            })
                     }
                     answerList.forEach {
                         it.text.clear()
                     }
                 }
 
-                2 -> {
-                    // 3페이지
-                    sentenceList.forEachIndexed { idx, sentence ->
-                        sentence.text = SharedData.pomodoroEmergecyEscapeList[idx + 6]
-                    }
-                    answerList.forEach {
-                        it.text.clear()
-                    }
-                }
-
-                3 -> {
-                    // 4페이지
-                    sentenceList.forEachIndexed { idx, sentence ->
-                        sentence.text = SharedData.pomodoroEmergecyEscapeList[idx + 9]
-                    }
-                    answerList.forEach {
-                        it.text.clear()
-                    }
-                }
-
-                4 -> {
-                    // 5페이지
-                    sentenceList.forEachIndexed { idx, sentence ->
-                        sentence.text = SharedData.pomodoroEmergecyEscapeList[idx + 12]
-                    }
-                    answerList.forEach {
-                        it.text.clear()
-                    }
-                }
-
-                else -> {
+                5 -> {
+                    // 마지막 페이지에서 클릭한 경우
                     // 뽀모도로 화면으로 돌아오기
-                    SharedData.pomodoroStatus = PomodoroStatus.ESCAPE_SUCCESS
-                    finish()
+//                    SharedData.pomodoroStatus = PomodoroStatus.ESCAPE_SUCCESS
+//                    finish()
+                    Toast.makeText(this@EmergencyEscapeActivity, "마지막 페이지입니다!", Toast.LENGTH_SHORT).show()
                 }
             }
         }
