@@ -80,4 +80,10 @@ interface NetworkService {
         @Header("Authorization") token: String
     ):Call<List<PomodoroItem>>
 
+    // 비상 탈출 문장 생성
+    @GET("/time/pomodoro/escape/generate")
+    fun getEscapeSentence(
+        @Header("Authorization") token: String
+    ):Call<String>
+
 }

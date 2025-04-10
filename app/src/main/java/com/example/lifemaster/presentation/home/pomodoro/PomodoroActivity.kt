@@ -4,11 +4,11 @@ import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +19,7 @@ import com.example.lifemaster.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.data.SharedData
+import com.example.lifemaster.presentation.home.pomodoro.emergency_escape.EmergencyEscapeActivity
 import com.example.lifemaster.presentation.home.todo.TodoItem
 import retrofit2.Call
 import retrofit2.Callback
@@ -31,7 +32,7 @@ class PomodoroActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPomodoroBinding
     private var userToken: String? = null
 
-//    private val sharedViewModel: PomodoroViewModel by viewModels()
+    private val pomodoroViewModel: PomodoroViewModel by viewModels()
 
     private var time = 0
     private var timer: Timer? = null
@@ -80,7 +81,8 @@ class PomodoroActivity : AppCompatActivity() {
                     start()
                 }
 
-//                sharedViewModel.clickButton()
+                pomodoroViewModel.clickButton() // _buttonCount = 0 -> 1
+
                 val firstStudyTime = 10 * 60 * 10
 //                val firstStudyTime = 2 * 10 test
                 val breakTime = 5 * 60 * 10
@@ -110,7 +112,7 @@ class PomodoroActivity : AppCompatActivity() {
                                         minutes,
                                         seconds
                                     )
-                                tvMillisecond.text = deciseconds.toString()
+                                tvDecisecond.text = deciseconds.toString()
                                 circularTimerView.startTimer((firstStudyTime * 100).toLong())
                             }
                             remainTime -= 1
@@ -129,7 +131,7 @@ class PomodoroActivity : AppCompatActivity() {
                                         minutes,
                                         seconds
                                     )
-                                tvMillisecond.text = deciseconds.toString()
+                                tvDecisecond.text = deciseconds.toString()
                                 circularTimerView.startTimer((breakTime * 100).toLong()) // decisecond → millisecond
                             }
                             remainTime -= 1
@@ -148,7 +150,7 @@ class PomodoroActivity : AppCompatActivity() {
                                         minutes,
                                         seconds
                                     )
-                                tvMillisecond.text = deciseconds.toString()
+                                tvDecisecond.text = deciseconds.toString()
                                 circularTimerView.startTimer((secondStudyTime * 100).toLong())
                             }
                             remainTime -= 1
@@ -165,7 +167,7 @@ class PomodoroActivity : AppCompatActivity() {
                                         minutes,
                                         seconds
                                     )
-                                tvMillisecond.text = deciseconds.toString()
+                                tvDecisecond.text = deciseconds.toString()
                             }
                             remainTime -= 1
                             time -= 1
@@ -252,11 +254,11 @@ class PomodoroActivity : AppCompatActivity() {
                 }
 
                 val firstStudyTime = 20 * 60 * 10
-//                val firstStudyTime = 2 * 10 test
+//                val firstStudyTime = 1 * 10
                 val breakTime = 10 * 60 * 10
-//                val breakTime = 3 * 10 test
+//                val breakTime = 1 * 10
                 val secondStudyTime = 20 * 60 * 10
-//                val secondStudyTime = 2 * 10 test
+//                val secondStudyTime = 1 * 10
                 val totalTime = firstStudyTime + breakTime + secondStudyTime
                 var remainTime = totalTime
 
@@ -275,7 +277,7 @@ class PomodoroActivity : AppCompatActivity() {
                                         minutes,
                                         seconds
                                     )
-                                tvMillisecond.text = deciseconds.toString()
+                                tvDecisecond.text = deciseconds.toString()
                                 circularTimerView.startTimer((firstStudyTime * 100).toLong())
                             }
                             remainTime -= 1
@@ -294,7 +296,7 @@ class PomodoroActivity : AppCompatActivity() {
                                         minutes,
                                         seconds
                                     )
-                                tvMillisecond.text = deciseconds.toString()
+                                tvDecisecond.text = deciseconds.toString()
                                 circularTimerView.startTimer((breakTime * 100).toLong()) // decisecond → millisecond
                             }
                             remainTime -= 1
@@ -313,7 +315,7 @@ class PomodoroActivity : AppCompatActivity() {
                                         minutes,
                                         seconds
                                     )
-                                tvMillisecond.text = deciseconds.toString()
+                                tvDecisecond.text = deciseconds.toString()
                                 circularTimerView.startTimer((secondStudyTime * 100).toLong())
                             }
                             remainTime -= 1
@@ -330,7 +332,7 @@ class PomodoroActivity : AppCompatActivity() {
                                         minutes,
                                         seconds
                                     )
-                                tvMillisecond.text = deciseconds.toString()
+                                tvDecisecond.text = deciseconds.toString()
                             }
                             remainTime -= 1
                             time -= 1
@@ -402,7 +404,7 @@ class PomodoroActivity : AppCompatActivity() {
             } else if (tvMinutesAndSeconds.text == getString(R.string.tv_pomodoro_timer_not_set)) {
                 Toast.makeText(this@PomodoroActivity, "시간을 설정해주세요!", Toast.LENGTH_SHORT).show()
             } else {
-//                sharedViewModel.clickButton()
+                pomodoroViewModel.clickButton()
             }
         }
         onBackPressedDispatcher.addCallback(this@PomodoroActivity, object: OnBackPressedCallback(true) {
@@ -426,24 +428,26 @@ class PomodoroActivity : AppCompatActivity() {
     }
 
     private fun initObservers() {
-//        sharedViewModel.selectedPosition.observe(viewLifecycleOwner) { selectedPosition ->
+//        pomodoroViewModel.selectedPosition.observe(viewLifecycleOwner) { selectedPosition ->
 //            binding.tvSelectTodoItem.text = SharedData.todoItems[selectedPosition]
 //        }
-//        sharedViewModel.buttonCount.observe(viewLifecycleOwner) { btnCount ->
-//            when (btnCount) {
-//                0 -> {
-//                    binding.btnStartPomodoro.text = "시작하기"
-//                }
-//                1 -> {
-//                    binding.btnStartPomodoro.text = "비상 탈출"
-//                }
-//                else -> {
-//                    val intent = Intent(requireContext(), EmergencyEscapeActivity::class.java)
-//                    intent.putExtra("remain_timer", binding.tvPomodoroTimer.text.toString())
-//                    startActivity(intent)
-//                }
-//            }
-//        }
+        pomodoroViewModel.buttonCount.observe(this@PomodoroActivity) { btnCount ->
+            when (btnCount) {
+                0 -> {
+                    binding.btnStartPomodoro.text = "시작하기" // 이 코드가 좀 아쉬운데
+                }
+                1 -> {
+                    binding.btnStartPomodoro.text = "비상 탈출"
+                }
+                else -> {
+                    Toast.makeText(this@PomodoroActivity, "비상탈출을 시도합니다!", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, EmergencyEscapeActivity::class.java)
+                    intent.putExtra("remainMinutesAndSeconds", binding.tvMinutesAndSeconds.text.toString())
+                    intent.putExtra("remainDeciSeconds", binding.tvDecisecond.text.toString())
+                    startActivity(intent)
+                }
+            }
+        }
     }
 
     override fun onStart() {
