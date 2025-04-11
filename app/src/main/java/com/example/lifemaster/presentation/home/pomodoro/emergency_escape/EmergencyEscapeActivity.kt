@@ -13,7 +13,6 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityEmergencyEscapeBinding
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.data.SharedData
-import com.example.lifemaster.presentation.home.pomodoro.PomodoroStatus
 import com.google.android.material.internal.TextWatcherAdapter
 import retrofit2.Call
 import retrofit2.Callback
@@ -23,7 +22,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
 
     private var userToken: String? = null
     lateinit var binding: ActivityEmergencyEscapeBinding
-    private val pomodoroViewModel by viewModels<EmergencyEscapeViewModel>()
+    private val emergencyEscapeViewModel by viewModels<EmergencyEscapeViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +32,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
 
         val (sentenceList, answerList) = initViews()
         initObservers(sentenceList, answerList)
-        inittextWatcher()
+        initTextWatcher()
         initListeners(answerList)
     }
 
@@ -48,7 +47,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         val sharedPreference = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
         userToken = sharedPreference.getString("token", "null")
 
-        questionList.forEachIndexed { idx, question ->
+        questionList.forEach { question ->
             RetrofitInstance.networkService.getEscapeSentence(token = "Bearer $userToken")
                 .enqueue(object : Callback<String> {
                     override fun onResponse(
@@ -56,7 +55,9 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                         response: Response<String?>
                     ) {
                         if (response.isSuccessful) {
-                            question.text = response.body()?.substringAfter("Type this phrase to escape:")?.trim()
+                            question.text =
+                                response.body()?.substringAfter("Type this phrase to escape:")
+                                    ?.trim()
                         }
                     }
 
@@ -111,186 +112,142 @@ class EmergencyEscapeActivity : AppCompatActivity() {
             }
         }
 
-        pomodoroViewModel.writtenSentence.observe(this) { sentence ->
-            binding.btnNextPage.text =
-                "${sentence}/${SharedData.pomodoroEmergecyEscapeList.size} 진행 중"
+        emergencyEscapeViewModel.writtenSentence.observe(this) { sentence ->
+            binding.btnNextPage.text = "${sentence}/15 진행 중"
         }
     }
 
-    private fun initListeners(answerList: List<EditText>) {
-        binding.btnNextPage.setOnClickListener {
-            if (binding.etAnswerFirst.text.toString() == binding.tvQuestionFirst.text.toString()
-                && binding.etAnswerSecond.text.toString() == binding.tvQuestionSecond.text.toString()
-                && binding.etAnswerThird.text.toString() == binding.tvQuestionThird.text.toString()
-            ) {
-                answerList.forEach {
-                    if (it.isFocused) it.clearFocus()
-                }
-                pomodoroViewModel.clickButton()
-            } else if (binding.etAnswerFirst.text.isBlank() || binding.etAnswerSecond.text.isBlank() || binding.etAnswerThird.text.isBlank()) {
-                Toast.makeText(this, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "문장을 정확하게 입력해주세요!", Toast.LENGTH_SHORT).show()
-            }
+    private fun initListeners(answerList: List<EditText>) = with(binding) {
+        btnNextPage.setOnClickListener {
+            answerList.forEach { if (it.isFocused) it.clearFocus() }
+            emergencyEscapeViewModel.clickButton()
+//            if (etAnswerFirst.text.toString() == tvQuestionFirst.text.toString()
+//                && etAnswerSecond.text.toString() == tvQuestionSecond.text.toString()
+//                && etAnswerThird.text.toString() == tvQuestionThird.text.toString()
+//            ) {
+//                answerList.forEach {
+//                    if (it.isFocused) it.clearFocus()
+//                }
+//                emergencyEscapeViewModel.clickButton()
+//            } else if (etAnswerFirst.text.isBlank() || etAnswerSecond.text.isBlank() || etAnswerThird.text.isBlank()) {
+//                Toast.makeText(this@EmergencyEscapeActivity, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()
+//            } else {
+//                Toast.makeText(this@EmergencyEscapeActivity, "문장을 정확하게 입력해주세요!", Toast.LENGTH_SHORT).show()
+//            }
         }
 
-        binding.ivBackToPomodoro.setOnClickListener {
+        ivBackToPomodoro.setOnClickListener {
             val dialog = EmergencyEscapeDialog()
             dialog.isCancelable = false
-            dialog.show(
-                supportFragmentManager, EmergencyEscapeDialog.TAG
-            )
+            dialog.show(supportFragmentManager, EmergencyEscapeDialog.TAG)
         }
     }
 
-    fun inittextWatcher() {
+    private fun initTextWatcher() = with(binding) {
 
-        binding.etAnswerFirst.addTextChangedListener(
+        etAnswerFirst.addTextChangedListener(
             @SuppressLint("RestrictedApi")
             object : TextWatcherAdapter() {
                 override fun afterTextChanged(s: Editable) {
-                    when (pomodoroViewModel.btnCount) {
-                        0 -> checkUserInputSentence(s, 0, 1)
-                        1 -> checkUserInputSentence(s, 3, 1)
-                        2 -> checkUserInputSentence(s, 6, 1)
-                        3 -> checkUserInputSentence(s, 9, 1)
-                        4 -> checkUserInputSentence(s, 12, 1)
-                    }
+                    checkUserInputSentence(s, 1)
                 }
-            })
+            }
+        )
 
-        binding.etAnswerSecond.addTextChangedListener(
+        etAnswerSecond.addTextChangedListener(
             @SuppressLint("RestrictedApi")
             object : TextWatcherAdapter() {
                 override fun afterTextChanged(s: Editable) {
-                    when (pomodoroViewModel.btnCount) {
-                        0 -> checkUserInputSentence(s, 1, 2)
-                        1 -> checkUserInputSentence(s, 4, 2)
-                        2 -> checkUserInputSentence(s, 7, 2)
-                        3 -> checkUserInputSentence(s, 10, 2)
-                        4 -> checkUserInputSentence(s, 13, 2)
-                    }
+                    checkUserInputSentence(s, 2)
                 }
-            })
+            }
+        )
 
-        binding.etAnswerThird.addTextChangedListener(
+        etAnswerThird.addTextChangedListener(
             @SuppressLint("RestrictedApi")
             object : TextWatcherAdapter() {
                 override fun afterTextChanged(s: Editable) {
-                    when (pomodoroViewModel.btnCount) {
-                        0 -> checkUserInputSentence(s, 2, 3)
-                        1 -> checkUserInputSentence(s, 5, 3)
-                        2 -> checkUserInputSentence(s, 8, 3)
-                        3 -> checkUserInputSentence(s, 11, 3)
-                        4 -> checkUserInputSentence(s, 14, 3)
-                    }
+                    checkUserInputSentence(s, 3)
                 }
-            })
+            }
+        )
 
-        binding.etAnswerFirst.setOnFocusChangeListener { _, hasFocus ->
+        etAnswerFirst.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-                if (binding.etAnswerFirst.text.isEmpty()) pomodoroViewModel.increaseSentence()
+                if (etAnswerFirst.text.isEmpty()) emergencyEscapeViewModel.increaseSentence()
             } else {
-                if (binding.etAnswerFirst.text.isEmpty()) pomodoroViewModel.decreaseSentence()
+                if (etAnswerFirst.text.isEmpty()) emergencyEscapeViewModel.decreaseSentence()
             }
         }
-        binding.etAnswerSecond.setOnFocusChangeListener { _, hasFocus ->
+
+        etAnswerSecond.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-                if (binding.etAnswerSecond.text.isEmpty()) pomodoroViewModel.increaseSentence() // [PM] 진행 중 숫자 상태를 empty 에 맞춰야 할까요 아니면 blank 에 맞춰야 할까요?
+                if (etAnswerSecond.text.isEmpty()) emergencyEscapeViewModel.increaseSentence() // [PM] 진행 중 숫자 상태를 empty 에 맞춰야 할까요 아니면 blank 에 맞춰야 할까요?
             } else {
-                if (binding.etAnswerSecond.text.isEmpty()) pomodoroViewModel.decreaseSentence()
+                if (etAnswerSecond.text.isEmpty()) emergencyEscapeViewModel.decreaseSentence()
             }
         }
-        binding.etAnswerThird.setOnFocusChangeListener { _, hasFocus ->
+
+        etAnswerThird.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-                if (binding.etAnswerThird.text.isEmpty()) pomodoroViewModel.increaseSentence()
+                if (etAnswerThird.text.isEmpty()) emergencyEscapeViewModel.increaseSentence()
             } else {
-                if (binding.etAnswerThird.text.isEmpty()) pomodoroViewModel.decreaseSentence()
+                if (etAnswerThird.text.isEmpty()) emergencyEscapeViewModel.decreaseSentence()
             }
         }
     }
 
-    fun checkUserInputSentence(s: Editable, sentencePosition: Int, etPosition: Int) {
+    private fun checkUserInputSentence(s: Editable, etPosition: Int) = with(binding) {
         when (etPosition) {
             1 -> {
+                // 1번째 edittext
                 val size = s.length
-                if (s.contentEquals(
-                        SharedData.pomodoroEmergecyEscapeList[sentencePosition].take(
-                            size
-                        )
-                    )
+                if (s.contentEquals(tvQuestionFirst.text.toString().take(size))
                 ) {
-                    binding.cvSentenceFirst.strokeWidth =
+                    cvSentenceFirst.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_success)
-                    binding.etAnswerFirst.setTextColor(getColor(R.color.edit_text_gray))
+                    etAnswerFirst.setTextColor(getColor(R.color.edit_text_gray))
                 } else {
-                    binding.cvSentenceFirst.strokeColor = getColor(R.color.red_100)
-                    binding.cvSentenceFirst.strokeWidth =
+                    cvSentenceFirst.strokeColor = getColor(R.color.red_100)
+                    cvSentenceFirst.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_error)
-                    binding.etAnswerFirst.setTextColor(getColor(R.color.red_100))
+                    etAnswerFirst.setTextColor(getColor(R.color.red_100))
                 }
             }
 
             2 -> {
+                // 2번째 edittext
                 val size = s.length
-                if (s.contentEquals(
-                        SharedData.pomodoroEmergecyEscapeList[sentencePosition].take(
-                            size
-                        )
-                    )
+                if (s.contentEquals(tvQuestionSecond.text.toString().take(size))
                 ) {
-                    binding.cvSentenceSecond.strokeWidth =
+                    cvSentenceSecond.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_success)
-                    binding.etAnswerSecond.setTextColor(getColor(R.color.edit_text_gray))
+                    etAnswerSecond.setTextColor(getColor(R.color.edit_text_gray))
                 } else {
-                    binding.cvSentenceSecond.strokeColor = getColor(R.color.red_100)
-                    binding.cvSentenceSecond.strokeWidth =
+                    cvSentenceSecond.strokeColor = getColor(R.color.red_100)
+                    cvSentenceSecond.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_error)
-                    binding.etAnswerSecond.setTextColor(getColor(R.color.red_100))
+                    etAnswerSecond.setTextColor(getColor(R.color.red_100))
                 }
             }
 
             3 -> {
+                // 3번째 edittext
                 val size = s.length
-                if (s.contentEquals(
-                        SharedData.pomodoroEmergecyEscapeList[sentencePosition].take(
-                            size
-                        )
-                    )
+                if (s.contentEquals(tvQuestionThird.text.toString().take(size))
                 ) {
-                    binding.cvSentenceThird.strokeWidth =
+                    cvSentenceThird.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_success)
-                    binding.etAnswerThird.setTextColor(getColor(R.color.edit_text_gray))
+                    etAnswerThird.setTextColor(getColor(R.color.edit_text_gray))
                 } else {
-                    binding.cvSentenceThird.strokeColor = getColor(R.color.red_100)
-                    binding.cvSentenceThird.strokeWidth =
+                    cvSentenceThird.strokeColor = getColor(R.color.red_100)
+                    cvSentenceThird.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_error)
-                    binding.etAnswerThird.setTextColor(getColor(R.color.red_100))
+                    etAnswerThird.setTextColor(getColor(R.color.red_100))
                 }
             }
         }
     }
-
-    // text watcher 에서 오류 판정 기준을 한글자가 아닌 자음과 모음까지 분리하기 위해 만든 함수인데 제대로 작동안해서 주석 처리함
-//    fun isUserInputValid(input: String, target: String): Boolean {
-//        val inputLength = input.length
-//        if (input.length > target.length) return false
-//
-//        val targetSub = target.take(inputLength)
-//        if (input == targetSub) return true
-//
-//        for (char in input) {
-//            if(!isValidHangulChar(char)) return false
-//        }
-//
-//        return true
-//    }
-
-//    fun isValidHangulChar(char: Char): Boolean {
-//        return (char in '\uAC00'..'\uD7A3') ||
-//                (char in '\u1100'..'\u11FF') ||
-//                (char in '\u3130'..'\u318F')
-//    }
 
     override fun onStart() {
         super.onStart()

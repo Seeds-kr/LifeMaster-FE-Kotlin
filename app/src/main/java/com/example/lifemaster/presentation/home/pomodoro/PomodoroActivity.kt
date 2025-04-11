@@ -91,149 +91,15 @@ class PomodoroActivity : AppCompatActivity() {
 //                val secondStudyTime = 2 * 10 test
                 val totalTime =
                     firstStudyTime + breakTime + secondStudyTime  // 테스트용 3초 ( 25 * 60 * 10 )
-                var remainTime = totalTime
 
                 // worker thread
                 timer = timer(
                     initialDelay = 0,
                     period = 100 // period 단위 = millisecond ( 100 millisecond = 0.1 second = 1 decisecond )
                 ) {
-                    if (remainTime > 0) {
-                        if (remainTime == totalTime) {
-                            time = firstStudyTime
-                            val minutes = time.div(10) / 60
-                            val seconds = time.div(10) % 60
-                            val deciseconds = time % 10
-                            runOnUiThread {
-                                // worker thread 는 ui 에 접근할 수 없다. → Activity.runOnUiThread(Runnable) 이용
-                                tvMinutesAndSeconds.text =
-                                    String.format(
-                                        "%02d:%02d",
-                                        minutes,
-                                        seconds
-                                    )
-                                tvDecisecond.text = deciseconds.toString()
-                                circularTimerView.startTimer((firstStudyTime * 100).toLong())
-                            }
-                            remainTime -= 1
-                            time -= 1
-                        } else if (remainTime == totalTime - firstStudyTime) {
-                            // 휴식 시간 시작
-                            time = breakTime
-                            val minutes = time.div(10) / 60
-                            val seconds = time.div(10) % 60
-                            val deciseconds = time % 10
-                            runOnUiThread {
-                                tvTimerTitle.text = "휴식 시간 종료까지"
-                                tvMinutesAndSeconds.text =
-                                    String.format(
-                                        "%02d:%02d",
-                                        minutes,
-                                        seconds
-                                    )
-                                tvDecisecond.text = deciseconds.toString()
-                                circularTimerView.startTimer((breakTime * 100).toLong()) // decisecond → millisecond
-                            }
-                            remainTime -= 1
-                            time -= 1
-                        } else if (remainTime == secondStudyTime) {
-                            // 두번째 공부 시간 시작
-                            time = secondStudyTime
-                            val minutes = time.div(10) / 60
-                            val seconds = time.div(10) % 60
-                            val deciseconds = time % 10
-                            runOnUiThread {
-                                tvTimerTitle.text = "할일 종료까지"
-                                tvMinutesAndSeconds.text =
-                                    String.format(
-                                        "%02d:%02d",
-                                        minutes,
-                                        seconds
-                                    )
-                                tvDecisecond.text = deciseconds.toString()
-                                circularTimerView.startTimer((secondStudyTime * 100).toLong())
-                            }
-                            remainTime -= 1
-                            time -= 1
-                        } else {
-                            val minutes = time.div(10) / 60
-                            val seconds = time.div(10) % 60
-                            val deciseconds = time % 10
-                            runOnUiThread {
-                                // worker thread 는 ui 에 접근할 수 없다. → Activity.runOnUiThread(Runnable) 이용
-                                tvMinutesAndSeconds.text =
-                                    String.format(
-                                        "%02d:%02d",
-                                        minutes,
-                                        seconds
-                                    )
-                                tvDecisecond.text = deciseconds.toString()
-                            }
-                            remainTime -= 1
-                            time -= 1
-                        }
-                    } else {
-                        runOnUiThread {
-                            Toast.makeText(
-                                this@PomodoroActivity,
-                                "시간이 종료되었습니다!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            // sharedViewModel.resetButtonCount()
-                        }
-                        timer?.cancel()
-                        timer = null
-
-                        val pomodoroItem = PomodoroItem(
-                            taskName = todoItem!!.title,
-                            focusTime = 20,
-                            breakTime = 5,
-                            cycles = 0,
-                            date = todoItem!!.calendar.date,
-                            currentTimer = 0
-                        )
-                        RetrofitInstance.networkService.registerPomodoroTimer(
-                            token = "Bearer $userToken",
-                            pomodoroItem = pomodoroItem
-                        ).enqueue(object : Callback<Any> {
-                            override fun onResponse(
-                                call: Call<in Any>,
-                                response: Response<in Any>
-                            ) {
-                                if (response.isSuccessful) {
-                                    Toast.makeText(
-                                        this@PomodoroActivity,
-                                        "포모도로를 시작합니다!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else {
-                                    Toast.makeText(
-                                        this@PomodoroActivity,
-                                        response.message(),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-
-                            override fun onFailure(
-                                call: Call<in Any>,
-                                t: Throwable
-                            ) {
-                                Toast.makeText(this@PomodoroActivity, "서버 통신 실패!", Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-
-                        })
-
-                        val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
-                            putExtra("todoItemTitle", todoItem?.title)
-                            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                        }
-                        startActivity(intent)
-                    }
+                    pomodoroTimer(totalTime, firstStudyTime, breakTime, secondStudyTime)
                 }
             } else if (tvMinutesAndSeconds.text.toString() == getString(R.string.tv_pomodoro_timer_50)) {
-//                sharedViewModel.clickButton()
                 rgTimer.visibility = View.INVISIBLE
                 ivTimer50.visibility = View.VISIBLE
                 cardviewTodo.setStrokeColor(
@@ -253,6 +119,8 @@ class PomodoroActivity : AppCompatActivity() {
                     start()
                 }
 
+                pomodoroViewModel.clickButton() // _buttonCount = 0 -> 1
+
                 val firstStudyTime = 20 * 60 * 10
 //                val firstStudyTime = 1 * 10
                 val breakTime = 10 * 60 * 10
@@ -260,158 +128,179 @@ class PomodoroActivity : AppCompatActivity() {
                 val secondStudyTime = 20 * 60 * 10
 //                val secondStudyTime = 1 * 10
                 val totalTime = firstStudyTime + breakTime + secondStudyTime
-                var remainTime = totalTime
 
                 timer = timer(initialDelay = 0, period = 100) { // worker thread
-                    if (remainTime > 0) {
-                        if (remainTime == totalTime) {
-                            time = firstStudyTime
-                            val minutes = time.div(10) / 60
-                            val seconds = time.div(10) % 60
-                            val deciseconds = time % 10
-                            runOnUiThread {
-                                // worker thread 는 ui 에 접근할 수 없다. → Activity.runOnUiThread(Runnable) 이용
-                                tvMinutesAndSeconds.text =
-                                    String.format(
-                                        "%02d:%02d",
-                                        minutes,
-                                        seconds
-                                    )
-                                tvDecisecond.text = deciseconds.toString()
-                                circularTimerView.startTimer((firstStudyTime * 100).toLong())
-                            }
-                            remainTime -= 1
-                            time -= 1
-                        } else if (remainTime == totalTime - firstStudyTime) {
-                            // 휴식 시간 시작
-                            time = breakTime
-                            val minutes = time.div(10) / 60
-                            val seconds = time.div(10) % 60
-                            val deciseconds = time % 10
-                            runOnUiThread {
-                                tvTimerTitle.text = "휴식 시간 종료까지"
-                                tvMinutesAndSeconds.text =
-                                    String.format(
-                                        "%02d:%02d",
-                                        minutes,
-                                        seconds
-                                    )
-                                tvDecisecond.text = deciseconds.toString()
-                                circularTimerView.startTimer((breakTime * 100).toLong()) // decisecond → millisecond
-                            }
-                            remainTime -= 1
-                            time -= 1
-                        } else if (remainTime == secondStudyTime) {
-                            // 두번째 공부 시간 시작
-                            time = secondStudyTime
-                            val minutes = time.div(10) / 60
-                            val seconds = time.div(10) % 60
-                            val deciseconds = time % 10
-                            runOnUiThread {
-                                tvTimerTitle.text = "할일 종료까지"
-                                tvMinutesAndSeconds.text =
-                                    String.format(
-                                        "%02d:%02d",
-                                        minutes,
-                                        seconds
-                                    )
-                                tvDecisecond.text = deciseconds.toString()
-                                circularTimerView.startTimer((secondStudyTime * 100).toLong())
-                            }
-                            remainTime -= 1
-                            time -= 1
-                        } else {
-                            val minutes = time.div(10) / 60
-                            val seconds = time.div(10) % 60
-                            val deciseconds = time % 10
-                            runOnUiThread {
-                                // worker thread 는 ui 에 접근할 수 없다. → Activity.runOnUiThread(Runnable) 이용
-                                tvMinutesAndSeconds.text =
-                                    String.format(
-                                        "%02d:%02d",
-                                        minutes,
-                                        seconds
-                                    )
-                                tvDecisecond.text = deciseconds.toString()
-                            }
-                            remainTime -= 1
-                            time -= 1
-                        }
-                    } else {
-                        runOnUiThread {
-                            Toast.makeText(
-                                this@PomodoroActivity,
-                                "시간이 종료되었습니다!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            // PomodoroActivity → MainActivity 의 Home Fragment 로 이동
-                            // 해당 아이템의 할일 체크 상태 변경 알리기
-//                            sharedViewModel.resetButtonCount()
-
-                        }
-                        timer?.cancel()
-                        timer = null
-
-                        val pomodoroItem = PomodoroItem(
-                            taskName = todoItem!!.title,
-                            focusTime = 40,
-                            breakTime = 10,
-                            cycles = 0,
-                            date = todoItem!!.calendar.date,
-                            currentTimer = 0
-                        )
-                        RetrofitInstance.networkService.registerPomodoroTimer(
-                            token = "Bearer $userToken",
-                            pomodoroItem = pomodoroItem
-                        ).enqueue(object : Callback<Any> {
-                            override fun onResponse(
-                                call: Call<in Any>,
-                                response: Response<in Any>
-                            ) {
-                                if (response.isSuccessful) {
-                                    Toast.makeText(
-                                        this@PomodoroActivity,
-                                        "서버 통신 성공!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else {
-                                    Toast.makeText(
-                                        this@PomodoroActivity,
-                                        response.message(),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-
-                            override fun onFailure(
-                                call: Call<in Any>,
-                                t: Throwable
-                            ) {
-                                Toast.makeText(this@PomodoroActivity, "서버 통신 실패!", Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-
-                        })
-
-                        val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
-                            putExtra("todoItemTitle", todoItem?.title)
-                            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                        }
-
-                        startActivity(intent)
-                    }
+                    pomodoroTimer(totalTime, firstStudyTime, breakTime, secondStudyTime)
                 }
+
             } else if (tvMinutesAndSeconds.text == getString(R.string.tv_pomodoro_timer_not_set)) {
                 Toast.makeText(this@PomodoroActivity, "시간을 설정해주세요!", Toast.LENGTH_SHORT).show()
             } else {
                 pomodoroViewModel.clickButton()
             }
         }
-        onBackPressedDispatcher.addCallback(this@PomodoroActivity, object: OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                showExitDialog()
+        onBackPressedDispatcher.addCallback(
+            this@PomodoroActivity,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    showExitDialog()
+                }
+            })
+    }
+
+    private fun pomodoroTimer(
+        totalTime: Int,
+        firstStudyTime: Int,
+        breakTime: Int,
+        secondStudyTime: Int
+    ) = with(binding) {
+        var remainTime = totalTime
+        if (remainTime > 0) {
+            if (remainTime == totalTime) {
+                time = firstStudyTime
+                val minutes = time.div(10) / 60
+                val seconds = time.div(10) % 60
+                val deciseconds = time % 10
+                runOnUiThread {
+                    tvMinutesAndSeconds.text =
+                        String.format(
+                            "%02d:%02d",
+                            minutes,
+                            seconds
+                        )
+                    tvDecisecond.text = deciseconds.toString()
+                    circularTimerView.startTimer((firstStudyTime * 100).toLong())
+                }
+                remainTime -= 1
+                time -= 1
+            } else if (remainTime == totalTime - firstStudyTime) {
+                // 휴식 시간 시작
+                time = breakTime
+                val minutes = time.div(10) / 60
+                val seconds = time.div(10) % 60
+                val deciseconds = time % 10
+                runOnUiThread {
+                    tvTimerTitle.text = "휴식 시간 종료까지"
+                    tvMinutesAndSeconds.text =
+                        String.format(
+                            "%02d:%02d",
+                            minutes,
+                            seconds
+                        )
+                    tvDecisecond.text = deciseconds.toString()
+                    circularTimerView.startTimer((breakTime * 100).toLong()) // decisecond → millisecond
+                }
+                remainTime -= 1
+                time -= 1
+            } else if (remainTime == secondStudyTime) {
+                // 두번째 공부 시간 시작
+                time = secondStudyTime
+                val minutes = time.div(10) / 60
+                val seconds = time.div(10) % 60
+                val deciseconds = time % 10
+                runOnUiThread {
+                    tvTimerTitle.text = "할일 종료까지"
+                    tvMinutesAndSeconds.text =
+                        String.format(
+                            "%02d:%02d",
+                            minutes,
+                            seconds
+                        )
+                    tvDecisecond.text = deciseconds.toString()
+                    circularTimerView.startTimer((secondStudyTime * 100).toLong())
+                }
+                remainTime -= 1
+                time -= 1
+            } else {
+                val minutes = time.div(10) / 60
+                val seconds = time.div(10) % 60
+                val deciseconds = time % 10
+                runOnUiThread {
+                    tvMinutesAndSeconds.text =
+                        String.format(
+                            "%02d:%02d",
+                            minutes,
+                            seconds
+                        )
+                    tvDecisecond.text = deciseconds.toString()
+                }
+                remainTime -= 1
+                time -= 1
             }
-        })
+        } else {
+            runOnUiThread {
+                Toast.makeText(
+                    this@PomodoroActivity,
+                    "시간이 종료되었습니다!",
+                    Toast.LENGTH_SHORT
+                ).show()
+                // sharedViewModel.resetButtonCount()
+            }
+
+            timer?.cancel()
+            timer = null
+
+            if (totalTime == 25 * 60 * 10) {
+                // 25분
+                val pomodoroItem = PomodoroItem(
+                    taskName = todoItem!!.title,
+                    focusTime = 20,
+                    breakTime = 5,
+                    cycles = 0,
+                    date = todoItem!!.calendar.date,
+                    currentTimer = 0
+                )
+            } else if (totalTime == 50 * 60 * 10) {
+                val pomodoroItem = PomodoroItem(
+                    taskName = todoItem!!.title,
+                    focusTime = 40,
+                    breakTime = 10,
+                    cycles = 0,
+                    date = todoItem!!.calendar.date,
+                    currentTimer = 0
+                )
+            }
+
+            RetrofitInstance.networkService.registerPomodoroTimer(
+                token = "Bearer $userToken",
+                pomodoroItem = pomodoroItem
+            ).enqueue(object : Callback<Any> {
+                override fun onResponse(
+                    call: Call<in Any>,
+                    response: Response<in Any>
+                ) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(
+                            this@PomodoroActivity,
+                            "포모도로 타이머 등록 성공!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            this@PomodoroActivity,
+                            "포모도로 타이머 등록 실패!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(
+                    call: Call<in Any>,
+                    t: Throwable
+                ) {
+                    Toast.makeText(this@PomodoroActivity, "서버 통신 실패!", Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+            })
+
+            val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
+                putExtra("todoItemTitle", todoItem?.title)
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            }
+
+            startActivity(intent)
+        }
     }
 
     private fun showExitDialog() {
@@ -436,13 +325,18 @@ class PomodoroActivity : AppCompatActivity() {
                 0 -> {
                     binding.btnStartPomodoro.text = "시작하기" // 이 코드가 좀 아쉬운데
                 }
+
                 1 -> {
                     binding.btnStartPomodoro.text = "비상 탈출"
                 }
+
                 else -> {
                     Toast.makeText(this@PomodoroActivity, "비상탈출을 시도합니다!", Toast.LENGTH_SHORT).show()
                     val intent = Intent(this, EmergencyEscapeActivity::class.java)
-                    intent.putExtra("remainMinutesAndSeconds", binding.tvMinutesAndSeconds.text.toString())
+                    intent.putExtra(
+                        "remainMinutesAndSeconds",
+                        binding.tvMinutesAndSeconds.text.toString()
+                    )
                     intent.putExtra("remainDeciSeconds", binding.tvDecisecond.text.toString())
                     startActivity(intent)
                 }
@@ -468,7 +362,7 @@ class PomodoroActivity : AppCompatActivity() {
         } else if (SharedData.pomodoroStatus == PomodoroStatus.ESCAPE_FAILURE) {
             timer = timer(
                 initialDelay = 1000,
-                period = 1000
+                period = 100
             ) { // period 단위 = millisecond ( 1000 millisecond = 1 second )
                 if (totalDeciSecond > 0) {
                     totalDeciSecond -= 1
