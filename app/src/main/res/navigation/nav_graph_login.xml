@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph_login"
+    app:startDestination="@id/loginSocialFragment"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <fragment
+        android:id="@+id/loginSocialFragment"
+        android:name="com.example.lifemaster.presentation.authentication.view.LoginSocialFragment"
+        android:label="LoginSocialFragment"
+        tools:layout="@layout/fragment_login_social">
+        <action
+            android:id="@+id/action_loginSocialFragment_to_signUpFragment"
+            app:destination="@id/signUpFragment" />
+        <action
+            android:id="@+id/action_loginSocialFragment_to_loginEmailFragment"
+            app:destination="@id/loginEmailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/loginEmailFragment"
+        android:name="com.example.lifemaster.presentation.authentication.view.LoginEmailFragment"
+        android:label="LoginEmailFragment"
+        tools:layout="@layout/fragment_login_email"/>
+
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="com.example.lifemaster.presentation.authentication.view.SignUpFragment"
+        android:label="SignUpFragment"
+        tools:layout="@layout/fragment_sign_up"/>
+
+</navigation>

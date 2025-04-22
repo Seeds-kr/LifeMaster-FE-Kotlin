@@ -1,53 +1,45 @@
-package com.example.lifemaster.presentation.authentication
+package com.example.lifemaster.presentation.authentication.view
 
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.example.lifemaster.presentation.MainActivity
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
-import com.example.lifemaster.databinding.ActivityLoginBinding
+import com.example.lifemaster.databinding.FragmentLoginSocialBinding
 import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.authentication.model.LoginInfo
 import com.kakao.sdk.user.UserApiClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class LoginActivity : AppCompatActivity() {
+class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
 
-    lateinit var binding: ActivityLoginBinding
+    lateinit var binding: FragmentLoginSocialBinding
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        binding = ActivityLoginBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding = FragmentLoginSocialBinding.bind(view)
         setupListeners()
     }
 
     private fun setupListeners() = with(binding) {
         btnKakaoLogin.setOnClickListener {
             loginWithKaKao(
-                context = this@LoginActivity,
+                context = requireContext(),
                 onSuccess = { token ->
                     Log.d("kakao login token : ", token)
-                    Toast.makeText(this@LoginActivity, "로그인에 성공하였습니다!", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                    Toast.makeText(requireContext(), "로그인에 성공하였습니다!", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(requireContext(), MainActivity::class.java))
                 },
                 onFailure = { error ->
                     Log.d("kakao login error : ", error.toString())
-                    Toast.makeText(this@LoginActivity, "로그인에 실패하였습니다!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "로그인에 실패하였습니다!", Toast.LENGTH_SHORT).show()
                 }
             )
         }
@@ -59,8 +51,8 @@ class LoginActivity : AppCompatActivity() {
                 ) {
                     if(response.isSuccessful) {
                         val token = response.body()
-                        Toast.makeText(this@LoginActivity, "로그인이 성공했습니다!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this@LoginActivity, MainActivity::class.java).apply {
+                        Toast.makeText(requireContext(), "로그인이 성공했습니다!", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(requireContext(), MainActivity::class.java).apply {
                             putExtra("user_token", token)
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         }
@@ -73,6 +65,12 @@ class LoginActivity : AppCompatActivity() {
                 }
 
             })
+        }
+        tvLoginWithEmail.setOnClickListener {
+            findNavController().navigate(R.id.action_loginSocialFragment_to_loginEmailFragment)
+        }
+        tvSignUp.setOnClickListener {
+            findNavController().navigate(R.id.action_loginSocialFragment_to_signUpFragment)
         }
     }
 
@@ -89,4 +87,5 @@ class LoginActivity : AppCompatActivity() {
             }
         }
     }
+
 }
