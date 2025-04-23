@@ -31,11 +31,6 @@ class DetoxTimeLockAllowServiceDialog: DialogFragment(R.layout.dialog_detox_time
         binding.btnCancel.setOnClickListener {
             dismiss()
         }
-        binding.btnApply.setOnClickListener {
-            val allowServices = timeLockViewModel.allowServiceApplications.filter { app -> app.isClicked }
-            timeLockViewModel.updateAllowServices(allowServices)
-            dismiss()
-        }
     }
 
     companion object {

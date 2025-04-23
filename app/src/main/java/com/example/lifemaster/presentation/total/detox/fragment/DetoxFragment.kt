@@ -53,12 +53,12 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         super.onViewCreated(view, savedInstanceState)
         Log.d("DetoxFragment", "onViewCreated")
         binding = FragmentDetoxBinding.bind(view)
-        setupViews()
-        setupListeners()
-        observing()
+        initViews()
+        initListeners()
+        initObservers()
     }
 
-    private fun setupViews() {
+    private fun initViews() {
         // 공통 - 라디오 버튼 관련 ui 뷰
         binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
             when(checkedId) {
@@ -85,12 +85,9 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         val detoxTimeLockAdapter = DetoxTimeLockAdapter()
         binding.recyclerviewTimeLock.adapter = detoxTimeLockAdapter
 
-        // 시간 잠금 - 허용할 서비스 설정
-        binding.recyclerviewAllowService.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false)
-        binding.recyclerviewAllowService.adapter = DetoxServiceMainAdapter()
     }
 
-    private fun setupListeners() {
+    private fun initListeners() {
 
         // 반복 잠금 - 차단할 서비스 편집
         binding.btnEditRepeatLockBlockService.setOnClickListener {
@@ -132,13 +129,6 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
             }
         })
 
-        // 시간 잠금 - 허용할 서비스 편집
-        binding.btnEditTimeLockAllowService.setOnClickListener {
-            val dialog = DetoxTimeLockAllowServiceDialog()
-            dialog.isCancelable = false
-            dialog.show(childFragmentManager, DetoxTimeLockAllowServiceDialog.TAG)
-        }
-
         // 시간 잠금 - 시간 잠금 설정
         binding.btnTimeLockSetting.setOnClickListener {
             val dialog = DetoxTimeLockDialog()
@@ -148,7 +138,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     }
 
     // 공통 - 오늘 사용한 앱의 총 누적 시간
-    private fun observing() {
+    private fun initObservers() {
 
         // lifemaster 앱이 포그라운드에 있을 때의 시간을 제외한 총 사용 누적 시간 -> 변수만 변경
         detoxCommonViewModel.totalAccumulatedAppUsageTimes.observe(viewLifecycleOwner) { updatedTime ->
@@ -180,17 +170,6 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                 binding.llRepeatLockListEmpty.visibility = View.VISIBLE
             }
             (binding.recyclerviewRepeatLock.adapter as DetoxRepeatLockAdapter).submitList(it.toList())
-        }
-
-        detoxTimeLockViewModel.allowServices.observe(viewLifecycleOwner) {
-            if (it.isNotEmpty()) {
-                binding.recyclerviewAllowService.visibility = View.VISIBLE
-                binding.tvAllowServiceEmpty.visibility = View.GONE
-            } else {
-                binding.recyclerviewAllowService.visibility = View.GONE
-                binding.tvAllowServiceEmpty.visibility = View.VISIBLE
-            }
-            (binding.recyclerviewAllowService.adapter as DetoxServiceMainAdapter).updateItems(it)
         }
 
         detoxTimeLockViewModel.timeLockItems.observe(viewLifecycleOwner) {

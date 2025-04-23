@@ -82,8 +82,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center_horizontal"
-            tools:text="06:01:00"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            tools:text="06:01:00" />
     </LinearLayout>
 
     <View
@@ -93,61 +93,63 @@
         android:background="#DADEDF" />
 
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="차단할 서비스"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_edit_repeat_lock_block_service"
+            android:layout_width="60dp"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_round_radius"
+            android:backgroundTint="#B4D775"
+            android:text="편집"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_round_radius"
+        android:backgroundTint="@color/white"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="4dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerview_block_service"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:visibility="gone"
+            tools:itemCount="1"
+            tools:listitem="@layout/item_detox_target_app_main" />
+
+        <TextView
+            android:id="@+id/tv_block_service_empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="차단할 서비스를 추가해주세요!" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/ll_repeat_lock"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="visible">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="차단할 서비스"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btn_edit_repeat_lock_block_service"
-                android:layout_width="60dp"
-                android:layout_height="32dp"
-                android:background="@drawable/bg_round_radius"
-                android:backgroundTint="#B4D775"
-                android:text="편집"
-                android:textColor="@color/white" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/bg_round_radius"
-            android:backgroundTint="@color/white"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="4dp">
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerview_block_service"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="4dp"
-                tools:listitem="@layout/item_detox_target_app_main"
-                tools:itemCount="1"
-                android:visibility="gone"/>
-            <TextView
-                android:id="@+id/tv_block_service_empty"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="차단할 서비스를 추가해주세요!"
-                android:padding="8dp"/>
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -187,24 +189,25 @@
                 android:background="@drawable/bg_round_radius"
                 android:backgroundTint="@color/white"
                 android:gravity="center_vertical"
-                android:padding="8dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:padding="8dp">
 
                 <EditText
                     android:id="@+id/et_search_app"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:textSize="14sp"
-                    android:hint="앱 이름으로 검색"
-                    android:inputType="text"
                     android:background="@android:color/transparent"
-                    android:imeOptions="actionSearch"/>
+                    android:hint="앱 이름으로 검색"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:textSize="14sp" />
+
                 <ImageButton
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_search"
-                    android:background="@null"/>
+                    android:background="@null"
+                    android:src="@drawable/ic_search" />
             </LinearLayout>
 
             <LinearLayout
@@ -237,8 +240,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            tools:listitem="@layout/item_detox_repeat_lock_item"
-            android:visibility="gone"/>
+            android:visibility="gone"
+            tools:listitem="@layout/item_detox_repeat_lock_item" />
 
         <LinearLayout
             android:id="@+id/ll_repeat_lock_list_empty"
@@ -250,15 +253,14 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="12dp">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="반복 잠금 아이템을 추가해주세요!"/>
+                android:text="반복 잠금 아이템을 추가해주세요!" />
         </LinearLayout>
 
     </LinearLayout>
-
-
 
     <LinearLayout
         android:id="@+id/ll_time_lock"
@@ -266,58 +268,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="허용할 서비스"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btn_edit_time_lock_allow_service"
-                android:layout_width="60dp"
-                android:layout_height="32dp"
-                android:background="@drawable/bg_round_radius"
-                android:backgroundTint="#B4D775"
-                android:text="편집"
-                android:textColor="@color/white" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/bg_round_radius"
-            android:backgroundTint="@color/white"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="4dp">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerview_allow_service"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="4dp"
-                tools:listitem="@layout/item_detox_target_app_main"
-                android:visibility="gone"
-                tools:itemCount="1"/>
-
-            <TextView
-                android:id="@+id/tv_allow_service_empty"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="허용할 서비스를 추가해주세요!"
-                android:padding="8dp"/>
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
