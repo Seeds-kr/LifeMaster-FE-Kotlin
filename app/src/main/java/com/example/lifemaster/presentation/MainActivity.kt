@@ -70,10 +70,6 @@ class MainActivity : AppCompatActivity() {
 
         Log.d("ttest", userToken!!)
 
-        // 알람 화면 띄우기
-        val fragmentType = intent.getStringExtra("fragment type")
-        if(fragmentType == "AlarmRingsFragment") findNavController(R.id.fragmentContainerView).navigate(R.id.alarmRingsFragment)
-
         updateRunnable = object : Runnable {
             override fun run() {
                 val elapsedForegroundTime = SystemClock.elapsedRealtime() - foregroundStartTime // 포그라운드로 전환 이후 누적된 시간

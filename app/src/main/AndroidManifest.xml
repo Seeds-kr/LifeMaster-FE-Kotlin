@@ -27,15 +27,23 @@
         android:theme="@style/Theme.LifeMaster_XML"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-
+        <activity
+            android:name=".presentation.group.view.activity.AlarmRingsActivity"
+            android:exported="false" />
         <activity
             android:name=".ComposeActivity"
             android:exported="false"
             android:label="@string/title_activity_compose"
             android:theme="@style/Theme.LifeMaster_XML" />
         <activity
-            android:name=".presentation.authentication.LoginActivity"
-            android:exported="false" />
+            android:name=".presentation.authentication.view.LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".presentation.home.pomodoro.emergency_escape.EmergencyEscapeActivity"
             android:exported="false"
@@ -51,15 +59,8 @@
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
-
-        <activity android:name=".presentation.home.pomodoro.PomodoroActivity"/>
+        <activity android:name=".presentation.home.pomodoro.PomodoroActivity" />
 
         <service
             android:name=".presentation.total.detox.service.DetoxBlockService"
@@ -73,6 +74,11 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
+
+        <receiver
+            android:name=".presentation.group.receiver.AlarmReceiver"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>
