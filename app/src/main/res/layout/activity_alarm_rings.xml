@@ -1,29 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_alarm"
+    android:orientation="vertical"
+    android:padding="16dp"
     tools:context=".presentation.group.view.activity.AlarmRingsActivity">
 
-<!--    <androidx.fragment.app.FragmentContainerView-->
-<!--        android:id="@+id/alarm_fragment_container_view"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="0dp"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent" />-->
+    <ImageView
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginTop="60dp"
+        android:src="@drawable/ic_app_logo"
+        app:tint="@color/alarm_primary" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="60sp"
-        android:text="알람 실행중!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        android:text="Good\nMorning,\nit's"
+        android:textSize="56sp"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="80dp">
+
+        <TextView
+            android:id="@+id/tv_current_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="10:20"
+            android:textColor="@color/black"
+            android:textSize="80sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_day_or_night"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/black"
+            android:textSize="48sp"
+            android:text="am"/>
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_round_radius"
+        android:backgroundTint="@color/alarm_primary"
+        android:text="랜덤 미션 수행하기"
+        android:textColor="@color/white"
+        android:layout_marginTop="56dp"/>
+
+<!--    <TextView-->
+<!--        android:id="@+id/tv_delay_alarm"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:background="@drawable/bg_round_radius"-->
+<!--        android:text="10분 미루기 (2 / 3)"-->
+<!--        android:textColor="@color/alarm_primary"-->
+<!--        android:textStyle="bold"-->
+<!--        android:layout_marginTop="12dp"-->
+<!--        android:layout_gravity="center_horizontal"/>-->
+
+    <TextView
+        android:id="@+id/tv_stop_alarm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_round_radius"
+        android:text="알람 종료하기"
+        android:textColor="@color/alarm_primary"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"
+        android:layout_gravity="center_horizontal"/>
+
+</LinearLayout>
