@@ -1,18 +1,16 @@
 package com.example.lifemaster.presentation.group.view.activity
 
+import android.content.Intent
 import android.media.MediaPlayer
-import android.media.RingtoneManager
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityAlarmRingsBinding
-import com.example.lifemaster.presentation.home.pomodoro.PomodoroActivity
+import com.example.lifemaster.presentation.group.view.service.AlarmService
 
 class AlarmRingsActivity : AppCompatActivity() {
 
@@ -30,19 +28,15 @@ class AlarmRingsActivity : AppCompatActivity() {
             insets
         }
 
-        // 알람 소리 시작
-        mediaPlayer = MediaPlayer.create(this, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM))
-        mediaPlayer?.isLooping = true
-        mediaPlayer?.start()
         initListeners()
     }
 
     private fun initListeners() = with(binding) {
         tvStopAlarm.setOnClickListener {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
-            mediaPlayer = null
+            // 서비스 중단
             Toast.makeText(this@AlarmRingsActivity, "알람이 종료되었습니다!", Toast.LENGTH_SHORT).show()
+            val serviceIntent = Intent(this@AlarmRingsActivity, AlarmService::class.java)
+            stopService(serviceIntent)
             finish()
         }
         // 뒤로가기 버튼(백버튼) 막기
@@ -55,14 +49,4 @@ class AlarmRingsActivity : AppCompatActivity() {
             }
         )
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d("ttest", "onDestroy")
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
-    }
-
-
 }
