@@ -1,7 +1,13 @@
-package com.example.lifemaster.presentation.group.fragment
+package com.example.lifemaster.presentation.group.view.fragment
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -12,11 +18,11 @@ import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmSettingBinding
 import com.example.lifemaster.presentation.common.SelectTimeDialog
-import com.example.lifemaster.presentation.common.setAlarm
-import com.example.lifemaster.presentation.group.fragment.dialog.AlarmRandomMissionDialog
+import com.example.lifemaster.presentation.group.view.dialog.AlarmRandomMissionDialog
 import com.example.lifemaster.presentation.group.model.AlarmItem
 import com.example.lifemaster.presentation.group.model.MathProblemLevel
 import com.example.lifemaster.presentation.group.model.RandomMissionType
+import com.example.lifemaster.presentation.group.view.receiver.AlarmReceiver
 import com.example.lifemaster.presentation.group.viewmodel.AlarmViewModel
 import java.util.Calendar
 
@@ -90,7 +96,6 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                 dialog.show(childFragmentManager, SelectTimeDialog.TAG)
             }
             btnSave.setOnClickListener {
-
                 val alarmTitle = etAlarmName.text.toString() // 알람 이름
                 val amPm = if (timePicker.hour in 0..11) "AM" else "PM"
                 val alarmTime = Triple<String, Int, Int>(
@@ -114,14 +119,37 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                         delayMinute = tvDelayMinutes.text.toString().toInt(),
                         delayCount = tvDelayCounts.text.toString().toInt()
                     )
+
+                    val calendar = Calendar.getInstance().apply {
+                        timeInMillis = System.currentTimeMillis()
+                        set(Calendar.HOUR_OF_DAY, alarmTime.second)
+                        set(Calendar.MINUTE, alarmTime.third)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+//                        if(before(Calendar.getInstance())) { add(Calendar.DATE, 1) }
+                    }
+
+                    val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                    if(alarmManager.canScheduleExactAlarms()) {
+                        val intent = Intent(requireContext(), AlarmReceiver::class.java)
+                        val pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                        val goesOffTime = calendar.timeInMillis
+                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, goesOffTime, pendingIntent)
+                    } else {
+                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                            data = Uri.parse("package:${requireContext().packageName}")
+                        }
+                        requireContext().startActivity(intent)
+                    }
+
                     alarmViewModel.updateAlarmItems(alarmItem)
                     alarmViewModel.clearRandomMissions()
-//                    setAlarm(requireContext(), convertTimeToMillis(alarmTime)) // ??????????
                     Toast.makeText(requireContext(), "알람이 추가되었습니다!", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
                 } else if (isDelaySet && tvDelayCounts.text.isBlank()) {
                     Toast.makeText(requireContext(), "미루기 설정을 해주세요!", Toast.LENGTH_SHORT).show()
                 } else {
+
                     // 미루기 설정 x
                     val alarmItem = AlarmItem(
                         id = alarmViewModel.alarmItems.value?.size ?: 0,
@@ -132,6 +160,31 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                         alarmRepeatDays = alarmRepeatDays,
                         isDelaySet = false
                     )
+
+                    Log.d("ttest", ""+alarmTime)
+
+                    val calendar = Calendar.getInstance().apply {
+                        timeInMillis = System.currentTimeMillis()
+                        set(Calendar.HOUR_OF_DAY, alarmTime.second)
+                        set(Calendar.MINUTE, alarmTime.third)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+//                        if(before(Calendar.getInstance())) { add(Calendar.DATE, 1) }
+                    }
+
+                    val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                    if(alarmManager.canScheduleExactAlarms()) {
+                        val intent = Intent(requireContext(), AlarmReceiver::class.java)
+                        val pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                        val goesOffTime = calendar.timeInMillis
+                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, goesOffTime, pendingIntent)
+                    } else {
+                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                            data = Uri.parse("package:${requireContext().packageName}")
+                        }
+                        requireContext().startActivity(intent)
+                    }
+
                     alarmViewModel.updateAlarmItems(alarmItem)
                     alarmViewModel.clearRandomMissions()
                     Toast.makeText(requireContext(), "알람이 추가되었습니다!", Toast.LENGTH_SHORT).show()

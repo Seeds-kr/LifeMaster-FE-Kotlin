@@ -1,5 +1,6 @@
 package com.example.lifemaster.presentation.group.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -26,9 +27,10 @@ class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
         }
 
         fun bind(item: AlarmItem) = with(binding) {
-            val hour =
-                if (item.time.second in 13..23) item.time.second - 12 else item.time.second
-            tvTime.text = "${hour}:${item.time.third}"
+            llRadioButton
+            val hour = if (item.time.second in 13..23) item.time.second - 12 else item.time.second
+            val minutes = String.format("%02d", item.time.third)
+            tvTime.text = "${hour}:${minutes}"
             tvDayOrNight.text = "${item.time.first}"
             tvAlarmName.text = "${item.title}"
             tvAlarmDelay.text = if (item.isDelaySet) {
@@ -48,6 +50,7 @@ class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
                     RandomMissionType.WRITE_ALONG -> ivRandomMissionWrite.isSelected = true
                 }
             }
+
         }
     }
 

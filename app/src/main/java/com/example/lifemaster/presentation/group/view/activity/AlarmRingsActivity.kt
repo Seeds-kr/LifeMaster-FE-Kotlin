@@ -15,16 +15,19 @@ import com.example.lifemaster.presentation.group.view.service.AlarmService
 class AlarmRingsActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityAlarmRingsBinding
-    private var mediaPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityAlarmRingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val initialPaddingLeft = binding.main.paddingLeft
+        val initialPaddingTop = binding.main.paddingTop
+        val initialPaddingRight = binding.main.paddingRight
+        val initialPaddingBottom = binding.main.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(initialPaddingLeft+systemBars.left, initialPaddingTop+systemBars.top, initialPaddingRight+systemBars.right, initialPaddingBottom+systemBars.bottom)
             insets
         }
 
