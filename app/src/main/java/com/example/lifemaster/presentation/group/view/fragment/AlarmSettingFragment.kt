@@ -149,7 +149,6 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                 } else if (isDelaySet && tvDelayCounts.text.isBlank()) {
                     Toast.makeText(requireContext(), "미루기 설정을 해주세요!", Toast.LENGTH_SHORT).show()
                 } else {
-
                     // 미루기 설정 x
                     val alarmItem = AlarmItem(
                         id = alarmViewModel.alarmItems.value?.size ?: 0,
@@ -174,7 +173,11 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
                     val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
                     if(alarmManager.canScheduleExactAlarms()) {
-                        val intent = Intent(requireContext(), AlarmReceiver::class.java)
+                        val intent = Intent(requireContext(), AlarmReceiver::class.java).apply {
+                            putExtra("day_or_night", alarmTime.first) // string
+                            putExtra("hour(24)", alarmTime.second)
+                            putExtra("minutes", alarmTime.third)
+                        }
                         val pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                         val goesOffTime = calendar.timeInMillis
                         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, goesOffTime, pendingIntent)

@@ -3,10 +3,12 @@ package com.example.lifemaster.presentation.group.view.activity
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.text.toLowerCase
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.lifemaster.databinding.ActivityAlarmRingsBinding
@@ -21,6 +23,16 @@ class AlarmRingsActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityAlarmRingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val dayOrNight = intent?.getStringExtra("day_or_night")
+        val hour = intent?.getIntExtra("hour(24)", 0)
+        val minutes = intent?.getIntExtra("minutes", 0)
+
+        binding.tvCurrentTime.text = "${String.format("%02d", hour)}:$minutes"
+        binding.tvDayOrNight.text = dayOrNight
+
+        Log.d("ttest(AlarmRingsActivity)", "$dayOrNight, $hour, $minutes")
+
         val initialPaddingLeft = binding.main.paddingLeft
         val initialPaddingTop = binding.main.paddingTop
         val initialPaddingRight = binding.main.paddingRight
