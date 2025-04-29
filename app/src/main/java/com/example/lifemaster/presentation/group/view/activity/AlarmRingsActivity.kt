@@ -13,6 +13,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.lifemaster.databinding.ActivityAlarmRingsBinding
 import com.example.lifemaster.presentation.group.view.service.AlarmService
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AlarmRingsActivity : AppCompatActivity() {
 
@@ -24,14 +27,19 @@ class AlarmRingsActivity : AppCompatActivity() {
         binding = ActivityAlarmRingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val dayOrNight = intent?.getStringExtra("day_or_night")
-        val hour = intent?.getIntExtra("hour(24)", 0)
-        val minutes = intent?.getIntExtra("minutes", 0)
+        val currentTimeMillis = System.currentTimeMillis()
+        val date = Date(currentTimeMillis)
+        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val result = formatter.format(date)
+        val hour = result.substringBefore(":").toInt()
+        val timeType = when(hour) {
+            in 6..11 -> "Morning"
+            in 12..18 -> "Afternoon"
+            in 19..23 -> "Night"
+            else -> "Dawn"
+        }
 
-        binding.tvCurrentTime.text = "${String.format("%02d", hour)}:$minutes"
-        binding.tvDayOrNight.text = dayOrNight
-
-        Log.d("ttest(AlarmRingsActivity)", "$dayOrNight, $hour, $minutes")
+        binding.tvTimeType.text = timeType
 
         val initialPaddingLeft = binding.main.paddingLeft
         val initialPaddingTop = binding.main.paddingTop

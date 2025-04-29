@@ -9,22 +9,13 @@ import kotlin.math.min
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
+        Log.e("ttest", ""+intent?.action)
         if(intent?.action == Intent.ACTION_BOOT_COMPLETED) {
             // 앱 강제 종료 후에도 알람 유지 → AlarmManager를 통해 알람을 다시 설정
+            // 기기 재 부팅 시 알람 재 등록
         }
 
-        val dayOrNight = intent?.getStringExtra("day_or_night")
-        val hour = intent?.getIntExtra("hour(24)", 0)
-        val minutes = intent?.getIntExtra("minutes", 0)
-
-//        Log.d("ttest(AlarmReceiver)", "$dayOrNight, $hour, $minutes")
-
-        val alarmService = Intent(context, AlarmService::class.java).apply {
-            putExtra("day_or_night", dayOrNight)
-            putExtra("hour(24)", hour)
-            putExtra("minutes", minutes)
-        }
-
+        val alarmService = Intent(context, AlarmService::class.java)
         context?.startForegroundService(alarmService)
     }
 }
