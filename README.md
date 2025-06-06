@@ -15,4 +15,10 @@
 ![Image](https://github.com/user-attachments/assets/64976450-6753-4634-b57a-a2e1430679f9)
 
 ## 팀원 레포지토리
-https://github.com/Seeds-kr/LifeMaster-FE
+https://github.com/Seeds-kr/LifeMaster-FE <br>
+
+## 구현과 관련하여 기술한 블로그 글 
+- https://soung-appdeveloper.tistory.com/136
+- https://soung-appdeveloper.tistory.com/137
+- https://soung-appdeveloper.tistory.com/138
+- https://soung-appdeveloper.tistory.com/143
