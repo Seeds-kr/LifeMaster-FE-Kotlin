@@ -13,3 +13,6 @@
 ![Image](https://github.com/user-attachments/assets/cff478c8-a869-4d6d-a695-e1009e40fecb)
 ![Image](https://github.com/user-attachments/assets/1ef758eb-6678-4f95-86bd-cca77a1fa110)
 ![Image](https://github.com/user-attachments/assets/64976450-6753-4634-b57a-a2e1430679f9)
+
+## 팀원 레포지토리
+https://github.com/Seeds-kr/LifeMaster-FE
