@@ -12,7 +12,11 @@
 ![Image](https://github.com/user-attachments/assets/d38450c5-eaee-4611-a586-826a04fc844d)
 ![Image](https://github.com/user-attachments/assets/cff478c8-a869-4d6d-a695-e1009e40fecb)
 ![Image](https://github.com/user-attachments/assets/1ef758eb-6678-4f95-86bd-cca77a1fa110)
-![Image](https://github.com/user-attachments/assets/64976450-6753-4634-b57a-a2e1430679f9)
+![Image](https://github.com/user-attachments/assets/64976450-6753-4634-b57a-a2e1430679f9) <br>
+
+# ICT 한이음 공모전
+![Image](https://github.com/user-attachments/assets/cddc30e6-c148-4b49-a6c2-c4eabe448af9)
+![Image](https://github.com/user-attachments/assets/8a874b88-9041-4ee6-821f-79382279e504)
 
 ## 팀원 레포지토리
 https://github.com/Seeds-kr/LifeMaster-FE <br>
