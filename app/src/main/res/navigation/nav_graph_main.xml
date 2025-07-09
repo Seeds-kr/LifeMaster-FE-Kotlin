@@ -56,4 +56,13 @@
         android:name="com.example.lifemaster.presentation.group.GroupFragment"
         android:label="fragment_group"
         tools:layout="@layout/fragment_group" />
+    <fragment
+        android:id="@+id/totalFragment"
+        android:name="com.example.lifemaster.presentation.total.TotalFragment"
+        android:label="fragment_total"
+        tools:layout="@layout/fragment_total" >
+        <action
+            android:id="@+id/action_totalFragment_to_detoxFragment"
+            app:destination="@id/detoxFragment" />
+    </fragment>
 </navigation>

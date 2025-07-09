@@ -215,7 +215,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 R.id.action_total -> {
-                    findNavController(R.id.fragmentContainerView).navigate(R.id.detoxFragment)
+                    findNavController(R.id.fragmentContainerView).navigate(R.id.totalFragment)
                     true
                 }
 
