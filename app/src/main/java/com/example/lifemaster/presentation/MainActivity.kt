@@ -22,10 +22,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityMainBinding
-import com.example.lifemaster.model.PomodoroItem
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
-import com.example.lifemaster.presentation.home.todo.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.TodoItem
+import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
+import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
@@ -34,6 +34,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.Calendar
+import kotlin.getValue
 
 class MainActivity : AppCompatActivity() {
 
@@ -72,7 +73,8 @@ class MainActivity : AppCompatActivity() {
 
         updateRunnable = object : Runnable {
             override fun run() {
-                val elapsedForegroundTime = SystemClock.elapsedRealtime() - foregroundStartTime // 포그라운드로 전환 이후 누적된 시간
+                val elapsedForegroundTime =
+                    SystemClock.elapsedRealtime() - foregroundStartTime // 포그라운드로 전환 이후 누적된 시간
                 detoxCommonViewModel.updateTempElapsedForegroundTime(elapsedForegroundTime)
                 handler.postDelayed(this, 1000L)
             }
@@ -109,7 +111,7 @@ class MainActivity : AppCompatActivity() {
         // 포모도로 → 할일 업데이트
         val updateItem = intent.getParcelableExtra("pomodoro", TodoItem::class.java)
         val todoItemTitle = intent.getStringExtra("todoItemTitle")
-        if(todoItemTitle != null) {
+        if (todoItemTitle != null) {
             RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
                 .enqueue(object : Callback<List<PomodoroItem>> {
                     override fun onResponse(
@@ -117,17 +119,17 @@ class MainActivity : AppCompatActivity() {
                         response: Response<List<PomodoroItem>?>
                     ) {
                         if (response.isSuccessful) {
-                            val response = response.body()
-                            val filterData = response?.filter { it.taskName == todoItemTitle }
-                            val todoItems = toDoViewModel.todoItems.value
-                            var todoItem = todoItems?.find { it.title == todoItemTitle }
-                            Log.d("ttest",""+todoItem)
-                            val pomodoro25Num = filterData?.count { it.focusTime == 20 } ?: 0
-                            val pomodoro50Num = filterData?.count { it.focusTime == 40 } ?: 0
-                            todoItem?.timer25Number = pomodoro25Num
-                            todoItem?.timer50Number = pomodoro50Num
-                            Log.d("ttest",""+todoItem)
-                            todoItem?.let { toDoViewModel.changeTodoItems(it) }
+                            response.body()?.let { pomodoroList ->
+                                val pomodoro = pomodoroList.filter { it.taskName == todoItemTitle }
+                                val pomodoro25Count = pomodoro.count { it.focusTime == 20 }
+                                val pomodoro50Count = pomodoro.count { it.focusTime == 40 }
+                                val todoItem = toDoViewModel.todoItems.value?.find { it.title == todoItemTitle }
+                                todoItem?.let {
+                                    it.timer25Number = pomodoro25Count
+                                    it.timer50Number = pomodoro50Count
+                                    toDoViewModel.changeTodoItems(it)
+                                }
+                            }
                         }
                     }
 
@@ -154,11 +156,12 @@ class MainActivity : AppCompatActivity() {
         val applicationList = arrayListOf<DetoxTargetApp>()
         val usageStatsMap = getDailyUsageStats(this)
 
-        for(app in requiredApps) {
+        for (app in requiredApps) {
             val appName = app.loadLabel(packageManager).toString()
             val appIcon = app.loadUnbadgedIcon(packageManager)
             val appPackageName = app.packageName
-            val accumulatedTime = usageStatsMap[app.packageName] ?: 0L // 누적 사용 시간은 실시간으로 변동되지 않음 (리팩토링 필요)
+            val accumulatedTime =
+                usageStatsMap[app.packageName] ?: 0L // 누적 사용 시간은 실시간으로 변동되지 않음 (리팩토링 필요)
             applicationList.add(DetoxTargetApp(appIcon, appName, appPackageName, accumulatedTime))
         }
 
@@ -174,7 +177,7 @@ class MainActivity : AppCompatActivity() {
 
         var totalUsageTime = 0L
 
-        for(app in requiredApps) {
+        for (app in requiredApps) {
             val accumulatedUsageTime = usageStatsMap[app.packageName] ?: 0L
 //            if(accumulatedUsageTime>0) {
 //                Log.d("debugging", "${app.loadLabel(packageManager)}: ${convertLongFormat(accumulatedUsageTime)}")
@@ -226,7 +229,8 @@ class MainActivity : AppCompatActivity() {
 
     // 자정을 기준으로 하루 앱 사용 시간을 측정하는 함수
     private fun getDailyUsageStats(context: Context): Map<String, Long> {
-        val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val usageStatsManager =
+            context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
         val calendar = Calendar.getInstance()
         calendar.set(Calendar.HOUR_OF_DAY, 0)
@@ -253,10 +257,12 @@ class MainActivity : AppCompatActivity() {
                     currentForegroundApp = event.packageName
                     lastEventTime = event.timeStamp
                 }
+
                 UsageEvents.Event.MOVE_TO_BACKGROUND -> {
                     if (currentForegroundApp != null && lastEventTime != 0L) {
                         val usageTime = event.timeStamp - lastEventTime
-                        eventMap[currentForegroundApp] = (eventMap[currentForegroundApp] ?: 0) + usageTime
+                        eventMap[currentForegroundApp] =
+                            (eventMap[currentForegroundApp] ?: 0) + usageTime
                     }
                     currentForegroundApp = null
                     lastEventTime = 0L
@@ -269,18 +275,20 @@ class MainActivity : AppCompatActivity() {
 
     // 차단 서비스 기능을 위한 접근성 권한 활성화 여부 확인
     private fun isAccessibilityPermitted(context: Context): Boolean {
-        val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-        val enabledServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
+        val accessibilityManager =
+            context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val enabledServices =
+            accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
 
-        for(serviceInfo in enabledServices) {
-            if(serviceInfo.resolveInfo.serviceInfo.packageName == application.packageName) return true
+        for (serviceInfo in enabledServices) {
+            if (serviceInfo.resolveInfo.serviceInfo.packageName == application.packageName) return true
         }
 
         return false
     }
 
     private fun requestAccessibilityPermission(context: Context) {
-        if(!isAccessibilityPermitted(context)) {
+        if (!isAccessibilityPermitted(context)) {
             AlertDialog.Builder(context).apply {
                 setTitle("접근성 권한 허용 필요")
                 setMessage("앱을 사용하기 위해서는 접근성 권한이 필요합니다.")
@@ -295,7 +303,7 @@ class MainActivity : AppCompatActivity() {
 
     // 앱 사용 시간에 대한 설정 화면으로 이동하는 함수(권한 없을 시)
     private fun requestUsageAccessPermission(context: Context) {
-        if(!isUsageAccessGranted(context)) {
+        if (!isUsageAccessGranted(context)) {
             val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
             context.startActivity(intent)
         }
