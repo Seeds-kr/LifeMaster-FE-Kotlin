@@ -1,14 +1,13 @@
-package com.example.lifemaster.presentation.group.adapter
+package com.example.lifemaster.presentation.home.alarm.adapter
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemAlarmBinding
-import com.example.lifemaster.presentation.group.model.AlarmItem
-import com.example.lifemaster.presentation.group.model.RandomMissionType
+import com.example.lifemaster.presentation.home.alarm.model.AlarmItem
+import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 
 class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
     inner class ViewHolder(private val binding: ItemAlarmBinding) :
@@ -27,7 +26,7 @@ class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
         }
 
         fun bind(item: AlarmItem) = with(binding) {
-            llRadioButton
+            includeSwitch.widget.isChecked = true
             val hour = if (item.time.second in 13..23) item.time.second - 12 else item.time.second
             val minutes = String.format("%02d", item.time.third)
             tvTime.text = "${hour}:${minutes}"
