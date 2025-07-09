@@ -189,7 +189,9 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:gravity="center_vertical">
-        <include layout="@layout/layout_custom_switch" />
+        <include
+            android:id="@+id/include_switch"
+            layout="@layout/layout_custom_switch" />
     </LinearLayout>
 
 </LinearLayout>
