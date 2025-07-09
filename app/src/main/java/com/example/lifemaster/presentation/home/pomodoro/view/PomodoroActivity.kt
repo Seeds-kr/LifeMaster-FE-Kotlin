@@ -1,4 +1,4 @@
-package com.example.lifemaster.presentation.home.pomodoro
+package com.example.lifemaster.presentation.home.pomodoro.view
 
 import android.animation.ObjectAnimator
 import android.content.Intent
@@ -15,15 +15,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityPomodoroBinding
-import com.example.lifemaster.model.PomodoroItem
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.MainActivity
-import com.example.lifemaster.presentation.data.SharedData
-import com.example.lifemaster.presentation.home.pomodoro.emergency_escape.EmergencyEscapeActivity
-import com.example.lifemaster.presentation.home.todo.TodoItem
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.lifemaster.presentation.home.pomodoro.model.SharedData
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroStatus
+import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
+import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import java.util.Timer
 import kotlin.concurrent.timer
 
@@ -68,8 +65,7 @@ class PomodoroActivity : AppCompatActivity() {
             if (tvMinutesAndSeconds.text.toString() == getString(R.string.tv_pomodoro_timer_25)) {
                 rgTimer.visibility = View.INVISIBLE
                 ivTimer25.visibility = View.VISIBLE
-                cardviewTodo.strokeColor =
-                    ContextCompat.getColor(this@PomodoroActivity, R.color.blue_100)
+                cardviewTodo.strokeColor = ContextCompat.getColor(this@PomodoroActivity, R.color.blue_100)
                 tvTimerTitle.text = "다음 휴식 시간까지"
                 ObjectAnimator.ofFloat(
                     cardviewTodo,
@@ -77,7 +73,7 @@ class PomodoroActivity : AppCompatActivity() {
                     cardviewTodo.translationY,
                     rgTimer.y - cardviewTodo.y
                 ).apply {
-                    duration = 500
+//                    ObjectAnimator.setDuration = 500
                     start()
                 }
 
@@ -89,8 +85,7 @@ class PomodoroActivity : AppCompatActivity() {
 //                val breakTime = 3 * 10 test
                 val secondStudyTime = 10 * 60 * 10
 //                val secondStudyTime = 2 * 10 test
-                val totalTime =
-                    firstStudyTime + breakTime + secondStudyTime  // 테스트용 3초 ( 25 * 60 * 10 )
+                val totalTime = firstStudyTime + breakTime + secondStudyTime  // 테스트용 3초 ( 25 * 60 * 10 )
 
                 // worker thread
                 timer = timer(
@@ -115,7 +110,7 @@ class PomodoroActivity : AppCompatActivity() {
                     cardviewTodo.translationY,
                     rgTimer.y - cardviewTodo.y
                 ).apply {
-                    duration = 500
+//                    ObjectAnimator.setDuration = 500
                     start()
                 }
 
@@ -261,42 +256,42 @@ class PomodoroActivity : AppCompatActivity() {
                 )
             }
 
-            RetrofitInstance.networkService.registerPomodoroTimer(
-                token = "Bearer $userToken",
-                pomodoroItem = pomodoroItem
-            ).enqueue(object : Callback<Any> {
-                override fun onResponse(
-                    call: Call<in Any>,
-                    response: Response<in Any>
-                ) {
-                    if (response.isSuccessful) {
-                        Toast.makeText(
-                            this@PomodoroActivity,
-                            "포모도로 타이머 등록 성공!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        Toast.makeText(
-                            this@PomodoroActivity,
-                            "포모도로 타이머 등록 실패!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-
-                override fun onFailure(
-                    call: Call<in Any>,
-                    t: Throwable
-                ) {
-                    Toast.makeText(this@PomodoroActivity, "서버 통신 실패!", Toast.LENGTH_SHORT)
-                        .show()
-                }
-
-            })
+//            RetrofitInstance.networkService.registerPomodoroTimer(
+//                token = "Bearer $userToken",
+//                pomodoroItem = pomodoroItem
+//            ).enqueue(object : Callback<Any> {
+//                override fun onResponse(
+//                    call: Call<in Any>,
+//                    response: Response<in Any>
+//                ) {
+//                    if (response.isSuccessful) {
+//                        Toast.makeText(
+//                            this@PomodoroActivity,
+//                            "포모도로 타이머 등록 성공!",
+//                            Toast.LENGTH_SHORT
+//                        ).show()
+//                    } else {
+//                        Toast.makeText(
+//                            this@PomodoroActivity,
+//                            "포모도로 타이머 등록 실패!",
+//                            Toast.LENGTH_SHORT
+//                        ).show()
+//                    }
+//                }
+//
+//                override fun onFailure(
+//                    call: Call<in Any>,
+//                    t: Throwable
+//                ) {
+//                    Toast.makeText(this@PomodoroActivity, "서버 통신 실패!", Toast.LENGTH_SHORT)
+//                        .show()
+//                }
+//
+//            })
 
             val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
                 putExtra("todoItemTitle", todoItem?.title)
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+//                Intent.setFlags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
             }
 
             startActivity(intent)
