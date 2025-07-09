@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/alarmSettingFragment"
-        android:name="com.example.lifemaster.presentation.group.view.fragment.AlarmSettingFragment"
+        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmSettingFragment"
         android:label="fragment_alarm_setting"
         tools:layout="@layout/fragment_alarm_setting">
         <action
@@ -39,7 +39,7 @@
         tools:layout="@layout/fragment_detox" />
     <fragment
         android:id="@+id/alarmListFragment"
-        android:name="com.example.lifemaster.presentation.group.view.fragment.AlarmListFragment"
+        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmListFragment"
         android:label="fragment_alarm_list_copy"
         tools:layout="@layout/fragment_alarm_list" >
         <action
@@ -48,7 +48,7 @@
     </fragment>
     <fragment
         android:id="@+id/alarmRingsFragment"
-        android:name="com.example.lifemaster.presentation.group.view.AlarmRingsFragment"
+        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmRingsFragment"
         android:label="fragment_alarm_ring"
         tools:layout="@layout/fragment_alarm_ring" />
     <fragment

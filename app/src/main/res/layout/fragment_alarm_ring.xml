@@ -6,8 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_alarm"
     android:orientation="vertical"
-    android:padding="16dp"
-    tools:context=".presentation.group.fragment.AlarmRingsFragment">
+    android:padding="16dp">
 
     <ImageView
         android:layout_width="36dp"
