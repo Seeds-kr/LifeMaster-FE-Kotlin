@@ -200,7 +200,7 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.action_home -> {
-                    findNavController(R.id.fragmentContainerView).navigate(R.id.toDoFragment)
+                    findNavController(R.id.fragmentContainerView).navigate(R.id.homeFragment)
                     true
                 }
 

@@ -1,4 +1,4 @@
-package com.example.lifemaster.presentation.home.todo
+package com.example.lifemaster.presentation.home
 
 import android.content.Context
 import android.os.Bundle
@@ -8,92 +8,46 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
+import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
 import com.example.lifemaster.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.home.todo.TODO
+import com.example.lifemaster.presentation.home.todo.ToDoAdapter
+import com.example.lifemaster.presentation.home.todo.ToDoDialog
+import com.example.lifemaster.presentation.home.todo.ToDoViewModel
+import com.example.lifemaster.presentation.home.todo.TodoItem
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-
-class ToDoFragment : Fragment() {
+class HomeFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding
     lateinit var todoItems: ArrayList<TodoItem>
     private val toDoViewModel: ToDoViewModel by activityViewModels()
     private var userToken: String? = null
 
-    companion object {
-        var isPomodoroRequestRequired = false
-    }
-
-    private val TAG = "MainFragment"
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        Log.d(TAG, "onAttach")
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Log.d(TAG, "onCreateView")
         binding = FragmentHomeBinding.inflate(inflater)
         return binding.root
     }
 
-    override fun onStart() {
-        super.onStart()
-        Log.d(TAG, "onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (isPomodoroRequestRequired) {
-            isPomodoroRequestRequired = false
-            Log.d(TAG, "onResume")
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Log.d(TAG, "onPause")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.d(TAG, "onStop")
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        Log.d(TAG, "onDestroyView")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "onDestroy")
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        Log.d(TAG, "onDetach")
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d(TAG, "onViewCreated")
         binding = FragmentHomeBinding.bind(view)
-        initViews()
-        initListeners()
-        initObservers()
+//        initViews()
+//        initListeners()
+//        initObservers()
+        // 알람 화면 이동
+        binding.cvGoToAlarm.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
+        }
     }
 
     private fun initViews() = with(binding) {
@@ -162,13 +116,12 @@ class ToDoFragment : Fragment() {
     private fun initListeners() {
         binding.btnAddTodoItem.setOnClickListener {
             val dialog = ToDoDialog(caller = TODO.ADD, userToken = userToken)
-            dialog.show(childFragmentManager, ToDoDialog.TAG)
+            dialog.show(childFragmentManager, ToDoDialog.Companion.TAG)
         }
     }
 
     private fun initObservers() {
         toDoViewModel.todoItems.observe(viewLifecycleOwner) { updateItems ->
-            Log.d("ttest", "" + updateItems)
             val newList = updateItems.map { it.copy() }
             (binding.recyclerview.adapter as ToDoAdapter).submitList(newList)
         }
