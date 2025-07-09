@@ -205,7 +205,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 R.id.action_group -> {
-                    findNavController(R.id.fragmentContainerView).navigate(R.id.alarmListFragment)
+                    findNavController(R.id.fragmentContainerView).navigate(R.id.groupFragment)
                     true
                 }
 

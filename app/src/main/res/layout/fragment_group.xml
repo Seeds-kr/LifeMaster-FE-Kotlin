@@ -3,13 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.community.CommunityFragment">
+    tools:context=".presentation.group.GroupFragment">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:text="커뮤니티 화면"
+        android:text="그룹 화면"
         android:textSize="40sp"/>
 
 </FrameLayout>
