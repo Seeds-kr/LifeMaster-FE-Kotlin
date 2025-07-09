@@ -3,19 +3,13 @@
     <item android:id="@+id/action_home"
         android:title="홈"
         android:icon="@drawable/ic_home"/>
-<!--    <item android:id="@+id/action_group"-->
-<!--        android:title="그룹"-->
-<!--        android:icon="@drawable/ic_group"/>-->
-    <item android:id="@+id/action_alarm"
-        android:title="알람"
-        android:icon="@drawable/ic_alarm"/>
+    <item android:id="@+id/action_group"
+        android:title="그룹"
+        android:icon="@drawable/ic_group"/>
     <item android:id="@+id/action_community"
         android:title="커뮤니티"
         android:icon="@drawable/ic_community"/>
-<!--    <item android:id="@+id/action_total"-->
-<!--        android:title="전체"-->
-<!--        android:icon="@drawable/ic_total"/>-->
-    <item android:id="@+id/action_detox"
-        android:title="디톡스"
-        android:icon="@drawable/ic_detox"/>
+    <item android:id="@+id/action_total"
+        android:title="전체"
+        android:icon="@drawable/ic_total"/>
 </menu>

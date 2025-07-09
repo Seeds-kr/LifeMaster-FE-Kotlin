@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             !isSystemApp && !isUpdatedSystemApp
         }
 
-        if(savedInstanceState == null) binding.bottomNavigation.selectedItemId = R.id.action_alarm
+        if (savedInstanceState == null) binding.bottomNavigation.selectedItemId = R.id.action_home
 
         fetchApplications()
 
@@ -198,23 +198,27 @@ class MainActivity : AppCompatActivity() {
     private fun setupListeners() {
         // [!] setOnClickListener 가 아니라 setOnItemSelectedListener 이기 때문에, 하단 개별 뷰를 누르지 않더라도 selectedItemId 를 해당 뷰로 바꿔주면 동작한다.
         binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when(item.itemId) {
+            when (item.itemId) {
                 R.id.action_home -> {
                     findNavController(R.id.fragmentContainerView).navigate(R.id.toDoFragment)
                     true
                 }
-                R.id.action_alarm -> {
+
+                R.id.action_group -> {
                     findNavController(R.id.fragmentContainerView).navigate(R.id.alarmListFragment)
                     true
                 }
+
                 R.id.action_community -> {
                     findNavController(R.id.fragmentContainerView).navigate(R.id.communityFragment)
                     true
                 }
-                R.id.action_detox -> {
+
+                R.id.action_total -> {
                     findNavController(R.id.fragmentContainerView).navigate(R.id.detoxFragment)
                     true
                 }
+
                 else -> false
             }
         }
