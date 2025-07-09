@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".presentation.home.pomodoro.PomodoroActivity">
+    tools:context=".presentation.home.pomodoro.view.PomodoroActivity">
 
     <ImageView
         android:layout_width="48dp"
@@ -56,7 +56,7 @@
             android:textColor="@drawable/selector_pomodoro_timer_text" />
     </RadioGroup>
 
-    <com.example.lifemaster.presentation.home.pomodoro.CircularTimerView
+    <com.example.lifemaster.presentation.home.pomodoro.view.CircularTimerView
         android:id="@+id/circularTimerView"
         android:layout_width="160dp"
         android:layout_height="160dp"

@@ -1,8 +1,8 @@
 package com.example.lifemaster.network
 
-import com.example.lifemaster.model.PomodoroItem
-import com.example.lifemaster.presentation.authentication.model.LoginInfo
-import com.example.lifemaster.presentation.home.todo.TodoItem
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
+import com.example.lifemaster.presentation.login.model.LoginInfo
+import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -22,7 +22,6 @@ interface NetworkService {
         @Body loginInfo: LoginInfo
     ): Call<String>
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////
     // 모든 To-Do 항목 조회
     @GET("/schedule/todo")
     fun getTodoItems(
@@ -65,7 +64,6 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Path("id") id: Int
     ):Call<TodoItem>
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // 새로운 포모도로 타이머 생성
     @POST("/time/pomodoro/create")
