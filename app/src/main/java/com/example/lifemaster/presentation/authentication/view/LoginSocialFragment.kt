@@ -71,12 +71,6 @@ class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
 //
 //            })
         }
-        tvLoginWithEmail.setOnClickListener {
-            // TODO: 코드 작성해주시면 됩니다.
-        }
-        tvSignUp.setOnClickListener {
-            // TODO: 코드 작성해주시면 됩니다.
-        }
     }
 
     fun loginWithKaKao(
