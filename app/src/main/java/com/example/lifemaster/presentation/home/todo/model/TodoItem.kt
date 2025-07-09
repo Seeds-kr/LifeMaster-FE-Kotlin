@@ -1,4 +1,4 @@
-package com.example.lifemaster.presentation.home.todo
+package com.example.lifemaster.presentation.home.todo.model
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
@@ -18,7 +18,5 @@ data class TodoItem(
 @Parcelize
 data class CalendarItem(
     val id: Int = 0,
-    val date: String = "",
-    val day: String = "",
-    val events: List<String> = emptyList()
+    val date: String = ""
 ) : Parcelable
