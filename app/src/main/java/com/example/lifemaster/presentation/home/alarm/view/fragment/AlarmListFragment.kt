@@ -1,13 +1,7 @@
-package com.example.lifemaster.presentation.group.view.fragment
+package com.example.lifemaster.presentation.home.alarm.view.fragment
 
-import android.app.AlarmManager
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
@@ -17,9 +11,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmListBinding
-import com.example.lifemaster.presentation.group.adapter.AlarmAdapter
-import com.example.lifemaster.presentation.group.receiver.AlarmReceiver
-import com.example.lifemaster.presentation.group.viewmodel.AlarmViewModel
+import com.example.lifemaster.presentation.home.alarm.adapter.AlarmAdapter
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 
 class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
@@ -27,6 +20,7 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
     private val alarmViewModel: AlarmViewModel by activityViewModels()
     private val alarmAdapter = AlarmAdapter()
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmListBinding.bind(view)
@@ -48,21 +42,6 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
             tvAddAlarmItem.setOnClickListener {
                 findNavController().navigate(R.id.action_alarmListFragment_to_alarmSettingFragment)
             }
-            btnAlarmTest.setOnClickListener {
-                val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                if(alarmManager.canScheduleExactAlarms()) {
-                    val intent = Intent(requireContext(), AlarmReceiver::class.java)
-                    val pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                    val goesOffTime = System.currentTimeMillis() + 5_000 // 현재로부터 5초 뒤
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, goesOffTime, pendingIntent)
-                }
-                else {
-                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                        data = Uri.parse("package:${requireContext().packageName}")
-                    }
-                    requireContext().startActivity(intent)
-                }
-            }
         }
     }
 
@@ -72,7 +51,7 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
                 binding.llNoAlarmItem.visibility = View.GONE
                 binding.recyclerview.visibility = View.VISIBLE
             }
-            alarmAdapter.submitList(items.toMutableList())
+            alarmAdapter.submitList(items)
         }
     }
 }
