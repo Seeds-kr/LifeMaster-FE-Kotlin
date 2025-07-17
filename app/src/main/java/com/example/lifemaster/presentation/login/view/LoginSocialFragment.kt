@@ -11,6 +11,7 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentLoginSocialBinding
 import com.example.lifemaster.presentation.MainActivity
 import com.kakao.sdk.user.UserApiClient
+import androidx.navigation.fragment.findNavController
 
 class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
 
@@ -65,7 +66,16 @@ class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
 //
 //            })
         }
+        // 이메일로 로그인, 이메일로 가입
+        btnEmailLogin.setOnClickListener {
+            findNavController().navigate(R.id.loginEmailFragment)
+        }
+
+        btnEmailSignup.setOnClickListener {
+            findNavController().navigate(R.id.signupEmailFragment)
+        }
     }
+
 
     fun loginWithKaKao(
         context: Context,
