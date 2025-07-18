@@ -18,9 +18,10 @@ class ResetPasswordFragment : Fragment(R.layout.fragment_reset_password) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentResetPasswordBinding.bind(view)
 
-        binding.btnBack.setOnClickListener {
+        binding.includeBackButton.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+
 
         setupListeners()
     }
@@ -29,7 +30,7 @@ class ResetPasswordFragment : Fragment(R.layout.fragment_reset_password) {
         btnPasswordChange.setOnClickListener {
             val newPassword = editNewPassword.text.toString()
             val passwordCheck = editPasswordCheck.text.toString()
-            val passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]{8,16}$".toRegex()
+            val passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,16}\$".toRegex()
 
             if (!newPassword.matches(passwordRegex)) {
                 tvNewPasswordError.visibility = View.VISIBLE

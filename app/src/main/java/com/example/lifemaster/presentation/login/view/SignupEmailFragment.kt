@@ -28,16 +28,16 @@ class SignupEmailFragment : Fragment(R.layout.fragment_signup_email) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnBack.setOnClickListener {
+        binding.includeBackButton.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+
 
         binding.btnSignup.setOnClickListener {
             val email = binding.editEmail.text.toString().trim()
             val password = binding.editPassword.text.toString()
             val passwordCheck = binding.editPasswordCheck.text.toString()
 
-            // ✅ 이메일 형식 검증 (Patterns.EMAIL_ADDRESS 사용)
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(requireContext(), "올바른 이메일 형식을 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener

@@ -20,7 +20,7 @@ class SignupProfileFragment : Fragment(R.layout.fragment_signup_profile) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentSignupProfileBinding.bind(view)
 
-        binding.btnBack.setOnClickListener {
+        binding.includeBackButton.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
