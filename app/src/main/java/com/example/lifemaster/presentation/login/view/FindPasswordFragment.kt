@@ -40,8 +40,6 @@ class FindPasswordFragment : Fragment(R.layout.fragment_find_password) {
 
                     // 임시로 바로 비밀번호 재설정 화면으로 이동
                     findNavController().navigate(R.id.resetPasswordFragment)
-
-                    // TODO: 나중에 실제 이메일 인증 API 연동 후 성공 시에만 이동
                 }
             }
         }
