@@ -72,5 +72,14 @@
         android:id="@+id/sleepMainFragment"
         android:name="com.example.lifemaster.presentation.home.sleep.SleepMainFragment"
         android:label="fragment_sleep_main"
-        tools:layout="@layout/fragment_sleep_main" />
+        tools:layout="@layout/fragment_sleep_main" >
+        <action
+            android:id="@+id/action_sleepMainFragment_to_sleepPlaylistFragment"
+            app:destination="@id/sleepPlaylistFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/sleepPlaylistFragment"
+        android:name="com.example.lifemaster.presentation.home.sleep.SleepPlaylistFragment"
+        android:label="fragment_sleep_playlist"
+        tools:layout="@layout/fragment_sleep_playlist" />
 </navigation>
