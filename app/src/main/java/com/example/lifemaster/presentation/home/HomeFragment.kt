@@ -42,12 +42,9 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentHomeBinding.bind(view)
 //        initViews()
-//        initListeners()
+        initListeners()
 //        initObservers()
         // 알람 화면 이동
-        binding.cvGoToAlarm.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
-        }
     }
 
     private fun initViews() = with(binding) {
@@ -118,6 +115,9 @@ class HomeFragment : Fragment() {
             val dialog = ToDoDialog(caller = TODO.ADD, userToken = userToken)
             dialog.show(childFragmentManager, ToDoDialog.Companion.TAG)
         }
+    private fun initListeners() = with(binding) {
+        cvGoToAlarm.setOnClickListener { findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment) }
+        btnSleepReport.setOnClickListener { findNavController().navigate(R.id.action_homeFragment_to_sleepMainFragment) }
     }
 
     private fun initObservers() {

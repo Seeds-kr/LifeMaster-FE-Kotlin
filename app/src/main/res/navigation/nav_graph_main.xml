@@ -26,6 +26,9 @@
         <action
             android:id="@+id/action_homeFragment_to_alarmListFragment"
             app:destination="@id/alarmListFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_sleepMainFragment"
+            app:destination="@id/sleepMainFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
@@ -65,4 +68,9 @@
             android:id="@+id/action_totalFragment_to_detoxFragment"
             app:destination="@id/detoxFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/sleepMainFragment"
+        android:name="com.example.lifemaster.presentation.home.sleep.SleepMainFragment"
+        android:label="fragment_sleep_main"
+        tools:layout="@layout/fragment_sleep_main" />
 </navigation>
