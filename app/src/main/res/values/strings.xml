@@ -31,5 +31,10 @@
     <string name="sleep_main_title">You Slept</string>
     <string name="sleep_main_hour_label">h</string>
     <string name="sleep_main_minute_label">min</string>
+    <string name="sleep_playlist_title">숙면 플레이리스트</string>
+    <string name="sleep_playlist_white_noise_title">백색소음</string>
+    <string name="sleep_playlist_view_more">더보기</string>
+    <string name="sleep_playlist_nature_sounds_title">자연의 소리</string>
+    <string name="sleep_playlist_classic_title">클래식 음악</string>
 
 </resources>
