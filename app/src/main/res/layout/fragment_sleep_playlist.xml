@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     tools:context=".presentation.home.sleep.SleepPlaylistFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -104,7 +105,7 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cv_sleep_playlist_nature_sounds"
             android:layout_width="0dp"
-            android:layout_height="280dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp"
@@ -114,7 +115,7 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:paddingHorizontal="20dp"
                 android:paddingVertical="12dp">
 
@@ -128,45 +129,49 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerview_sleep_playlist_nature_sounds"
+                <LinearLayout
+                    android:id="@+id/ll_sleep_playlist_nature_sounds"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginVertical="20dp"
-                    app:layout_constraintBottom_toTopOf="@id/tv_sleep_playlist_nature_sounds_view_more"
+                    android:orientation="vertical"
+                    app:layout_constraintBottom_toTopOf="@id/ll_sleep_playlist_nature_sounds_view_more"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/tv_sleep_playlist_nature_sounds_title" />
 
-                <TextView
-                    android:id="@+id/tv_sleep_playlist_nature_sounds_view_more"
+                <LinearLayout
+                    android:id="@+id/ll_sleep_playlist_nature_sounds_view_more"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/sleep_playlist_view_more"
-                    android:textColor="#717171"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/iv_sleep_playlist_nature_sounds_view_more"
-                    app:layout_constraintHorizontal_chainStyle="packed"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-                <ImageView
-                    android:id="@+id/iv_sleep_playlist_nature_sounds_view_more"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:src="@drawable/ic_arrow_down"
-                    app:layout_constraintBottom_toBottomOf="@id/tv_sleep_playlist_nature_sounds_view_more"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/tv_sleep_playlist_nature_sounds_view_more"
-                    app:layout_constraintTop_toTopOf="@id/tv_sleep_playlist_nature_sounds_view_more"
-                    app:tint="#717171" />
+                    app:layout_constraintBottom_toBottomOf="parent">
+                    <TextView
+                        android:id="@+id/tv_sleep_playlist_nature_sounds_view_more"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sleep_playlist_view_more"
+                        android:textColor="#717171" />
+
+                    <ImageView
+                        android:id="@+id/iv_sleep_playlist_nature_sounds_view_more"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:src="@drawable/ic_arrow_down"
+                        app:tint="#717171" />
+                </LinearLayout>
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cv_sleep_playlist_classic"
             android:layout_width="0dp"
-            android:layout_height="280dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp"
@@ -176,7 +181,7 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:paddingHorizontal="20dp"
                 android:paddingVertical="12dp">
 
@@ -190,38 +195,41 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerview_sleep_playlist_classic"
+                <LinearLayout
+                    android:id="@+id/ll_sleep_playlist_classic"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginVertical="20dp"
-                    app:layout_constraintBottom_toTopOf="@id/tv_sleep_playlist_classic_view_more"
+                    android:orientation="vertical"
+                    app:layout_constraintBottom_toTopOf="@id/ll_sleep_playlist_classic_view_more"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/tv_sleep_playlist_classic_title" />
 
-                <TextView
-                    android:id="@+id/tv_sleep_playlist_classic_view_more"
+                <LinearLayout
+                    android:id="@+id/ll_sleep_playlist_classic_view_more"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/sleep_playlist_view_more"
-                    android:textColor="#717171"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/iv_sleep_playlist_classic_view_more"
-                    app:layout_constraintHorizontal_chainStyle="packed"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-                <ImageView
-                    android:id="@+id/iv_sleep_playlist_classic_view_more"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:src="@drawable/ic_arrow_down"
-                    app:layout_constraintBottom_toBottomOf="@id/tv_sleep_playlist_classic_view_more"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/tv_sleep_playlist_classic_view_more"
-                    app:layout_constraintTop_toTopOf="@id/tv_sleep_playlist_classic_view_more"
-                    app:tint="#717171" />
+                    app:layout_constraintBottom_toBottomOf="parent">
+                    <TextView
+                        android:id="@+id/tv_sleep_playlist_classic_view_more"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sleep_playlist_view_more"
+                        android:textColor="#717171" />
+
+                    <ImageView
+                        android:id="@+id/iv_sleep_playlist_classic_view_more"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:src="@drawable/ic_arrow_down"
+                        app:tint="#717171" />
+                </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
