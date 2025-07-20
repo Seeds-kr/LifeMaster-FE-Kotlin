@@ -1,60 +1,58 @@
 package com.example.lifemaster.presentation.home.sleep
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.example.lifemaster.R
+import com.example.lifemaster.databinding.FragmentSleepPlaylistBinding
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [SleepPlaylistFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class SleepPlaylistFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    lateinit var binding: FragmentSleepPlaylistBinding
+    private val sleepPlaylistAdapter = SleepPlaylistAdapter()
+    private val sampleMusic = listOf(
+        SleepItem(
+            id = 1,
+            title = "꿀잠 자는 백색소음",
+            duration = "01:10:32",
+            thumbnail = R.drawable.tmp_sleep_playlist,
+            description = "포브스 선정 잘 때 틀면 꿀잠 자는 백색소음 Top 100"
+        ),
+        SleepItem(
+            id = 2,
+            title = "꿀잠 자는 백색소음 2",
+            duration = "00:45:20",
+            thumbnail = R.drawable.tmp_sleep_playlist,
+            description = "포브스 선정 잘 때 틀면 꿀잠 자는 백색소음 Top 100 중에 101위"
+        ),
+        SleepItem(
+            id = 3,
+            title = "꿀잠 자는 백색소음 3",
+            duration = "02:00:00",
+            thumbnail = R.drawable.tmp_sleep_playlist,
+            description = "포브스 선정 잘 때 틀면 꿀잠 자는 백색소음 Top 100 중에 102위"
+        ),
+        SleepItem(
+            id = 4,
+            title = "꿀잠 자는 백색소음 4",
+            duration = "01:30:45",
+            thumbnail = R.drawable.tmp_sleep_playlist,
+            description = "포브스 선정 잘 때 틀면 꿀잠 자는 백색소음 Top 100 중에 103위"
+        ),
+        SleepItem(
+            id = 5,
+            title = "꿀잠 자는 백색소음 5",
+            duration = "00:55:10",
+            thumbnail = R.drawable.tmp_sleep_playlist,
+            description = "포브스 선정 잘 때 틀면 꿀잠 자는 백색소음 Top 100 중에 104위"
+        )
+    )
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_sleep_playlist, container, false)
-    }
-
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment SleepPlaylistFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            SleepPlaylistFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding = FragmentSleepPlaylistBinding.bind(view)
+        binding.recyclerviewSleepPlaylistWhiteNoise.adapter = sleepPlaylistAdapter
+        sleepPlaylistAdapter.submitList(sampleMusic)
     }
 }
