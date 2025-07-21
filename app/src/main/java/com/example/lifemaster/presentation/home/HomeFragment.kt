@@ -132,7 +132,6 @@ class HomeFragment : Fragment() {
             dialog.show(childFragmentManager, ToDoDialog.Companion.TAG)
         }
 
-        // ✅ 홈 화면 편집 이동
         binding.tvHomeEdit.setOnClickListener {
             val intent = Intent(requireContext(), HomeEditActivity::class.java)
             startActivity(intent)

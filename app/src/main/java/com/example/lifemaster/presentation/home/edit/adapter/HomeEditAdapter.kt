@@ -16,7 +16,7 @@ class HomeEditAdapter(
     private val isServiceList: Boolean,
     private val onToggleClick: (String, Boolean) -> Unit,
     private val startDragListener: OnStartDragListener? = null
-) : RecyclerView.Adapter<HomeEditAdapter.ServiceViewHolder>(), ItemTouchHelperAdapter {
+) : RecyclerView.Adapter<HomeEditAdapter.ServiceViewHolder>(), HomeEditTouchHelperAdapter {
 
     private val iconTintMap = mapOf(
         "수면" to "#333333",
