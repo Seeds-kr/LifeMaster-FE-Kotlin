@@ -37,5 +37,11 @@
     <string name="sleep_playlist_view_less">접기</string>
     <string name="sleep_playlist_nature_sounds_title">자연의 소리</string>
     <string name="sleep_playlist_classic_title">클래식 음악</string>
+    <string name="sleep_report_today_mood">오늘의 기분</string>
+    <string name="sleep_report_analysis_title">평소보다</string>
+    <string name="sleep_report_analysis_sleep_time_title">더 잤어요</string>
+    <string name="sleep_report_analysis_sleep_score_title">수면점수</string>
+    <string name="sleep_report_analysis_alarm_duration_title">알람이 울린 시간</string>
+    <string name="sleep_report_analysis_wakeup_delay_time_title">일어나는 데 걸린 시간</string>
 
 </resources>
