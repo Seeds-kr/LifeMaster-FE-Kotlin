@@ -1,6 +1,7 @@
 package com.example.lifemaster.presentation.home
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -18,6 +19,8 @@ import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
+import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -40,10 +43,20 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         binding = FragmentHomeBinding.bind(view)
-//        initViews()
-//        initListeners()
-//        initObservers()
+
+        binding.containerCalendar.post {
+            if (childFragmentManager.findFragmentById(R.id.container_calendar) == null) {
+                childFragmentManager.beginTransaction()
+                    .replace(R.id.container_calendar, CalendarFragment())
+                    .commit()
+            }
+        }
+
+        initViews()
+        initListeners()
+        initObservers()
         // 알람 화면 이동
         binding.cvGoToAlarm.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
@@ -117,6 +130,12 @@ class HomeFragment : Fragment() {
         binding.btnAddTodoItem.setOnClickListener {
             val dialog = ToDoDialog(caller = TODO.ADD, userToken = userToken)
             dialog.show(childFragmentManager, ToDoDialog.Companion.TAG)
+        }
+
+        // ✅ 홈 화면 편집 이동
+        binding.tvHomeEdit.setOnClickListener {
+            val intent = Intent(requireContext(), HomeEditActivity::class.java)
+            startActivity(intent)
         }
     }
 

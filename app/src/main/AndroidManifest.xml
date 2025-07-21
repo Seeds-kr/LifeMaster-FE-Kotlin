@@ -62,6 +62,10 @@
         </activity>
         <activity android:name=".presentation.home.pomodoro.view.PomodoroActivity" />
 
+        <activity
+            android:name=".presentation.home.edit.view.HomeEditActivity"
+            android:exported="false" />
+
         <service
             android:name=".presentation.total.detox.service.DetoxBlockService"
             android:exported="true"
