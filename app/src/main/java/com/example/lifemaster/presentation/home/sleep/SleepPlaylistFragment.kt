@@ -122,7 +122,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
             } else {
                 // step 1. 뷰 상태 변경
                 tvSleepPlaylistWhiteNoiseViewMore.text = resources.getString(R.string.sleep_playlist_view_more)
-                ivSleepPlaylistWhiteNoiseViewMore.rotation = 180f
+                ivSleepPlaylistWhiteNoiseViewMore.rotation = 0f
                 // step 2. 뷰 제거
                 llSleepPlaylistWhiteNoise.removeViews(2, sampleWhiteNoiseMusic.size-2)
             }
@@ -148,7 +148,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
             } else {
                 // step 1. 뷰 상태 변경
                 tvSleepPlaylistNatureSoundsViewMore.text = resources.getString(R.string.sleep_playlist_view_more)
-                ivSleepPlaylistNatureSoundsViewMore.rotation = 180f
+                ivSleepPlaylistNatureSoundsViewMore.rotation = 0f
                 // step 2. 뷰 제거
                 llSleepPlaylistNatureSounds.removeViews(2, sampleNatureSoundMusic.size-2)
             }
@@ -174,7 +174,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
             } else {
                 // step 1. 뷰 상태 변경
                 tvSleepPlaylistClassicViewMore.text = resources.getString(R.string.sleep_playlist_view_more)
-                ivSleepPlaylistClassicViewMore.rotation = 180f
+                ivSleepPlaylistClassicViewMore.rotation = 0f
                 // step 2. 뷰 제거
                 llSleepPlaylistClassic.removeViews(2, sampleClassicMusic.size-2)
             }
