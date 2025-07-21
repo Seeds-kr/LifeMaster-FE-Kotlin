@@ -1,0 +1,100 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/tv_selected_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="7월"
+                android:textSize="20sp"
+                android:textColor="@android:color/black"
+                android:textStyle="bold" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_month"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:text="월"
+                android:textSize="11sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/bg_round_and_mint"
+                android:layout_marginEnd="8dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_week"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:text="주"
+                android:textSize="11sp"
+                android:textColor="#99A0E0CF"
+                android:background="@drawable/bg_calendar_unselected"
+                android:layout_marginEnd="8dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_day"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:text="일"
+                android:textSize="11sp"
+                android:textColor="#99A0E0CF"
+                android:background="@drawable/bg_calendar_unselected" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/calendarContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="4dp"
+            android:background="@android:color/white">
+
+            <LinearLayout
+                android:id="@+id/layout_week_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp"
+                android:weightSum="7">
+
+                <TextView style="@style/CalendarWeekHeader" android:text="SUN" />
+                <TextView style="@style/CalendarWeekHeader" android:text="MON" />
+                <TextView style="@style/CalendarWeekHeader" android:text="TUE" />
+                <TextView style="@style/CalendarWeekHeader" android:text="WED" />
+                <TextView style="@style/CalendarWeekHeader" android:text="THU" />
+                <TextView style="@style/CalendarWeekHeader" android:text="FRI" />
+                <TextView style="@style/CalendarWeekHeader" android:text="SAT" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/monthRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" />
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/weekRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp"/>
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
