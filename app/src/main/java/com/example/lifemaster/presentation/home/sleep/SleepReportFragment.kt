@@ -29,12 +29,6 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             Entry(15f, 5f)
         )
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_sleep_report, container, false)
         // line 1개
         val lineDataSet = LineDataSet(dataPoints, "수면 꺾은선 그래프")
         lineDataSet.color = Color.parseColor("#BBAB94") // 선 색상
