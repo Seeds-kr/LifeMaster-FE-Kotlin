@@ -27,8 +27,8 @@
             android:id="@+id/action_homeFragment_to_alarmListFragment"
             app:destination="@id/alarmListFragment" />
         <action
-            android:id="@+id/action_homeFragment_to_sleepMainFragment"
-            app:destination="@id/sleepMainFragment" />
+            android:id="@+id/action_homeFragment_to_sleepPlaylistFragment"
+            app:destination="@id/sleepPlaylistFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
@@ -69,19 +69,26 @@
             app:destination="@id/detoxFragment" />
     </fragment>
     <fragment
-        android:id="@+id/sleepMainFragment"
-        android:name="com.example.lifemaster.presentation.home.sleep.SleepMainFragment"
-        android:label="fragment_sleep_main"
-        tools:layout="@layout/fragment_sleep_main" >
+        android:id="@+id/sleepPlaylistDetailFragment"
+        android:name="com.example.lifemaster.presentation.home.sleep.SleepPlaylistDetailFragment"
+        android:label="fragment_sleep_playlist_detail"
+        tools:layout="@layout/fragment_sleep_playlist_detail" >
         <action
-            android:id="@+id/action_sleepMainFragment_to_sleepPlaylistFragment"
+            android:id="@+id/action_sleepPlaylistDetailFragment_to_sleepPlaylistFragment"
             app:destination="@id/sleepPlaylistFragment" />
     </fragment>
     <fragment
         android:id="@+id/sleepPlaylistFragment"
         android:name="com.example.lifemaster.presentation.home.sleep.SleepPlaylistFragment"
         android:label="fragment_sleep_playlist"
-        tools:layout="@layout/fragment_sleep_playlist" />
+        tools:layout="@layout/fragment_sleep_playlist" >
+        <action
+            android:id="@+id/action_sleepPlaylistFragment_to_sleepMainFragment"
+            app:destination="@id/sleepPlaylistDetailFragment" />
+        <action
+            android:id="@+id/action_sleepPlaylistFragment_to_sleepReportFragment"
+            app:destination="@id/sleepReportFragment" />
+    </fragment>
     <fragment
         android:id="@+id/sleepReportFragment"
         android:name="com.example.lifemaster.presentation.home.sleep.SleepReportFragment"

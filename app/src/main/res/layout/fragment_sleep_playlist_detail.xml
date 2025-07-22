@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:paddingHorizontal="16dp"
     android:background="@drawable/bg_sleep"
-    tools:context=".presentation.home.sleep.SleepMainFragment">
+    tools:context=".presentation.home.sleep.SleepPlaylistDetailFragment">
 
     <ImageView
         android:id="@+id/iv_sleep_main_star"
@@ -100,17 +100,23 @@
             android:textStyle="bold" />
     </com.google.android.material.card.MaterialCardView>
 
+    <LinearLayout
+        android:id="@+id/ll_sleep_main_playlist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="184dp"
+        android:gravity="center_vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cv_sleep_main_duration">
+
     <TextView
         android:id="@+id/tv_sleep_main_music_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="잠이 솔솔 오는 백색 소음"
-        android:textColor="@color/sleep_primary"
-        android:layout_marginTop="190dp"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintTop_toBottomOf="@+id/cv_sleep_main_duration"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/iv_sleep_main_navigate_to_playlist"/>
+        android:textColor="@color/sleep_primary" />
 
     <ImageView
         android:id="@+id/iv_sleep_main_navigate_to_playlist"
@@ -118,11 +124,9 @@
         android:layout_height="16dp"
         android:src="@drawable/ic_show_more"
         android:layout_marginStart="10dp"
-        app:tint="@color/sleep_primary"
-        app:layout_constraintStart_toEndOf="@id/tv_sleep_main_music_title"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tv_sleep_main_music_title"
-        app:layout_constraintBottom_toBottomOf="@id/tv_sleep_main_music_title"/>
+        app:tint="@color/sleep_primary"/>
+
+    </LinearLayout>
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress_sleep_main"
@@ -136,7 +140,7 @@
         app:trackThickness="12dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_sleep_main_music_title" />
+        app:layout_constraintTop_toBottomOf="@id/ll_sleep_main_playlist" />
 
     <ImageView
         android:id="@+id/iv_sleep_main_pause"

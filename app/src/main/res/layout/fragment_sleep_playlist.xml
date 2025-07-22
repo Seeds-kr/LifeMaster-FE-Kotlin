@@ -36,6 +36,17 @@
             app:layout_constraintStart_toEndOf="@id/iv_sleep_playlist_star"
             app:layout_constraintTop_toTopOf="@id/iv_sleep_playlist_star" />
 
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_sleep_playlist_navigate_to_sleep_report"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_round_radius"
+            android:backgroundTint="@color/sleep_primary"
+            android:text="수면 리포트"
+            android:textColor="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cv_sleep_playlist_white_noise"
             android:layout_width="0dp"

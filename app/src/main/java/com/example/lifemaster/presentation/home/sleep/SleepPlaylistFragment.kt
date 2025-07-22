@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentSleepPlaylistBinding
 import com.example.lifemaster.databinding.LayoutSleepPlaylistBinding
@@ -117,6 +118,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                     playlistView.tvSleepPlaylistItemTitle.text = sampleWhiteNoiseMusic[i].title
                     playlistView.tvSleepPlaylistItemDuration.text = sampleWhiteNoiseMusic[i].duration
                     playlistView.tvSleepPlaylistItemDescription.text = sampleWhiteNoiseMusic[i].description
+                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
                     llSleepPlaylistWhiteNoise.addView(playlistView.root)
                 }
             } else {
@@ -143,6 +145,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                     playlistView.tvSleepPlaylistItemTitle.text = sampleNatureSoundMusic[i].title
                     playlistView.tvSleepPlaylistItemDuration.text = sampleNatureSoundMusic[i].duration
                     playlistView.tvSleepPlaylistItemDescription.text = sampleNatureSoundMusic[i].description
+                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
                     llSleepPlaylistNatureSounds.addView(playlistView.root)
                 }
             } else {
@@ -169,6 +172,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                     playlistView.tvSleepPlaylistItemTitle.text = sampleClassicMusic[i].title
                     playlistView.tvSleepPlaylistItemDuration.text = sampleClassicMusic[i].duration
                     playlistView.tvSleepPlaylistItemDescription.text = sampleClassicMusic[i].description
+                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
                     llSleepPlaylistClassic.addView(playlistView.root)
                 }
             } else {
@@ -179,6 +183,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                 llSleepPlaylistClassic.removeViews(2, sampleClassicMusic.size-2)
             }
         }
+        btnSleepPlaylistNavigateToSleepReport.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepReportFragment) }
     }
 
     private fun initViews() = with(binding) {
@@ -193,6 +198,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
             playlistView.tvSleepPlaylistItemTitle.text = sampleWhiteNoiseMusic[i].title
             playlistView.tvSleepPlaylistItemDuration.text = sampleWhiteNoiseMusic[i].duration
             playlistView.tvSleepPlaylistItemDescription.text = sampleWhiteNoiseMusic[i].description
+            playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
             llSleepPlaylistWhiteNoise.addView(playlistView.root)
         }
 
@@ -203,6 +209,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
             playlistView.tvSleepPlaylistItemTitle.text = sampleNatureSoundMusic[i].title
             playlistView.tvSleepPlaylistItemDuration.text = sampleNatureSoundMusic[i].duration
             playlistView.tvSleepPlaylistItemDescription.text = sampleNatureSoundMusic[i].description
+            playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
             llSleepPlaylistNatureSounds.addView(playlistView.root)
         }
 
@@ -213,6 +220,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
             playlistView.tvSleepPlaylistItemTitle.text = sampleClassicMusic[i].title
             playlistView.tvSleepPlaylistItemDuration.text = sampleClassicMusic[i].duration
             playlistView.tvSleepPlaylistItemDescription.text = sampleClassicMusic[i].description
+            playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
             llSleepPlaylistClassic.addView(playlistView.root)
         }
     }
