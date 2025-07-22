@@ -1,34 +1,33 @@
 package com.example.lifemaster.presentation.home.sleep
 
+import android.graphics.Color
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.example.lifemaster.R
+import com.example.lifemaster.databinding.FragmentSleepReportBinding
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [SleepReportFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class SleepReportFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private lateinit var binding: FragmentSleepReportBinding
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding = FragmentSleepReportBinding.bind(view)
+
+        // 1개의 line 을 구성하는 점들의 집합
+        val dataPoints = listOf(
+            Entry(10f, 10f),
+            Entry(11f, 6f),
+            Entry(12f, 7f),
+            Entry(13f, 9f),
+            Entry(14f, 8.5f),
+            Entry(15f, 5f)
+        )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,25 +35,33 @@ class SleepReportFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_sleep_report, container, false)
+        // line 1개
+        val lineDataSet = LineDataSet(dataPoints, "수면 꺾은선 그래프")
+        lineDataSet.color = Color.parseColor("#BBAB94") // 선 색상
+        lineDataSet.lineWidth = 3f // 선 굵기
+        lineDataSet.setCircleColor(Color.parseColor("#927448")) // 점 색상
+        lineDataSet.circleRadius = 4f // 점 크기
+        lineDataSet.setDrawValues(false) // 값이 안보이게 하기
+
+        // 여러 개의 line 을 담는 전체 그래프 데이터
+        val lineData = LineData(lineDataSet)
+        binding.lineChartSleepReportGraph.data = lineData
+
+        // 그래프 x축 설정
+        binding.lineChartSleepReportGraph.xAxis.position = XAxis.XAxisPosition.BOTTOM // x축의 위치 지정
+        binding.lineChartSleepReportGraph.xAxis.granularity = 1f // x축 값 사이의 최소
+        binding.lineChartSleepReportGraph.xAxis.textColor = Color.parseColor("#C5C6C6") // x축 값 색상
+        binding.lineChartSleepReportGraph.xAxis.textSize = 12f // x축 값 크기
+
+        // 그래프 y축 설정
+        binding.lineChartSleepReportGraph.axisLeft.textColor = Color.parseColor("#C5C6C6") // y축 값 색상
+        binding.lineChartSleepReportGraph.axisLeft.textSize = 12f // y축 값 크기
+
+        // 기타 설정
+        binding.lineChartSleepReportGraph.axisRight.isEnabled = false // 오른쪽 y축값 표시 비활성화
+        binding.lineChartSleepReportGraph.animateX(1000) // 선이 그려지는 애니메이션을 1초동안 실행
+        binding.lineChartSleepReportGraph.legend.isEnabled = false // LineDataSet 에서 지정한 두번째 파라미터가 표시되지 않음
+        binding.lineChartSleepReportGraph.description.isEnabled = false // 맨 오른쪽 하단에 표시되는 그래프 설명 비활성화
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment SleepReportFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            SleepReportFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
-    }
 }
