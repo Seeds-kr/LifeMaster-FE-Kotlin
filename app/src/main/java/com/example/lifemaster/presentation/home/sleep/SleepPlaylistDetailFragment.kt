@@ -13,58 +13,66 @@ import com.example.lifemaster.databinding.FragmentSleepPlaylistDetailBinding
 class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_detail) {
 
     private lateinit var binding: FragmentSleepPlaylistDetailBinding
-    private var mediaPlayer: MediaPlayer ?= null
-    private var isPlaying: Boolean = false
-    private var songDuration: Int = 0
+    private lateinit var handler: Handler
+    private lateinit var updateProgressBarTask: Runnable
+    private var mediaPlayer: MediaPlayer? = null
+    private var isAudioPlaying: Boolean = false
+    private var songTotalTime: Int = 0
+    private var songCurrentStartTime = 0L // 가장 최근에 재생 버튼을 누른 시간
+    private var accumulatedPlaybackTime = 0L // 가장 최근 재생 이전의 누적된 시간
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentSleepPlaylistDetailBinding.bind(view)
+        initViews()
         initListeners()
+    }
+
+    private fun initViews() = with(binding) {
+        handler = Handler(Looper.getMainLooper())
+        updateProgressBarTask = object : Runnable {
+            override fun run() {
+                val currentPlaybackTime = System.currentTimeMillis() - songCurrentStartTime + accumulatedPlaybackTime // 현재 업데이트 되는 총 음악 누적 시간
+                progressSleepMain.setProgress(currentPlaybackTime.toInt(), true)
+                handler.postDelayed(this, 100L) // 100ms 마다 실행
+            }
+        }
     }
 
     private fun initListeners() = with(binding) {
         llSleepMainPlaylist.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistDetailFragment_to_sleepPlaylistFragment) }
         ivSleepMainPlayToggle.setOnClickListener {
-            if(mediaPlayer == null) {
-                // 맨 처음 재생
-                mediaPlayer = MediaPlayer.create(context, R.raw.sleep_classic_gymnopedie_no1).apply {
-                    songDuration = duration
-                    progressSleepMain.max = duration
-                }
-                mediaPlayer?.start()
-                isPlaying = true
-                ivSleepMainPlayToggle.setImageResource(R.drawable.ic_pause)
-                // 프로그래스바 UI 변경
-                val handler = Handler(Looper.getMainLooper())
-                val songStartTime = System.currentTimeMillis() // 노래 처음 시작 시간 (단위: ms) → 정적
-                val updateProgressBarTask = object: Runnable {
-                    override fun run() {
-                        val songElapsedTime = System.currentTimeMillis() - songStartTime // 노래 누적 재생 시간 (단위: ms) → 동적
-                        if(songElapsedTime <= songDuration) {
-                            progressSleepMain.setProgress(songElapsedTime.toInt(), true)
-                            handler.postDelayed(this, 100L) // 100ms 마다 실행
-                        } else {
-                            // 초기화
+            if (isAudioPlaying) {
+                // 멈추기
+                mediaPlayer?.pause()
+                isAudioPlaying = false
+                ivSleepMainPlayToggle.setImageResource(R.drawable.ic_play_no_background)
+                accumulatedPlaybackTime += System.currentTimeMillis() - songCurrentStartTime
+                handler.removeCallbacks(updateProgressBarTask)
+            } else {
+                // 재생하기
+                if(mediaPlayer == null) {
+                    mediaPlayer = MediaPlayer.create(context, R.raw.sleep_classic_gymnopedie_no1).apply {
+                        songTotalTime = duration
+                        progressSleepMain.max = duration
+                        setOnCompletionListener {
+                            handler.removeCallbacks(updateProgressBarTask)
                             mediaPlayer?.stop()
                             mediaPlayer?.release()
                             mediaPlayer = null
                             progressSleepMain.progress = 0
                             ivSleepMainPlayToggle.setImageResource(R.drawable.ic_play_no_background)
+                            isAudioPlaying = false
+                            songCurrentStartTime = 0L
+                            accumulatedPlaybackTime = 0L
                         }
                     }
                 }
+                mediaPlayer?.start()
+                isAudioPlaying = true
+                ivSleepMainPlayToggle.setImageResource(R.drawable.ic_pause)
+                songCurrentStartTime = System.currentTimeMillis()
                 handler.post(updateProgressBarTask)
-            } else {
-                if(isPlaying) {
-                    mediaPlayer?.pause()
-                    isPlaying = false
-                    ivSleepMainPlayToggle.setImageResource(R.drawable.ic_play_no_background)
-                } else {
-                    mediaPlayer?.start()
-                    isPlaying = true
-                    ivSleepMainPlayToggle.setImageResource(R.drawable.ic_pause)
-                }
             }
         }
     }
