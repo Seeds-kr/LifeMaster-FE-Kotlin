@@ -143,11 +143,12 @@
         app:layout_constraintTop_toBottomOf="@id/ll_sleep_main_playlist" />
 
     <ImageView
-        android:id="@+id/iv_sleep_main_pause"
+        android:id="@+id/iv_sleep_main_play_toggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_pause"
-        android:layout_marginTop="24dp"
+        android:src="@drawable/ic_play_no_background"
+        android:layout_marginTop="12dp"
+        android:padding="12dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/progress_sleep_main"/>
