@@ -15,6 +15,7 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
     private lateinit var binding: FragmentSleepPlaylistDetailBinding
     private lateinit var handler: Handler
     private lateinit var updateProgressBarTask: Runnable
+    private var songAudioResource: Int = 0
     private var mediaPlayer: MediaPlayer? = null
     private var isAudioPlaying: Boolean = false
     private var songTotalTime: Int = 0
@@ -24,11 +25,13 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentSleepPlaylistDetailBinding.bind(view)
+        songAudioResource = arguments?.getInt("audio") ?: -1
         initViews()
         initListeners()
     }
 
     private fun initViews() = with(binding) {
+        tvSleepMainMusicTitle.text = arguments?.getString("title")
         handler = Handler(Looper.getMainLooper())
         updateProgressBarTask = object : Runnable {
             override fun run() {
@@ -52,7 +55,7 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
             } else {
                 // 재생하기
                 if(mediaPlayer == null) {
-                    mediaPlayer = MediaPlayer.create(context, R.raw.sleep_classic_gymnopedie_no1).apply {
+                    mediaPlayer = MediaPlayer.create(context, songAudioResource).apply {
                         songTotalTime = duration
                         progressSleepMain.max = duration
                         setOnCompletionListener {

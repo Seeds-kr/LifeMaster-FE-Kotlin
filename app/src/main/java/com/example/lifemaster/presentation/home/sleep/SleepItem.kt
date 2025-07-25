@@ -4,6 +4,7 @@ data class SleepItem(
     val id: Int, // 곡 id
     val genre: MusicGenre,
     val thumbnail: Int,
+    val audio: Int = 0,
     val title: String,
     val duration: String,
     val description: String
