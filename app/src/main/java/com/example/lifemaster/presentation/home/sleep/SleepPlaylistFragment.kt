@@ -75,7 +75,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                 SleepItem(
                     id = 7,
                     genre = MusicGenre.CLASSIC,
-                    title = "에릭사티 - 짐노페디 1번", // TODO: 리소스로 분리하기
+                    title = "Erik Satie – Gymnopédie No.1", // TODO: 리소스로 분리하기
                     audio = R.raw.sleep_classic_gymnopedie_no1,
                     duration = getMusicDuration(R.raw.sleep_classic_gymnopedie_no1),
                     thumbnail = R.drawable.tmp_sleep_playlist_classic_gymnopedie_no1,
@@ -84,19 +84,20 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                 SleepItem(
                     id = 8,
                     genre = MusicGenre.CLASSIC,
-                    title = "꿀잠 자는 클래식 음악 2",
-                    audio = R.raw.sleep_test_music,
-                    duration = "01:25:20",
-                    thumbnail = R.drawable.tmp_sleep_playlist_classic,
-                    description = "포브스 선정 잘 때 틀면 꿀잠 자는 클래식 음악 Top 100 중에 101위"
+                    title = "Claude Debussy – Clair de Lune",
+                    audio = R.raw.sleep_classic_clair_de_lune,
+                    duration = getMusicDuration(R.raw.sleep_classic_clair_de_lune),
+                    thumbnail = R.drawable.tmp_sleep_playlist_classic_clair_de_lune,
+                    description = "프랑스어로 ‘달빛’을 뜻하며, 달빛 아래 고요한 감성을 담아내고 은은한 선율로 긴장을 풀며 깊은 휴식을 유도합니다."
                 ),
                 SleepItem(
                     id = 9,
                     genre = MusicGenre.CLASSIC,
-                    title = "꿀잠 자는 클래식 음악 3",
-                    duration = "03:20:14",
-                    thumbnail = R.drawable.tmp_sleep_playlist_classic,
-                    description = "포브스 선정 잘 때 틀면 꿀잠 자는 클래식 음악 Top 100 중에 102위"
+                    title = "Bach - Cello Suite No.1 Prelude",
+                    audio = R.raw.sleep_classic_cello_suite_no1_prelude,
+                    duration = getMusicDuration(R.raw.sleep_classic_cello_suite_no1_prelude),
+                    thumbnail = R.drawable.tmp_sleep_playlist_classic_cello_suite_no_1_prelude,
+                    description = "간결하면서도 우아한 선율이 마음을 차분하게 만들고, 부드럽고 반복적인 리듬이 안정감을 주어 긴장을 풀고 깊은 휴식과 평화를 선사합니다."
                 )
             )
         )
@@ -228,7 +229,14 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                     playlistView.tvSleepPlaylistItemTitle.text = sampleClassicMusic[i].title
                     playlistView.tvSleepPlaylistItemDuration.text = sampleClassicMusic[i].duration
                     playlistView.tvSleepPlaylistItemDescription.text = sampleClassicMusic[i].description
-                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
+
+                    // 상세 프래그먼트에 넘겨줄 데이터
+                    val bundle = Bundle().apply {
+                        putString("title", sampleClassicMusic[i].title)
+                        putInt("audio", sampleClassicMusic[i].audio)
+                    }
+
+                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
                     llSleepPlaylistClassic.addView(playlistView.root)
                 }
             } else {
