@@ -14,32 +14,7 @@ import com.example.lifemaster.databinding.LayoutSleepPlaylistBinding
 class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
 
     lateinit var binding: FragmentSleepPlaylistBinding
-    private val sampleWhiteNoiseMusic = listOf(
-        SleepItem(
-            id = 1,
-            genre = MusicGenre.WHITE_NOISE,
-            title = "꿀잠 자는 백색소음",
-            duration = "01:10:32",
-            thumbnail = R.drawable.tmp_sleep_playlist_white_noise,
-            description = "포브스 선정 잘 때 틀면 꿀잠 자는 백색소음 Top 100"
-        ),
-        SleepItem(
-            id = 2,
-            genre = MusicGenre.WHITE_NOISE,
-            title = "꿀잠 자는 백색소음 2",
-            duration = "00:45:20",
-            thumbnail = R.drawable.tmp_sleep_playlist_white_noise,
-            description = "포브스 선정 잘 때 틀면 꿀잠 자는 백색소음 Top 100 중에 101위"
-        ),
-        SleepItem(
-            id = 3,
-            genre = MusicGenre.WHITE_NOISE,
-            title = "꿀잠 자는 백색소음 3",
-            duration = "02:00:00",
-            thumbnail = R.drawable.tmp_sleep_playlist_white_noise,
-            description = "포브스 선정 잘 때 틀면 꿀잠 자는 백색소음 Top 100 중에 102위"
-        )
-    )
+    private val sampleWhiteNoiseMusic = mutableListOf<SleepItem>()
     private val sampleNatureSoundMusic = listOf(
         SleepItem(
             id = 4,
@@ -70,6 +45,37 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
+        sampleWhiteNoiseMusic.addAll(
+            listOf(
+                SleepItem(
+                    id = 1,
+                    genre = MusicGenre.WHITE_NOISE,
+                    title = "잔잔한 빗소리",
+                    audio = R.raw.sleep_white_noise_rain,
+                    duration = getMusicDuration(R.raw.sleep_white_noise_rain),
+                    thumbnail = R.drawable.tmp_sleep_playlist_white_noise_rain,
+                    description = "부드럽고 잔잔한 빗소리가 마음을 차분하게 가라앉히고, 외부 소음을 덮어 깊은 집중과 편안한 수면을 유도합니다."
+                ),
+                SleepItem(
+                    id = 2,
+                    genre = MusicGenre.WHITE_NOISE,
+                    title = "장작 타는 소리",
+                    audio = R.raw.sleep_white_noise_fire,
+                    duration = getMusicDuration(R.raw.sleep_white_noise_fire),
+                    thumbnail = R.drawable.tmp_sleep_playlist_white_noise_fire,
+                    description = "따스하게 타오르는 장작 소리가 아늑한 분위기를 조성하며, 심신의 긴장을 풀고 편안함을 더해줍니다."
+                ),
+                SleepItem(
+                    id = 3,
+                    genre = MusicGenre.WHITE_NOISE,
+                    title = "비행기 기내 소리",
+                    audio = R.raw.sleep_white_noise_plane,
+                    duration = getMusicDuration(R.raw.sleep_white_noise_plane),
+                    thumbnail = R.drawable.tmp_sleep_playlist_white_noise_plane,
+                    description = "낮고 부드럽게 퍼지는 비행기 엔진 소리가 일정한 리듬을 만들어, 불안한 생각을 가라앉히고 안정적인 수면 환경을 조성합니다."
+                )
+            )
+        )
         sampleClassicMusic.addAll(
             listOf(
                 SleepItem(
@@ -123,7 +129,11 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
             playlistView.tvSleepPlaylistItemTitle.text = sampleWhiteNoiseMusic[i].title
             playlistView.tvSleepPlaylistItemDuration.text = sampleWhiteNoiseMusic[i].duration
             playlistView.tvSleepPlaylistItemDescription.text = sampleWhiteNoiseMusic[i].description
-            playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
+            val bundle = Bundle().apply {
+                putString("title", sampleWhiteNoiseMusic[i].title)
+                putInt("audio", sampleWhiteNoiseMusic[i].audio)
+            }
+            playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
             llSleepPlaylistWhiteNoise.addView(playlistView.root)
         }
 
@@ -175,7 +185,11 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                     playlistView.tvSleepPlaylistItemTitle.text = sampleWhiteNoiseMusic[i].title
                     playlistView.tvSleepPlaylistItemDuration.text = sampleWhiteNoiseMusic[i].duration
                     playlistView.tvSleepPlaylistItemDescription.text = sampleWhiteNoiseMusic[i].description
-                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
+                    val bundle = Bundle().apply {
+                        putString("title", sampleWhiteNoiseMusic[i].title)
+                        putInt("audio", sampleWhiteNoiseMusic[i].audio)
+                    }
+                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
                     llSleepPlaylistWhiteNoise.addView(playlistView.root)
                 }
             } else {
