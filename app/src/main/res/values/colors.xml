@@ -19,4 +19,5 @@
     <color name="red_100">#ff0000</color>
     <color name="alarm_primary">#BBAB94</color>
     <color name="sleep_primary">#333333</color>
+    <color name="sleep_selected_mood">#927448</color>
 </resources>
