@@ -15,32 +15,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
 
     lateinit var binding: FragmentSleepPlaylistBinding
     private val sampleWhiteNoiseMusic = mutableListOf<SleepItem>()
-    private val sampleNatureSoundMusic = listOf(
-        SleepItem(
-            id = 4,
-            genre = MusicGenre.NATURE_SOUND,
-            title = "꿀잠 자는 자연의 소리",
-            duration = "02:13:32",
-            thumbnail = R.drawable.tmp_sleep_playlist_nature_sound,
-            description = "포브스 선정 잘 때 틀면 꿀잠 자는 자연의 소리 Top 100"
-        ),
-        SleepItem(
-            id = 5,
-            genre = MusicGenre.NATURE_SOUND,
-            title = "꿀잠 자는 자연의 소리 2",
-            duration = "01:25:20",
-            thumbnail = R.drawable.tmp_sleep_playlist_nature_sound,
-            description = "포브스 선정 잘 때 틀면 꿀잠 자는 자연의 소리 Top 100 중에 101위"
-        ),
-        SleepItem(
-            id = 6,
-            genre = MusicGenre.NATURE_SOUND,
-            title = "꿀잠 자는 자연의 소리 3",
-            duration = "03:20:14",
-            thumbnail = R.drawable.tmp_sleep_playlist_nature_sound,
-            description = "포브스 선정 잘 때 틀면 꿀잠 자는 자연의 소리 Top 100 중에 102위"
-        )
-    )
+    private val sampleNatureSoundMusic = mutableListOf<SleepItem>()
     private val sampleClassicMusic = mutableListOf<SleepItem>()
 
     override fun onAttach(context: Context) {
@@ -73,6 +48,37 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                     duration = getMusicDuration(R.raw.sleep_white_noise_plane),
                     thumbnail = R.drawable.tmp_sleep_playlist_white_noise_plane,
                     description = "낮고 부드럽게 퍼지는 비행기 엔진 소리가 일정한 리듬을 만들어, 불안한 생각을 가라앉히고 안정적인 수면 환경을 조성합니다."
+                )
+            )
+        )
+        sampleNatureSoundMusic.addAll(
+            listOf(
+                SleepItem(
+                    id = 4,
+                    genre = MusicGenre.NATURE_SOUND,
+                    title = "맑은 낮의 새소리",
+                    audio = R.raw.sleep_nature_sound_birds,
+                    duration = getMusicDuration(R.raw.sleep_nature_sound_birds),
+                    thumbnail = R.drawable.tmp_sleep_playlist_nature_sound_birds,
+                    description = "햇살 가득한 숲속에서 들려오는 맑고 경쾌한 새소리가 기분을 상쾌하게 해주며 마음에 생기를 불어넣습니다."
+                ),
+                SleepItem(
+                    id = 5,
+                    genre = MusicGenre.NATURE_SOUND,
+                    title = "고요한 저녁의 부엉이 소리",
+                    audio = R.raw.sleep_nature_sound_owls,
+                    duration = getMusicDuration(R.raw.sleep_nature_sound_owls),
+                    thumbnail = R.drawable.tmp_sleep_playlist_nature_sound_owls,
+                    description = "조용한 밤 숲속에서 들려오는 부엉이의 낮고 깊은 울음소리가 은은한 긴장감 속에 고요함과 차분함을 전해줍니다."
+                ),
+                SleepItem(
+                    id = 6,
+                    genre = MusicGenre.NATURE_SOUND,
+                    title = "잔잔한 저녁의 풀벌레 소리",
+                    audio = R.raw.sleep_nature_sound_crickets,
+                    duration = getMusicDuration(R.raw.sleep_nature_sound_crickets),
+                    thumbnail = R.drawable.tmp_sleep_playlist_nature_sound_crickets,
+                    description = "밤이 찾아오면 들리는 풀벌레들의 규칙적인 울음소리는 자연의 리듬처럼 마음을 편안하게 진정시켜줍니다."
                 )
             )
         )
@@ -144,7 +150,13 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
             playlistView.tvSleepPlaylistItemTitle.text = sampleNatureSoundMusic[i].title
             playlistView.tvSleepPlaylistItemDuration.text = sampleNatureSoundMusic[i].duration
             playlistView.tvSleepPlaylistItemDescription.text = sampleNatureSoundMusic[i].description
-            playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
+
+            val bundle = Bundle().apply {
+                putString("title", sampleNatureSoundMusic[i].title)
+                putInt("audio", sampleNatureSoundMusic[i].audio)
+            }
+
+            playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
             llSleepPlaylistNatureSounds.addView(playlistView.root)
         }
 
@@ -216,7 +228,13 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                     playlistView.tvSleepPlaylistItemTitle.text = sampleNatureSoundMusic[i].title
                     playlistView.tvSleepPlaylistItemDuration.text = sampleNatureSoundMusic[i].duration
                     playlistView.tvSleepPlaylistItemDescription.text = sampleNatureSoundMusic[i].description
-                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment) }
+
+                    val bundle = Bundle().apply {
+                        putString("title", sampleNatureSoundMusic[i].title)
+                        putInt("audio", sampleNatureSoundMusic[i].audio)
+                    }
+
+                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
                     llSleepPlaylistNatureSounds.addView(playlistView.root)
                 }
             } else {
