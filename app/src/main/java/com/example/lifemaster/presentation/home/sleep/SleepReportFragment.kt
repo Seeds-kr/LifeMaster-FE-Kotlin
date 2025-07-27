@@ -1,7 +1,6 @@
 package com.example.lifemaster.presentation.home.sleep
 
 import android.graphics.Color
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
@@ -33,12 +32,12 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         for (todayMood in todayMoods) {
             todayMood.setOnClickListener {
                 todayMoods.forEach { it.clearColorFilter() }
-                todayMood.setColorFilter(resources.getColor(R.color.sleep_selected_mood, context?.theme), PorterDuff.Mode.SRC_IN)
+                todayMood.setColorFilter(resources.getColor(R.color.sleep_selected_mood, context?.theme))
             }
         }
     }
 
-    private fun initViews() {
+    private fun initViews() = with(binding) {
         // 1개의 line 을 구성하는 점들의 집합
         val dataPoints = listOf(
             Entry(10f, 10f),
@@ -61,27 +60,28 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
         // 여러 개의 line 을 담는 전체 그래프 데이터
         val lineData = LineData(lineDataSet)
-        binding.lineChartSleepReportGraph.data = lineData
+        lineChartSleepReportGraph.data = lineData
 
         // 그래프 x축 설정
-        binding.lineChartSleepReportGraph.xAxis.position = XAxis.XAxisPosition.BOTTOM // x축의 위치 지정
-        binding.lineChartSleepReportGraph.xAxis.granularity = 1f // x축 값 사이의 최소
-        binding.lineChartSleepReportGraph.xAxis.textColor = Color.parseColor("#C5C6C6") // x축 값 색상
-        binding.lineChartSleepReportGraph.xAxis.textSize = 12f // x축 값 크기
+        lineChartSleepReportGraph.xAxis.position = XAxis.XAxisPosition.BOTTOM // x축의 위치 지정
+        lineChartSleepReportGraph.xAxis.granularity = 1f // x축 값 사이의 최소
+        lineChartSleepReportGraph.xAxis.textColor = Color.parseColor("#C5C6C6") // x축 값 색상
+        lineChartSleepReportGraph.xAxis.textSize = 12f // x축 값 크기
 
         // 그래프 y축 설정
-        binding.lineChartSleepReportGraph.axisLeft.textColor =
-            Color.parseColor("#C5C6C6") // y축 값 색상
-        binding.lineChartSleepReportGraph.axisLeft.textSize = 12f // y축 값 크기
+        lineChartSleepReportGraph.axisLeft.textColor = Color.parseColor("#C5C6C6") // y축 값 색상
+        lineChartSleepReportGraph.axisLeft.textSize = 12f // y축 값 크기
 
         // 기타 설정
-        binding.lineChartSleepReportGraph.axisRight.isEnabled = false // 오른쪽 y축값 표시 비활성화
-        binding.lineChartSleepReportGraph.animateX(1000) // 선이 그려지는 애니메이션을 1초동안 실행
-        binding.lineChartSleepReportGraph.legend.isEnabled =
-            false // LineDataSet 에서 지정한 두번째 파라미터가 표시되지 않음
-        binding.lineChartSleepReportGraph.description.isEnabled =
-            false // 맨 오른쪽 하단에 표시되는 그래프 설명 비활성화
-        //        binding.lineChartSleepReportGraph.description.text = "수면 점수 그래프" // 맨 오른쪽 하단에 표시되는 그래프 설명
+        lineChartSleepReportGraph.axisRight.isEnabled = false // 오른쪽 y축값 표시 비활성화
+//      lineChartSleepReportGraph.animateX(1000) // 선이 그려지는 애니메이션을 1초동안 실행
+        lineChartSleepReportGraph.legend.isEnabled = false // LineDataSet 에서 지정한 두번째 파라미터가 표시되지 않음
+        lineChartSleepReportGraph.description.isEnabled = false // 맨 오른쪽 하단에 표시되는 그래프 설명 비활성화
+//      lineChartSleepReportGraph.description.text = "수면 점수 그래프" // 맨 오른쪽 하단에 표시되는 그래프 설명
+
+        // 점 클릭 시 나타나는 통계 세부 정보
+        val markerView = SleepReportMarkerView(requireContext(), R.layout.layout_sleep_report_marker_view)
+        lineChartSleepReportGraph.marker = markerView
     }
 
 }
