@@ -1,13 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@color/white"
-    android:padding="12dp"
-    android:orientation="vertical">
-    <TextView
-        android:id="@+id/tv_sleep_score"
-        android:layout_width="wrap_content"
+    app:cardBackgroundColor="#EAE5DE"
+    app:cardCornerRadius="8dp">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="140dp"
         android:layout_height="wrap_content"
-        android:textColor="@color/black"/>
-</LinearLayout>
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/tv_total_sleep_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#927448"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="6시간 28분 수면" />
+
+        <TextView
+            android:id="@+id/tv_sleep_score_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="수면 점수"
+            android:textSize="10sp"
+            android:textColor="#686663"
+            android:layout_marginTop="14dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_total_sleep_time"/>
+
+        <TextView
+            android:id="@+id/tv_sleep_score_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="50점"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="#927448"
+            android:layout_marginTop="14dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_total_sleep_time"/>
+
+        <TextView
+            android:id="@+id/tv_time_to_wake_up_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="일어나는 데 걸린 시간"
+            android:textSize="10sp"
+            android:textColor="#686663"
+            app:layout_constraintTop_toBottomOf="@id/tv_sleep_score_label"
+            app:layout_constraintStart_toStartOf="@id/tv_sleep_score_label"/>
+        <TextView
+            android:id="@+id/tv_time_to_wake_up_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="60분"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="#927448"
+            app:layout_constraintTop_toBottomOf="@id/tv_sleep_score_value"
+            app:layout_constraintEnd_toEndOf="@id/tv_sleep_score_value"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

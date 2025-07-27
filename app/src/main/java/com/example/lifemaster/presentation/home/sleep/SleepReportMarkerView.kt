@@ -10,10 +10,14 @@ import com.github.mikephil.charting.utils.MPPointF
 
 class SleepReportMarkerView(context: Context, layoutResource: Int): MarkerView(context, layoutResource) {
 
-    private val sleepScore = findViewById<TextView>(R.id.tv_sleep_score) // TODO: 바인딩으로 바꿔보기
+    private val totalSleepTime = findViewById<TextView>(R.id.tv_total_sleep_time)
+    private val sleepScore = findViewById<TextView>(R.id.tv_sleep_score_value)
+    private val timeToWakeUp = findViewById<TextView>(R.id.tv_time_to_wake_up_value)
 
     override fun refreshContent(e: Entry?, highlight: Highlight?) {
-        sleepScore.text = "수면 점수: ${e?.y.toString()}점"
+        totalSleepTime.text = "6시간 30분 수면"
+        sleepScore.text = "${e?.y?.toInt()}점"
+        timeToWakeUp.text = "120분"
         super.refreshContent(e, highlight)
     }
 
