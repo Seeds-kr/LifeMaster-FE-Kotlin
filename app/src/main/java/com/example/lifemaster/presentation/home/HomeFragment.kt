@@ -64,6 +64,10 @@ class HomeFragment : Fragment() {
         binding.cvGoToAlarm.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
         }
+
+        binding.cardDetox.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+        }
     }
 
     override fun onResume() {
