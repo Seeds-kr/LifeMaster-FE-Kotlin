@@ -25,15 +25,16 @@
 
     <TextView
         android:id="@+id/tv_sleep_playlist_item_title"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         tools:text="꿀잠 자는 백색소음"
         android:textStyle="bold"
         android:textColor="@color/sleep_primary"
-        android:textSize="14sp"
+        android:textSize="12sp"
         android:layout_marginStart="12dp"
         app:layout_constraintTop_toTopOf="@id/cv_sleep_playlist_item_thumbnail"
-        app:layout_constraintStart_toEndOf="@id/cv_sleep_playlist_item_thumbnail"/>
+        app:layout_constraintStart_toEndOf="@id/cv_sleep_playlist_item_thumbnail"
+        app:layout_constraintEnd_toStartOf="@id/iv_sleep_playlist_item_play"/>
 
     <TextView
         android:id="@+id/tv_sleep_playlist_item_duration"
@@ -42,7 +43,7 @@
         android:layout_marginTop="4dp"
         android:fontFamily="sans-serif-light"
         android:textColor="#717171"
-        android:textSize="12sp"
+        android:textSize="11sp"
         app:layout_constraintStart_toStartOf="@id/tv_sleep_playlist_item_title"
         app:layout_constraintTop_toBottomOf="@id/tv_sleep_playlist_item_title"
         tools:text="01:46:60" />
