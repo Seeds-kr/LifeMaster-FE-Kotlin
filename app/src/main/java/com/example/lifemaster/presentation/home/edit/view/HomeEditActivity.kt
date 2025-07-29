@@ -1,11 +1,13 @@
 package com.example.lifemaster.presentation.home.edit.view
 
+import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
+import com.example.lifemaster.presentation.home.HomeConfig
 import com.example.lifemaster.presentation.home.edit.adapter.*
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatButton
@@ -16,22 +18,20 @@ class HomeEditActivity : AppCompatActivity(), OnStartDragListener {
     private lateinit var allFeaturesAdapter: HomeEditAdapter
     private var serviceTouchHelper: ItemTouchHelper? = null
     private var allFeaturesTouchHelper: ItemTouchHelper? = null
-    private val serviceList = mutableListOf("수면", "집중 시간", "그룹 바로가기", "자아성찰 바로가기")
-    private val allFeaturesList = mutableListOf("앱 잠금 설정", "자유 게시판", "개선 게시판", "알람 추가")
+    private val serviceList = mutableListOf<String>()
+    private val allFeaturesList = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home_edit)
 
-        val btnBack = findViewById<ImageView>(R.id.btn_back)
-        btnBack.setOnClickListener {
+        findViewById<ImageView>(R.id.btn_back).setOnClickListener { finish() }
+        findViewById<AppCompatButton>(R.id.btnSaveHomeEdit).setOnClickListener {
+            saveHomeConfiguration()
             finish()
         }
 
-        val btnSave = findViewById<AppCompatButton>(R.id.btnSaveHomeEdit)
-        btnSave.setOnClickListener {
-            finish()
-        }
+        loadHomeConfiguration()
 
         serviceAdapter = HomeEditAdapter(serviceList, true, ::onToggleClick, this)
         findViewById<RecyclerView>(R.id.rvServiceList).apply {
@@ -59,13 +59,41 @@ class HomeEditActivity : AppCompatActivity(), OnStartDragListener {
         if (isServiceList) {
             serviceList.remove(item)
             allFeaturesList.add(item)
-            serviceAdapter.notifyDataSetChanged()
-            allFeaturesAdapter.notifyDataSetChanged()
         } else {
             allFeaturesList.remove(item)
             serviceList.add(item)
-            allFeaturesAdapter.notifyDataSetChanged()
-            serviceAdapter.notifyDataSetChanged()
+        }
+        serviceAdapter.notifyDataSetChanged()
+        allFeaturesAdapter.notifyDataSetChanged()
+    }
+
+    private fun saveHomeConfiguration() {
+        val prefs = getSharedPreferences("home_pref", Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        val nameToKey = HomeConfig.SERVICE_KEY_MAP
+        val visibleKeys = serviceList.mapNotNull { nameToKey[it] }
+        val allKeys = (serviceList + allFeaturesList).mapNotNull { nameToKey[it] }
+        editor.putStringSet("visible_components", visibleKeys.toSet())
+        editor.putString("component_order", allKeys.joinToString(","))
+        editor.apply()
+    }
+
+    private fun loadHomeConfiguration() {
+        val prefs = getSharedPreferences("home_pref", Context.MODE_PRIVATE)
+        val visible = prefs.getStringSet("visible_components", null)
+        val order = prefs.getString("component_order", null)?.split(",") ?: HomeConfig.DEFAULT_ORDER
+
+        serviceList.clear()
+        allFeaturesList.clear()
+        for (key in order) {
+            val name = HomeConfig.KEY_TO_NAME[key]
+            if (name != null) {
+                if (visible?.contains(key) == true) {
+                    serviceList.add(name)
+                } else {
+                    allFeaturesList.add(name)
+                }
+            }
         }
     }
 }

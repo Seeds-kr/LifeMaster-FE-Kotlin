@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -44,8 +45,6 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = FragmentHomeBinding.bind(view)
-
         binding.containerCalendar.post {
             if (childFragmentManager.findFragmentById(R.id.container_calendar) == null) {
                 childFragmentManager.beginTransaction()
@@ -54,13 +53,62 @@ class HomeFragment : Fragment() {
             }
         }
 
+        val (visible, ordered) = loadHomeConfiguration()
+        applyHomeLayout(visible, ordered)
+
         initViews()
         initListeners()
         initObservers()
+
         // 알람 화면 이동
         binding.cvGoToAlarm.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val (visible, ordered) = loadHomeConfiguration()
+        applyHomeLayout(visible, ordered)
+    }
+
+    private fun loadHomeConfiguration(): Pair<Set<String>, List<String>> {
+        val prefs = requireContext().getSharedPreferences("home_pref", Context.MODE_PRIVATE)
+        val visible = prefs.getStringSet("visible_components", null)
+        val orderedString = prefs.getString("component_order", null)
+        val finalVisible = visible ?: HomeConfig.DEFAULT_VISIBLE
+        val finalOrdered = orderedString?.split(",") ?: HomeConfig.DEFAULT_ORDER
+        return finalVisible to finalOrdered
+    }
+
+    private fun applyHomeLayout(visible: Set<String>, ordered: List<String>) {
+        binding.cardCalendar.isVisible = true
+        binding.cardTodo.isVisible = true
+
+        val cardMap = mapOf(
+            "sleep" to binding.cardSleep,
+            "detox" to binding.cardDetox,
+            "group" to binding.cardGroup,
+            "introspection" to binding.cardIntrospection,
+            "alarm" to binding.cvGoToAlarm,
+            "challenge" to binding.cardChallenge
+        )
+
+        val parent = binding.root.findViewById<androidx.appcompat.widget.LinearLayoutCompat>(R.id.linearLayoutMain)
+        parent.removeAllViews()
+
+        parent.addView(binding.cardCalendar)
+        parent.addView(binding.cardTodo)
+
+        for (key in ordered) {
+            val card = cardMap[key]
+            if (card != null) {
+                card.isVisible = visible.contains(key)
+                if (visible.contains(key)) parent.addView(card)
+            }
+        }
+
+        parent.addView(binding.tvHomeEdit)
     }
 
     private fun initViews() = with(binding) {

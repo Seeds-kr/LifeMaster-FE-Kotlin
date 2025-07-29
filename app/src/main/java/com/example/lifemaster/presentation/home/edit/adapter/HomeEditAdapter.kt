@@ -20,7 +20,7 @@ class HomeEditAdapter(
 
     private val iconTintMap = mapOf(
         "수면" to "#333333",
-        "집중 시간" to "#B4D775",
+        "디톡스" to "#B4D775",
         "그룹 바로가기" to "#AC87CC",
         "자아성찰 바로가기" to "#FFB943",
         "챌린지" to "#84CAE2",
