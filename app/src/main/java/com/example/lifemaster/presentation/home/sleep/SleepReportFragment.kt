@@ -20,8 +20,10 @@ import java.util.Date
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
     private lateinit var binding: FragmentSleepReportBinding
-    private var lastUsedApp: String? = null // 마지막으로 사용한 앱
-    private var lastUsedTime: Long = 0L // 마지막 사용 시간 = 핸드폰 화면을 끈 시간
+    private var lastUsedApp: String? = null // 자기전 마지막으로 사용한 앱
+    private var firstUsedApp: String? = null // 기상후 처음으로 사용한 앱
+    private var lastUsageTimeBeforeSleep: Long = 0L // 마지막 사용 시간 = 핸드폰 화면을 끈 시간
+    private var firstUsageTimeAfterWake: Long? = null // 핸드폰을 처음 킨 시간 (잠금 해제x)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -93,28 +95,57 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
         // 사용자가 잠든 시간 추적하기
         val usageStatsManager = requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val calendar = Calendar.getInstance().apply {
+        val sleepCalendar = Calendar.getInstance().apply {
             // 오늘 날짜
             set(Calendar.HOUR_OF_DAY, 4)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        val endTime = calendar.timeInMillis // 새벽 4시
-        calendar.add(Calendar.HOUR_OF_DAY, -8)
-        val startTime = calendar.timeInMillis // 오후 8시
+        val sleepTrackingEndTime = sleepCalendar.timeInMillis // 새벽 4시
+        sleepCalendar.add(Calendar.HOUR_OF_DAY, -8)
+        val sleepTrackingStartTime = sleepCalendar.timeInMillis // 오후 8시
 
-        val event = UsageEvents.Event()
+        val sleepEvent = UsageEvents.Event()
 
-        val usageEvents = usageStatsManager.queryEvents(startTime, endTime) // 전날 오후 8시 ~ 오늘 새벽 4시까지의 핸드폰 이용 내역 조회
-        while (usageEvents.hasNextEvent()) {
+        val sleepUsageEvents = usageStatsManager.queryEvents(sleepTrackingStartTime, sleepTrackingEndTime) // 전날 오후 8시 ~ 오늘 새벽 4시까지의 핸드폰 이용 내역 조회
+        while (sleepUsageEvents.hasNextEvent()) {
             // while 문을 통해 해당 시간대의 마지막 핸드폰 사용 시간 추적 + 업데이트
-            usageEvents.getNextEvent(event) // 다음 이벤트를 변수에 저장
-            if(event.eventType == UsageEvents.Event.ACTIVITY_STOPPED && event.packageName != "com.sec.android.app.launcher") lastUsedApp = event.packageName // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 사용한 앱 추적
-            else if(event.eventType == UsageEvents.Event.SCREEN_NON_INTERACTIVE) lastUsedTime = event.timeStamp // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 화면을 끈 시각 추적
+            sleepUsageEvents.getNextEvent(sleepEvent) // 다음 이벤트를 변수에 저장
+            if(sleepEvent.eventType == UsageEvents.Event.ACTIVITY_STOPPED && sleepEvent.packageName != "com.sec.android.app.launcher") lastUsedApp = sleepEvent.packageName // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 사용한 앱 추적
+            else if(sleepEvent.eventType == UsageEvents.Event.SCREEN_NON_INTERACTIVE) lastUsageTimeBeforeSleep = sleepEvent.timeStamp // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 화면을 끈 시각 추적
         }
 
-        Log.e("수면 정보 추적", "마지막 사용 앱: $lastUsedApp, 화면 끈 시각: ${Date(lastUsedTime)}")
+        Log.e("NIGHT", "마지막 사용 앱: $lastUsedApp, 화면 끈 시각: ${Date(lastUsageTimeBeforeSleep)}")
+
+        // 사용자가 일어난 시간 추적하기 (알람 연동x)
+        val wakeUpCalendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 5)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val wakeTrackingStartTime = wakeUpCalendar.timeInMillis
+        wakeUpCalendar.add(Calendar.HOUR_OF_DAY, 5)
+        val wakeTrackingEndTime = wakeUpCalendar.timeInMillis
+
+        val wakeEvent = UsageEvents.Event()
+        val wakeUsageEvents = usageStatsManager.queryEvents(wakeTrackingStartTime, wakeTrackingEndTime) // 금일 오전 5시 ~ 금일 오전 10시 사이의 이벤트 조회
+
+        while(wakeUsageEvents.hasNextEvent()) {
+            wakeUsageEvents.getNextEvent(wakeEvent)
+            if(wakeEvent.eventType == UsageEvents.Event.SCREEN_INTERACTIVE) {
+                if(firstUsageTimeAfterWake == null) {
+                    firstUsageTimeAfterWake = wakeEvent.timeStamp  // 기상 후 처음 핸드폰을 킨 시간 추적
+                    Log.e("MORNING", "SCREEN_INTERACTIVE: ${Date(firstUsageTimeAfterWake ?: 0L)}")
+                }
+            }
+            else if(wakeEvent.eventType == UsageEvents.Event.ACTIVITY_RESUMED && wakeEvent.packageName != "com.sec.android.app.launcher") {
+                firstUsedApp = wakeEvent.packageName // 기상 후 처음 사용한 앱 추적
+                Log.e("MORNING", "ACTIVITY_RESUMED: $firstUsedApp")
+                break // 더 이상 이벤트를 추적할 필요 없음
+            }
+        }
     }
 
 }
