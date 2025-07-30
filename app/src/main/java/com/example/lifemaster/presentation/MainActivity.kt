@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
 
         setupListeners()
 
-        requestUsageAccessPermission(this)
+        requestUsageAccessPermission(this) // 사용 용도: 디톡스, 수면시간 측정
 
 //        requestAccessibilityPermission(this)
     }
@@ -301,22 +301,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 앱 사용 시간에 대한 설정 화면으로 이동하는 함수(권한 없을 시)
+    // 앱 사용 시간 권한이 없을 시 다이얼로그 띄우고 설정 화면으로 이동하는 함수
     private fun requestUsageAccessPermission(context: Context) {
-        if (!isUsageAccessGranted(context)) {
-            val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-            context.startActivity(intent)
+        if (!checkUsageAccessPermission(context)) {
+            val dialog = AlertDialog.Builder(context).apply {
+                setTitle("권한 요청 다이얼로그")
+                setMessage("사용자의 수면시간 추적을 위해 사용 정보 접근 권한이 필요합니다. 설정에 들어가서 권한을 허용해주세요.")
+                setPositiveButton("설정 이동") { _, _ ->
+                    val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                    startActivity(intent)
+                }
+                setCancelable(false)
+                create()
+            }
+            dialog.show()
         }
     }
 
-    // 앱 사용 시간 권한 활성화 여부를 확인하는 함수
-    private fun isUsageAccessGranted(context: Context): Boolean {
-        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        val mode = appOps.checkOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            android.os.Process.myUid(),
-            context.packageName
-        )
+    // 앱 사용 시간 권한 활성 여부를 확인하는 함수
+    private fun checkUsageAccessPermission(context: Context): Boolean {
+        val appOpsManager = context.getSystemService(APP_OPS_SERVICE) as AppOpsManager
+        val mode = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10 이상
+            appOpsManager.unsafeCheckOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(),
+                context.packageName
+            )
+        } else {
+            // Android 10 미만
+            appOpsManager.checkOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(),
+                context.packageName
+            )
+        }
         return mode == AppOpsManager.MODE_ALLOWED
     }
 }
