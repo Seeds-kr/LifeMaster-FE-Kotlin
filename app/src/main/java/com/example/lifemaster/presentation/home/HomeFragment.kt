@@ -13,6 +13,7 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
@@ -21,12 +22,14 @@ import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.LocalDate
 
 class HomeFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding
     lateinit var todoItems: ArrayList<TodoItem>
     private val toDoViewModel: ToDoViewModel by activityViewModels()
+    private val sleepViewModel: SleepViewModel by activityViewModels()
     private var userToken: String? = null
 
     override fun onCreateView(
@@ -44,7 +47,10 @@ class HomeFragment : Fragment() {
 //        initViews()
         initListeners()
 //        initObservers()
-        // 알람 화면 이동
+        // 수면 정보 UI 업데이트
+        binding.tvSleepDate.text = "${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일"
+        val sleepMinutes = if(sleepViewModel.shouldAddOneMinute) sleepViewModel.sleepDuration.toMinutes()%60+1 else sleepViewModel.sleepDuration.toMinutes()%60
+        binding.tvHomeSleepDuration.text = "${sleepViewModel.sleepDuration.toHours()}시간 ${sleepMinutes}분 수면"
     }
 
     private fun initViews() = with(binding) {
@@ -110,14 +116,13 @@ class HomeFragment : Fragment() {
             })
     }
 
-    private fun initListeners() {
-        binding.btnAddTodoItem.setOnClickListener {
-            val dialog = ToDoDialog(caller = TODO.ADD, userToken = userToken)
-            dialog.show(childFragmentManager, ToDoDialog.Companion.TAG)
-        }
     private fun initListeners() = with(binding) {
+//        btnAddTodoItem.setOnClickListener {
+//            val dialog = ToDoDialog(caller = TODO.ADD, userToken = userToken)
+//            dialog.show(childFragmentManager, ToDoDialog.Companion.TAG)
+//        }
         cvGoToAlarm.setOnClickListener { findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment) }
-        btnSleepReport.setOnClickListener { findNavController().navigate(R.id.action_homeFragment_to_sleepMainFragment) }
+        btnSleepReport.setOnClickListener { findNavController().navigate(R.id.action_homeFragment_to_sleepPlaylistFragment) }
     }
 
     private fun initObservers() {

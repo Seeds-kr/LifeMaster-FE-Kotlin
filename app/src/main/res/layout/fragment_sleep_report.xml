@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-black"
-        android:text="오늘은\n총 7시간 30분 잤어요"
+        tools:text="오늘은\n총 7시간 30분 잤어요"
         android:textColor="#131313"
         android:textSize="24sp"
         android:textStyle="bold"

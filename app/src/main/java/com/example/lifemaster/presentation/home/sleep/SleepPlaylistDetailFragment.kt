@@ -6,13 +6,18 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentSleepPlaylistDetailBinding
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_detail) {
 
     private lateinit var binding: FragmentSleepPlaylistDetailBinding
+    private val sleepViewModel: SleepViewModel by activityViewModels()
     private lateinit var handler: Handler
     private lateinit var updateProgressBarTask: Runnable
     private var songAudioResource: Int = 0
@@ -31,6 +36,10 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
     }
 
     private fun initViews() = with(binding) {
+        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        tvSleepPlaylistDetailSleepDuration.text = "${formatter.format(sleepViewModel.sleepTime)} ~ ${formatter.format(sleepViewModel.wakeTime)}"
+        tvSleepMainHour.text = if(sleepViewModel.sleepDuration.toHours().toString().length == 1) "0${sleepViewModel.sleepDuration.toHours()}" else "${sleepViewModel.sleepDuration.toHours()}"
+        tvSleepMainMinute.text = if(sleepViewModel.shouldAddOneMinute) "${sleepViewModel.sleepDuration.toMinutes()%60+1}" else "${sleepViewModel.sleepDuration.toMinutes()%60}"
         tvSleepMainMusicTitle.text = arguments?.getString("title")
         handler = Handler(Looper.getMainLooper())
         updateProgressBarTask = object : Runnable {

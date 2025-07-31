@@ -140,14 +140,15 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:layout_marginEnd="8dp"
-                            android:text="7월 20일"
+                            tools:text="7월 20일"
                             android:textColor="@color/sleep_primary"
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tv_home_sleep_duration"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="8시간 12분 수면"
+                            tools:text="8시간 12분 수면"
                             android:textColor="@color/sleep_primary"
                             android:layout_toEndOf="@id/tv_sleep_date"
                             android:layout_centerVertical="true"/>
@@ -158,7 +159,7 @@
                             android:layout_height="36dp"
                             android:background="@drawable/bg_round_radius"
                             android:backgroundTint="@color/sleep_primary"
-                            android:text="수면 리포트"
+                            android:text="수면 정보"
                             android:textColor="@color/white"
                             android:layout_alignParentEnd="true"/>
                     </RelativeLayout>
