@@ -49,8 +49,7 @@ class HomeFragment : Fragment() {
 //        initObservers()
         // 수면 정보 UI 업데이트
         binding.tvSleepDate.text = "${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일"
-        val sleepMinutes = if(sleepViewModel.shouldAddOneMinute) sleepViewModel.sleepDuration.toMinutes()%60+1 else sleepViewModel.sleepDuration.toMinutes()%60
-        binding.tvHomeSleepDuration.text = "${sleepViewModel.sleepDuration.toHours()}시간 ${sleepMinutes}분 수면"
+        binding.tvHomeSleepDuration.text = "${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 수면"
     }
 
     private fun initViews() = with(binding) {

@@ -25,23 +25,11 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         initListeners()
     }
 
-    private fun initListeners() = with(binding) {
-        val todayMoods = listOf(
-            ivSleepReportTodayMoodVeryBad,
-            ivSleepReportTodayMoodBad,
-            ivSleepReportTodayMoodGood,
-            ivSleepReportTodayMoodVeryGood
-        )
-        for (todayMood in todayMoods) {
-            todayMood.setOnClickListener {
-                todayMoods.forEach { it.clearColorFilter() }
-                todayMood.setColorFilter(resources.getColor(R.color.sleep_selected_mood, context?.theme))
-            }
-        }
-    }
-
     private fun initViews() = with(binding) {
-        // 1개의 line 을 구성하는 점들의 집합
+        // 수면 타이틀 UI 설정
+        tvSleepReportTitle.text = "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
+
+        // 1개의 line 을 구성하는 점들의 집합 (6개~7개 표시하기)
         val dataPoints = listOf(
             Entry(10f, 10f),
             Entry(11f, 6f),
@@ -85,10 +73,22 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         // 점 클릭 시 나타나는 통계 세부 정보
         val markerView = SleepReportMarkerView(requireContext(), R.layout.layout_sleep_report_marker_view)
         lineChartSleepReportGraph.marker = markerView
+    }
 
-        // 수면 관련 UI 변경
-        val sleepMinutes = if(sleepViewModel.shouldAddOneMinute) sleepViewModel.sleepDuration.toMinutes()%60+1 else sleepViewModel.sleepDuration.toMinutes()%60
-        tvSleepReportTitle.text = "오늘은\n총 ${sleepViewModel.sleepDuration.toHours()}시간 ${sleepMinutes}분 잤어요"
+    private fun initListeners() = with(binding) {
+        // 오늘의 기분 바꾸기
+        val todayMoods = listOf(
+            ivSleepReportTodayMoodVeryBad,
+            ivSleepReportTodayMoodBad,
+            ivSleepReportTodayMoodGood,
+            ivSleepReportTodayMoodVeryGood
+        )
+        for (todayMood in todayMoods) {
+            todayMood.setOnClickListener {
+                todayMoods.forEach { it.clearColorFilter() }
+                todayMood.setColorFilter(resources.getColor(R.color.sleep_selected_mood, context?.theme))
+            }
+        }
     }
 
 }

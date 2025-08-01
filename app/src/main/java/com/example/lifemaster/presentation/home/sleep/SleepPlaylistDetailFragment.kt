@@ -36,10 +36,9 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
     }
 
     private fun initViews() = with(binding) {
-        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-        tvSleepPlaylistDetailSleepDuration.text = "${formatter.format(sleepViewModel.sleepTime)} ~ ${formatter.format(sleepViewModel.wakeTime)}"
-        tvSleepMainHour.text = if(sleepViewModel.sleepDuration.toHours().toString().length == 1) "0${sleepViewModel.sleepDuration.toHours()}" else "${sleepViewModel.sleepDuration.toHours()}"
-        tvSleepMainMinute.text = if(sleepViewModel.shouldAddOneMinute) "${sleepViewModel.sleepDuration.toMinutes()%60+1}" else "${sleepViewModel.sleepDuration.toMinutes()%60}"
+        tvSleepPlaylistDetailSleepDuration.text = "${sleepViewModel.sleepTime} ~ ${sleepViewModel.wakeTime}"
+        tvSleepMainHour.text = if(sleepViewModel.sleepDurationHour.toString().length == 1) "0${sleepViewModel.sleepDurationHour}" else "${sleepViewModel.sleepDurationHour}"
+        tvSleepMainMinute.text = sleepViewModel.sleepDurationMinutes.toString()
         tvSleepMainMusicTitle.text = arguments?.getString("title")
         handler = Handler(Looper.getMainLooper())
         updateProgressBarTask = object : Runnable {

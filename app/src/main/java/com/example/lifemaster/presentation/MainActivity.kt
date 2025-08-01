@@ -127,12 +127,17 @@ class MainActivity : AppCompatActivity() {
 
         val sleepEvent = UsageEvents.Event()
 
-        val sleepUsageEvents = usageStatsManager.queryEvents(sleepTrackingStartTime, sleepTrackingEndTime) // 전날 오후 8시 ~ 오늘 새벽 4시까지의 핸드폰 이용 내역 조회
+        val sleepUsageEvents = usageStatsManager.queryEvents(
+            sleepTrackingStartTime,
+            sleepTrackingEndTime
+        ) // 전날 오후 8시 ~ 오늘 새벽 4시까지의 핸드폰 이용 내역 조회
         while (sleepUsageEvents.hasNextEvent()) {
             // while 문을 통해 해당 시간대의 마지막 핸드폰 사용 시간 추적 + 업데이트
             sleepUsageEvents.getNextEvent(sleepEvent) // 다음 이벤트를 변수에 저장
-            if(sleepEvent.eventType == UsageEvents.Event.ACTIVITY_STOPPED && sleepEvent.packageName != "com.sec.android.app.launcher") lastUsedApp = sleepEvent.packageName // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 사용한 앱 추적
-            else if(sleepEvent.eventType == UsageEvents.Event.SCREEN_NON_INTERACTIVE) lastUsageTimeBeforeSleep = sleepEvent.timeStamp // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 화면을 끈 시각 추적
+            if (sleepEvent.eventType == UsageEvents.Event.ACTIVITY_STOPPED && sleepEvent.packageName != "com.sec.android.app.launcher") lastUsedApp =
+                sleepEvent.packageName // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 사용한 앱 추적
+            else if (sleepEvent.eventType == UsageEvents.Event.SCREEN_NON_INTERACTIVE) lastUsageTimeBeforeSleep =
+                sleepEvent.timeStamp // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 화면을 끈 시각 추적
         }
 
         Log.e("NIGHT", "마지막 사용 앱: $lastUsedApp, 화면 끈 시각: ${Date(lastUsageTimeBeforeSleep)}")
@@ -149,37 +154,44 @@ class MainActivity : AppCompatActivity() {
         val wakeTrackingEndTime = wakeUpCalendar.timeInMillis
 
         val wakeEvent = UsageEvents.Event()
-        val wakeUsageEvents = usageStatsManager.queryEvents(wakeTrackingStartTime, wakeTrackingEndTime) // 금일 오전 5시 ~ 금일 오전 10시 사이의 이벤트 조회
+        val wakeUsageEvents = usageStatsManager.queryEvents(
+            wakeTrackingStartTime,
+            wakeTrackingEndTime
+        ) // 금일 오전 5시 ~ 금일 오전 10시 사이의 이벤트 조회
 
-        while(wakeUsageEvents.hasNextEvent()) {
+        while (wakeUsageEvents.hasNextEvent()) {
             wakeUsageEvents.getNextEvent(wakeEvent)
-            if(wakeEvent.eventType == UsageEvents.Event.SCREEN_INTERACTIVE) {
-                if(firstUsageTimeAfterWake == null) {
+            if (wakeEvent.eventType == UsageEvents.Event.SCREEN_INTERACTIVE) {
+                if (firstUsageTimeAfterWake == null) {
                     firstUsageTimeAfterWake = wakeEvent.timeStamp  // 기상 후 처음 핸드폰을 킨 시간 추적
                     Log.e("MORNING", "SCREEN_INTERACTIVE: ${Date(firstUsageTimeAfterWake ?: 0L)}")
                 }
-            }
-            else if(wakeEvent.eventType == UsageEvents.Event.ACTIVITY_RESUMED && wakeEvent.packageName != "com.sec.android.app.launcher") {
-                if(firstUsedApp == null) {
+            } else if (wakeEvent.eventType == UsageEvents.Event.ACTIVITY_RESUMED && wakeEvent.packageName != "com.sec.android.app.launcher") {
+                if (firstUsedApp == null) {
                     firstUsedApp = wakeEvent.packageName // 기상 후 처음 사용한 앱 추적
-                    Log.e("MORNING", "ACTIVITY_RESUMED: $firstUsedApp") // TODO: kr.co.simplebestapp.newnosoundcamera 로 찍히는 이유 파악하기
+                    Log.e(
+                        "MORNING",
+                        "ACTIVITY_RESUMED: $firstUsedApp"
+                    ) // TODO: kr.co.simplebestapp.newnosoundcamera 로 찍히는 이유 파악하기
                 }
             }
         }
 
         // 수면 시간 계산해서 viewmodel 에 전달하기
-        // TODO: 코드 가독성이 안좋아서 나중에 리팩토링하기
-        val formatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        val sleepTime = formatter.format(lastUsageTimeBeforeSleep) // 01:11:58
+        Log.e("ERROR", "lastUsageTimeBeforeSleep: ${Date(lastUsageTimeBeforeSleep)}, firstUsageTimeAfterWake: ${firstUsageTimeAfterWake}")
+        // FIXME: 오전 12:07 시점 앱 다운 + 로그 값 lastUsageTimeBeforeSleep: 1753973258389, firstUsageTimeAfterWake: null
+        // FIXME: 원인 → 자정 이후로 금일 오전 5시 이후부터의 데이터는 존재하지 않기에 null 발생 (= 자정 이후 ~ 오전 5시 이전 앱 들어가면 튕김)
+        val longTimeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val shortTimeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val sleepTime = longTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11:58
+        val wakeTime = longTimeFormatter.format(firstUsageTimeAfterWake) // 07:44:56
         val sleepTimeSeconds = sleepTime.split(":")[2].toInt() // ["01", "11", "58"] → "58" → 58
-        val wakeTime = formatter.format(firstUsageTimeAfterWake) // 07:44:56
         val wakeTimeSeconds = wakeTime.split(":")[2].toInt() // ["07", "44", "56"] → "56" → 56
-        if(sleepTimeSeconds > wakeTimeSeconds) sleepViewModel.shouldAddOneMinute = true
         val duration = Duration.ofMillis(firstUsageTimeAfterWake!! - lastUsageTimeBeforeSleep)
-        sleepViewModel.sleepDuration = duration
-        sleepViewModel.sleepTime = lastUsageTimeBeforeSleep
-        sleepViewModel.wakeTime = firstUsageTimeAfterWake ?: 0L
-        Log.e("TIME", "hour: ${duration.toHours()}, minutes: ${duration.toMinutes()%60}, seconds: ${duration.seconds%60}")
+        sleepViewModel.sleepTime = shortTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11
+        sleepViewModel.wakeTime = shortTimeFormatter.format(firstUsageTimeAfterWake) // 07:44
+        sleepViewModel.sleepDurationHour = duration.toHours().toInt()
+        sleepViewModel.sleepDurationMinutes = if (sleepTimeSeconds > wakeTimeSeconds) (duration.toMinutes() % 60 + 1).toInt() else (duration.toMinutes() % 60).toInt()
     }
 
     override fun onResume() {
@@ -207,7 +219,8 @@ class MainActivity : AppCompatActivity() {
                                 val pomodoro = pomodoroList.filter { it.taskName == todoItemTitle }
                                 val pomodoro25Count = pomodoro.count { it.focusTime == 20 }
                                 val pomodoro50Count = pomodoro.count { it.focusTime == 40 }
-                                val todoItem = toDoViewModel.todoItems.value?.find { it.title == todoItemTitle }
+                                val todoItem =
+                                    toDoViewModel.todoItems.value?.find { it.title == todoItemTitle }
                                 todoItem?.let {
                                     it.timer25Number = pomodoro25Count
                                     it.timer50Number = pomodoro50Count
@@ -405,7 +418,7 @@ class MainActivity : AppCompatActivity() {
     // 앱 사용 시간 권한 활성 여부를 확인하는 함수
     private fun checkUsageAccessPermission(context: Context): Boolean {
         val appOpsManager = context.getSystemService(APP_OPS_SERVICE) as AppOpsManager
-        val mode = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Android 10 이상
             appOpsManager.unsafeCheckOpNoThrow(
                 AppOpsManager.OPSTR_GET_USAGE_STATS,
