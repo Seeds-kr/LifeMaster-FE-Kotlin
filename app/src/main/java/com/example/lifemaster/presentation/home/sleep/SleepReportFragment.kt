@@ -93,12 +93,17 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         lineChartSleepReportGraph.legend.isEnabled = false // LineDataSet 에서 지정한 두번째 파라미터가 표시되지 않음
         lineChartSleepReportGraph.description.isEnabled = false // 맨 오른쪽 하단에 표시되는 그래프 설명 비활성화
 //      lineChartSleepReportGraph.description.text = "수면 점수 그래프" // 맨 오른쪽 하단에 표시되는 그래프 설명
+        lineChartSleepReportGraph.isDoubleTapToZoomEnabled = false // 더블 탭하여 확대되는 기능 비활성화
 
         // 점 클릭 시 나타나는 통계 세부 정보
+        val dailySleepDurations = mutableListOf<String>()
+        orderedSleepData.forEach {
+            dailySleepDurations.add(it.second)
+        }
         val markerView = SleepReportMarkerView(
             requireContext(),
             R.layout.layout_sleep_report_marker_view,
-            sleepViewModel
+            dailySleepDurations
         )
         lineChartSleepReportGraph.marker = markerView
     }
