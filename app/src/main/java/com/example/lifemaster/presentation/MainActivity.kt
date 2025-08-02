@@ -197,10 +197,6 @@ class MainActivity : AppCompatActivity() {
         // 로컬에 수면 정보 저장
         val sharedPreference = getSharedPreferences("user_sleep_info", MODE_PRIVATE)
         val editor = sharedPreference.edit()
-        editor.putString("2025-07-28","8시간 51분") // test 용 dummy data
-        editor.putString("2025-07-29","5시간 19분") // test 용 dummy data
-        editor.putString("2025-07-30","6시간 42분") // test 용 dummy data
-        editor.putString("2025-07-31","7시간 20분") // test 용 dummy data
         editor.putString(LocalDate.now().toString(),"${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분") // 실제 데이터
         editor.commit()
     }
