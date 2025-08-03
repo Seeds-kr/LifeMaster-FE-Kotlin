@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
@@ -34,9 +35,10 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     }
 
     private fun initViews() = with(binding) {
-        // 수면 타이틀 UI 설정
+        // 수면 타이틀 UI
         tvSleepReportTitle.text = "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
 
+        // 통계 UI
         val sharedPreference = requireContext().getSharedPreferences("user_sleep_info", MODE_PRIVATE)
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val regex = Regex("(\\d+)시간 (\\d+)분") // 정규 표현식
@@ -47,7 +49,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             xLabels.add(dayOfMonth)
 
             val sleepDuration = it.second
-            val matchResult = regex.find(sleepDuration) ?: return
+            val matchResult = regex.find(sleepDuration) ?: return@forEach
             val (hour, minutes) = matchResult.destructured
             val tempYValue = "${hour}.${minutes}".toFloat()
             yValues.add(tempYValue)
@@ -94,8 +96,9 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         lineChartSleepReportGraph.description.isEnabled = false // 맨 오른쪽 하단에 표시되는 그래프 설명 비활성화
 //      lineChartSleepReportGraph.description.text = "수면 점수 그래프" // 맨 오른쪽 하단에 표시되는 그래프 설명
         lineChartSleepReportGraph.isDoubleTapToZoomEnabled = false // 더블 탭하여 확대되는 기능 비활성화
+        lineChartSleepReportGraph.setScaleEnabled(false) // 그래프 확대 기능 비활성화
 
-        // 점 클릭 시 나타나는 통계 세부 정보
+        // 통계 점 클릭 시 나타나는 통계 세부 정보
         val dailySleepDurations = mutableListOf<String>()
         orderedSleepData.forEach {
             dailySleepDurations.add(it.second)
@@ -106,6 +109,40 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             dailySleepDurations
         )
         lineChartSleepReportGraph.marker = markerView
+
+        // 평소 수면 정보 비교 UI
+        // step1. 금일 수면 정보 추출하기
+        val todaySleepData = orderedSleepData.last() // 금일 수면 정보 ex. (2025-08-03, 7시간 45분)
+        val result = regex.find(todaySleepData.second) ?: return@with
+        val (hour, minutes) = result.destructured
+        val todaySleepMinutes = hour.toInt()*60+minutes.toInt()
+        tvSleepReportAnalysisSleepTimeValue.text = "${todaySleepMinutes}분" // UI 반영
+
+        // step2. 금일 제외 수면 정보 추출 및 누적 합산하기
+        var accumulatedPastSleepMinutes = 0 // 금일 제외 총합 수면 시간 (단위: 분)
+        val pastSleepData = orderedSleepData.subList(0, orderedSleepData.size-1) // 금일 데이터 제외
+        pastSleepData.forEach {
+            val sleepTime = regex.find(it.second) ?: return@forEach
+            val (hour, minutes) = sleepTime.destructured
+            val totalSleepMinutes = hour.toInt()*60+minutes.toInt()
+            accumulatedPastSleepMinutes += totalSleepMinutes
+        }
+        val averagePastSleepMinutes = accumulatedPastSleepMinutes/pastSleepData.size
+        val sleepDifference = kotlin.math.abs(todaySleepMinutes-averagePastSleepMinutes) // 절댓값 계산
+        tvSleepReportAnalysisSleepTimeGapValue.text = sleepDifference.toString() // UI 반영
+
+        // step3. 금일 정보와 과거 정보 비교하기
+        if(todaySleepMinutes > averagePastSleepMinutes) {
+            tvSleepReportAnalysisSleepTimeTitle.text = "더 잤어요"
+            ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up))
+        } else if(todaySleepMinutes == averagePastSleepMinutes) {
+            tvSleepReportAnalysisSleepTimeTitle.text = "평소만큼 잤어요"
+            ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up)) // TODO: PM한테 물어보고 아이콘 변경하기
+        } else {
+            tvSleepReportAnalysisSleepTimeTitle.text = "잠이 부족했어요"
+            ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up))
+            ivSleepReportAnalysisSleepTimeChangeIndicator.rotation = 180f // 180도 회전하여 기존 drawable 재활용
+        }
     }
 
     private fun initListeners() = with(binding) {
