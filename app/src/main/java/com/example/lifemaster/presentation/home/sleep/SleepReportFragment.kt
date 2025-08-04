@@ -12,6 +12,7 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentSleepReportBinding
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -109,6 +110,27 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             dailySleepDurations
         )
         lineChartSleepReportGraph.marker = markerView
+
+        // x축 라벨 밑에 아이콘 표시하기
+        val testIcons = mapOf(
+            0f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad),
+            1f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad),
+            2f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good),
+            3f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good),
+            4f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad),
+            5f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad),
+            6f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good),
+            7f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good)
+        )
+
+        lineChartSleepReportGraph.setXAxisRenderer(CustomXAxisRenderer(
+            lineChartSleepReportGraph.viewPortHandler,
+            lineChartSleepReportGraph.xAxis,
+            lineChartSleepReportGraph.getTransformer(YAxis.AxisDependency.LEFT),
+            testIcons
+        ))
+
+        lineChartSleepReportGraph.setExtraOffsets(0f, 0f, 0f, 20f)
 
         // 평소 수면 정보 비교 UI
         // step1. 금일 수면 정보 추출하기
