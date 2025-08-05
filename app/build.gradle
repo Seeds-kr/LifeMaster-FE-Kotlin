@@ -12,9 +12,6 @@ android {
     namespace 'com.example.lifemaster'
     compileSdk 34
 
-    aaptOptions {
-        noCompress "mp3"
-    }
 
     viewBinding {
         enabled = true
@@ -32,7 +29,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "KAKAO_NATIVE_KEY", localProperties["KAKAO_NATIVE_KEY"])
+        //buildConfigField("String", "KAKAO_NATIVE_KEY", localProperties["KAKAO_NATIVE_KEY"])
     }
 
     buildTypes {
@@ -47,6 +44,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = '17'
+    }
+    androidResources {
+        noCompress 'mp3'
     }
 }
 
@@ -87,4 +87,6 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
+
+    implementation 'com.prolificinteractive:material-calendarview:1.4.3' //자아성찰 캘린더
 }
