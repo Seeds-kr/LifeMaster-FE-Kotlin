@@ -29,4 +29,16 @@
     <string name="default_channel_name">notification_channel_name</string>
     <string name="default_channel_description">notification_channel_description</string>
 
+    <!-- 캘린더 -->
+    <string name="month_text">월</string>
+    <string name="week_text">주</string>
+    <string name="day_text">일</string>
+    <string name="mon_text">MON</string>
+    <string name="tue_text">TUE</string>
+    <string name="wed_text">WED</string>
+    <string name="thu_text">THU</string>
+    <string name="fri_text">FRI</string>
+    <string name="sat_text">SAT</string>
+    <string name="sun_text">SUN</string>
+
 </resources>

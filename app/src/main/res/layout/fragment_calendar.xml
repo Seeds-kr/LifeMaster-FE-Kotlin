@@ -6,21 +6,22 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="12dp">
+            android:paddingVertical="12dp">
 
             <TextView
                 android:id="@+id/tv_selected_date"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="7월"
+                android:text="@string/month_text"
                 android:textSize="20sp"
                 android:textColor="@android:color/black"
                 android:textStyle="bold" />
@@ -29,7 +30,7 @@
                 android:id="@+id/btn_month"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:text="월"
+                android:text="@string/month_text"
                 android:textSize="11sp"
                 android:textColor="@android:color/white"
                 android:background="@drawable/bg_round_and_mint"
@@ -39,7 +40,7 @@
                 android:id="@+id/btn_week"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:text="주"
+                android:text="@string/week_text"
                 android:textSize="11sp"
                 android:textColor="#99A0E0CF"
                 android:background="@drawable/bg_calendar_unselected"
@@ -49,7 +50,7 @@
                 android:id="@+id/btn_day"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:text="일"
+                android:text="@string/day_text"
                 android:textSize="11sp"
                 android:textColor="#99A0E0CF"
                 android:background="@drawable/bg_calendar_unselected" />
@@ -60,7 +61,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="4dp"
             android:background="@android:color/white">
 
             <LinearLayout
@@ -71,21 +71,20 @@
                 android:layout_marginBottom="8dp"
                 android:weightSum="7">
 
-                <TextView style="@style/CalendarWeekHeader" android:text="SUN" />
-                <TextView style="@style/CalendarWeekHeader" android:text="MON" />
-                <TextView style="@style/CalendarWeekHeader" android:text="TUE" />
-                <TextView style="@style/CalendarWeekHeader" android:text="WED" />
-                <TextView style="@style/CalendarWeekHeader" android:text="THU" />
-                <TextView style="@style/CalendarWeekHeader" android:text="FRI" />
-                <TextView style="@style/CalendarWeekHeader" android:text="SAT" />
+                <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/sun_text" />
+                <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/mon_text" />
+                <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/tue_text" />
+                <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/wed_text" />
+                <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/thu_text" />
+                <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/fri_text" />
+                <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/sat_text" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/monthRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
-
+                android:layout_marginBottom="12dp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/weekRecyclerView"
@@ -93,8 +92,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:visibility="gone"
-                android:layout_marginBottom="16dp"/>
-
+                android:layout_marginBottom="12dp"/>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -1,14 +1,151 @@
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:gravity="center">
+    android:layout_height="32dp">
+
+    <View
+        android:id="@+id/bg_selected"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center"
+        android:background="@drawable/calendar_selected"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/tv_day"
-        android:layout_width="32dp"
+        android:layout_width="match_parent"
         android:layout_height="32dp"
         android:gravity="center"
         android:textSize="11sp"
-        android:textColor="#000000"/>
-</LinearLayout>
+        android:textColor="#131313"/>
+
+    <!-- 위 중앙 -->
+    <ImageView
+        android:id="@+id/star1"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="3dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 왼쪽 위 -->
+    <ImageView
+        android:id="@+id/star2"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="8dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 왼쪽 중앙 -->
+    <ImageView
+        android:id="@+id/star3"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center_vertical|start"
+        android:layout_marginStart="12dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 왼쪽 아래 -->
+    <ImageView
+        android:id="@+id/star4"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="8dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 아래 왼쪽1 -->
+    <ImageView
+        android:id="@+id/star5"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginBottom="3dp"
+        android:layout_marginStart="14dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 아래 왼쪽2 -->
+    <ImageView
+        android:id="@+id/star6"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginBottom="3dp"
+        android:layout_marginStart="18dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 아래 중앙 -->
+    <ImageView
+        android:id="@+id/star7"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="3dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 아래 오른쪽2 -->
+    <ImageView
+        android:id="@+id/star8"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="3dp"
+        android:layout_marginEnd="18dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 아래 오른쪽1 -->
+    <ImageView
+        android:id="@+id/star9"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="3dp"
+        android:layout_marginEnd="14dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 오른쪽 아래 -->
+    <ImageView
+        android:id="@+id/star10"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="8dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 오른쪽 중앙 -->
+    <ImageView
+        android:id="@+id/star11"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center_vertical|end"
+        android:layout_marginEnd="12dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+    <!-- 오른쪽 위 -->
+    <ImageView
+        android:id="@+id/star12"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_gravity="top|end"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="8dp"
+        android:src="@drawable/ic_logo_star"
+        app:tint="#7CD7BD"
+        android:visibility="gone"/>
+</FrameLayout>
