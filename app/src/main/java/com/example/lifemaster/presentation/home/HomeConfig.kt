@@ -1,9 +1,6 @@
 package com.example.lifemaster.presentation.home
 
 object HomeConfig {
-    val EDITABLE_SERVICE = listOf(
-        "수면", "디톡스", "그룹 바로가기", "자아성찰 바로가기", "알람 추가", "챌린지"
-    )
     val SERVICE_KEY_MAP = mapOf(
         "수면" to "sleep",
         "디톡스" to "detox",
