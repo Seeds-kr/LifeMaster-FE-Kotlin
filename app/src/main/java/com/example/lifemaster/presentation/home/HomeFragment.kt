@@ -64,10 +64,15 @@ class HomeFragment : Fragment() {
         binding.cvGoToAlarm.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
         }
-
+        // 디톡스 화면 이동
         binding.cardDetox.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
         }
+        // 그룹 화면 이동
+        binding.cardGroup.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_groupFragment)
+        }
+
     }
 
     override fun onResume() {

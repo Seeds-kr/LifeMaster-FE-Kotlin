@@ -29,6 +29,9 @@
         <action
             android:id="@+id/action_homeFragment_to_detoxFragment"
             app:destination="@id/detoxFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_groupFragment"
+            app:destination="@id/groupFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
