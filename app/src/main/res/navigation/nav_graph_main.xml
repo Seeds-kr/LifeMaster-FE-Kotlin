@@ -35,9 +35,17 @@
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
-        android:name="com.example.lifemaster.presentation.community.CommunityFragment"
+        android:name="com.example.lifemaster.presentation.community.view.CommunityFragment"
         android:label="CommunityFragment"
-        tools:layout="@layout/fragment_community"/>
+        tools:layout="@layout/fragment_community">
+        <action
+            android:id="@+id/action_communityFragment_to_writeFragment"
+            app:destination="@+id/writeFragment"/>
+    </fragment>
+    <fragment
+        android:id="@+id/writeFragment"
+        android:name="com.example.lifemaster.presentation.community.view.WriteFragment"
+        android:label="fragment_community_write" />
     <fragment
         android:id="@+id/detoxFragment"
         android:name="com.example.lifemaster.presentation.total.detox.fragment.DetoxFragment"
