@@ -1,6 +1,7 @@
 package com.example.lifemaster.presentation.home.sleep
 
 import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -40,10 +41,10 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         tvSleepReportTitle.text = "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
 
         // 통계 UI
-        val sharedPreference = requireContext().getSharedPreferences("user_sleep_info", MODE_PRIVATE)
+        val userSleepPrefs = requireContext().getSharedPreferences("user_sleep_info", MODE_PRIVATE)
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val regex = Regex("(\\d+)시간 (\\d+)분") // 정규 표현식
-        val orderedSleepData = sharedPreference.all.map { Pair(it.key, it.value as String) }.sortedBy { dateFormatter.parse(it.first) }
+        val orderedSleepData = userSleepPrefs.all.map { Pair(it.key, it.value as String) }.sortedBy { dateFormatter.parse(it.first) }
         orderedSleepData.forEach {
             val date = it.first
             val dayOfMonth = date.split("-")[2]
@@ -111,7 +112,13 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         )
         lineChartSleepReportGraph.marker = markerView
 
-        // x축 라벨 밑에 아이콘 표시하기
+        /**
+         * x축 라벨 밑에 아이콘 표시하기
+         * Pair<Float, Drawable> → Map<Float, Drawable>
+         * Map의 key인 Float는 Entry의 x값(index, position)을 의미 (라벨x)
+         * vector drawable은 AppCompatResources.getDrawable로 가져와야 호환성이 보장됨
+         * a to b = Pair(a,b)
+         */
         val testIcons = mapOf(
             0f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad),
             1f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad),
@@ -120,9 +127,19 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             4f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad),
             5f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad),
             6f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good),
-            7f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good)
+            7f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good),
+            8f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good)
         )
 
+        /**
+         * 커스텀 XAxisRenderer 사용(매개변수 설명)
+         * viewPortHandler: 차트의 뷰포트(보여지는 실제 영역)에 대한 정보를 관리하는 객체. 화면 상의 위치(좌표계)를 해석. 라벨을 어디에 그려야 할지 결정할 때 반드시 필요.
+         * xAxis: X축에 대한 정보를 담는 객체. X축 라벨 포메팅, 텍스트 회전, 표시 여부 등을 결정.
+         * getTransformer: 데이터 값(x, y)을 실제 화면에 그려지는 위치인 픽셀 좌표로 변환해주는 역할.
+            - YAxis.AxisDependency.LEFT: Y축이 왼쪽/오른쪽 둘 다 있을 수 있기에, 어느 쪽 기준으로 좌표 변환할 것인지 명시.
+            - 대부분 왼쪽 축을 기준으로 함
+         * testIcons: 라벨 밑에 붙일 아이콘 콜렉션
+         */
         lineChartSleepReportGraph.setXAxisRenderer(CustomXAxisRenderer(
             lineChartSleepReportGraph.viewPortHandler,
             lineChartSleepReportGraph.xAxis,
@@ -130,7 +147,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             testIcons
         ))
 
-        lineChartSleepReportGraph.setExtraOffsets(0f, 0f, 0f, 20f)
+        lineChartSleepReportGraph.setExtraOffsets(0f, 0f, 0f, 20f) // 여백을 늘림 (이렇게 설정하지 않으면 아이콘이 표시될 영역이 부족해서 일부 짤림)
 
         // 평소 수면 정보 비교 UI
         // step1. 금일 수면 정보 추출하기
