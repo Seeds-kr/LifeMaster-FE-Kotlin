@@ -1,11 +1,15 @@
 package com.example.lifemaster.presentation.total.introspection
 
 import android.os.Bundle
+import android.transition.TransitionManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentIntrospectionBinding
 
 class IntrospectionFragment : Fragment() {
@@ -29,12 +33,36 @@ class IntrospectionFragment : Fragment() {
         // 버튼 클릭 이벤트
         binding.btnToday.setOnClickListener {
             currentMode = Mode.TODAY
-            binding.etDiary.hint = "오늘 하루 동안 있었던 일을 적어보세요"
+            switchMode()
+
+            // 배경 뷰 애니메이션
+            val constraintSet = ConstraintSet()
+            constraintSet.clone(binding.toggleContainer)
+            constraintSet.connect(binding.toggleBackground.id, ConstraintSet.START, binding.btnToday.id, ConstraintSet.START)
+            constraintSet.connect(binding.toggleBackground.id, ConstraintSet.END, binding.btnToday.id, ConstraintSet.END)
+            TransitionManager.beginDelayedTransition(binding.toggleContainer)
+            constraintSet.applyTo(binding.toggleContainer)
+
+            // 텍스트 색상 변경
+            binding.btnToday.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+            binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
         }
 
         binding.btnThanks.setOnClickListener {
             currentMode = Mode.THANKS
-            binding.etDiary.hint = "오늘 하루 감사한 일을 적어보세요"
+            switchMode()
+
+            // 배경 뷰 애니메이션
+            val constraintSet = ConstraintSet()
+            constraintSet.clone(binding.toggleContainer)
+            constraintSet.connect(binding.toggleBackground.id, ConstraintSet.START, binding.btnThanks.id, ConstraintSet.START)
+            constraintSet.connect(binding.toggleBackground.id, ConstraintSet.END, binding.btnThanks.id, ConstraintSet.END)
+            TransitionManager.beginDelayedTransition(binding.toggleContainer)
+            constraintSet.applyTo(binding.toggleContainer)
+
+            // 텍스트 색상 변경
+            binding.btnToday.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+            binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
         }
 
         binding.btnSubmit.setOnClickListener {
@@ -76,9 +104,15 @@ private fun switchMode() {
     if (currentMode == Mode.TODAY) {
         binding.etDiary.visibility = View.VISIBLE
         binding.scrollThanksContainer.visibility = View.GONE
+        // 초기 텍스트 색상 설정
+        binding.btnToday.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
     } else {
         binding.etDiary.visibility = View.GONE
         binding.scrollThanksContainer.visibility = View.VISIBLE
+        // 초기 텍스트 색상 설정
+        binding.btnToday.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+        binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
     }
 }
 
