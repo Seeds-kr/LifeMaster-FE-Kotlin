@@ -1,9 +1,9 @@
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal">
 
     <include
         android:id="@+id/includeBackButton"
@@ -15,10 +15,8 @@
         android:id="@+id/iv_hand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_hand"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="80dp" />
+        android:layout_marginTop="50dp"
+        android:src="@drawable/ic_hand" />
 
     <TextView
         android:id="@+id/tv_welcome"
@@ -27,19 +25,13 @@
         android:text="안녕하세요"
         android:textSize="18sp"
         android:textColor="@color/black"
-        app:layout_constraintTop_toBottomOf="@id/iv_hand"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="4dp"/>
+        android:layout_marginTop="4dp" />
 
     <LinearLayout
         android:id="@+id/layout_email"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/tv_welcome"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="8dp">
 
         <TextView
@@ -61,16 +53,13 @@
 
     <TextView
         android:id="@+id/tv_guide"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="라이프마스터에서 사용하실\n프로필 이미지와 닉네임을 등록해주세요!"
         android:textSize="14sp"
         android:textColor="#99131313"
         android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/layout_email"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="20dp"/>
+        android:layout_marginTop="20dp" />
 
     <FrameLayout
         android:id="@+id/frame_profile"
@@ -81,9 +70,6 @@
         android:outlineProvider="background"
         android:clickable="true"
         android:focusable="true"
-        app:layout_constraintTop_toBottomOf="@id/tv_guide"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="32dp">
 
         <ImageView
@@ -106,30 +92,25 @@
 
     <EditText
         android:id="@+id/edit_nickname"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="48dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="32dp"
         android:background="@drawable/bg_round_input"
         android:hint="닉네임"
         android:inputType="text"
         android:padding="16dp"
         android:textSize="12sp"
-        android:textColor="#99131313"
-        android:layout_marginHorizontal="16dp"
-        app:layout_constraintTop_toBottomOf="@id/frame_profile"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp"/>
+        android:textColor="#99131313" />
 
     <LinearLayout
         android:id="@+id/layout_nickname_status"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:layout_marginTop="4dp"
         android:layout_marginHorizontal="16dp"
-        app:layout_constraintTop_toBottomOf="@id/edit_nickname"
-        app:layout_constraintStart_toStartOf="parent"
         android:visibility="invisible">
 
         <ImageView
@@ -150,17 +131,19 @@
             android:textColor="#8AB6BE"/>
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_start"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="48dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="75dp"
         android:background="@drawable/bg_round_and_mint_60"
         android:text="닉네임을 입력해주세요"
-        android:layout_marginHorizontal="16dp"
         android:textColor="@color/white"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="80dp"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:textSize="12sp" />
+</LinearLayout>
