@@ -3,6 +3,7 @@ package com.example.lifemaster.presentation.home.sleep
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -19,6 +20,7 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.Locale
 
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
@@ -28,6 +30,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     private var userSleepDataPoints = mutableListOf<Entry>() // // 1개의 line 을 구성하는 점들의 집합
     private var xLabels = mutableListOf<String>() // x축에 표시할 값(일)
     private var yValues = mutableListOf<Float>() // y축에 표시할 값
+    lateinit var userMoodPrefs: SharedPreferences
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -37,6 +40,9 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     }
 
     private fun initViews() = with(binding) {
+        // shared preference
+        userMoodPrefs = requireContext().getSharedPreferences("user_mood_info", MODE_PRIVATE)
+
         // 수면 타이틀 UI
         tvSleepReportTitle.text = "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
 
@@ -119,17 +125,19 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
          * vector drawable은 AppCompatResources.getDrawable로 가져와야 호환성이 보장됨
          * a to b = Pair(a,b)
          */
-        val testIcons = mapOf(
-            0f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad),
-            1f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad),
-            2f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good),
-            3f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good),
-            4f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad),
-            5f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad),
-            6f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good),
-            7f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good),
-            8f to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good)
-        )
+        val orderedUserMoodData = userMoodPrefs.all.map { Pair(it.key, it.value as String)}.sortedBy { dateFormatter.parse(it.first) }
+        val pairList = mutableListOf<Pair<Float, Drawable?>>()
+        orderedUserMoodData.forEachIndexed { index, data ->
+            val drawable = when(data.second) {
+                "very_bad" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad)
+                "bad" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad)
+                "good" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good)
+                "very_good" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good)
+                else -> null
+            }
+            val pair = index.toFloat() to drawable
+            pairList.add(pair)
+        }
 
         /**
          * 커스텀 XAxisRenderer 사용(매개변수 설명)
@@ -144,7 +152,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             lineChartSleepReportGraph.viewPortHandler,
             lineChartSleepReportGraph.xAxis,
             lineChartSleepReportGraph.getTransformer(YAxis.AxisDependency.LEFT),
-            testIcons
+            pairList.toMap()
         ))
 
         lineChartSleepReportGraph.setExtraOffsets(0f, 0f, 0f, 20f) // 여백을 늘림 (이렇게 설정하지 않으면 아이콘이 표시될 영역이 부족해서 일부 짤림)
@@ -201,6 +209,21 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                         context?.theme
                     )
                 )
+                // 오늘의 기분 sharedpreference에 저장하기
+                when(todayMood) {
+                    ivSleepReportTodayMoodVeryBad -> {
+                        userMoodPrefs.edit().putString(LocalDate.now().toString(), "very_bad").apply() // 비동기 저장
+                    }
+                    ivSleepReportTodayMoodBad -> {
+                        userMoodPrefs.edit().putString(LocalDate.now().toString(), "bad").apply()
+                    }
+                    ivSleepReportTodayMoodGood -> {
+                        userMoodPrefs.edit().putString(LocalDate.now().toString(), "good").apply()
+                    }
+                    ivSleepReportTodayMoodVeryGood -> {
+                        userMoodPrefs.edit().putString(LocalDate.now().toString(), "very_good").apply()
+                    }
+                }
             }
         }
     }
