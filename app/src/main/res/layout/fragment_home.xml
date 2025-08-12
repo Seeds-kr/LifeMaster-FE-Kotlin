@@ -19,17 +19,72 @@
             android:id="@+id/card_calendar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="12dp"
             android:visibility="visible"
             android:background="@android:color/white"
             app:cardCornerRadius="12dp"
             app:cardElevation="0dp">
 
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/container_calendar"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                tools:layout="@layout/fragment_calendar"/>
+                android:orientation="vertical"
+                android:paddingVertical="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="12dp">
+
+                    <TextView
+                        android:id="@+id/tv_selected_date"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/month_text"
+                        android:textSize="20sp"
+                        android:textColor="@android:color/black"
+                        android:textStyle="bold" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btn_month"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:text="@string/month_text"
+                        android:textSize="11sp"
+                        android:textColor="@android:color/white"
+                        android:background="@drawable/bg_round_and_mint"
+                        android:layout_marginEnd="8dp" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btn_week"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:text="@string/week_text"
+                        android:textSize="11sp"
+                        android:textColor="#99A0E0CF"
+                        android:background="@drawable/bg_calendar_unselected"
+                        android:layout_marginEnd="8dp" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btn_day"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:text="@string/day_text"
+                        android:textSize="11sp"
+                        android:textColor="#99A0E0CF"
+                        android:background="@drawable/bg_calendar_unselected" />
+                </LinearLayout>
+
+                <androidx.fragment.app.FragmentContainerView
+                    android:id="@+id/container_calendar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="6dp"
+                    tools:layout="@layout/fragment_calendar"/>
+            </LinearLayout>
         </androidx.cardview.widget.CardView>
 
         <!-- 할일 -->
@@ -114,7 +169,7 @@
                         android:layout_margin="6dp"
                         android:layout_marginEnd="8dp"
                         android:src="@drawable/ic_logo_star"
-                        android:tint="#333333" />
+                        app:tint="#333333" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -163,7 +218,7 @@
                         android:layout_margin="6dp"
                         android:layout_marginEnd="8dp"
                         android:src="@drawable/ic_logo_star"
-                        android:tint="#BBAB94" />
+                        app:tint="#BBAB94" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -211,7 +266,7 @@
                         android:layout_margin="6dp"
                         android:layout_marginEnd="8dp"
                         android:src="@drawable/ic_logo_star"
-                        android:tint="#FFA500" />
+                        app:tint="#FFA500" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -259,7 +314,7 @@
                         android:layout_margin="6dp"
                         android:layout_marginEnd="8dp"
                         android:src="@drawable/ic_logo_star"
-                        android:tint="#84CAE2" />
+                        app:tint="#84CAE2" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -307,7 +362,7 @@
                         android:layout_margin="6dp"
                         android:layout_marginEnd="8dp"
                         android:src="@drawable/ic_logo_star"
-                        android:tint="#8DB83F" />
+                        app:tint="#8DB83F" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -384,6 +439,5 @@
             android:textSize="12sp"
             android:clickable="true"
             android:focusable="true" />
-
     </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.core.widget.NestedScrollView>

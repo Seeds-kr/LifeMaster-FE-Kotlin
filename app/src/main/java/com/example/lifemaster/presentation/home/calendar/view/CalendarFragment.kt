@@ -6,11 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentCalendarBinding
 import com.example.lifemaster.presentation.home.calendar.adapter.CalendarAdapter
 import com.example.lifemaster.presentation.home.calendar.model.CalendarDay
+import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
+import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
+import java.time.LocalDate
 import java.util.*
 
 class CalendarFragment : Fragment() {
@@ -18,99 +21,65 @@ class CalendarFragment : Fragment() {
     private var _binding: FragmentCalendarBinding? = null
     private val binding get() = _binding!!
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    private val vm: CalendarViewModel by activityViewModels()
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentCalendarBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupListeners()
-        showMonthView()
-        updateButtonUI(binding.btnMonth)
-        updateSelectedDate("month")
-    }
 
-    private fun setupListeners() {
-        binding.btnMonth.setOnClickListener {
-            showMonthView()
-            updateButtonUI(binding.btnMonth)
-            updateSelectedDate("month")
-        }
-        binding.btnWeek.setOnClickListener {
-            showWeekView()
-            updateButtonUI(binding.btnWeek)
-            updateSelectedDate("week")
-        }
-        binding.btnDay.setOnClickListener {
-            showDayView()
-            updateButtonUI(binding.btnDay)
-            updateSelectedDate("day")
-        }
-    }
-
-    private fun updateButtonUI(selectedButton: View) {
-        val buttons = listOf(binding.btnMonth, binding.btnWeek, binding.btnDay)
-        buttons.forEach { btn ->
-            if (btn == selectedButton) {
-                btn.setBackgroundResource(R.drawable.bg_round_and_mint)
-                (btn as? androidx.appcompat.widget.AppCompatButton)
-                    ?.setTextColor(resources.getColor(android.R.color.white, null))
-            } else {
-                btn.setBackgroundResource(R.drawable.bg_calendar_unselected)
-                (btn as? androidx.appcompat.widget.AppCompatButton)
-                    ?.setTextColor(resources.getColor(R.color.mint_60, null))
+        vm.mode.observe(viewLifecycleOwner) { mode ->
+            when (mode) {
+                CalendarMode.MONTH -> showMonthView()
+                CalendarMode.WEEK  -> showWeekView()
+                CalendarMode.DAY   -> showDayView()
             }
         }
     }
 
-    private fun updateSelectedDate(type: String) {
-        val cal = Calendar.getInstance()
-        val month = cal.get(Calendar.MONTH) + 1
-        val day = cal.get(Calendar.DAY_OF_MONTH)
-        val week = cal.get(Calendar.WEEK_OF_MONTH)
-        binding.tvSelectedDate.text = when (type) {
-            "month" -> "${month}월"
-            "week" -> "${month}월 ${week}째주"
-            "day" -> "${month}월 ${day}일"
-            else -> "${month}월"
-        }
-    }
-
-    private fun showMonthView() {
-        binding.calendarContainer.visibility = View.VISIBLE
-        binding.monthRecyclerView.visibility = View.VISIBLE
-        binding.weekRecyclerView.visibility = View.GONE
-        binding.layoutWeekHeader.visibility = View.VISIBLE
+    private fun showMonthView() = with(binding) {
+        calendarContainer.visibility = View.VISIBLE
+        monthRecyclerView.visibility = View.VISIBLE
+        weekRecyclerView.visibility = View.GONE
+        layoutWeekHeader.visibility = View.VISIBLE
 
         val days = generateMonthDays()
-        binding.monthRecyclerView.layoutManager = GridLayoutManager(requireContext(), 7)
-        binding.monthRecyclerView.adapter = CalendarAdapter(days) {
-            Toast.makeText(requireContext(), "${it.day}일 선택", Toast.LENGTH_SHORT).show()
+        monthRecyclerView.layoutManager = GridLayoutManager(requireContext(), 7)
+        monthRecyclerView.adapter = CalendarAdapter(days) { day ->
+            if (day.isCurrentMonth && day.day > 0) {
+                val cal = Calendar.getInstance()
+                val year = cal.get(Calendar.YEAR)
+                val monthZeroBased = cal.get(Calendar.MONTH)
+                vm.selectDate(LocalDate.of(year, monthZeroBased + 1, day.day))
+                Toast.makeText(requireContext(), "${day.day}일 선택", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    private fun showWeekView() {
-        binding.calendarContainer.visibility = View.VISIBLE
-        binding.monthRecyclerView.visibility = View.GONE
-        binding.weekRecyclerView.visibility = View.VISIBLE
-        binding.layoutWeekHeader.visibility = View.VISIBLE
+    private fun showWeekView() = with(binding) {
+        calendarContainer.visibility = View.VISIBLE
+        monthRecyclerView.visibility = View.GONE
+        weekRecyclerView.visibility = View.VISIBLE
+        layoutWeekHeader.visibility = View.VISIBLE
 
         val days = generateWeekDays()
-        binding.weekRecyclerView.layoutManager = GridLayoutManager(requireContext(), 7)
-        binding.weekRecyclerView.adapter = CalendarAdapter(days) {
-            Toast.makeText(requireContext(), "${it.day}일 선택", Toast.LENGTH_SHORT).show()
+        weekRecyclerView.layoutManager = GridLayoutManager(requireContext(), 7)
+        weekRecyclerView.adapter = CalendarAdapter(days) { day ->
+            if (day.day > 0) {
+                val today = Calendar.getInstance()
+                vm.selectDate(LocalDate.of(today.get(Calendar.YEAR), today.get(Calendar.MONTH) + 1, day.day))
+            }
         }
     }
 
-    private fun showDayView() {
-        binding.calendarContainer.visibility = View.GONE
-        binding.monthRecyclerView.visibility = View.GONE
-        binding.weekRecyclerView.visibility = View.GONE
-        binding.layoutWeekHeader.visibility = View.GONE
+    private fun showDayView() = with(binding) {
+        calendarContainer.visibility = View.GONE
+        monthRecyclerView.visibility = View.GONE
+        weekRecyclerView.visibility = View.GONE
+        layoutWeekHeader.visibility = View.GONE
     }
 
     private fun generateMonthDays(): List<CalendarDay> {
@@ -123,9 +92,10 @@ class CalendarFragment : Fragment() {
 
         val result = mutableListOf<CalendarDay>()
 
-        val prevCal = Calendar.getInstance()
-        prevCal.time = cal.time
-        prevCal.add(Calendar.MONTH, -1)
+        val prevCal = Calendar.getInstance().apply {
+            time = cal.time
+            add(Calendar.MONTH, -1)
+        }
         val prevMonthDays = prevCal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
         val emptyDays = (firstDayOfWeek - Calendar.SUNDAY + 7) % 7
@@ -150,13 +120,11 @@ class CalendarFragment : Fragment() {
         while (result.size < totalCells) {
             result.add(CalendarDay(nextDay++, isCurrentMonth = false))
         }
-
         return result
     }
 
     private fun generateWeekDays(): List<CalendarDay> {
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+        val cal = Calendar.getInstance().apply { set(Calendar.DAY_OF_WEEK, firstDayOfWeek) }
         val today = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
         return (0..6).map {
             val dayOfMonth = cal.get(Calendar.DAY_OF_MONTH)

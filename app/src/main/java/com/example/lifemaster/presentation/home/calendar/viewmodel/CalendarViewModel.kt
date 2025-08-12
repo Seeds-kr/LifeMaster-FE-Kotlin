@@ -5,11 +5,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import java.time.LocalDate
 
+enum class CalendarMode { MONTH, WEEK, DAY }
+
 class CalendarViewModel : ViewModel() {
+
+    private val _mode = MutableLiveData(CalendarMode.MONTH)
+    val mode: LiveData<CalendarMode> = _mode
+
     private val _selectedDate = MutableLiveData(LocalDate.now())
     val selectedDate: LiveData<LocalDate> = _selectedDate
 
-    fun selectDate(date: LocalDate) {
-        _selectedDate.value = date
-    }
+    fun setMode(m: CalendarMode) { if (_mode.value != m) _mode.value = m }
+    fun selectDate(date: LocalDate) { _selectedDate.value = date }
 }
