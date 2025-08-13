@@ -44,11 +44,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/tv_alarm_random_mission_tap_time" />
 
+    <TextView
+        android:id="@+id/tv_alarm_random_mission_tap_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="3"
+        android:textStyle="bold"
+        android:textSize="28sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_alarm_random_mission_tap_time"/>
+
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="52dp"
         app:cardBackgroundColor="#EBE6DF"
         app:cardCornerRadius="8dp"
         app:cardElevation="0dp"
@@ -88,132 +99,132 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_1"
-        style="@style/random_mission_tap_pad_not_clicked" />
+        style="@style/random_mission_tap_pad_default" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_2"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_3"
-        style="@style/random_mission_tap_pad_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_4"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_5"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_6"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_7"
-        style="@style/random_mission_tap_pad_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_8"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_9"
-        style="@style/random_mission_tap_pad_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_10"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_11"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_12"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_13"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_14"
-        style="@style/random_mission_tap_pad_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_15"
-        style="@style/random_mission_tap_pad_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_16"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_17"
-        style="@style/random_mission_tap_pad_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_18"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_19"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_20"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_21"
-        style="@style/random_mission_tap_pad_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_22"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_23"
-        style="@style/random_mission_tap_pad_not_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_24"
-        style="@style/random_mission_tap_pad_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_tap_25"
-        style="@style/random_mission_tap_pad_clicked"
+        style="@style/random_mission_tap_pad_default"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="28dp"
         app:cardCornerRadius="8dp"
         app:cardElevation="0dp"
         app:strokeWidth="1dp"
