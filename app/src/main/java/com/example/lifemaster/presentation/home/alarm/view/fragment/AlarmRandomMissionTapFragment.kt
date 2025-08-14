@@ -1,6 +1,7 @@
 package com.example.lifemaster.presentation.home.alarm.view.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -17,6 +18,8 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
 
     private lateinit var binding: FragmentAlarmRandomMissionTapBinding
     private lateinit var taps: List<MaterialCardView>
+    private var answerTapPositions: MutableSet<Int> = hashSetOf()
+    private var userTapPositions: MutableSet<Int> = hashSetOf()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -54,7 +57,9 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
             cvAlarmRandomMissionTap25
         )
         lifecycleScope.launch {
-            repeat(10) {
+            for (tap in taps) { tap.isEnabled = false } // 사용자 터치 임시 비활성화
+            // repeat 코드 실행 시간 거의 0ms에 가까움
+            repeat(5) {
                 val i = Random.nextInt(0, 25) // 0 ~ 24 (중복 허용)
                 taps[i].apply {
                     isSelected = true
@@ -65,6 +70,7 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                         )
                     )
                 }
+                answerTapPositions.add(i)
             }
             delay(1000)
             tvAlarmRandomMissionTapCount.text = "2"
@@ -81,6 +87,7 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                     )
                 )
             }
+            for (tap in taps) { tap.isEnabled = true } // 사용자 터치 재활성화
         }
     }
 
@@ -104,6 +111,13 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                     )
                 }
             }
+        }
+        cvAlarmRandomMissionNextPage.setOnClickListener {
+            taps.forEachIndexed { position, tap ->
+                if(tap.isSelected) userTapPositions.add(position) else userTapPositions.remove(position)
+            }
+            if(answerTapPositions.equals(userTapPositions)) Log.e("TTEST", "GOOD")
+            else Log.e("TTEST", "BAD")
         }
     }
 }
