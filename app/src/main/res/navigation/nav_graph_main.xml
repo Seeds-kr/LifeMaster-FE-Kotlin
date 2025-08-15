@@ -94,4 +94,14 @@
         android:name="com.example.lifemaster.presentation.home.sleep.SleepReportFragment"
         android:label="fragment_sleep_report"
         tools:layout="@layout/fragment_sleep_report" />
+    <fragment
+        android:id="@+id/alarmRandomMissionTapFragment"
+        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmRandomMissionTapFragment"
+        android:label="fragment_alarm_random_mission_tap"
+        tools:layout="@layout/fragment_alarm_random_mission_tap">
+        <argument
+            android:name="currentPageNum"
+            android:defaultValue="1"
+            app:argType="integer" />
+    </fragment>
 </navigation>
