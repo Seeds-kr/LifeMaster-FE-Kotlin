@@ -138,7 +138,8 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                     val serviceIntent = Intent(context, AlarmService::class.java)
                     requireContext().stopService(serviceIntent)
                     findNavController().navigate(
-                        R.id.action_alarmRandomMissionTapFragment_to_alarmListFragment
+                        R.id.action_alarmRandomMissionTapFragment_to_alarmListFragment,
+                        bundleOf("origin" to "alarm_random_mission")
                     )
                 } else {
                     findNavController().navigate(

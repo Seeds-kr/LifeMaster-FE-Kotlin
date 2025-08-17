@@ -19,6 +19,7 @@ import android.view.accessibility.AccessibilityManager
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
@@ -81,7 +82,7 @@ class MainActivity : AppCompatActivity() {
         if(targetFragment == "alarm") {
             val navController = (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
             navController.navigate(R.id.alarmRingsFragment)
-            // TODO: Bottom Navigation View 비활성화
+            binding.bottomNavigation.isVisible = false
         }
 
 //        userToken = intent.getStringExtra("user_token")
