@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRingBinding
 import java.text.SimpleDateFormat
@@ -38,9 +39,9 @@ class AlarmRingsFragment : Fragment(R.layout.fragment_alarm_ring) {
     }
 
     private fun initListeners() = with(binding) {
-            // 서비스 중단
-//            val serviceIntent = Intent(this@AlarmRingsActivity, AlarmService::class.java)
-//            stopService(serviceIntent)
+        btnRandomMission.setOnClickListener {
+            findNavController().navigate(R.id.action_alarmRingsFragment_to_alarmRandomMissionTapFragment)
+        }
 
         // 뒤로가기 버튼(백버튼) 막기
         requireActivity().onBackPressedDispatcher.addCallback(

@@ -53,6 +53,7 @@
     </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_random_mission"
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:background="@drawable/bg_round_radius"

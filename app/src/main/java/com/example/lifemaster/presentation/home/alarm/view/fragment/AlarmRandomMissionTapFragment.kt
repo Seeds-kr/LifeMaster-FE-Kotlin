@@ -1,5 +1,6 @@
 package com.example.lifemaster.presentation.home.alarm.view.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -13,6 +14,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRandomMissionTapBinding
+import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -133,6 +135,11 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
             if(answerTapPositions.equals(userTapPositions)) {
                 if(currentPage == 3) {
                     Toast.makeText(context, "수고하셨습니다!", Toast.LENGTH_SHORT).show()
+                    val serviceIntent = Intent(context, AlarmService::class.java)
+                    requireContext().stopService(serviceIntent)
+                    findNavController().navigate(
+                        R.id.action_alarmRandomMissionTapFragment_to_alarmListFragment
+                    )
                 } else {
                     findNavController().navigate(
                         R.id.alarmRandomMissionTapFragment,
