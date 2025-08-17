@@ -20,6 +20,7 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
@@ -75,6 +76,13 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val targetFragment = intent.getStringExtra("destination")
+        if(targetFragment == "alarm") {
+            val navController = (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
+            navController.navigate(R.id.alarmRingsFragment)
+            // TODO: Bottom Navigation View 비활성화
+        }
 
 //        userToken = intent.getStringExtra("user_token")
 //        val sharedPreferences = getSharedPreferences("USER_TABLE", MODE_PRIVATE)

@@ -10,7 +10,7 @@ import android.media.RingtoneManager
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.lifemaster.R
-import com.example.lifemaster.presentation.home.alarm.view.activity.AlarmRingsActivity
+import com.example.lifemaster.presentation.MainActivity
 
 class AlarmService : Service() {
 
@@ -20,9 +20,9 @@ class AlarmService : Service() {
 
         // 알림 채널 생성
         createNotificationChannel()
-
-        val intent = Intent(this, AlarmRingsActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra("destination", "alarm")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP) // 주석 1
         }
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) // requestCode를 다르게 줘서 여러 PendingIntent를 구분하는 방법 도 고려하기
 
