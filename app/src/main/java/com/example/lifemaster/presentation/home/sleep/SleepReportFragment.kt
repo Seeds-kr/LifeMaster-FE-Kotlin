@@ -20,7 +20,9 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import java.text.SimpleDateFormat
+import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.Locale
 
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
@@ -31,6 +33,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     private var xLabels = mutableListOf<String>() // x축에 표시할 값(일)
     private var yValues = mutableListOf<Float>() // y축에 표시할 값
     lateinit var userMoodPrefs: SharedPreferences
+    lateinit var userAlarmPrefs: SharedPreferences
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -40,8 +43,9 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     }
 
     private fun initViews() = with(binding) {
-        // shared preference
+        // shared preference 초기화
         userMoodPrefs = requireContext().getSharedPreferences("user_mood_info", MODE_PRIVATE)
+        userAlarmPrefs = requireContext().getSharedPreferences("user_alarm_info", MODE_PRIVATE)
 
         // 수면 타이틀 UI
         tvSleepReportTitle.text = "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
@@ -192,6 +196,21 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up))
             ivSleepReportAnalysisSleepTimeChangeIndicator.rotation = 180f // 180도 회전하여 기존 drawable 재활용
         }
+
+        // 알람이 울린 시간 UI
+        val alarmDuration = userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: ""
+        tvSleepReportAnalysisAlarmDurationValue.text = alarmDuration
+        // 일어나는데 걸린 시간 UI
+        tvSleepReportAnalysisWakeupDelayTimeValue.text = "${getMinuteDifference(alarmDuration)}분"
+    }
+
+    // 알람이 울린 시간에서 시간 차이(분) 계산하는 메소드
+    private fun getMinuteDifference(timeRange: String): Int {
+        val separatedTime = timeRange.split("~").map { it.trim() }
+        val start = LocalTime.parse(separatedTime[0])
+        val end = LocalTime.parse(separatedTime[1])
+        val difference = Duration.between(start, end).toMinutes().toInt()
+        return difference
     }
 
     private fun initListeners() = with(binding) {
