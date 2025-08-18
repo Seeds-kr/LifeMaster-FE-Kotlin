@@ -55,7 +55,6 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             val date = it.first
             val dayOfMonth = date.split("-")[2]
             xLabels.add(dayOfMonth)
-
             val sleepDuration = it.second
             val matchResult = regex.find(sleepDuration) ?: return@forEach
             val (hour, minutes) = matchResult.destructured
@@ -105,6 +104,9 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 //      lineChartSleepReportGraph.description.text = "수면 점수 그래프" // 맨 오른쪽 하단에 표시되는 그래프 설명
         lineChartSleepReportGraph.isDoubleTapToZoomEnabled = false // 더블 탭하여 확대되는 기능 비활성화
         lineChartSleepReportGraph.setScaleEnabled(false) // 그래프 확대 기능 비활성화
+        lineChartSleepReportGraph.setVisibleXRangeMaximum(7f) // 화면에 한번에 보이는 데이터의 수 제한
+        lineChartSleepReportGraph.moveViewToX(userSleepDataPoints.size.toFloat()) // 최근 데이터로 이동
+
 
         // 통계 점 클릭 시 나타나는 통계 세부 정보
         val dailySleepDurations = mutableListOf<String>()
