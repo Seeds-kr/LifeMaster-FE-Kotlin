@@ -1,5 +1,6 @@
 package com.example.lifemaster.presentation.home.alarm.view.fragment
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -17,7 +18,7 @@ import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.time.Instant
 import java.time.ZoneId
-import android.util.Log
+import java.time.LocalDate
 
 class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
@@ -32,12 +33,13 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
         val origin = arguments?.getString("origin")
         if(origin == "alarm_random_mission") {
             requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible = true
+            val triggerAt = alarmViewModel.alarmTriggeredAt
+            val triggeredDate = triggerAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
+            val dismissedAt = alarmViewModel.alarmDismissedAt
+            val dismissedDate = dismissedAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
+            val userAlarmPrefs = requireContext().getSharedPreferences("user_alarm_info", Context.MODE_PRIVATE)
+            userAlarmPrefs.edit().putString(LocalDate.now().toString(), "${triggeredDate?.hour}:${triggeredDate?.minute} ~ ${dismissedDate?.hour}:${dismissedDate?.minute}").apply()
         }
-        val triggerAt = alarmViewModel.alarmTriggeredAt
-        val triggeredDate = triggerAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
-        val dismissedAt = alarmViewModel.alarmDismissedAt
-        val dismissedDate = dismissedAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
-        Log.e("TEST", "알람이 울린 시각: ${triggeredDate}, 알람이 끝난 시각: ${dismissedDate}")
 
         setupViews()
         setupListeners()
