@@ -52,6 +52,43 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         // 수면 타이틀 UI
         tvSleepReportTitle.text = "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
 
+        // 오늘의 기분 UI 업데이트
+        val todayMood = userMoodPrefs.getString(LocalDate.now().toString(), "null")
+        when(todayMood) {
+            "very_bad" -> {
+                ivSleepReportTodayMoodVeryBad.setColorFilter(
+                    resources.getColor(
+                        R.color.sleep_selected_mood,
+                        context?.theme
+                    )
+                )
+            }
+            "bad" -> {
+                ivSleepReportTodayMoodBad.setColorFilter(
+                    resources.getColor(
+                        R.color.sleep_selected_mood,
+                        context?.theme
+                    )
+                )
+            }
+            "good" -> {
+                ivSleepReportTodayMoodGood.setColorFilter(
+                    resources.getColor(
+                        R.color.sleep_selected_mood,
+                        context?.theme
+                    )
+                )
+            }
+            "very_good" -> {
+                ivSleepReportTodayMoodVeryGood.setColorFilter(
+                    resources.getColor(
+                        R.color.sleep_selected_mood,
+                        context?.theme
+                    )
+                )
+            }
+        }
+
         // 통계 UI
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val regex = Regex("(\\d+)시간 (\\d+)분") // 정규 표현식
@@ -240,7 +277,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                         context?.theme
                     )
                 )
-                // 오늘의 기분 sharedpreference에 저장하기
+                // 오늘의 기분 shared preference에 저장하기
                 when(todayMood) {
                     ivSleepReportTodayMoodVeryBad -> {
                         userMoodPrefs.edit().putString(LocalDate.now().toString(), "very_bad").apply() // 비동기 저장
