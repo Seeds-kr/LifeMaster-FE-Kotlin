@@ -30,11 +30,12 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     private lateinit var binding: FragmentSleepReportBinding
     private val sleepViewModel: SleepViewModel by activityViewModels()
     private var userSleepDataPoints = mutableListOf<Entry>() // // 1개의 line 을 구성하는 점들의 집합
+    private var userMoodDataPoints = mutableListOf<Pair<Float, Drawable?>>()
     private var xLabels = mutableListOf<String>() // x축에 표시할 값(일)
     private var yValues = mutableListOf<Float>() // y축에 표시할 값
-    lateinit var userMoodPrefs: SharedPreferences
-    lateinit var userAlarmPrefs: SharedPreferences
-    lateinit var userSleepPrefs: SharedPreferences
+    private lateinit var userMoodPrefs: SharedPreferences
+    private lateinit var userAlarmPrefs: SharedPreferences
+    private lateinit var userSleepPrefs: SharedPreferences
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -46,7 +47,15 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     private fun initViews() = with(binding) {
         // shared preference 초기화
         userMoodPrefs = requireContext().getSharedPreferences("user_mood_info", MODE_PRIVATE)
+        if(!userMoodPrefs.contains(LocalDate.now().toString())) {
+            userMoodPrefs.edit().putString(LocalDate.now().toString(), "null")
+        }
+
         userAlarmPrefs = requireContext().getSharedPreferences("user_alarm_info", MODE_PRIVATE)
+        if(!userAlarmPrefs.contains(LocalDate.now().toString())) {
+            userAlarmPrefs.edit().putString(LocalDate.now().toString(), "null")
+        }
+
         userSleepPrefs = requireContext().getSharedPreferences("user_sleep_info", MODE_PRIVATE)
 
         // 수면 타이틀 UI
@@ -179,17 +188,16 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
          * a to b = Pair(a,b)
          */
         val orderedUserMoodData = userMoodPrefs.all.map { Pair(it.key, it.value as String)}.sortedBy { dateFormatter.parse(it.first) }
-        val pairList = mutableListOf<Pair<Float, Drawable?>>()
         orderedUserMoodData.forEachIndexed { index, data ->
             val drawable = when(data.second) {
                 "very_bad" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad)
                 "bad" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad)
                 "good" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good)
                 "very_good" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good)
-                else -> null
+                else -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_alert) // 임시 사용
             }
             val pair = index.toFloat() to drawable
-            pairList.add(pair)
+            userMoodDataPoints.add(pair)
         }
 
         /**
@@ -205,7 +213,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             lineChartSleepReportGraph.viewPortHandler,
             lineChartSleepReportGraph.xAxis,
             lineChartSleepReportGraph.getTransformer(YAxis.AxisDependency.LEFT),
-            pairList.toMap()
+            userMoodDataPoints.toMap()
         ))
 
         lineChartSleepReportGraph.setExtraOffsets(0f, 0f, 0f, 20f) // 여백을 늘림 (이렇게 설정하지 않으면 아이콘이 표시될 영역이 부족해서 일부 짤림)
@@ -281,19 +289,50 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 when(todayMood) {
                     ivSleepReportTodayMoodVeryBad -> {
                         userMoodPrefs.edit().putString(LocalDate.now().toString(), "very_bad").apply() // 비동기 저장
+                        userMoodDataPoints[userMoodDataPoints.lastIndex] = userMoodDataPoints.lastIndex.toFloat() to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad)
+                        lineChartSleepReportGraph.setXAxisRenderer(CustomXAxisRenderer(
+                            lineChartSleepReportGraph.viewPortHandler,
+                            lineChartSleepReportGraph.xAxis,
+                            lineChartSleepReportGraph.getTransformer(YAxis.AxisDependency.LEFT),
+                            userMoodDataPoints.toMap()
+                        ))
+                        lineChartSleepReportGraph.invalidate()
                     }
                     ivSleepReportTodayMoodBad -> {
                         userMoodPrefs.edit().putString(LocalDate.now().toString(), "bad").apply()
+                        userMoodDataPoints[userMoodDataPoints.lastIndex] = userMoodDataPoints.lastIndex.toFloat() to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad)
+                        lineChartSleepReportGraph.setXAxisRenderer(CustomXAxisRenderer(
+                            lineChartSleepReportGraph.viewPortHandler,
+                            lineChartSleepReportGraph.xAxis,
+                            lineChartSleepReportGraph.getTransformer(YAxis.AxisDependency.LEFT),
+                            userMoodDataPoints.toMap()
+                        ))
+                        lineChartSleepReportGraph.invalidate()
                     }
                     ivSleepReportTodayMoodGood -> {
                         userMoodPrefs.edit().putString(LocalDate.now().toString(), "good").apply()
+                        userMoodDataPoints[userMoodDataPoints.lastIndex] = userMoodDataPoints.lastIndex.toFloat() to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good)
+                        lineChartSleepReportGraph.setXAxisRenderer(CustomXAxisRenderer(
+                            lineChartSleepReportGraph.viewPortHandler,
+                            lineChartSleepReportGraph.xAxis,
+                            lineChartSleepReportGraph.getTransformer(YAxis.AxisDependency.LEFT),
+                            userMoodDataPoints.toMap()
+                        ))
+                        lineChartSleepReportGraph.invalidate()
                     }
                     ivSleepReportTodayMoodVeryGood -> {
                         userMoodPrefs.edit().putString(LocalDate.now().toString(), "very_good").apply()
+                        userMoodDataPoints[userMoodDataPoints.lastIndex] = userMoodDataPoints.lastIndex.toFloat() to AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_good)
+                        lineChartSleepReportGraph.setXAxisRenderer(CustomXAxisRenderer(
+                            lineChartSleepReportGraph.viewPortHandler,
+                            lineChartSleepReportGraph.xAxis,
+                            lineChartSleepReportGraph.getTransformer(YAxis.AxisDependency.LEFT),
+                            userMoodDataPoints.toMap()
+                        ))
+                        lineChartSleepReportGraph.invalidate()
                     }
                 }
             }
         }
     }
-
 }
