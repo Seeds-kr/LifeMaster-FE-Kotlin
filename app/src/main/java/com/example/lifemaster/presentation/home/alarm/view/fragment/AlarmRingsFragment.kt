@@ -5,20 +5,25 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRingBinding
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.getValue
 
 class AlarmRingsFragment : Fragment(R.layout.fragment_alarm_ring) {
 
     lateinit var binding: FragmentAlarmRingBinding
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmRingBinding.bind(view)
+        alarmViewModel.alarmTriggeredAt = arguments?.getLong("time") // 알람이 울린 시간
         initViews()
         initListeners()
     }

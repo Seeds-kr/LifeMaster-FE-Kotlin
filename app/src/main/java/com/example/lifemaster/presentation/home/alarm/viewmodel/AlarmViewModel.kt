@@ -7,6 +7,9 @@ import com.example.lifemaster.presentation.home.alarm.model.AlarmItem
 
 class AlarmViewModel: ViewModel() {
 
+    var alarmTriggeredAt: Long? = 0L
+    var alarmDismissedAt: Long? = 0L
+
     // dialog -> setting fragment 에서 시간 미루기 UI 업데이트
     private val _delayMinutesAndCount: MutableLiveData<Pair<Int, Int>> = MutableLiveData()
     val delayMinutesAndCount: LiveData<Pair<Int, Int>> get() = _delayMinutesAndCount

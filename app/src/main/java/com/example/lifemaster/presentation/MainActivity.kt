@@ -19,6 +19,7 @@ import android.view.accessibility.AccessibilityManager
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
@@ -80,8 +81,12 @@ class MainActivity : AppCompatActivity() {
 
         val targetFragment = intent.getStringExtra("destination")
         if(targetFragment == "alarm") {
+            val time = intent.getLongExtra("time", 0L) // 알람이 울린 시간
             val navController = (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
-            navController.navigate(R.id.alarmRingsFragment)
+            navController.navigate(
+                R.id.alarmRingsFragment,
+                bundleOf("time" to time)
+            )
             binding.bottomNavigation.isVisible = false
         }
 
@@ -160,7 +165,7 @@ class MainActivity : AppCompatActivity() {
             set(Calendar.MILLISECOND, 0)
         }
         val wakeTrackingStartTime = wakeUpCalendar.timeInMillis
-        wakeUpCalendar.add(Calendar.HOUR_OF_DAY, 5)
+        wakeUpCalendar.add(Calendar.HOUR_OF_DAY, 12)
         val wakeTrackingEndTime = wakeUpCalendar.timeInMillis
 
         val wakeEvent = UsageEvents.Event()

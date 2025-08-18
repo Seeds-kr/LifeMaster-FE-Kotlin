@@ -9,12 +9,14 @@ import androidx.activity.OnBackPressedCallback
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRandomMissionTapBinding
 import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -24,6 +26,7 @@ import kotlin.random.Random
 class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mission_tap) {
 
     private lateinit var binding: FragmentAlarmRandomMissionTapBinding
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
     private lateinit var taps: List<MaterialCardView>
     private var answerTapPositions: MutableSet<Int> = hashSetOf()
     private var userTapPositions: MutableSet<Int> = hashSetOf()
@@ -137,6 +140,7 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                     Toast.makeText(context, "수고하셨습니다!", Toast.LENGTH_SHORT).show()
                     val serviceIntent = Intent(context, AlarmService::class.java)
                     requireContext().stopService(serviceIntent)
+                    alarmViewModel.alarmDismissedAt = System.currentTimeMillis()
                     findNavController().navigate(
                         R.id.action_alarmRandomMissionTapFragment_to_alarmListFragment,
                         bundleOf("origin" to "alarm_random_mission")

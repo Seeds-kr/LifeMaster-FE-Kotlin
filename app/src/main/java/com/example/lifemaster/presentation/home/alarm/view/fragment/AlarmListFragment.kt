@@ -15,6 +15,9 @@ import com.example.lifemaster.databinding.FragmentAlarmListBinding
 import com.example.lifemaster.presentation.home.alarm.adapter.AlarmAdapter
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.time.Instant
+import java.time.ZoneId
+import android.util.Log
 
 class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
@@ -30,6 +33,12 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
         if(origin == "alarm_random_mission") {
             requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible = true
         }
+        val triggerAt = alarmViewModel.alarmTriggeredAt
+        val triggeredDate = triggerAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
+        val dismissedAt = alarmViewModel.alarmDismissedAt
+        val dismissedDate = dismissedAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
+        Log.e("TEST", "알람이 울린 시각: ${triggeredDate}, 알람이 끝난 시각: ${dismissedDate}")
+
         setupViews()
         setupListeners()
         setupObservers()

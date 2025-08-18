@@ -22,6 +22,7 @@ class AlarmService : Service() {
         createNotificationChannel()
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("destination", "alarm")
+            putExtra("time", System.currentTimeMillis())
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP) // 주석 1
         }
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) // requestCode를 다르게 줘서 여러 PendingIntent를 구분하는 방법 도 고려하기
