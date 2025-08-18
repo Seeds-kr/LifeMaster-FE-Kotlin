@@ -34,6 +34,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     private var yValues = mutableListOf<Float>() // y축에 표시할 값
     lateinit var userMoodPrefs: SharedPreferences
     lateinit var userAlarmPrefs: SharedPreferences
+    lateinit var userSleepPrefs: SharedPreferences
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -46,14 +47,15 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         // shared preference 초기화
         userMoodPrefs = requireContext().getSharedPreferences("user_mood_info", MODE_PRIVATE)
         userAlarmPrefs = requireContext().getSharedPreferences("user_alarm_info", MODE_PRIVATE)
+        userSleepPrefs = requireContext().getSharedPreferences("user_sleep_info", MODE_PRIVATE)
 
         // 수면 타이틀 UI
         tvSleepReportTitle.text = "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
 
         // 통계 UI
-        val userSleepPrefs = requireContext().getSharedPreferences("user_sleep_info", MODE_PRIVATE)
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val regex = Regex("(\\d+)시간 (\\d+)분") // 정규 표현식
+
         val orderedSleepData = userSleepPrefs.all.map { Pair(it.key, it.value as String) }.sortedBy { dateFormatter.parse(it.first) }
         orderedSleepData.forEach {
             val date = it.first
@@ -111,16 +113,24 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         lineChartSleepReportGraph.setVisibleXRangeMaximum(7f) // 화면에 한번에 보이는 데이터의 수 제한
         lineChartSleepReportGraph.moveViewToX(userSleepDataPoints.size.toFloat()) // 최근 데이터로 이동
 
-
         // 통계 점 클릭 시 나타나는 통계 세부 정보
         val dailySleepDurations = mutableListOf<String>()
         orderedSleepData.forEach {
             dailySleepDurations.add(it.second)
         }
+
+        // 알람 데이터 추가
+        val orderedAlarmData = userAlarmPrefs.all.map { Pair(it.key, it.value as String) }.sortedBy { dateFormatter.parse(it.first) }
+        val dailyAlarmDurations = mutableListOf<String>()
+        orderedAlarmData.forEach {
+            dailyAlarmDurations.add(it.second)
+        }
+
         val markerView = SleepReportMarkerView(
             requireContext(),
             R.layout.layout_sleep_report_marker_view,
-            dailySleepDurations
+            dailySleepDurations,
+            dailyAlarmDurations
         )
         lineChartSleepReportGraph.marker = markerView
 
