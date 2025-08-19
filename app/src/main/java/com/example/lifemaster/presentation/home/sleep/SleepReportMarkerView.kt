@@ -25,7 +25,7 @@ class SleepReportMarkerView(
         val position = e?.x?.toInt() ?: return
         totalSleepTime.text = "${dailySleepDurations[position]} 수면"
         sleepScore.text = "0점"
-        timeToWakeUp.text = "${getMinuteDifference(dailyAlarmDurations[position])}분"
+        timeToWakeUp.text = getMinuteDifference(dailyAlarmDurations[position])
         super.refreshContent(e, highlight)
     }
 
@@ -33,11 +33,13 @@ class SleepReportMarkerView(
         return MPPointF(-width.toFloat() - 20f, -(height / 2).toFloat())
     }
 
-    private fun getMinuteDifference(timeRange: String): Int {
-        val separatedTime = timeRange.split("~").map { it.trim() }
-        val start = LocalTime.parse(separatedTime[0])
-        val end = LocalTime.parse(separatedTime[1])
-        val difference = Duration.between(start, end).toMinutes().toInt()
-        return difference
+    private fun getMinuteDifference(timeRange: String): String {
+        if (timeRange == "null") return "미측정" else {
+            val separatedTime = timeRange.split("~").map { it.trim() }
+            val start = LocalTime.parse(separatedTime[0])
+            val end = LocalTime.parse(separatedTime[1])
+            val difference = "${Duration.between(start, end).toMinutes()}분"
+            return difference
+        }
     }
 }
