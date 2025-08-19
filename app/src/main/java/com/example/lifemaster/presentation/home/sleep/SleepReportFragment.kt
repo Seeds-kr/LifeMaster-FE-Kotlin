@@ -307,15 +307,15 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
         // 일어나는데 걸린 시간(평균) UI
         var sum = 0
-        userAlarmPrefs.all.filter { it.key != LocalDate.now().toString() }
-            .map { it.value as String }.forEach {
+        userAlarmPrefs.all.filter { it.key != LocalDate.now().toString() }.map { it.value as String }.forEach {
             val minute = getMinuteDifference(it)
-            sum += minute
+            if(minute != -1) sum += minute
         }
-        val average = sum / (userAlarmPrefs.all.size - 1)
-        val today = getMinuteDifference(
+        val average = sum / (userAlarmPrefs.all.filter { it.value != "null" }.size - 1)
+        var today = getMinuteDifference(
             userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: "null"
         )
+        if(today == -1) today = 0 // 값이 없을 경우 변경
         tvSleepReportAnalysisWakeupDurationGapValue.text = "${kotlin.math.abs(today - average)}"
 
         if (today > average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
