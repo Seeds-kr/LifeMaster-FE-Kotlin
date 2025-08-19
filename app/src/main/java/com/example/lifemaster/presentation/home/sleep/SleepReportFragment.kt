@@ -59,7 +59,8 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         userSleepPrefs = requireContext().getSharedPreferences("user_sleep_info", MODE_PRIVATE)
 
         // 수면 타이틀 UI
-        tvSleepReportTitle.text = "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
+        tvSleepReportTitle.text =
+            "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
 
         // 오늘의 기분 UI 업데이트
         val todayMood = userMoodPrefs.getString(LocalDate.now().toString(), "null")
@@ -117,9 +118,6 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             val tempYValue = "${hour}.${minutes}".toFloat()
             yValues.add(tempYValue)
         }
-
-        Log.e("CHECK", "" + xLabels)
-        Log.e("CHECK2", "" + yValues)
 
         yValues.forEachIndexed { index, value ->
             userSleepDataPoints.add(
@@ -278,7 +276,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(
                 AppCompatResources.getDrawable(
                     requireContext(),
-                    R.drawable.ic_arrow_up
+                    R.drawable.ic_average
                 )
             ) // TODO: PM한테 물어보고 아이콘 변경하기
         } else {
@@ -293,20 +291,53 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 180f // 180도 회전하여 기존 drawable 재활용
         }
 
+        // 수면 점수 UI
+        // TODO: 수면 점수 계산하기
+
         // 알람이 울린 시간 UI
         val alarmDuration = userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: ""
-        tvSleepReportAnalysisAlarmDurationValue.text = if(alarmDuration == "null") "미측정" else alarmDuration
-        // 일어나는데 걸린 시간 UI
-        tvSleepReportAnalysisWakeupDelayTimeValue.text = getMinuteDifference(alarmDuration)
+        tvSleepReportAnalysisAlarmDurationValue.text =
+            if (alarmDuration == "null") "미측정" else alarmDuration
+
+        // 일어나는데 걸린 시간(금일) UI
+        tvSleepReportAnalysisWakeupDelayTimeValue.text =
+            if (getMinuteDifference(alarmDuration) == -1) "미측정" else "${
+                getMinuteDifference(alarmDuration)
+            }분"
+
+        // 일어나는데 걸린 시간(평균) UI
+        var sum = 0
+        userAlarmPrefs.all.filter { it.key != LocalDate.now().toString() }
+            .map { it.value as String }.forEach {
+            val minute = getMinuteDifference(it)
+            sum += minute
+        }
+        val average = sum / (userAlarmPrefs.all.size - 1)
+        val today = getMinuteDifference(
+            userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: "null"
+        )
+        tvSleepReportAnalysisWakeupDurationGapValue.text = "${kotlin.math.abs(today - average)}"
+
+        if (today > average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
+            AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up)
+        )
+        else if (today == average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
+            AppCompatResources.getDrawable(requireContext(), R.drawable.ic_average)
+        ) else {
+            ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
+                AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up)
+            )
+            ivSleepReportAnalysisWakeupDurationChangeIndicator.rotation = 180f
+        }
     }
 
     // 알람이 울린 시간에서 시간 차이(분) 계산하는 메소드
-    private fun getMinuteDifference(timeRange: String): String {
-        if (timeRange == "null") return "미측정" else {
+    private fun getMinuteDifference(timeRange: String): Int {
+        if (timeRange == "null") return -1 else {
             val separatedTime = timeRange.split("~").map { it.trim() }
             val start = LocalTime.parse(separatedTime[0])
             val end = LocalTime.parse(separatedTime[1])
-            val difference = "${Duration.between(start, end).toMinutes()}분"
+            val difference = Duration.between(start, end).toMinutes().toInt()
             return difference
         }
     }
