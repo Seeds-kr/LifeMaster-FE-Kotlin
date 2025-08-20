@@ -33,12 +33,13 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
         val origin = arguments?.getString("origin")
         if(origin == "alarm_random_mission") {
             requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible = true
-            val triggerAt = alarmViewModel.alarmTriggeredAt
+            val triggerAt = alarmViewModel.alarmTriggeredAt // 밀리초(long)
             val triggeredDate = triggerAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
-            val dismissedAt = alarmViewModel.alarmDismissedAt
+            val dismissedAt = alarmViewModel.alarmDismissedAt // 밀리초(long)
             val dismissedDate = dismissedAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
             val userAlarmPrefs = requireContext().getSharedPreferences("user_alarm_info", Context.MODE_PRIVATE)
-            userAlarmPrefs.edit().putString(LocalDate.now().toString(), "${triggeredDate?.hour}:${triggeredDate?.minute} ~ ${dismissedDate?.hour}:${dismissedDate?.minute}").apply()
+            val formatted = "%02d:%02d ~ %02d:%02d".format(triggeredDate?.hour, triggeredDate?.minute, dismissedDate?.hour, dismissedDate?.minute)
+            userAlarmPrefs.edit().putString(LocalDate.now().toString(), formatted).apply()
         }
 
         setupViews()
