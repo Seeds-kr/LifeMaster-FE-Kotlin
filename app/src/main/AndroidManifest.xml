@@ -61,6 +61,9 @@
                 android:value="" />
         </activity>
         <activity android:name=".presentation.home.pomodoro.view.PomodoroActivity" />
+        <property
+            android:name="android.view.attributionTags"
+            android:value="lifemaster_attribution_tag" />
 
         <service
             android:name=".presentation.total.detox.service.DetoxBlockService"

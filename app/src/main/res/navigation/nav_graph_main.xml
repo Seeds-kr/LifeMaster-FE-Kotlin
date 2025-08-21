@@ -31,7 +31,7 @@
         android:id="@+id/communityFragment"
         android:name="com.example.lifemaster.presentation.community.CommunityFragment"
         android:label="CommunityFragment"
-        tools:layout="@layout/fragment_community"/>
+        tools:layout="@layout/fragment_community" />
     <fragment
         android:id="@+id/detoxFragment"
         android:name="com.example.lifemaster.presentation.total.detox.fragment.DetoxFragment"
@@ -41,10 +41,10 @@
         android:id="@+id/alarmListFragment"
         android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmListFragment"
         android:label="fragment_alarm_list_copy"
-        tools:layout="@layout/fragment_alarm_list" >
+        tools:layout="@layout/fragment_alarm_list">
         <action
             android:id="@+id/action_alarmListFragment_to_alarmSettingFragment"
-            app:destination="@id/alarmSettingFragment"/>
+            app:destination="@id/alarmSettingFragment" />
     </fragment>
     <fragment
         android:id="@+id/alarmRingsFragment"
@@ -57,12 +57,21 @@
         android:label="fragment_group"
         tools:layout="@layout/fragment_group" />
     <fragment
+        android:id="@+id/introspectionFragment"
+        android:name="com.example.lifemaster.presentation.total.introspection.IntrospectionFragment"
+        android:label="fragment_introspection"
+        tools:layout="@layout/fragment_introspection" />
+    <fragment
         android:id="@+id/totalFragment"
         android:name="com.example.lifemaster.presentation.total.TotalFragment"
         android:label="fragment_total"
-        tools:layout="@layout/fragment_total" >
+        tools:layout="@layout/fragment_total">
         <action
             android:id="@+id/action_totalFragment_to_detoxFragment"
             app:destination="@id/detoxFragment" />
+        <action
+            android:id="@+id/action_totalFragment_to_introspectionFragment"
+            app:destination="@id/introspectionFragment" />
     </fragment>
+
 </navigation>

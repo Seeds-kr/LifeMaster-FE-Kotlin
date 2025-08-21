@@ -21,5 +21,9 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
         binding.cvDetox.setOnClickListener {
             findNavController().navigate(R.id.action_totalFragment_to_detoxFragment)
         }
+
+        binding.cvIntrospection.setOnClickListener {
+            findNavController().navigate(R.id.action_totalFragment_to_introspectionFragment)
+        }
     }
 }

@@ -10,4 +10,8 @@
         <item name="android:layout_marginBottom">12dp</item>
         <item name="android:inputType">textMultiLine</item>
     </style>
+    <!-- 챌린지 검색창 스타일 -->
+    <style name="CustomSearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <item name="android:textSize">20sp</item>
+    </style>
 </resources>

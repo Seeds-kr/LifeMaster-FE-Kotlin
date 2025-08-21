@@ -30,39 +30,22 @@ class IntrospectionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 초기 화면 설정
+        updateUI(animated = false) // 처음에는 애니메이션 없이 UI 설정
+
         // 버튼 클릭 이벤트
         binding.btnToday.setOnClickListener {
-            currentMode = Mode.TODAY
-            switchMode()
-
-            // 배경 뷰 애니메이션
-            val constraintSet = ConstraintSet()
-            constraintSet.clone(binding.toggleContainer)
-            constraintSet.connect(binding.toggleBackground.id, ConstraintSet.START, binding.btnToday.id, ConstraintSet.START)
-            constraintSet.connect(binding.toggleBackground.id, ConstraintSet.END, binding.btnToday.id, ConstraintSet.END)
-            TransitionManager.beginDelayedTransition(binding.toggleContainer)
-            constraintSet.applyTo(binding.toggleContainer)
-
-            // 텍스트 색상 변경
-            binding.btnToday.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-            binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+            if (currentMode != Mode.TODAY) {
+                currentMode = Mode.TODAY
+                updateUI(animated = true)
+            }
         }
 
         binding.btnThanks.setOnClickListener {
-            currentMode = Mode.THANKS
-            switchMode()
-
-            // 배경 뷰 애니메이션
-            val constraintSet = ConstraintSet()
-            constraintSet.clone(binding.toggleContainer)
-            constraintSet.connect(binding.toggleBackground.id, ConstraintSet.START, binding.btnThanks.id, ConstraintSet.START)
-            constraintSet.connect(binding.toggleBackground.id, ConstraintSet.END, binding.btnThanks.id, ConstraintSet.END)
-            TransitionManager.beginDelayedTransition(binding.toggleContainer)
-            constraintSet.applyTo(binding.toggleContainer)
-
-            // 텍스트 색상 변경
-            binding.btnToday.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
-            binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+            if (currentMode != Mode.THANKS) {
+                currentMode = Mode.THANKS
+                updateUI(animated = true)
+            }
         }
 
         binding.btnSubmit.setOnClickListener {
@@ -86,35 +69,44 @@ class IntrospectionFragment : Fragment() {
                         binding.etThanks5.text.toString()
                     )
 
-                    if (thanksList.all { it.isBlank() }) {
-                        Toast.makeText(requireContext(), "감사 내용을 한 가지 이상 입력해주세요", Toast.LENGTH_SHORT).show()
+                    // "비어있지 않은 항목이 하나라도 있는가?"를 직접적으로 확인
+                    if (thanksList.any { it.isNotBlank() }) {
+                        // 실제 내용이 있는 감사만 필터링
+                        val nonEmptyThanks = thanksList.filter { it.isNotBlank() }
+                        Toast.makeText(requireContext(), "${nonEmptyThanks.size}개의 감사 내용이 저장되었습니다", Toast.LENGTH_SHORT).show()
                     } else {
-                        // 저장 로직 (5감사)
-                        Toast.makeText(requireContext(), "감사 내용이 저장되었습니다", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "감사 내용을 한 가지 이상 입력해주세요", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         }
-
-        // 초기 화면 설정
-        switchMode()
     }
 
-private fun switchMode() {
-    if (currentMode == Mode.TODAY) {
-        binding.etDiary.visibility = View.VISIBLE
-        binding.scrollThanksContainer.visibility = View.GONE
-        // 초기 텍스트 색상 설정
-        binding.btnToday.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-        binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
-    } else {
-        binding.etDiary.visibility = View.GONE
-        binding.scrollThanksContainer.visibility = View.VISIBLE
-        // 초기 텍스트 색상 설정
-        binding.btnToday.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
-        binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+    private fun updateUI(animated: Boolean) {
+        // 1. 입력창 가시성 변경
+        binding.etDiary.visibility = if (currentMode == Mode.TODAY) View.VISIBLE else View.GONE
+        binding.scrollThanksContainer.visibility = if (currentMode == Mode.THANKS) View.VISIBLE else View.GONE
+
+        // 2. 토글 버튼 애니메이션 및 색상 변경을 위한 목표 버튼 설정
+        val targetButton = if (currentMode == Mode.TODAY) binding.btnToday else binding.btnThanks
+
+        // 3. ConstraintSet을 이용한 배경 뷰 애니메이션
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(binding.toggleContainer)
+        constraintSet.connect(binding.toggleBackground.id, ConstraintSet.START, targetButton.id, ConstraintSet.START)
+        constraintSet.connect(binding.toggleBackground.id, ConstraintSet.END, targetButton.id, ConstraintSet.END)
+
+        if (animated) {
+            TransitionManager.beginDelayedTransition(binding.toggleContainer)
+        }
+        constraintSet.applyTo(binding.toggleContainer)
+
+        // 4. 텍스트 색상 변경
+        binding.btnToday.setTextColor(ContextCompat.getColor(requireContext(), if (currentMode == Mode.TODAY) R.color.white else R.color.black))
+        binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), if (currentMode == Mode.THANKS) R.color.white else R.color.black))
     }
-}
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()
