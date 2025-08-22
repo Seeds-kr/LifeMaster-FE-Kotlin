@@ -12,7 +12,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentSleepReportBinding
+import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.home.sleep.model.UserRequest
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
@@ -21,6 +24,7 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import java.text.SimpleDateFormat
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Locale
@@ -28,8 +32,10 @@ import java.util.Locale
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
     private lateinit var binding: FragmentSleepReportBinding
-    private val sleepViewModel: SleepViewModel by activityViewModels()
-    private var userSleepDataPoints = mutableListOf<Entry>() // // 1개의 line 을 구성하는 점들의 집합
+    private val sleepViewModel: SleepViewModel by activityViewModels {
+        SleepViewModelFactory(RetrofitInstance.networkService)
+    }
+    private var userSleepDataPoints = mutableListOf<Entry>() // 1개의 line 을 구성하는 점들의 집합
     private var userMoodDataPoints = mutableListOf<Pair<Float, Drawable?>>()
     private var xLabels = mutableListOf<String>() // x축에 표시할 값(일)
     private var yValues = mutableListOf<Float>() // y축에 표시할 값
@@ -42,6 +48,14 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         binding = FragmentSleepReportBinding.bind(view)
         initViews()
         initListeners()
+        initObservers()
+    }
+
+    private fun initObservers() = with(binding) {
+        sleepViewModel.loadUserSleepInfo(UserRequest(userId = 1))
+        sleepViewModel.userSleepResponseList.observe(viewLifecycleOwner) { data ->
+            Log.e("TEST", "" + data)
+        }
     }
 
     private fun initViews() = with(binding) {
@@ -335,7 +349,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     private fun getMinuteDifference(timeRange: String): Int {
         if (timeRange == "null") return -1 else {
             val separatedTime = timeRange.split("~").map { it.trim() }
-            val start = LocalTime.parse(separatedTime[0])
+            val start = LocalTime.parse(separatedTime[0]) // Text '7:30' could not be parsed at index 0
             val end = LocalTime.parse(separatedTime[1])
             val difference = Duration.between(start, end).toMinutes().toInt()
             return difference

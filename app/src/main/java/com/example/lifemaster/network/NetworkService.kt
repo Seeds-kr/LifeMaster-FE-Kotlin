@@ -1,6 +1,8 @@
 package com.example.lifemaster.network
 
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
+import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
+import com.example.lifemaster.presentation.home.sleep.model.UserRequest
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import retrofit2.Call
@@ -83,5 +85,11 @@ interface NetworkService {
     fun getEscapeSentence(
         @Header("Authorization") token: String
     ):Call<String>
+
+    // 유저의 수면 기록 조회
+    @POST("sleep")
+    suspend fun getUserSleepRecord(
+        @Body userId: UserRequest
+    ):List<SleepResponse>
 
 }
