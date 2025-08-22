@@ -10,10 +10,8 @@ import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRingBinding
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import kotlin.getValue
+import java.time.Instant
+import java.time.ZoneId
 
 class AlarmRingsFragment : Fragment(R.layout.fragment_alarm_ring) {
 
@@ -23,17 +21,15 @@ class AlarmRingsFragment : Fragment(R.layout.fragment_alarm_ring) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmRingBinding.bind(view)
-        alarmViewModel.alarmTriggeredAt = arguments?.getLong("time") // 알람이 울린 시간
+        alarmViewModel.alarmTriggeredAt = arguments?.getLong("time") // 알람이 울린 시간 (알람이 울린 시간과 핸드폰 화면에 들어온 시간은 다르다)
         initViews()
         initListeners()
     }
 
     private fun initViews() = with(binding) {
-        val currentTimeMillis = System.currentTimeMillis()
-        val date = Date(currentTimeMillis)
-        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val result = formatter.format(date)
-        val hour = result.substringBefore(":").toInt()
+        val localDateTime = Instant.now().atZone(ZoneId.systemDefault()).toLocalDateTime()
+        val hour = localDateTime.hour
+        val minute = localDateTime.minute
         val timeType = when(hour) {
             in 6..11 -> "Morning"
             in 12..18 -> "Afternoon"
@@ -41,6 +37,8 @@ class AlarmRingsFragment : Fragment(R.layout.fragment_alarm_ring) {
             else -> "Dawn"
         }
         tvTimeType.text = "Good\n${timeType},\nit's"
+        tvCurrentTime.text = "$hour:$minute"
+        tvDayOrNight.text = if(hour in 0..11) "AM" else "PM"
     }
 
     private fun initListeners() = with(binding) {
@@ -52,7 +50,7 @@ class AlarmRingsFragment : Fragment(R.layout.fragment_alarm_ring) {
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() { Toast.makeText(context, "허튼 수작 부리지 마세요!", Toast.LENGTH_SHORT).show() }
+                override fun handleOnBackPressed() { Toast.makeText(context, "뒤로갈 수 없습니다!", Toast.LENGTH_SHORT).show() }
             }
         )
     }

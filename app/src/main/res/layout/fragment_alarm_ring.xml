@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
-            android:text="10:20"
+            tools:text="10:20"
             android:textColor="@color/black"
             android:textSize="80sp"
             android:textStyle="bold" />
@@ -48,8 +48,8 @@
             android:layout_marginStart="8dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/black"
-            android:textSize="48sp"
-            android:text="am"/>
+            android:textSize="40sp"
+            tools:text="am"/>
     </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatButton
