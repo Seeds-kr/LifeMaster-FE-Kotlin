@@ -96,76 +96,24 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                 dialog.show(childFragmentManager, SelectTimeDialog.TAG)
             }
             btnSave.setOnClickListener {
-                val alarmTitle = etAlarmName.text.toString() // 알람 이름
-                val amPm = if (timePicker.hour in 0..11) "AM" else "PM"
-                val alarmTime = Triple<String, Int, Int>(
-                    amPm,
-                    timePicker.hour,
-                    timePicker.minute
-                )
 
-                if (alarmTitle.isBlank()) {
+                if (etAlarmTitle.text.toString().isBlank()) {
                     Toast.makeText(requireContext(), "제목을 입력 해주세요!", Toast.LENGTH_SHORT).show()
-                } else if (isDelaySet && tvDelayCounts.text.isNotBlank()) {
-                    // 미루기 설정 o
-                    val alarmItem = AlarmItem(
-                        id = alarmViewModel.alarmItems.value?.size ?: 0,
-                        title = alarmTitle,
-                        time = alarmTime,
-                        randomMissions = randomMissionList,
-                        randomMissionMathLevel = randomMissionMathLevel,
-                        alarmRepeatDays = alarmRepeatDays,
-                        isDelaySet = true,
-                        delayMinute = tvDelayMinutes.text.toString().toInt(),
-                        delayCount = tvDelayCounts.text.toString().toInt()
-                    )
-
-                    val calendar = Calendar.getInstance().apply {
-                        timeInMillis = System.currentTimeMillis()
-                        set(Calendar.HOUR_OF_DAY, alarmTime.second)
-                        set(Calendar.MINUTE, alarmTime.third)
-                        set(Calendar.SECOND, 0)
-                        set(Calendar.MILLISECOND, 0)
-                        if(before(Calendar.getInstance())) { add(Calendar.DATE, 1) }
-                    }
-
-                    val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                    if(alarmManager.canScheduleExactAlarms()) {
-                       val intent = Intent(requireContext(), AlarmReceiver::class.java)
-                        val pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                        val goesOffTime = calendar.timeInMillis
-                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, goesOffTime, pendingIntent)
-                    } else {
-                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                            data = Uri.parse("package:${requireContext().packageName}")
-                        }
-                        requireContext().startActivity(intent)
-                    }
-
-                    alarmViewModel.updateAlarmItems(alarmItem)
-                    alarmViewModel.clearRandomMissions()
-                    Toast.makeText(requireContext(), "알람이 추가되었습니다!", Toast.LENGTH_SHORT).show()
-                    findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
-                } else if (isDelaySet && tvDelayCounts.text.isBlank()) {
-                    Toast.makeText(requireContext(), "미루기 설정을 해주세요!", Toast.LENGTH_SHORT).show()
                 } else {
-                    // 미루기 설정 x
+
                     val alarmItem = AlarmItem(
                         id = alarmViewModel.alarmItems.value?.size ?: 0,
-                        title = alarmTitle,
-                        time = alarmTime,
-                        randomMissions = randomMissionList,
-                        randomMissionMathLevel = randomMissionMathLevel,
-                        alarmRepeatDays = alarmRepeatDays,
-                        isDelaySet = false
+                        title = etAlarmTitle.text.toString(),
+                        hour = timePicker.hour,
+                        minute = timePicker.minute
                     )
 
                     Log.d("ttest", ""+alarmTime)
 
                     val calendar = Calendar.getInstance().apply {
                         timeInMillis = System.currentTimeMillis()
-                        set(Calendar.HOUR_OF_DAY, alarmTime.second)
-                        set(Calendar.MINUTE, alarmTime.third)
+                        set(Calendar.HOUR_OF_DAY, alarmItem.hour)
+                        set(Calendar.MINUTE, alarmItem.minute)
                         set(Calendar.SECOND, 0)
                         set(Calendar.MILLISECOND, 0)
                         if(before(Calendar.getInstance())) { add(Calendar.DATE, 1) }
