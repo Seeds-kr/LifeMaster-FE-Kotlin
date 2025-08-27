@@ -87,9 +87,14 @@ interface NetworkService {
     ):Call<String>
 
     // 유저의 수면 기록 조회
-    @POST("sleep")
+    @GET("/sleep/{userId}")
     suspend fun getUserSleepRecord(
-        @Body userId: UserRequest
-    ):List<SleepResponse>
+        @Path("userId") userId: Int
+    ): List<SleepResponse>
 
+    // 유저의 수면 기록 생성
+    @POST("/sleep")
+    suspend fun registerUserSleepRecord(
+        @Body userRequest: UserRequest
+    ): String
 }

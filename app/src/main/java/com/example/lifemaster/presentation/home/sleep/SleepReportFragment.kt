@@ -27,6 +27,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
@@ -46,15 +47,33 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentSleepReportBinding.bind(view)
+
         initViews()
         initListeners()
         initObservers()
     }
 
     private fun initObservers() = with(binding) {
-        sleepViewModel.loadUserSleepInfo(UserRequest(userId = 1))
-        sleepViewModel.userSleepResponseList.observe(viewLifecycleOwner) { data ->
-            Log.e("TEST", "" + data)
+        // 유저의 수면 기록 조회 테스트
+        sleepViewModel.getUserSleepInfo(userId = 13)
+        sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { data ->
+            Log.e("TEST", "userSleepRecordList: $data")
+        }
+        // 유저의 수면 기록 생성 테스트
+        sleepViewModel.registerUserSleepInfo(
+            userRequest = UserRequest(
+                userId = 13,
+                sleepDate = LocalDate.now().toString(),
+                sleepStart = Instant.now().minus(8, ChronoUnit.HOURS).toString(),
+                sleepEnd = Instant.now().toString(),
+                sleepMood = "BAD",
+                alarmSnoozeCnt = 0,
+                timeToWakeUp = 0,
+                antiSleepMode = false
+            )
+        )
+        sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { data ->
+            Log.e("TEST", "isUserSleepRecordGenerated: $data")
         }
     }
 

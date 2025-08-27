@@ -6,6 +6,8 @@ data class SleepResponse(
     val sleepStart: String,
     val sleepEnd: String,
     val sleepMood: String,
-    val sleepAwakeCnt: Int,
+    val alarmSnoozeCnt: Int,
+    val timeToWakeUp: Int,
+    val antiSleepMode: Boolean,
     val sleepScore: Int
 )
