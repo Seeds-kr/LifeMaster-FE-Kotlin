@@ -22,6 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="자아성찰"
+        android:textColor="@android:color/black"
         android:textSize="24sp"
         android:textStyle="bold"
         android:layout_marginStart="8dp"
@@ -90,14 +91,12 @@
             app:layout_constraintStart_toEndOf="@id/btnToday" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-
     <!-- 일기 입력창 -->
     <EditText
         android:id="@+id/etDiary"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:hint="오늘 하루 동안 있었던 일을 적어보세요"
+        android:hint="오늘 하루 동안 있었던 일을 적어보세요."
         android:textSize="12sp"
         android:gravity="top"
         android:inputType="textMultiLine"
@@ -132,6 +131,7 @@
         android:id="@+id/scrollThanksContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginTop="12dp"
         android:visibility="gone"
         android:overScrollMode="ifContentScrolls"
         android:fillViewport="true"

@@ -25,5 +25,9 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
         binding.cvIntrospection.setOnClickListener {
             findNavController().navigate(R.id.action_totalFragment_to_introspectionFragment)
         }
+
+        binding.cvChallenge.setOnClickListener {
+            findNavController().navigate(R.id.action_totalFragment_to_challengeFragment)
+        }
     }
 }

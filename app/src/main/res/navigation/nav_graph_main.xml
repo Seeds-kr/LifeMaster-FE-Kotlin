@@ -62,6 +62,22 @@
         android:label="fragment_introspection"
         tools:layout="@layout/fragment_introspection" />
     <fragment
+        android:id="@+id/challengeFragment"
+        android:name="com.example.lifemaster.presentation.challenge.ChallengeFragment"
+        android:label="fragment_challenge"
+        tools:layout="@layout/fragment_challenge" >
+        <action
+            android:id="@+id/action_challengeFragment_to_challengeDetailFragment"
+            app:destination="@id/challengeDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/challengeDetailFragment"
+        android:name="com.example.lifemaster.presentation.total.challenge.fragment.ChallengeDetailFragment"
+        android:label="fragment_challenge_detail"
+        tools:layout="@layout/fragment_challenge_detail" />
+
+    <fragment
         android:id="@+id/totalFragment"
         android:name="com.example.lifemaster.presentation.total.TotalFragment"
         android:label="fragment_total"
@@ -72,6 +88,9 @@
         <action
             android:id="@+id/action_totalFragment_to_introspectionFragment"
             app:destination="@id/introspectionFragment" />
+        <action
+            android:id="@+id/action_totalFragment_to_challengeFragment"
+            app:destination="@id/challengeFragment" />
     </fragment>
 
 </navigation>
