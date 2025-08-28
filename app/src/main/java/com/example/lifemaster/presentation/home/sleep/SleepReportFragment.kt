@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
@@ -14,7 +13,8 @@ import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentSleepReportBinding
 import com.example.lifemaster.network.RetrofitInstance
-import com.example.lifemaster.presentation.home.sleep.model.UserRequest
+import com.example.lifemaster.presentation.home.sleep.model.Result
+import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.github.mikephil.charting.components.XAxis
@@ -25,10 +25,8 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import java.text.SimpleDateFormat
 import java.time.Duration
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
@@ -37,10 +35,13 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     private val sleepViewModel: SleepViewModel by activityViewModels {
         SleepViewModelFactory(RetrofitInstance.networkService)
     }
+
     private var userSleepDataPoints = mutableListOf<Entry>() // 1개의 line 을 구성하는 점들의 집합
     private var userMoodDataPoints = mutableListOf<Pair<Float, Drawable?>>()
+
     private var xLabels = mutableListOf<String>() // x축에 표시할 값(일)
     private var yValues = mutableListOf<Float>() // y축에 표시할 값
+
     private lateinit var userMoodPrefs: SharedPreferences
     private lateinit var userAlarmPrefs: SharedPreferences
     private lateinit var userSleepPrefs: SharedPreferences
@@ -48,17 +49,31 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentSleepReportBinding.bind(view)
-
-        initViews()
-        initListeners()
+        fetchRemoteData()
         initObservers()
+        initListeners()
+    }
+
+    private fun fetchRemoteData() {
+        sleepViewModel.getUserSleepInfo(userId = 13)
     }
 
     private fun initObservers() = with(binding) {
-        // 유저의 수면 기록 조회 테스트
-        sleepViewModel.getUserSleepInfo(userId = 13)
-        sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { data ->
-            Log.e("TEST", "userSleepRecordList: $data")
+
+        // 유저의 수면 기록 조회
+        sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { result ->
+            when(result) {
+                is Result.Loading -> {
+                    initLoadingUI()
+                }
+                is Result.Success -> {
+                    initRemoteUI(result.data)
+                }
+                is Result.Error -> {
+                    Toast.makeText(context, "서버 에러: ${result.throwable}", Toast.LENGTH_SHORT).show()
+                    initLocalUI()
+                }
+            }
         }
 
         sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { event ->
@@ -69,7 +84,15 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         }
     }
 
-    private fun initViews() = with(binding) {
+    private fun initLoadingUI() = with(binding) {
+        // TODO: 로딩 UI 만들기
+    }
+
+    private fun initRemoteUI(remoteUserSleepRecordList: List<SleepResponse>) = with(binding) {
+
+    }
+
+    private fun initLocalUI() = with(binding) {
         // shared preference 초기화
         userMoodPrefs = requireContext().getSharedPreferences("user_mood_info", MODE_PRIVATE)
         if (!userMoodPrefs.contains(LocalDate.now().toString())) {

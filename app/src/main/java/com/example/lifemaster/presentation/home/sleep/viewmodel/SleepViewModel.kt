@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.alarm.view.fragment.Event
+import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.UserRequest
 import kotlinx.coroutines.launch
@@ -20,18 +21,21 @@ class SleepViewModel(private val networkService: NetworkService): ViewModel() {
     var sleepDurationHour: Int = 0 // 금일 몇시간 잤는가
     var sleepDurationMinutes: Int = 0 // 금일 몇분 잤는가
 
-    private val _userSleepRecordList = MutableLiveData<List<SleepResponse>>()
-    val userSleepRecordList: LiveData<List<SleepResponse>> get() = _userSleepRecordList
-
     private val _isUserSleepRecordGenerated = MutableLiveData<Event<Boolean>>()
     val isUserSleepRecordGenerated: LiveData<Event<Boolean>> get() = _isUserSleepRecordGenerated
+
+    private val _userSleepRecordList = MutableLiveData<Result<List<SleepResponse>>>()
+    val userSleepRecordList: LiveData<Result<List<SleepResponse>>> get() = _userSleepRecordList
 
     // 유저의 수면 기록 조회
     fun getUserSleepInfo(userId: Int) {
         viewModelScope.launch {
+            _userSleepRecordList.value = Result.Loading
             try {
-                _userSleepRecordList.value = networkService.getUserSleepRecord(userId)
+                val response = networkService.getUserSleepRecord(userId)
+                _userSleepRecordList.value = Result.Success(response)
             } catch (e: Exception) {
+                _userSleepRecordList.value = Result.Error(e)
                 Log.e("ERROR", "getUserSleepInfo: $e")
             }
         }
