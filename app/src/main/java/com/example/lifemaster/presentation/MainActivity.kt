@@ -28,6 +28,7 @@ import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
@@ -69,7 +70,9 @@ class MainActivity : AppCompatActivity() {
     private var firstUsedApp: String? = null // 기상후 처음으로 사용한 앱
     private var lastUsageTimeBeforeSleep: Long = 0L // 마지막 사용 시간 = 핸드폰 화면을 끈 시간
     private var firstUsageTimeAfterWake: Long? = null // 핸드폰을 처음 킨 시간 (잠금 해제x)
-    private val sleepViewModel: SleepViewModel by viewModels()
+    private val sleepViewModel: SleepViewModel by viewModels {
+        SleepViewModelFactory(RetrofitInstance.networkService)
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -152,7 +155,7 @@ class MainActivity : AppCompatActivity() {
             if (sleepEvent.eventType == UsageEvents.Event.ACTIVITY_STOPPED && sleepEvent.packageName != "com.sec.android.app.launcher") lastUsedApp =
                 sleepEvent.packageName // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 사용한 앱 추적
             else if (sleepEvent.eventType == UsageEvents.Event.SCREEN_NON_INTERACTIVE) lastUsageTimeBeforeSleep =
-                sleepEvent.timeStamp // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 화면을 끈 시각 추적
+                sleepEvent.timeStamp // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 화면을 끈 시각 추적, timeStamp = epoch millisecond (1970-01-01 UTC 기준 경과 시간)
         }
 
         Log.e("NIGHT", "마지막 사용 앱: $lastUsedApp, 화면 끈 시각: ${Date(lastUsageTimeBeforeSleep)}")
@@ -204,6 +207,7 @@ class MainActivity : AppCompatActivity() {
         val wakeTimeSeconds = wakeTime.split(":")[2].toInt() // ["07", "44", "56"] → "56" → 56
         val duration = Duration.ofMillis(firstUsageTimeAfterWake!! - lastUsageTimeBeforeSleep)
         sleepViewModel.sleepTime = shortTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11
+        sleepViewModel.rawSleepTime = lastUsageTimeBeforeSleep
         sleepViewModel.wakeTime = shortTimeFormatter.format(firstUsageTimeAfterWake) // 07:44
         sleepViewModel.sleepDurationHour = duration.toHours().toInt()
         sleepViewModel.sleepDurationMinutes = if (sleepTimeSeconds > wakeTimeSeconds) (duration.toMinutes() % 60 + 1).toInt() else (duration.toMinutes() % 60).toInt()

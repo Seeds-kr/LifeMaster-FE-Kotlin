@@ -13,8 +13,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmListBinding
+import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.alarm.adapter.AlarmAdapter
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
+import com.example.lifemaster.presentation.home.sleep.model.UserRequest
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.time.Instant
 import java.time.ZoneId
@@ -24,6 +28,9 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
     private lateinit var binding: FragmentAlarmListBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels()
+    private val sleepViewModel: SleepViewModel by activityViewModels {
+        SleepViewModelFactory(RetrofitInstance.networkService)
+    }
     private val alarmAdapter = AlarmAdapter()
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -37,8 +44,24 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
             val triggeredDate = triggerAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
             val dismissedAt = alarmViewModel.alarmDismissedAt // 밀리초(long)
             val dismissedDate = dismissedAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
-            val userAlarmPrefs = requireContext().getSharedPreferences("user_alarm_info", Context.MODE_PRIVATE)
             val formatted = "%02d:%02d ~ %02d:%02d".format(triggeredDate?.hour, triggeredDate?.minute, dismissedDate?.hour, dismissedDate?.minute)
+
+            // server (external)
+            sleepViewModel.registerUserSleepInfo(
+                userRequest = UserRequest(
+                    userId = 13,
+                    sleepDate = LocalDate.now().toString(),
+                    sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime).toString(),
+                    sleepEnd = Instant.ofEpochMilli(dismissedAt ?: 0L).toString(),
+                    sleepMood = "GOOD", // TODO: 백엔드 수정되면 null or "" 로 변경하기
+                    alarmSnoozeCnt = 0,
+                    timeToWakeUp = 0,
+                    antiSleepMode = false
+                )
+            )
+
+            // shared preference (internal)
+            val userAlarmPrefs = requireContext().getSharedPreferences("user_alarm_info", Context.MODE_PRIVATE)
             userAlarmPrefs.edit().putString(LocalDate.now().toString(), formatted).apply()
         }
 

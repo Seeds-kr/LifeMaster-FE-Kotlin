@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -59,21 +60,12 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { data ->
             Log.e("TEST", "userSleepRecordList: $data")
         }
-        // 유저의 수면 기록 생성 테스트
-        sleepViewModel.registerUserSleepInfo(
-            userRequest = UserRequest(
-                userId = 13,
-                sleepDate = LocalDate.now().toString(),
-                sleepStart = Instant.now().minus(8, ChronoUnit.HOURS).toString(),
-                sleepEnd = Instant.now().toString(),
-                sleepMood = "BAD",
-                alarmSnoozeCnt = 0,
-                timeToWakeUp = 0,
-                antiSleepMode = false
-            )
-        )
-        sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { data ->
-            Log.e("TEST", "isUserSleepRecordGenerated: $data")
+
+        sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { event ->
+            event.getDataIfNotHandled()?.let { isSuccess ->
+                if(isSuccess) Toast.makeText(context, "수면 기록 전송이 성공했습니다", Toast.LENGTH_SHORT).show()
+                else Toast.makeText(context, "수면 기록 전송이 실패했습니다", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
