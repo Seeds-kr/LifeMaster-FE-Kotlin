@@ -1,10 +1,10 @@
 package com.example.lifemaster.presentation.community.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -29,9 +30,12 @@ import com.example.lifemaster.presentation.community.viewmodel.CommunityViewMode
 import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
+import androidx.core.graphics.drawable.toDrawable
 
-class CommunityPostFragment : Fragment() {
+class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
 
     private var _binding: FragmentCommunityPostBinding? = null
     private val binding get() = _binding!!
@@ -45,7 +49,6 @@ class CommunityPostFragment : Fragment() {
     private var currentItemId: String? = null
     private lateinit var commentAdapter: CommunityCommentAdapter
     private var timeJob: Job? = null
-
     private var editingPos: Int? = null
 
     private fun myNickname(): String {
@@ -54,9 +57,7 @@ class CommunityPostFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCommunityPostBinding.inflate(inflater, container, false)
         return binding.root
@@ -65,20 +66,36 @@ class CommunityPostFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        fun goToCommunityList() {
+            val nav = findNavController()
+            val popped = nav.popBackStack(R.id.communityFragment, false)
+            if (!popped) {
+                nav.navigate(
+                    R.id.communityFragment,
+                    null,
+                    androidx.navigation.navOptions {
+                        launchSingleTop = true
+                    }
+                )
+            }
+        }
+
+        binding.includeBackButton.btnBack.setOnClickListener { goToCommunityList() }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) { goToCommunityList() }
+
         currentItemId = arguments?.getString(ARG_ITEM_ID)
 
         vm.getById(currentItemId)?.let { item ->
             binding.tvTitle.text = item.title
             binding.tvContent.text = item.content
             binding.tvLikeCount.text = item.likes.toString()
-            val liked = vm.isPostLiked(item.id)
             binding.ivLikeIcon.setImageResource(
-                if (liked) R.drawable.ic_fill_heart else R.drawable.ic_heart
+                if (vm.isPostLiked(item.id)) R.drawable.ic_fill_heart else R.drawable.ic_heart
             )
 
             if (!item.fileUri.isNullOrEmpty()) {
                 binding.layoutFile.visibility = View.VISIBLE
-                val uri = Uri.parse(item.fileUri)
+                val uri = item.fileUri.toUri()
                 binding.tvFileName.text = getDisplayName(uri) ?: "첨부된 파일"
                 binding.layoutFile.setOnClickListener {
                     val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -90,7 +107,9 @@ class CommunityPostFragment : Fragment() {
                         Toast.makeText(requireContext(), "파일을 열 수 있는 앱이 없습니다.", Toast.LENGTH_SHORT).show()
                     }
                 }
-            } else binding.layoutFile.visibility = View.GONE
+            } else {
+                binding.layoutFile.visibility = View.GONE
+            }
         }
 
         setupCalendarArea()
@@ -120,7 +139,7 @@ class CommunityPostFragment : Fragment() {
 
             val pos = editingPos
             if (pos != null) {
-                commentAdapter.updateContentAt(pos, text) // isEdited = true
+                commentAdapter.updateContentAt(pos, text)
                 editingPos = null
                 binding.btnRegister.text = "등록하기"
                 binding.editComment.setText("")
@@ -138,9 +157,8 @@ class CommunityPostFragment : Fragment() {
             val id = currentItemId ?: return@setOnClickListener
             val newCount = vm.togglePostLike(id)
             binding.tvLikeCount.text = newCount.toString()
-            val liked = vm.isPostLiked(id)
             binding.ivLikeIcon.setImageResource(
-                if (liked) R.drawable.ic_fill_heart else R.drawable.ic_heart
+                if (vm.isPostLiked(id)) R.drawable.ic_fill_heart else R.drawable.ic_heart
             )
         }
 
@@ -148,26 +166,26 @@ class CommunityPostFragment : Fragment() {
             val id = currentItemId ?: return@observe
             vm.getById(id)?.let { item ->
                 binding.tvLikeCount.text = item.likes.toString()
-                val liked = vm.isPostLiked(id)
                 binding.ivLikeIcon.setImageResource(
-                    if (liked) R.drawable.ic_fill_heart else R.drawable.ic_heart
+                    if (vm.isPostLiked(id)) R.drawable.ic_fill_heart else R.drawable.ic_heart
                 )
                 renderCalendarVisibility(item.shareCalendar)
             }
         }
 
         binding.btnMore.setOnClickListener { anchor -> showMoreMenu(anchor) }
+
+        startTimeTicker()
     }
 
     private fun setupCalendarArea() {
         val id = currentItemId
         val share = vm.getById(id)?.shareCalendar == true
-
         if (!share) {
-            binding.calendarShare.visibility = View.GONE
+            renderCalendarVisibility(false)
             return
         }
-        binding.calendarShare.visibility = View.VISIBLE
+        renderCalendarVisibility(true)
 
         val calFrag = (childFragmentManager.findFragmentById(binding.containerCalendar.id)
                 as? CalendarFragment) ?: CalendarFragment().also {
@@ -178,11 +196,7 @@ class CommunityPostFragment : Fragment() {
         }
 
         renderCalendarHeader(calFrag.getCurrentYear(), calFrag.getCurrentMonth1())
-
-        calFrag.setOnMonthChangedListener { y, m1 ->
-            renderCalendarHeader(y, m1)
-        }
-
+        calFrag.setOnMonthChangedListener { y, m1 -> renderCalendarHeader(y, m1) }
         binding.btnPrevMonth.setOnClickListener { calFrag.moveMonth(-1) }
         binding.btnNextMonth.setOnClickListener { calFrag.moveMonth(1) }
     }
@@ -196,22 +210,11 @@ class CommunityPostFragment : Fragment() {
         binding.tvYear.text = year.toString()
     }
 
-    override fun onStart() {
-        super.onStart()
-        startTimeTicker()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        timeJob?.cancel()
-        timeJob = null
-    }
-
     private fun startTimeTicker() {
         timeJob?.cancel()
         timeJob = viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                while (true) {
+                while (isActive) {
                     delay(60_000)
                     commentAdapter.tickTime()
                 }
@@ -236,17 +239,14 @@ class CommunityPostFragment : Fragment() {
             .show()
     }
 
+    @SuppressLint("InflateParams")
     private fun showMoreMenu(anchor: View) {
-        val content = LayoutInflater.from(anchor.context)
-            .inflate(R.layout.dialog_community_menu, null)
+        val content = LayoutInflater.from(anchor.context).inflate(R.layout.dialog_community_menu, null)
         val popup = PopupWindow(
-            content,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            true
+            content, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true
         ).apply {
             isOutsideTouchable = true
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
             elevation = 16f
         }
 
@@ -271,8 +271,7 @@ class CommunityPostFragment : Fragment() {
 
         content.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         val xOff = anchor.width - content.measuredWidth - 6
-        val yOff = 4
-        popup.showAsDropDown(anchor, xOff, yOff)
+        popup.showAsDropDown(anchor, xOff, 4)
     }
 
     private fun getDisplayName(uri: Uri): String? {
@@ -280,16 +279,14 @@ class CommunityPostFragment : Fragment() {
         return try {
             cursor = requireContext().contentResolver.query(uri, null, null, null, null)
             val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME) ?: -1
-            if (cursor != null && cursor.moveToFirst() && nameIndex >= 0) {
-                cursor.getString(nameIndex)
-            } else null
-        } finally {
-            cursor?.close()
-        }
+            if (cursor != null && cursor.moveToFirst() && nameIndex >= 0) cursor.getString(nameIndex) else null
+        } finally { cursor?.close() }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        timeJob?.cancel()
+        timeJob = null
         _binding = null
     }
 }
