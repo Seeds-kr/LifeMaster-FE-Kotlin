@@ -33,9 +33,9 @@
 
     <fragment
         android:id="@+id/signupEmailFragment"
-        android:name="com.example.lifemaster.presentation.login.view.SignupEmailFragment"
+        android:name="com.example.lifemaster.presentation.login.view.RegisterEmailFragment"
         android:label="SignupEmailFragment"
-        tools:layout="@layout/fragment_signup_email">
+        tools:layout="@layout/fragment_register_email">
 
         <action
             android:id="@+id/action_signupEmailFragment_to_signupProfileFragment"
@@ -61,8 +61,8 @@
 
     <fragment
         android:id="@+id/signupProfileFragment"
-        android:name="com.example.lifemaster.presentation.login.view.SignupProfileFragment"
+        android:name="com.example.lifemaster.presentation.login.view.RegisterProfileFragment"
         android:label="회원가입 프로필 설정"
-        tools:layout="@layout/fragment_signup_profile" />
+        tools:layout="@layout/fragment_register_profile" />
 
 </navigation>
