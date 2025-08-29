@@ -30,15 +30,20 @@ class CalendarAdapter(
         if (item.day == 0) {
             holder.textView.text = ""
             holder.textView.setBackgroundColor(Color.TRANSPARENT)
+            holder.itemView.isClickable = false
             return
         }
 
+        holder.itemView.isClickable = true
         holder.textView.text = item.day.toString()
 
         when {
             !item.isCurrentMonth -> {
                 holder.textView.setTextColor(Color.parseColor("#CCCCCC"))
                 holder.textView.background = null
+            }
+            item.isToday -> {
+                holder.textView.setTextColor(Color.parseColor("#000000"))
             }
             else -> {
                 holder.textView.setTextColor(Color.parseColor("#000000"))

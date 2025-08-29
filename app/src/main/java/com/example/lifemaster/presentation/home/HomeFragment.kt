@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -25,6 +26,9 @@ import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
+import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
+import java.time.LocalDate
 
 class HomeFragment : Fragment() {
 
@@ -32,6 +36,7 @@ class HomeFragment : Fragment() {
     lateinit var todoItems: ArrayList<TodoItem>
     private val toDoViewModel: ToDoViewModel by activityViewModels()
     private var userToken: String? = null
+    private val calendarVM: CalendarViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,6 +61,8 @@ class HomeFragment : Fragment() {
         val (visible, ordered) = loadHomeConfiguration()
         applyHomeLayout(visible, ordered)
 
+        setupCalendarHeader()
+        observeCalendarState()
         initViews()
         initListeners()
         initObservers()
@@ -79,6 +86,7 @@ class HomeFragment : Fragment() {
         super.onResume()
         val (visible, ordered) = loadHomeConfiguration()
         applyHomeLayout(visible, ordered)
+        rebindCalendarHeaderUI()
     }
 
     private fun loadHomeConfiguration(): Pair<Set<String>, List<String>> {
@@ -200,5 +208,77 @@ class HomeFragment : Fragment() {
             val newList = updateItems.map { it.copy() }
             (binding.recyclerview.adapter as ToDoAdapter).submitList(newList)
         }
+    }
+
+    private fun setupCalendarHeader() = with(binding) {
+        if (calendarVM.mode.value == null) calendarVM.setMode(CalendarMode.MONTH)
+        if (calendarVM.selectedDate.value == null) calendarVM.selectDate(LocalDate.now())
+
+        btnMonth.setOnClickListener {
+            calendarVM.setMode(CalendarMode.MONTH)
+            updateModeButtons(CalendarMode.MONTH)
+            updateSelectedDateText(CalendarMode.MONTH, calendarVM.selectedDate.value ?: LocalDate.now())
+        }
+        btnWeek.setOnClickListener {
+            calendarVM.setMode(CalendarMode.WEEK)
+            updateModeButtons(CalendarMode.WEEK)
+            updateSelectedDateText(CalendarMode.WEEK, calendarVM.selectedDate.value ?: LocalDate.now())
+        }
+        btnDay.setOnClickListener {
+            calendarVM.setMode(CalendarMode.DAY)
+            updateModeButtons(CalendarMode.DAY)
+            updateSelectedDateText(CalendarMode.DAY, calendarVM.selectedDate.value ?: LocalDate.now())
+        }
+
+        rebindCalendarHeaderUI()
+    }
+
+    private fun observeCalendarState() = with(binding) {
+        calendarVM.selectedDate.observe(viewLifecycleOwner) { date ->
+            val mode = calendarVM.mode.value ?: CalendarMode.MONTH
+            updateSelectedDateText(mode, date)
+        }
+
+        calendarVM.mode.observe(viewLifecycleOwner) { mode ->
+            updateModeButtons(mode)
+            updateSelectedDateText(mode, calendarVM.selectedDate.value ?: LocalDate.now())
+        }
+    }
+
+    private fun rebindCalendarHeaderUI() {
+        val mode = calendarVM.mode.value ?: CalendarMode.MONTH
+        val date = calendarVM.selectedDate.value ?: LocalDate.now()
+        updateModeButtons(mode)
+        updateSelectedDateText(mode, date)
+    }
+
+    private fun updateModeButtons(selected: CalendarMode) = with(binding) {
+        val selectedBtn = when (selected) {
+            CalendarMode.MONTH -> btnMonth
+            CalendarMode.WEEK  -> btnWeek
+            CalendarMode.DAY   -> btnDay
+        }
+        val buttons = listOf(btnMonth, btnWeek, btnDay)
+        buttons.forEach { btn ->
+            if (btn == selectedBtn) {
+                btn.setBackgroundResource(R.drawable.bg_round_and_mint)
+                btn.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white))
+            } else {
+                btn.setBackgroundResource(R.drawable.bg_calendar_unselected)
+                btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.mint_60))
+            }
+        }
+    }
+
+    private fun updateSelectedDateText(mode: CalendarMode, date: LocalDate) {
+        binding.tvSelectedDate.text = when (mode) {
+            CalendarMode.MONTH -> "${date.monthValue}월"
+            CalendarMode.WEEK  -> "${date.monthValue}월 ${weekOfMonth(date)}째주"
+            CalendarMode.DAY   -> "${date.monthValue}월 ${date.dayOfMonth}일"
+        }
+    }
+
+    private fun weekOfMonth(date: LocalDate): Int {
+        return ((date.dayOfMonth - 1) / 7) + 1
     }
 }
