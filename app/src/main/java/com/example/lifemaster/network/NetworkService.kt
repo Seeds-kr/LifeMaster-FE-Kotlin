@@ -1,20 +1,48 @@
 package com.example.lifemaster.network
 
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
-import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.login.model.LoginInfo
+import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
+import com.example.lifemaster.presentation.login.model.RegisterInfo
+import com.example.lifemaster.presentation.login.model.RegResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface NetworkService {
+
+    // 유저 회원가입
+    @POST("/user/register")
+    fun registerUser(
+        @Body body: RegisterInfo
+    ): Call<RegResponse>
+
+    // 닉네임 중복 확인
+    @GET("/user/register/nickname")
+    fun checkNickname(
+        @Query("nickname") nickname: String
+    ): Call<NicknameCheckResponse>
+
+    // 유저 닉네임 등록
+    @Multipart
+    @POST("/user/register/nickname")
+    fun registerNickname(
+        @Part("regId") regId: RequestBody,
+        @Part("nickName") nickName: RequestBody,
+        @Part image: MultipartBody.Part? = null
+    ): Call<Void>
 
     // 유저 로그인 API
     @POST("/user/login")
