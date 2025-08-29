@@ -16,7 +16,6 @@ import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewM
 import java.time.LocalDate
 import java.util.Calendar
 import java.util.GregorianCalendar
-import kotlin.math.max
 
 class CalendarFragment : Fragment() {
 
@@ -53,6 +52,7 @@ class CalendarFragment : Fragment() {
                 CalendarMode.MONTH -> showMonthView()
                 CalendarMode.WEEK  -> showWeekView()
                 CalendarMode.DAY   -> showDayView()
+                null -> {}
             }
         }
 
