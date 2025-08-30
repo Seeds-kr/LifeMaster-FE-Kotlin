@@ -82,7 +82,9 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     }
 
     private fun initRemoteUI(remoteUserSleepRecordList: List<SleepResponse>) = with(binding) {
-
+        val todaySleepRecord = remoteUserSleepRecordList.last()
+        // 수면 타이틀 UI
+        tvSleepReportTitle.text = "오늘은\n총 ${todaySleepRecord.sleepDurationText} 잤어요"
     }
 
     private fun initLocalUI() = with(binding) {
