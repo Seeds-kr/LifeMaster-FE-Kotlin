@@ -75,13 +75,6 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 }
             }
         }
-
-        sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { event ->
-            event.getDataIfNotHandled()?.let { isSuccess ->
-                if(isSuccess) Toast.makeText(context, "수면 기록 전송이 성공했습니다", Toast.LENGTH_SHORT).show()
-                else Toast.makeText(context, "수면 기록 전송이 실패했습니다", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     private fun initLoadingUI() = with(binding) {

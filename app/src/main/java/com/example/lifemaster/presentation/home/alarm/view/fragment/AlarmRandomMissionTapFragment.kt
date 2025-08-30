@@ -137,7 +137,6 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
             }
             if(answerTapPositions.equals(userTapPositions)) {
                 if(currentPage == 3) {
-                    Toast.makeText(context, "수고하셨습니다!", Toast.LENGTH_SHORT).show()
                     val serviceIntent = Intent(context, AlarmService::class.java)
                     requireContext().stopService(serviceIntent)
                     alarmViewModel.alarmDismissedAt = System.currentTimeMillis()

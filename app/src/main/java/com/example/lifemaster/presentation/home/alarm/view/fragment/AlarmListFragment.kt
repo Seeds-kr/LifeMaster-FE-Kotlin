@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -64,7 +65,6 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
             val userAlarmPrefs = requireContext().getSharedPreferences("user_alarm_info", Context.MODE_PRIVATE)
             userAlarmPrefs.edit().putString(LocalDate.now().toString(), formatted).apply()
         }
-
         setupViews()
         setupListeners()
         setupObservers()
@@ -93,6 +93,12 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
                 binding.recyclerview.visibility = View.VISIBLE
             }
             alarmAdapter.submitList(items)
+        }
+        sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { event ->
+            event.getDataIfNotHandled()?.let { isSuccess ->
+                if(isSuccess) Toast.makeText(context, "수면 기록 전송이 성공했습니다", Toast.LENGTH_SHORT).show()
+                else Toast.makeText(context, "수면 기록 전송이 실패했습니다", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
