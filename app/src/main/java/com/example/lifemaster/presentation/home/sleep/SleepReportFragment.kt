@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
@@ -82,9 +83,27 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     }
 
     private fun initRemoteUI(remoteUserSleepRecordList: List<SleepResponse>) = with(binding) {
+
         val todaySleepRecord = remoteUserSleepRecordList.last()
-        // 수면 타이틀 UI
+        // 금일 수면 타이틀 UI
         tvSleepReportTitle.text = "오늘은\n총 ${todaySleepRecord.sleepDurationText} 잤어요"
+
+        // 금일 기분 UI
+        when (todaySleepRecord.sleepMood) {
+            VERY_BAD -> changeSelectedMoodColor(ivSleepReportTodayMoodVeryBad)
+            BAD -> changeSelectedMoodColor(ivSleepReportTodayMoodBad)
+            GOOD -> changeSelectedMoodColor(ivSleepReportTodayMoodGood)
+            VERY_GOOD -> changeSelectedMoodColor(ivSleepReportTodayMoodVeryGood)
+        }
+    }
+
+    private fun changeSelectedMoodColor(imageView: ImageView) {
+        imageView.setColorFilter(
+            resources.getColor(
+                R.color.sleep_mood_selected,
+                context?.theme
+            )
+        )
     }
 
     private fun initLocalUI() = with(binding) {
@@ -111,7 +130,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             "very_bad" -> {
                 ivSleepReportTodayMoodVeryBad.setColorFilter(
                     resources.getColor(
-                        R.color.sleep_selected_mood,
+                        R.color.sleep_mood_selected,
                         context?.theme
                     )
                 )
@@ -120,7 +139,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             "bad" -> {
                 ivSleepReportTodayMoodBad.setColorFilter(
                     resources.getColor(
-                        R.color.sleep_selected_mood,
+                        R.color.sleep_mood_selected,
                         context?.theme
                     )
                 )
@@ -129,7 +148,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             "good" -> {
                 ivSleepReportTodayMoodGood.setColorFilter(
                     resources.getColor(
-                        R.color.sleep_selected_mood,
+                        R.color.sleep_mood_selected,
                         context?.theme
                     )
                 )
@@ -138,7 +157,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             "very_good" -> {
                 ivSleepReportTodayMoodVeryGood.setColorFilter(
                     resources.getColor(
-                        R.color.sleep_selected_mood,
+                        R.color.sleep_mood_selected,
                         context?.theme
                     )
                 )
@@ -398,7 +417,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 todayMoods.forEach { it.clearColorFilter() }
                 todayMood.setColorFilter(
                     resources.getColor(
-                        R.color.sleep_selected_mood,
+                        R.color.sleep_mood_selected,
                         context?.theme
                     )
                 )
@@ -480,5 +499,12 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 }
             }
         }
+    }
+
+    companion object {
+        private const val VERY_BAD = "VERY_BAD"
+        private const val BAD = "BAD"
+        private const val GOOD = "GOOD"
+        private const val VERY_GOOD = "VERY_GOOD"
     }
 }
