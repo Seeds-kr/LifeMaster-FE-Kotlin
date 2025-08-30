@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
@@ -29,6 +30,7 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Locale
+import androidx.core.graphics.toColorInt
 
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
@@ -40,8 +42,8 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     private var userSleepDataPoints = mutableListOf<Entry>() // 1개의 line 을 구성하는 점들의 집합
     private var userMoodDataPoints = mutableListOf<Pair<Float, Drawable?>>()
 
-    private var xLabels = mutableListOf<String>() // x축에 표시할 값(일)
-    private var yValues = mutableListOf<Float>() // y축에 표시할 값
+    private var xLabels = mutableListOf<String>() // x축에 표시할 값(단위: 일)
+    private var yValues = mutableListOf<Float>() // y축에 표시할 값(수면 점수)
 
     private lateinit var userMoodPrefs: SharedPreferences
     private lateinit var userAlarmPrefs: SharedPreferences
@@ -63,13 +65,15 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
         // 유저의 수면 기록 조회
         sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { result ->
-            when(result) {
+            when (result) {
                 is Result.Loading -> {
                     initLoadingUI()
                 }
+
                 is Result.Success -> {
                     initRemoteUI(result.data)
                 }
+
                 is Result.Error -> {
                     Toast.makeText(context, "서버 에러: ${result.throwable}", Toast.LENGTH_SHORT).show()
                     initLocalUI()
@@ -95,15 +99,109 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             GOOD -> changeSelectedMoodColor(ivSleepReportTodayMoodGood)
             VERY_GOOD -> changeSelectedMoodColor(ivSleepReportTodayMoodVeryGood)
         }
-    }
 
-    private fun changeSelectedMoodColor(imageView: ImageView) {
-        imageView.setColorFilter(
-            resources.getColor(
-                R.color.sleep_mood_selected,
-                context?.theme
+        // 통계 UI
+        remoteUserSleepRecordList.forEach { record ->
+            val sleepDayOfMonth = record.sleepDate.split("-")[2] // "2025-08-28" → "28"
+            xLabels.add(sleepDayOfMonth)
+            yValues.add(record.sleepScore)
+        }
+
+        yValues.forEachIndexed { index, score ->
+            userSleepDataPoints.add(
+                Entry(index.toFloat(), score)
             )
+        }
+
+        // line 1개
+        val lineDataSet = LineDataSet(userSleepDataPoints, "수면 점수 그래프").apply {
+            color = "#BBAB94".toColorInt() // 선 색상
+            lineWidth = 3f // 선 굵기
+            setCircleColor("#927448".toColorInt()) // 점 색상
+            circleRadius = 4f // 점 크기
+            setDrawValues(false) // 값이 안보이게 하기
+        }
+
+        // 여러 개의 line 을 담는 전체 그래프 데이터
+        val lineData = LineData(lineDataSet)
+
+        with(lineChartSleepReportGraph) {
+            // 데이터 연결
+            data = lineData
+
+            // 그래프 x축 설정
+            xAxis.position = XAxis.XAxisPosition.BOTTOM // x축의 위치 지정
+            xAxis.valueFormatter = IndexAxisValueFormatter(xLabels) // x축 레이블 표시
+            xAxis.granularity = 1f // x축 레이블이 표시될 최소 간격 단위
+            xAxis.textColor = "#C5C6C6".toColorInt() // x축 값 색상
+            xAxis.textSize = 12f // x축 값 크기
+
+            // 그래프 y축 설정
+            axisLeft.textColor = "#C5C6C6".toColorInt() // y축 값 색상
+            axisLeft.textSize = 12f // y축 값 크기
+
+            // 기타 설정
+            axisRight.isEnabled = false // 오른쪽 y축값 표시 비활성화
+            animateX(1000) // 선이 그려지는 애니메이션을 1초동안 실행
+            legend.isEnabled = false // LineDataSet 에서 지정한 두번째 파라미터가 표시되지 않음
+            description.isEnabled = false // 맨 오른쪽 하단에 표시되는 그래프 설명 비활성화
+            isDoubleTapToZoomEnabled = false // 더블 탭하여 확대되는 기능 비활성화
+            setScaleEnabled(false) // 그래프 확대 기능 비활성화
+            setVisibleXRangeMaximum(7f) // 화면에 한번에 보이는 데이터의 수 제한
+            moveViewToX(userSleepDataPoints.size.toFloat()) // 최근 데이터로 이동
+        }
+
+        // 통계 점 클릭 시 나타나는 세부 정보
+        val dailySleepDurations = mutableListOf<String>() // 수면 시간
+        val dailyAlarmDurations = mutableListOf<Int>() // 일어나나는 데 걸린 시간
+        val dailySleepScores = mutableListOf<Float>()
+
+        remoteUserSleepRecordList.forEach { record ->
+            dailySleepDurations.add(record.sleepDurationText)
+            dailyAlarmDurations.add(record.timeToWakeUp)
+            dailySleepScores.add(record.sleepScore)
+        }
+
+        val markerView = SleepReportMarkerView(
+            requireContext(),
+            R.layout.layout_sleep_report_marker_view,
+            dailySleepDurations,
+            dailySleepScores,
+            dailyAlarmDurations,
         )
+        lineChartSleepReportGraph.marker = markerView
+
+        // x축 라벨 밑에 아이콘 표시하기 (Pair의 first = Entry의 x값(index, position))
+        remoteUserSleepRecordList.forEachIndexed { index, record ->
+            val drawable = when (record.sleepMood) {
+                VERY_BAD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad)
+                BAD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad)
+                GOOD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good)
+                VERY_GOOD -> AppCompatResources.getDrawable(requireContext() ,R.drawable.ic_mood_very_good)
+                else -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_alert)
+            }
+            val pair = index.toFloat() to drawable
+            userMoodDataPoints.add(pair)
+        }
+
+        with(lineChartSleepReportGraph) {
+            // 커스텀 XAxis Renderer에 추가할 아이콘 전달
+            setXAxisRenderer(
+                CustomXAxisRenderer(
+                    lineChartSleepReportGraph.viewPortHandler,
+                    lineChartSleepReportGraph.xAxis,
+                    lineChartSleepReportGraph.getTransformer(YAxis.AxisDependency.LEFT),
+                    userMoodDataPoints.toMap()
+                )
+            )
+            // 여백 증가 (아이콘이 표시될 영역이 부족)
+            setExtraOffsets(
+                0f,
+                0f,
+                0f,
+                20f
+            )
+        }
     }
 
     private fun initLocalUI() = with(binding) {
@@ -168,6 +266,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val regex = Regex("(\\d+)시간 (\\d+)분") // 정규 표현식
 
+        // shared preference 는 Map 형태로 데이터를 저장하기 때문에, 꺼내올 때 순서가 보장되지 않는다 → 재정렬 필요
         val orderedSleepData = userSleepPrefs.all.map { Pair(it.key, it.value as String) }
             .sortedBy { dateFormatter.parse(it.first) }
         orderedSleepData.forEach {
@@ -233,16 +332,16 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         // 알람 데이터 추가
         val orderedAlarmData = userAlarmPrefs.all.map { Pair(it.key, it.value as String) }
             .sortedBy { dateFormatter.parse(it.first) }
-        val dailyAlarmDurations = mutableListOf<String>()
+        val dailyAlarmDurations = mutableListOf<Int>()
         orderedAlarmData.forEach {
-            dailyAlarmDurations.add(it.second)
+            dailyAlarmDurations.add(getMinuteDifference(it.second))
         }
 
         val markerView = SleepReportMarkerView(
             requireContext(),
             R.layout.layout_sleep_report_marker_view,
-            dailySleepDurations,
-            dailyAlarmDurations
+            dailySleepDurations = dailySleepDurations,
+            dailyAlarmDurations = dailyAlarmDurations
         )
         lineChartSleepReportGraph.marker = markerView
 
@@ -257,14 +356,14 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             .sortedBy { dateFormatter.parse(it.first) }
         orderedUserMoodData.forEachIndexed { index, data ->
             val drawable = when (data.second) {
-                "very_bad" -> AppCompatResources.getDrawable(
+                VERY_BAD -> AppCompatResources.getDrawable(
                     requireContext(),
                     R.drawable.ic_mood_very_bad
                 )
 
-                "bad" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad)
-                "good" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good)
-                "very_good" -> AppCompatResources.getDrawable(
+                BAD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad)
+                GOOD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good)
+                VERY_GOOD -> AppCompatResources.getDrawable(
                     requireContext(),
                     R.drawable.ic_mood_very_good
                 )
@@ -340,7 +439,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                     requireContext(),
                     R.drawable.ic_average
                 )
-            ) // TODO: PM한테 물어보고 아이콘 변경하기
+            )
         } else {
             tvSleepReportAnalysisSleepTimeTitle.text = "잠이 부족했어요"
             ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(
@@ -353,55 +452,71 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 180f // 180도 회전하여 기존 drawable 재활용
         }
 
-        // 수면 점수 UI
-        // TODO: 수면 점수 계산하기
-
         // 알람이 울린 시간 UI
         val alarmDuration = userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: ""
         tvSleepReportAnalysisAlarmDurationValue.text =
-            if (alarmDuration == "null") "미측정" else alarmDuration
+            if (alarmDuration == NO_DATA) "미측정" else alarmDuration
 
         // 일어나는데 걸린 시간(금일) UI
-        tvSleepReportAnalysisWakeupDelayTimeValue.text =
-            if (getMinuteDifference(alarmDuration) == -1) "미측정" else "${
-                getMinuteDifference(alarmDuration)
-            }분"
-
-        // 일어나는데 걸린 시간(평균) UI
-        var sum = 0
-        userAlarmPrefs.all.filter { it.key != LocalDate.now().toString() }.map { it.value as String }.forEach {
-            val minute = getMinuteDifference(it)
-            if(minute != -1) sum += minute
-        }
-        val average = sum / (userAlarmPrefs.all.filter { it.value != "null" }.size - 1)
-        var today = getMinuteDifference(
-            userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: "null"
-        )
-        if(today == -1) today = 0 // 값이 없을 경우 변경
-        tvSleepReportAnalysisWakeupDurationGapValue.text = "${kotlin.math.abs(today - average)}"
-
-        if (today > average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
-            AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up)
-        )
-        else if (today == average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
-            AppCompatResources.getDrawable(requireContext(), R.drawable.ic_average)
-        ) else {
+        if (alarmDuration == NO_DATA) {
+            tvSleepReportAnalysisWakeupDelayTimeValue.text = "미측정"
+            tvSleepReportAnalysisWakeupDurationGapValue.text = "0"
             ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
+                AppCompatResources.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_average
+                )
+            )
+        } else {
+            // 일어나는데 걸린 시간(금일) UI
+            tvSleepReportAnalysisWakeupDelayTimeValue.text =
+                "${getMinuteDifference(alarmDuration)}분"
+
+            // 일어나는데 걸린 시간(평균값 계산) UI
+            var sum = 0
+            userAlarmPrefs.all.filter { it.key != LocalDate.now().toString() }
+                .map { it.value as String }.forEach {
+                sum += getMinuteDifference(it)
+            }
+            val average = sum / (userAlarmPrefs.all.filter { it.value != "null" }.size - 1)
+            var today = getMinuteDifference(
+                userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: "null"
+            )
+            tvSleepReportAnalysisWakeupDurationGapValue.text = "${kotlin.math.abs(today - average)}"
+
+            // 일어나는데 걸린 시간(대소 비교) UI
+            if (today > average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
                 AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up)
             )
-            ivSleepReportAnalysisWakeupDurationChangeIndicator.rotation = 180f
+            else if (today == average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
+                AppCompatResources.getDrawable(requireContext(), R.drawable.ic_average)
+            ) else {
+                ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
+                    AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up)
+                )
+                ivSleepReportAnalysisWakeupDurationChangeIndicator.rotation = 180f
+            }
         }
+
     }
 
     // 알람이 울린 시간에서 시간 차이(분) 계산하는 메소드
     private fun getMinuteDifference(timeRange: String): Int {
-        if (timeRange == "null") return -1 else {
-            val separatedTime = timeRange.split("~").map { it.trim() }
-            val start = LocalTime.parse(separatedTime[0]) // Text '7:30' could not be parsed at index 0
-            val end = LocalTime.parse(separatedTime[1])
-            val difference = Duration.between(start, end).toMinutes().toInt()
-            return difference
-        }
+        val separatedTime = timeRange.split("~").map { it.trim() }
+        val start = LocalTime.parse(separatedTime[0])
+        val end = LocalTime.parse(separatedTime[1])
+        val difference = Duration.between(start, end).toMinutes().toInt()
+        return difference
+    }
+
+    // 선택된 오늘의 기분 UI 색상을 변경하는 메소드
+    private fun changeSelectedMoodColor(imageView: ImageView) {
+        imageView.setColorFilter(
+            resources.getColor(
+                R.color.sleep_mood_selected,
+                context?.theme
+            )
+        )
     }
 
     private fun initListeners() = with(binding) {
@@ -506,5 +621,6 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         private const val BAD = "BAD"
         private const val GOOD = "GOOD"
         private const val VERY_GOOD = "VERY_GOOD"
+        private const val NO_DATA = "null"
     }
 }

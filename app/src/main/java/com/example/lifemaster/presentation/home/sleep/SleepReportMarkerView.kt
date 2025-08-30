@@ -7,14 +7,13 @@ import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
-import java.time.Duration
-import java.time.LocalTime
 
 class SleepReportMarkerView(
     context: Context,
     layoutResource: Int,
     private val dailySleepDurations: List<String>,
-    private val dailyAlarmDurations: List<String>
+    private val dailySleepScores: List<Float> = emptyList<Float>(),
+    private val dailyAlarmDurations: List<Int>
 ) : MarkerView(context, layoutResource) {
 
     private val totalSleepTime = findViewById<TextView>(R.id.tv_total_sleep_time)
@@ -24,22 +23,12 @@ class SleepReportMarkerView(
     override fun refreshContent(e: Entry?, highlight: Highlight?) {
         val position = e?.x?.toInt() ?: return
         totalSleepTime.text = "${dailySleepDurations[position]} 수면"
-        sleepScore.text = "0점"
-        timeToWakeUp.text = getMinuteDifference(dailyAlarmDurations[position])
+        sleepScore.text = if(dailySleepScores.isNotEmpty()) "${dailySleepScores[position]}점" else "0점"
+        timeToWakeUp.text = "${dailyAlarmDurations[position]}분"
         super.refreshContent(e, highlight)
     }
 
     override fun getOffset(): MPPointF? {
         return MPPointF(-width.toFloat() - 20f, -(height / 2).toFloat())
-    }
-
-    private fun getMinuteDifference(timeRange: String): String {
-        if (timeRange == "null") return "미측정" else {
-            val separatedTime = timeRange.split("~").map { it.trim() }
-            val start = LocalTime.parse(separatedTime[0])
-            val end = LocalTime.parse(separatedTime[1])
-            val difference = "${Duration.between(start, end).toMinutes()}분"
-            return difference
-        }
     }
 }
