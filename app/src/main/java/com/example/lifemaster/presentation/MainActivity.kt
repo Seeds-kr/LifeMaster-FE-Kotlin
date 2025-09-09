@@ -66,8 +66,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var updateRunnable: Runnable
 
     // 수면 관련 변수
-    private var lastUsedApp: String? = null // 자기전 마지막으로 사용한 앱
-    private var firstUsedApp: String? = null // 기상후 처음으로 사용한 앱
     private var lastUsageTimeBeforeSleep: Long = 0L // 마지막 사용 시간 = 핸드폰 화면을 끈 시간
     private var firstUsageTimeAfterWake: Long? = null // 핸드폰을 처음 킨 시간 (잠금 해제x)
     private val sleepViewModel: SleepViewModel by viewModels {
@@ -83,9 +81,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val targetFragment = intent.getStringExtra("destination")
-        if(targetFragment == "alarm") {
+        if (targetFragment == "alarm") {
             val time = intent.getLongExtra("time", 0L) // 알람이 울린 시간
-            val navController = (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
+            val navController =
+                (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
             navController.navigate(
                 R.id.alarmRingsFragment,
                 bundleOf("time" to time)
@@ -131,7 +130,7 @@ class MainActivity : AppCompatActivity() {
     // 사용자의 전날 수면 정보를 가져오는 함수
     private fun getUserSleepInfo() {
         // 사용자가 잠든 시간 추적하기
-        val usageStatsManager = getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager
+        val usageStatsManager = getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager // 1. USAGE_STATS_SERVICE란? UsageStatsManager란?
         val sleepCalendar = Calendar.getInstance().apply {
             // 오늘 날짜
             set(Calendar.HOUR_OF_DAY, 4)
@@ -139,26 +138,24 @@ class MainActivity : AppCompatActivity() {
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        val sleepTrackingEndTime = sleepCalendar.timeInMillis // 새벽 4시
+        val sleepTrackingEndTime = sleepCalendar.timeInMillis // 04:00
+
         sleepCalendar.add(Calendar.HOUR_OF_DAY, -8)
-        val sleepTrackingStartTime = sleepCalendar.timeInMillis // 오후 8시
+        val sleepTrackingStartTime = sleepCalendar.timeInMillis // 20:00
 
-        val sleepEvent = UsageEvents.Event()
+        val sleepEvent = UsageEvents.Event() // 2.
 
-        val sleepUsageEvents = usageStatsManager.queryEvents(
+        val sleepUsageEvents = usageStatsManager.queryEvents( // 3.
             sleepTrackingStartTime,
             sleepTrackingEndTime
-        ) // 전날 오후 8시 ~ 오늘 새벽 4시까지의 핸드폰 이용 내역 조회
+        )
+
         while (sleepUsageEvents.hasNextEvent()) {
-            // while 문을 통해 해당 시간대의 마지막 핸드폰 사용 시간 추적 + 업데이트
-            sleepUsageEvents.getNextEvent(sleepEvent) // 다음 이벤트를 변수에 저장
-            if (sleepEvent.eventType == UsageEvents.Event.ACTIVITY_STOPPED && sleepEvent.packageName != "com.sec.android.app.launcher") lastUsedApp =
-                sleepEvent.packageName // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 사용한 앱 추적
-            else if (sleepEvent.eventType == UsageEvents.Event.SCREEN_NON_INTERACTIVE) lastUsageTimeBeforeSleep =
-                sleepEvent.timeStamp // 전날 오후 8시 ~ 오늘 새벽 4시 중 마지막으로 화면을 끈 시각 추적, timeStamp = epoch millisecond (1970-01-01 UTC 기준 경과 시간)
+            sleepUsageEvents.getNextEvent(sleepEvent)
+            if (sleepEvent.eventType == UsageEvents.Event.SCREEN_NON_INTERACTIVE) lastUsageTimeBeforeSleep = sleepEvent.timeStamp
         }
 
-        Log.e("NIGHT", "마지막 사용 앱: $lastUsedApp, 화면 끈 시각: ${Date(lastUsageTimeBeforeSleep)}")
+        Log.e("SLEEP(NIGHT)", "잠든 시간: ${Date(lastUsageTimeBeforeSleep)}")
 
         // 사용자가 일어난 시간 추적하기 (알람 연동x)
         val wakeUpCalendar = Calendar.getInstance().apply {
@@ -179,44 +176,43 @@ class MainActivity : AppCompatActivity() {
 
         while (wakeUsageEvents.hasNextEvent()) {
             wakeUsageEvents.getNextEvent(wakeEvent)
-            if (wakeEvent.eventType == UsageEvents.Event.SCREEN_INTERACTIVE) {
-                if (firstUsageTimeAfterWake == null) {
-                    firstUsageTimeAfterWake = wakeEvent.timeStamp  // 기상 후 처음 핸드폰을 킨 시간 추적
-                    Log.e("MORNING", "SCREEN_INTERACTIVE: ${Date(firstUsageTimeAfterWake ?: 0L)}")
-                }
-            } else if (wakeEvent.eventType == UsageEvents.Event.ACTIVITY_RESUMED && wakeEvent.packageName != "com.sec.android.app.launcher") {
-                if (firstUsedApp == null) {
-                    firstUsedApp = wakeEvent.packageName // 기상 후 처음 사용한 앱 추적
-                    Log.e(
-                        "MORNING",
-                        "ACTIVITY_RESUMED: $firstUsedApp"
-                    ) // TODO: kr.co.simplebestapp.newnosoundcamera 로 찍히는 이유 파악하기
-                }
+            if (wakeEvent.eventType == UsageEvents.Event.SCREEN_INTERACTIVE && firstUsageTimeAfterWake == null) {
+                firstUsageTimeAfterWake = wakeEvent.timeStamp // 기상 후 처음 핸드폰을 킨 시간 추적
+                Log.e("SLEEP(MORNING)", "일어난 시간: ${Date(firstUsageTimeAfterWake ?: 0L)}")
             }
         }
 
-        // 수면 시간 계산해서 viewmodel 에 전달하기
-        Log.e("ERROR", "lastUsageTimeBeforeSleep: ${Date(lastUsageTimeBeforeSleep)}, firstUsageTimeAfterWake: ${firstUsageTimeAfterWake}")
         // FIXME: 오전 12:07 시점 앱 다운 + 로그 값 lastUsageTimeBeforeSleep: 1753973258389, firstUsageTimeAfterWake: null
         // FIXME: 원인 → 자정 이후로 금일 오전 5시 이후부터의 데이터는 존재하지 않기에 null 발생 (= 자정 이후 ~ 오전 5시 이전 앱 들어가면 튕김)
-        val longTimeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        val shortTimeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val sleepTime = longTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11:58
-        val wakeTime = longTimeFormatter.format(firstUsageTimeAfterWake) // 07:44:56
-        val sleepTimeSeconds = sleepTime.split(":")[2].toInt() // ["01", "11", "58"] → "58" → 58
-        val wakeTimeSeconds = wakeTime.split(":")[2].toInt() // ["07", "44", "56"] → "56" → 56
-        val duration = Duration.ofMillis(firstUsageTimeAfterWake!! - lastUsageTimeBeforeSleep)
-        sleepViewModel.sleepTime = shortTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11
-        sleepViewModel.rawSleepTime = lastUsageTimeBeforeSleep
-        sleepViewModel.wakeTime = shortTimeFormatter.format(firstUsageTimeAfterWake) // 07:44
-        sleepViewModel.sleepDurationHour = duration.toHours().toInt()
-        sleepViewModel.sleepDurationMinutes = if (sleepTimeSeconds > wakeTimeSeconds) (duration.toMinutes() % 60 + 1).toInt() else (duration.toMinutes() % 60).toInt()
 
-        // 로컬에 수면 정보 저장
         val sharedPreference = getSharedPreferences("user_sleep_info", MODE_PRIVATE)
-        sharedPreference.edit().apply {
-            putString(LocalDate.now().toString(),"${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분") // 실제 데이터
-            commit()
+
+        if(lastUsageTimeBeforeSleep == 0L || firstUsageTimeAfterWake == null) {
+            // 수면 기록이 제대로 안된 경우
+            sharedPreference.edit().putString(LocalDate.now().toString(), "null").apply()
+            sleepViewModel.isMeasured = false
+        } else {
+            // 수면 기록이 제대로 된 경우
+            val longTimeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            val shortTimeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val sleepTime = longTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11:58
+            val wakeTime = longTimeFormatter.format(firstUsageTimeAfterWake) // 07:44:56
+            val sleepTimeSeconds = sleepTime.split(":")[2].toInt() // ["01", "11", "58"] → "58" → 58
+            val wakeTimeSeconds = wakeTime.split(":")[2].toInt() // ["07", "44", "56"] → "56" → 56
+            val duration = Duration.ofMillis(firstUsageTimeAfterWake!! - lastUsageTimeBeforeSleep)
+            sleepViewModel.isMeasured = true
+            sleepViewModel.sleepTime = shortTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11
+            sleepViewModel.rawSleepTime = lastUsageTimeBeforeSleep
+            sleepViewModel.wakeTime = shortTimeFormatter.format(firstUsageTimeAfterWake) // 07:44
+            sleepViewModel.sleepDurationHour = duration.toHours().toInt()
+            sleepViewModel.sleepDurationMinutes =
+                if (sleepTimeSeconds > wakeTimeSeconds) (duration.toMinutes() % 60 + 1).toInt() else (duration.toMinutes() % 60).toInt()
+
+            // 로컬에 수면 정보 저장
+            sharedPreference.edit().putString(
+                LocalDate.now().toString(),
+                "${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분"
+            ).apply()
         }
     }
 

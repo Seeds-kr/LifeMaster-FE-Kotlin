@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
@@ -15,7 +14,6 @@ import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentSleepReportBinding
 import com.example.lifemaster.network.RetrofitInstance
-import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
@@ -31,6 +29,9 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Locale
 import androidx.core.graphics.toColorInt
+import androidx.core.view.isVisible
+import com.example.lifemaster.presentation.Constants
+import com.example.lifemaster.presentation.home.sleep.model.Result
 
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
@@ -58,7 +59,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     }
 
     private fun fetchRemoteData() {
-        sleepViewModel.getUserSleepInfo(userId = 13)
+        sleepViewModel.getUserSleepInfo(userId = Constants.USER_ID)
     }
 
     private fun initObservers() = with(binding) {
@@ -89,6 +90,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     private fun initRemoteUI(remoteUserSleepRecordList: List<SleepResponse>) = with(binding) {
 
         val todaySleepRecord = remoteUserSleepRecordList.last()
+
         // 금일 수면 타이틀 UI
         tvSleepReportTitle.text = "오늘은\n총 ${todaySleepRecord.sleepDurationText} 잤어요"
 
@@ -219,8 +221,12 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         userSleepPrefs = requireContext().getSharedPreferences("user_sleep_info", MODE_PRIVATE)
 
         // 수면 타이틀 UI
-        tvSleepReportTitle.text =
-            "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
+        if(sleepViewModel.isMeasured) {
+            tvSleepReportTitle.text =
+                "오늘은\n총 ${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 잤어요"
+        } else {
+            tvSleepReportTitle.text = "오늘은\n측정된 수면 기록이 없어요"
+        }
 
         // 오늘의 기분 UI 업데이트
         val todayMood = userMoodPrefs.getString(LocalDate.now().toString(), "null")
@@ -267,17 +273,22 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         val regex = Regex("(\\d+)시간 (\\d+)분") // 정규 표현식
 
         // shared preference 는 Map 형태로 데이터를 저장하기 때문에, 꺼내올 때 순서가 보장되지 않는다 → 재정렬 필요
-        val orderedSleepData = userSleepPrefs.all.map { Pair(it.key, it.value as String) }
-            .sortedBy { dateFormatter.parse(it.first) }
-        orderedSleepData.forEach {
-            val date = it.first
-            val dayOfMonth = date.split("-")[2]
-            xLabels.add(dayOfMonth)
-            val sleepDuration = it.second
-            val matchResult = regex.find(sleepDuration) ?: return@forEach
-            val (hour, minutes) = matchResult.destructured
-            val tempYValue = "${hour}.${minutes}".toFloat()
-            yValues.add(tempYValue)
+        val orderedSleepRecords = userSleepPrefs.all.map { Pair(it.key, it.value as String) }.sortedBy { dateFormatter.parse(it.first) }
+        orderedSleepRecords.forEach { sleepRecord ->
+            if(sleepRecord.second != "null") {
+                val date = sleepRecord.first
+                val dayOfMonth = date.split("-")[2]
+                xLabels.add(dayOfMonth)
+                val sleepDuration = sleepRecord.second
+                val matchResult = regex.find(sleepDuration) ?: return@forEach
+                val (hour, minutes) = matchResult.destructured
+                val tempYValue = "${hour}.${minutes}".toFloat()
+                yValues.add(tempYValue)
+            } else {
+                val dayOfMonth = sleepRecord.first.split("-")[2]
+                xLabels.add(dayOfMonth)
+                yValues.add(0f)
+            }
         }
 
         yValues.forEachIndexed { index, value ->
@@ -287,46 +298,46 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         }
 
         // line 1개
-        val lineDataSet = LineDataSet(userSleepDataPoints, "수면 꺾은선 그래프")
-        lineDataSet.color = Color.parseColor("#BBAB94") // 선 색상
-        lineDataSet.lineWidth = 3f // 선 굵기
-        lineDataSet.setCircleColor(Color.parseColor("#927448")) // 점 색상
-        lineDataSet.circleRadius = 4f // 점 크기
-        lineDataSet.setDrawValues(false) // 값이 안보이게 하기
-//        lineDataSet.valueTextColor = Color.parseColor("#927448") // 값 색상
-//        lineDataSet.setDrawFilled(true) // 선 아래 영역 채우기
+        val lineDataSet = LineDataSet(userSleepDataPoints, "수면 꺾은선 그래프").apply {
+            color = Color.parseColor("#BBAB94") // 선 색상
+            lineWidth = 3f // 선 굵기
+            setCircleColor(Color.parseColor("#927448")) // 점 색상
+            circleRadius = 4f // 점 크기
+            setDrawValues(false) // 값이 안보이게 하기
+        }
 
         // 여러 개의 line 을 담는 전체 그래프 데이터
         val lineData = LineData(lineDataSet)
-        lineChartSleepReportGraph.data = lineData
 
-        // 그래프 x축 설정
-        lineChartSleepReportGraph.xAxis.position = XAxis.XAxisPosition.BOTTOM // x축의 위치 지정
-        lineChartSleepReportGraph.xAxis.valueFormatter =
-            IndexAxisValueFormatter(xLabels) // x축 레이블 표시
-        lineChartSleepReportGraph.xAxis.granularity = 1f // x축 레이블이 표시될 최소 간격 단위
-        lineChartSleepReportGraph.xAxis.textColor = Color.parseColor("#C5C6C6") // x축 값 색상
-        lineChartSleepReportGraph.xAxis.textSize = 12f // x축 값 크기
+        with(lineChartSleepReportGraph) {
+            // 데이터 연결
+            data = lineData
 
-        // 그래프 y축 설정
-        lineChartSleepReportGraph.axisLeft.textColor = Color.parseColor("#C5C6C6") // y축 값 색상
-        lineChartSleepReportGraph.axisLeft.textSize = 12f // y축 값 크기
+            // 그래프 x축 설정
+            xAxis.position = XAxis.XAxisPosition.BOTTOM // x축의 위치 지정
+            xAxis.valueFormatter = IndexAxisValueFormatter(xLabels) // x축 레이블 표시
+            xAxis.granularity = 1f // x축 레이블이 표시될 최소 간격 단위
+            xAxis.textColor = Color.parseColor("#C5C6C6") // x축 값 색상
+            xAxis.textSize = 12f // x축 값 크기
 
-        // 기타 설정
-        lineChartSleepReportGraph.axisRight.isEnabled = false // 오른쪽 y축값 표시 비활성화
-//      lineChartSleepReportGraph.animateX(1000) // 선이 그려지는 애니메이션을 1초동안 실행
-        lineChartSleepReportGraph.legend.isEnabled = false // LineDataSet 에서 지정한 두번째 파라미터가 표시되지 않음
-        lineChartSleepReportGraph.description.isEnabled = false // 맨 오른쪽 하단에 표시되는 그래프 설명 비활성화
-//      lineChartSleepReportGraph.description.text = "수면 점수 그래프" // 맨 오른쪽 하단에 표시되는 그래프 설명
-        lineChartSleepReportGraph.isDoubleTapToZoomEnabled = false // 더블 탭하여 확대되는 기능 비활성화
-        lineChartSleepReportGraph.setScaleEnabled(false) // 그래프 확대 기능 비활성화
-        lineChartSleepReportGraph.setVisibleXRangeMaximum(7f) // 화면에 한번에 보이는 데이터의 수 제한
-        lineChartSleepReportGraph.moveViewToX(userSleepDataPoints.size.toFloat()) // 최근 데이터로 이동
+            // 그래프 y축 설정
+            axisLeft.textColor = Color.parseColor("#C5C6C6") // y축 값 색상
+            axisLeft.textSize = 12f // y축 값 크기
+
+            // 기타 설정
+            axisRight.isEnabled = false // 오른쪽 y축값 표시 비활성화
+            legend.isEnabled = false // LineDataSet 에서 지정한 두번째 파라미터가 표시되지 않음
+            description.isEnabled = false // 맨 오른쪽 하단에 표시되는 그래프 설명 비활성화
+            isDoubleTapToZoomEnabled = false // 더블 탭하여 확대되는 기능 비활성화
+            setScaleEnabled(false) // 그래프 확대 기능 비활성화
+            setVisibleXRangeMaximum(7f) // 화면에 한번에 보이는 데이터의 수 제한
+            moveViewToX(userSleepDataPoints.size.toFloat()) // 최근 데이터로 이동
+        }
 
         // 통계 점 클릭 시 나타나는 통계 세부 정보
         val dailySleepDurations = mutableListOf<String>()
-        orderedSleepData.forEach {
-            dailySleepDurations.add(it.second)
+        orderedSleepRecords.forEach { sleepRecord ->
+            dailySleepDurations.add(sleepRecord.second)
         }
 
         // 알람 데이터 추가
@@ -356,14 +367,14 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             .sortedBy { dateFormatter.parse(it.first) }
         orderedUserMoodData.forEachIndexed { index, data ->
             val drawable = when (data.second) {
-                VERY_BAD -> AppCompatResources.getDrawable(
+                "very_bad" -> AppCompatResources.getDrawable(
                     requireContext(),
                     R.drawable.ic_mood_very_bad
                 )
 
-                BAD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad)
-                GOOD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good)
-                VERY_GOOD -> AppCompatResources.getDrawable(
+                "bad" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad)
+                "good" -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good)
+                "very_good" -> AppCompatResources.getDrawable(
                     requireContext(),
                     R.drawable.ic_mood_very_good
                 )
@@ -371,7 +382,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 else -> AppCompatResources.getDrawable(
                     requireContext(),
                     R.drawable.ic_alert
-                ) // 임시 사용
+                )
             }
             val pair = index.toFloat() to drawable
             userMoodDataPoints.add(pair)
@@ -395,109 +406,125 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             )
         )
 
+        // 여백을 늘림 (이렇게 설정하지 않으면 아이콘이 표시될 영역이 부족해서 일부 짤림)
         lineChartSleepReportGraph.setExtraOffsets(
             0f,
             0f,
             0f,
             20f
-        ) // 여백을 늘림 (이렇게 설정하지 않으면 아이콘이 표시될 영역이 부족해서 일부 짤림)
+        )
 
         // 평소 수면 정보 비교 UI
         // step1. 금일 수면 정보 추출하기
-        val todaySleepData = orderedSleepData.last() // 금일 수면 정보 ex. (2025-08-03, 7시간 45분)
-        val result = regex.find(todaySleepData.second) ?: return@with
-        val (hour, minutes) = result.destructured
-        val todaySleepMinutes = hour.toInt() * 60 + minutes.toInt()
-        tvSleepReportAnalysisSleepTimeValue.text = "${todaySleepMinutes}분" // UI 반영
+        val todaySleepData = orderedSleepRecords.last() // 금일 수면 정보 ex. (2025-08-03, null)
+        if(todaySleepData.second != "null") {
+            val result = regex.find(todaySleepData.second) ?: return@with
+            val (hour, minutes) = result.destructured
+            val todaySleepMinutes = hour.toInt() * 60 + minutes.toInt()
+            tvSleepReportAnalysisSleepTimeValue.text = "${todaySleepMinutes}분" // UI 반영
 
-        // step2. 금일 제외 수면 정보 추출 및 누적 합산하기
-        var accumulatedPastSleepMinutes = 0 // 금일 제외 총합 수면 시간 (단위: 분)
-        val pastSleepData = orderedSleepData.subList(0, orderedSleepData.size - 1) // 금일 데이터 제외
-        pastSleepData.forEach {
-            val sleepTime = regex.find(it.second) ?: return@forEach
-            val (hour, minutes) = sleepTime.destructured
-            val totalSleepMinutes = hour.toInt() * 60 + minutes.toInt()
-            accumulatedPastSleepMinutes += totalSleepMinutes
-        }
-        val averagePastSleepMinutes = accumulatedPastSleepMinutes / pastSleepData.size
-        val sleepDifference = kotlin.math.abs(todaySleepMinutes - averagePastSleepMinutes) // 절댓값 계산
-        tvSleepReportAnalysisSleepTimeGapValue.text = sleepDifference.toString() // UI 반영
-
-        // step3. 금일 정보와 과거 정보 비교하기
-        if (todaySleepMinutes > averagePastSleepMinutes) {
-            tvSleepReportAnalysisSleepTimeTitle.text = "더 잤어요"
-            ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(
-                AppCompatResources.getDrawable(
-                    requireContext(),
-                    R.drawable.ic_arrow_up
-                )
-            )
-        } else if (todaySleepMinutes == averagePastSleepMinutes) {
-            tvSleepReportAnalysisSleepTimeTitle.text = "평소만큼 잤어요"
-            ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(
-                AppCompatResources.getDrawable(
-                    requireContext(),
-                    R.drawable.ic_average
-                )
-            )
-        } else {
-            tvSleepReportAnalysisSleepTimeTitle.text = "잠이 부족했어요"
-            ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(
-                AppCompatResources.getDrawable(
-                    requireContext(),
-                    R.drawable.ic_arrow_up
-                )
-            )
-            ivSleepReportAnalysisSleepTimeChangeIndicator.rotation =
-                180f // 180도 회전하여 기존 drawable 재활용
-        }
-
-        // 알람이 울린 시간 UI
-        val alarmDuration = userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: ""
-        tvSleepReportAnalysisAlarmDurationValue.text =
-            if (alarmDuration == NO_DATA) "미측정" else alarmDuration
-
-        // 일어나는데 걸린 시간(금일) UI
-        if (alarmDuration == NO_DATA) {
-            tvSleepReportAnalysisWakeupDelayTimeValue.text = "미측정"
-            tvSleepReportAnalysisWakeupDurationGapValue.text = "0"
-            ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
-                AppCompatResources.getDrawable(
-                    requireContext(),
-                    R.drawable.ic_average
-                )
-            )
-        } else {
-            // 일어나는데 걸린 시간(금일) UI
-            tvSleepReportAnalysisWakeupDelayTimeValue.text =
-                "${getMinuteDifference(alarmDuration)}분"
-
-            // 일어나는데 걸린 시간(평균값 계산) UI
-            var sum = 0
-            userAlarmPrefs.all.filter { it.key != LocalDate.now().toString() }
-                .map { it.value as String }.forEach {
-                sum += getMinuteDifference(it)
+            // step2. 금일 제외 수면 정보 추출 및 누적 합산하기
+            var accumulatedPastSleepMinutes = 0 // 금일 제외 총합 수면 시간 (단위: 분)
+            val pastSleepData = orderedSleepRecords.subList(0, orderedSleepRecords.size - 1) // 금일 데이터 제외
+            pastSleepData.forEach {
+                val sleepTime = regex.find(it.second) ?: return@forEach
+                val (hour, minutes) = sleepTime.destructured
+                val totalSleepMinutes = hour.toInt() * 60 + minutes.toInt()
+                accumulatedPastSleepMinutes += totalSleepMinutes
             }
-            val average = sum / (userAlarmPrefs.all.filter { it.value != "null" }.size - 1)
-            var today = getMinuteDifference(
-                userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: "null"
-            )
-            tvSleepReportAnalysisWakeupDurationGapValue.text = "${kotlin.math.abs(today - average)}"
 
-            // 일어나는데 걸린 시간(대소 비교) UI
-            if (today > average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
-                AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up)
-            )
-            else if (today == average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
-                AppCompatResources.getDrawable(requireContext(), R.drawable.ic_average)
-            ) else {
+            val averagePastSleepMinutes = accumulatedPastSleepMinutes / pastSleepData.size
+            val sleepDifference = kotlin.math.abs(todaySleepMinutes - averagePastSleepMinutes) // 절댓값 계산
+            tvSleepReportAnalysisSleepTimeGapValue.text = sleepDifference.toString() // UI 반영
+
+            // step3. 금일 정보와 과거 정보 비교하기
+            if (todaySleepMinutes > averagePastSleepMinutes) {
+                tvSleepReportAnalysisSleepTimeTitle.text = "더 잤어요"
+                ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(
+                    AppCompatResources.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_arrow_up
+                    )
+                )
+            } else if (todaySleepMinutes == averagePastSleepMinutes) {
+                tvSleepReportAnalysisSleepTimeTitle.text = "평소만큼 잤어요"
+                ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(
+                    AppCompatResources.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_average
+                    )
+                )
+            } else {
+                tvSleepReportAnalysisSleepTimeTitle.text = "잠이 부족했어요"
+                ivSleepReportAnalysisSleepTimeChangeIndicator.setImageDrawable(
+                    AppCompatResources.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_arrow_up
+                    )
+                )
+                ivSleepReportAnalysisSleepTimeChangeIndicator.rotation =
+                    180f // 180도 회전하여 기존 drawable 재활용
+            }
+
+            // 알람이 울린 시간 UI
+            val alarmDuration = userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: ""
+            tvSleepReportAnalysisAlarmDurationValue.text =
+                if (alarmDuration == NO_DATA) "미측정" else alarmDuration
+
+            // 일어나는데 걸린 시간(금일) UI
+            if (alarmDuration == NO_DATA) {
+                tvSleepReportAnalysisWakeupDelayTimeValue.text = "미측정"
+                tvSleepReportAnalysisWakeupDurationGapValue.text = "0"
                 ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
+                    AppCompatResources.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_average
+                    )
+                )
+            } else {
+                // 일어나는데 걸린 시간(금일) UI
+                tvSleepReportAnalysisWakeupDelayTimeValue.text =
+                    "${getMinuteDifference(alarmDuration)}분"
+
+                // 일어나는데 걸린 시간(평균값 계산) UI
+                var sum = 0
+                userAlarmPrefs.all.filter { it.key != LocalDate.now().toString() }
+                    .map { it.value as String }.forEach {
+                        sum += getMinuteDifference(it)
+                    }
+                val average = sum / (userAlarmPrefs.all.filter { it.value != "null" }.size - 1)
+                var today = getMinuteDifference(
+                    userAlarmPrefs.getString(LocalDate.now().toString(), "null") ?: "null"
+                )
+                tvSleepReportAnalysisWakeupDurationGapValue.text = "${kotlin.math.abs(today - average)}"
+
+                // 일어나는데 걸린 시간(대소 비교) UI
+                if (today > average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
                     AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up)
                 )
-                ivSleepReportAnalysisWakeupDurationChangeIndicator.rotation = 180f
+                else if (today == average) ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
+                    AppCompatResources.getDrawable(requireContext(), R.drawable.ic_average)
+                ) else {
+                    ivSleepReportAnalysisWakeupDurationChangeIndicator.setImageDrawable(
+                        AppCompatResources.getDrawable(requireContext(), R.drawable.ic_arrow_up)
+                    )
+                    ivSleepReportAnalysisWakeupDurationChangeIndicator.rotation = 180f
+                }
             }
-        }
+        } else {
+            // 금일 수면 측정 값이 없는 경우
+            tvSleepReportAnalysisSleepTimeTitle.text = "기록이 없어요"
+            tvSleepReportAnalysisSleepTimeValue.text = "미측정"
+            cvSleepReportAnalysisSleepTimeCompare.isVisible = false
 
+            tvSleepReportAnalysisSleepScoreValue.text = "미측정"
+            cvSleepReportAnalysisSleepScoreCompare.isVisible = false
+
+            tvSleepReportAnalysisAlarmDurationValue.text = "미측정"
+
+            tvSleepReportAnalysisWakeupDelayTimeValue.text = "미측정"
+            cvSleepReportAnalysisWakeupDelayTimeCompare.isVisible = false
+        }
     }
 
     // 알람이 울린 시간에서 시간 차이(분) 계산하는 메소드

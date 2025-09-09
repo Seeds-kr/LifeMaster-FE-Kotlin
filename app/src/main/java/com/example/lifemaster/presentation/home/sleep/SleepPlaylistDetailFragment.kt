@@ -5,19 +5,22 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentSleepPlaylistDetailBinding
+import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import java.text.SimpleDateFormat
-import java.util.Locale
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 
 class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_detail) {
 
     private lateinit var binding: FragmentSleepPlaylistDetailBinding
-    private val sleepViewModel: SleepViewModel by activityViewModels()
+    private val sleepViewModel: SleepViewModel by activityViewModels {
+        SleepViewModelFactory(RetrofitInstance.networkService)
+    }
     private lateinit var handler: Handler
     private lateinit var updateProgressBarTask: Runnable
     private var songAudioResource: Int = 0
@@ -36,9 +39,20 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
     }
 
     private fun initViews() = with(binding) {
-        tvSleepPlaylistDetailSleepDuration.text = "${sleepViewModel.sleepTime} ~ ${sleepViewModel.wakeTime}"
-        tvSleepMainHour.text = if(sleepViewModel.sleepDurationHour.toString().length == 1) "0${sleepViewModel.sleepDurationHour}" else "${sleepViewModel.sleepDurationHour}"
-        tvSleepMainMinute.text = sleepViewModel.sleepDurationMinutes.toString()
+
+        if(sleepViewModel.isMeasured) {
+            tvSleepPlaylistDetailSleepDuration.text = "${sleepViewModel.sleepTime} ~ ${sleepViewModel.wakeTime}"
+            tvSleepMainHour.text = if(sleepViewModel.sleepDurationHour.toString().length == 1) "0${sleepViewModel.sleepDurationHour}" else "${sleepViewModel.sleepDurationHour}"
+            tvSleepMainMinute.text = sleepViewModel.sleepDurationMinutes.toString()
+        } else {
+            tvSleepMainTitle.text = "Your Sleep\nIs Not Recorded"
+            tvSleepPlaylistDetailSleepDuration.text = "수면 정보가 없습니다"
+            tvSleepMainHour.isVisible = false
+            tvSleepMainMinute.isVisible = false
+            tvSleepMainHourLabel.isVisible = false
+            tvSleepMainMinuteLabel.isVisible = false
+        }
+
         tvSleepMainMusicTitle.text = arguments?.getString("title")
         handler = Handler(Looper.getMainLooper())
         updateProgressBarTask = object : Runnable {

@@ -22,9 +22,9 @@ class SleepReportMarkerView(
 
     override fun refreshContent(e: Entry?, highlight: Highlight?) {
         val position = e?.x?.toInt() ?: return
-        totalSleepTime.text = "${dailySleepDurations[position]} 수면"
+        totalSleepTime.text = if(dailySleepDurations[position] == "null") "수면 기록 없음" else "${dailySleepDurations[position]} 수면"
         sleepScore.text = if(dailySleepScores.isNotEmpty()) "${dailySleepScores[position]}점" else "0점"
-        timeToWakeUp.text = if(dailyAlarmDurations[position] == -1) "미측정" else "${dailyAlarmDurations[position]}분"
+        timeToWakeUp.text = if(dailyAlarmDurations[position] == -1) "기록 없음" else "${dailyAlarmDurations[position]}분"
         super.refreshContent(e, highlight)
     }
 

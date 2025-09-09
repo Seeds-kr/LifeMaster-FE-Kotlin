@@ -14,6 +14,7 @@ import com.example.lifemaster.databinding.FragmentHomeBinding
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
@@ -29,7 +30,9 @@ class HomeFragment : Fragment() {
     lateinit var binding: FragmentHomeBinding
     lateinit var todoItems: ArrayList<TodoItem>
     private val toDoViewModel: ToDoViewModel by activityViewModels()
-    private val sleepViewModel: SleepViewModel by activityViewModels()
+    private val sleepViewModel: SleepViewModel by activityViewModels {
+        SleepViewModelFactory(RetrofitInstance.networkService)
+    }
     private var userToken: String? = null
 
     override fun onCreateView(
@@ -49,7 +52,7 @@ class HomeFragment : Fragment() {
 //        initObservers()
         // 수면 정보 UI 업데이트
         binding.tvSleepDate.text = "${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일"
-        binding.tvHomeSleepDuration.text = "${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 수면"
+        binding.tvHomeSleepDuration.text = if(sleepViewModel.isMeasured) "${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 수면" else "수면 시간 미측정"
     }
 
     private fun initViews() = with(binding) {

@@ -14,12 +14,14 @@ import kotlinx.coroutines.launch
 
 class SleepViewModel(private val networkService: NetworkService): ViewModel() {
 
-    var wakeTime: String = "" // 금일 일어난 시각(HH:mm) ex) 07:44
-    var sleepTime: String = "" // 금일 기준 전날 잠든 시각(HH:mm) ex) 01:11
-    var rawSleepTime: Long = 0L
+    var isMeasured: Boolean = false // 수면 시간이 제대로 측정되었는지 유무
 
-    var sleepDurationHour: Int = 0 // 금일 몇시간 잤는가
-    var sleepDurationMinutes: Int = 0 // 금일 몇분 잤는가
+    var sleepTime: String? = null // 금일 기준 전날 잠든 시각(HH:mm) ex) 01:11
+    var rawSleepTime: Long? = null
+    var wakeTime: String? = null // 금일 일어난 시각(HH:mm) ex) 07:44
+
+    var sleepDurationHour: Int? = null // 금일 몇시간 잤는가
+    var sleepDurationMinutes: Int? = null // 금일 몇분 잤는가
 
     private val _isUserSleepRecordGenerated = MutableLiveData<Event<Boolean>>()
     val isUserSleepRecordGenerated: LiveData<Event<Boolean>> get() = _isUserSleepRecordGenerated
