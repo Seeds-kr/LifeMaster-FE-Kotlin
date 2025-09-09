@@ -502,6 +502,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
     // 알람이 울린 시간에서 시간 차이(분) 계산하는 메소드
     private fun getMinuteDifference(timeRange: String): Int {
+        if(timeRange == "null") return -1
         val separatedTime = timeRange.split("~").map { it.trim() }
         val start = LocalTime.parse(separatedTime[0])
         val end = LocalTime.parse(separatedTime[1])
