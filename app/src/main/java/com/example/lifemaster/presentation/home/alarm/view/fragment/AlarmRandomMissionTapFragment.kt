@@ -15,11 +15,19 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRandomMissionTapBinding
+import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.Constants
 import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
+import com.example.lifemaster.presentation.home.sleep.model.Result
+import com.example.lifemaster.presentation.home.sleep.model.UserRequest
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
 import kotlin.random.Random
 
 
@@ -27,6 +35,10 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
 
     private lateinit var binding: FragmentAlarmRandomMissionTapBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels()
+    private val sleepViewModel: SleepViewModel by activityViewModels {
+        SleepViewModelFactory(RetrofitInstance.networkService)
+    }
+
     private lateinit var taps: List<MaterialCardView>
     private var answerTapPositions: MutableSet<Int> = hashSetOf()
     private var userTapPositions: MutableSet<Int> = hashSetOf()
@@ -43,6 +55,7 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
         })
         initViews()
         initListeners()
+        initObservers()
     }
 
     private fun initViews() = with(binding) {
@@ -78,7 +91,7 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
         lifecycleScope.launch {
             for (tap in taps) { tap.isEnabled = false } // 사용자 터치 임시 비활성화
             // repeat 코드 실행 시간 거의 0ms에 가까움
-            repeat(5) {
+            repeat(10) {
                 val i = Random.nextInt(0, 25) // 0 ~ 24 (중복 허용)
                 taps[i].apply {
                     isSelected = true
@@ -135,15 +148,11 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
             taps.forEachIndexed { position, tap ->
                 if(tap.isSelected) userTapPositions.add(position) else userTapPositions.remove(position)
             }
+
             if(answerTapPositions.equals(userTapPositions)) {
                 if(currentPage == 3) {
-                    val serviceIntent = Intent(context, AlarmService::class.java)
-                    requireContext().stopService(serviceIntent)
                     alarmViewModel.alarmDismissedAt = System.currentTimeMillis()
-                    findNavController().navigate(
-                        R.id.action_alarmRandomMissionTapFragment_to_alarmListFragment,
-                        bundleOf("origin" to "alarm_random_mission")
-                    )
+                    sleepViewModel.getUserSleepInfo(Constants.USER_ID)
                 } else {
                     findNavController().navigate(
                         R.id.alarmRandomMissionTapFragment,
@@ -155,6 +164,82 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                 }
             }
             else { Toast.makeText(context, "답이 틀렸습니다! 다시 입력해주세요!", Toast.LENGTH_SHORT).show() }
+        }
+    }
+
+    private fun initObservers() = with(binding) {
+        sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { result ->
+            when(result) {
+                is Result.Success -> {
+                    val data = result.data
+                    val todayRecord = data.find { it.sleepDate == LocalDate.now().toString() }
+                    if(todayRecord == null) {
+                        // TODO: POST
+                        sleepViewModel.registerUserSleepInfo(
+                            userRequest = UserRequest(
+                                userId = Constants.USER_ID,
+                                sleepDate = LocalDate.now().toString(),
+                                sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
+                                sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
+                                sleepMood = "GOOD",
+                                alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
+                                timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
+                                antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
+                            )
+                        )
+                    } else {
+                        // TODO: PATCH
+                        sleepViewModel.updateUserSleepInfo(
+                            userRequest = UserRequest(
+                                userId = Constants.USER_ID,
+                                sleepDate = LocalDate.now().toString(),
+                                sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
+                                sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
+                                sleepMood = "GOOD",
+                                alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
+                                timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
+                                antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
+                            )
+                        )
+                    }
+                }
+                is Result.Error -> {}
+                is Result.Loading -> {}
+            }
+        }
+
+        sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { event ->
+            event.getDataIfNotHandled()?.let { isSuccess ->
+                if (isSuccess) {
+                    Toast.makeText(context, "수면 기록 전송이 성공했습니다", Toast.LENGTH_SHORT).show()
+                    // 알람 소리 멈추기
+                    val serviceIntent = Intent(context, AlarmService::class.java)
+                    requireContext().stopService(serviceIntent)
+                    findNavController().navigate(
+                        R.id.action_alarmRandomMissionTapFragment_to_alarmListFragment,
+                        bundleOf("origin" to "alarm_random_mission")
+                    )
+                } else Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        sleepViewModel.userSleepUpdatedRecord.observe(viewLifecycleOwner) { result ->
+            when (result) {
+                is Result.Success -> {
+                    Toast.makeText(context, "수면 기록이 업데이트 되었습니다", Toast.LENGTH_SHORT).show()
+                    // 알람 소리 멈추기
+                    val serviceIntent = Intent(context, AlarmService::class.java)
+                    requireContext().stopService(serviceIntent)
+                    findNavController().navigate(
+                        R.id.action_alarmRandomMissionTapFragment_to_alarmListFragment,
+                        bundleOf("origin" to "alarm_random_mission")
+                    )
+                }
+                is Result.Error -> {
+                    Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
+                }
+                is Result.Loading -> {}
+            }
         }
     }
 

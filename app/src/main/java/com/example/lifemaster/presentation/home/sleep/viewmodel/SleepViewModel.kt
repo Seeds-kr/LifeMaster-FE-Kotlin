@@ -19,6 +19,7 @@ class SleepViewModel(private val networkService: NetworkService): ViewModel() {
     var sleepTime: String? = null // 금일 기준 전날 잠든 시각(HH:mm) ex) 01:11
     var rawSleepTime: Long? = null
     var wakeTime: String? = null // 금일 일어난 시각(HH:mm) ex) 07:44
+    var rawWakeTime: Long? = null
 
     var sleepDurationHour: Int? = null // 금일 몇시간 잤는가
     var sleepDurationMinutes: Int? = null // 금일 몇분 잤는가

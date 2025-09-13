@@ -17,7 +17,6 @@ import com.example.lifemaster.databinding.FragmentAlarmListBinding
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.alarm.adapter.AlarmAdapter
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
-import com.example.lifemaster.presentation.home.sleep.model.UserRequest
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -29,9 +28,6 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
     private lateinit var binding: FragmentAlarmListBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels()
-    private val sleepViewModel: SleepViewModel by activityViewModels {
-        SleepViewModelFactory(RetrofitInstance.networkService)
-    }
     private val alarmAdapter = AlarmAdapter()
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -40,30 +36,21 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
         binding = FragmentAlarmListBinding.bind(view)
         val origin = arguments?.getString("origin")
         if(origin == "alarm_random_mission") {
+
             requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible = true
+
             val triggerAt = alarmViewModel.alarmTriggeredAt // 밀리초(long)
             val triggeredDate = triggerAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
+
             val dismissedAt = alarmViewModel.alarmDismissedAt // 밀리초(long)
             val dismissedDate = dismissedAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() }
-            val formatted = "%02d:%02d ~ %02d:%02d".format(triggeredDate?.hour, triggeredDate?.minute, dismissedDate?.hour, dismissedDate?.minute)
 
-            // server (external)
-            sleepViewModel.registerUserSleepInfo(
-                userRequest = UserRequest(
-                    userId = 13,
-                    sleepDate = LocalDate.now().toString(),
-                    sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime).toString(),
-                    sleepEnd = Instant.ofEpochMilli(dismissedAt ?: 0L).toString(),
-                    sleepMood = "GOOD", // TODO: 백엔드 수정되면 null or "" 로 변경하기
-                    alarmSnoozeCnt = 0,
-                    timeToWakeUp = 0,
-                    antiSleepMode = false
-                )
-            )
+            val formatted = "%02d:%02d ~ %02d:%02d".format(triggeredDate?.hour, triggeredDate?.minute, dismissedDate?.hour, dismissedDate?.minute)
 
             // shared preference (internal)
             val userAlarmPrefs = requireContext().getSharedPreferences("user_alarm_info", Context.MODE_PRIVATE)
             userAlarmPrefs.edit().putString(LocalDate.now().toString(), formatted).apply()
+
         }
         setupViews()
         setupListeners()
@@ -88,17 +75,11 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
     private fun setupObservers() {
         alarmViewModel.alarmItems.observe(viewLifecycleOwner) { items ->
-            if(binding.llNoAlarmItem.visibility == View.VISIBLE) { // 리팩토링하기
+            if (binding.llNoAlarmItem.visibility == View.VISIBLE) { // 리팩토링하기
                 binding.llNoAlarmItem.visibility = View.GONE
                 binding.recyclerview.visibility = View.VISIBLE
             }
             alarmAdapter.submitList(items)
-        }
-        sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { event ->
-            event.getDataIfNotHandled()?.let { isSuccess ->
-                if(isSuccess) Toast.makeText(context, "수면 기록 전송이 성공했습니다", Toast.LENGTH_SHORT).show()
-                else Toast.makeText(context, "수면 기록 전송이 실패했습니다", Toast.LENGTH_SHORT).show()
-            }
         }
     }
 }
