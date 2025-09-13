@@ -230,7 +230,7 @@
                         android:id="@+id/tv_sleep_report_analysis_sleep_score_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="70점"
+                        tools:text="70점"
                         android:textColor="#131313"
                         android:textSize="20sp"
                         android:textStyle="bold"
@@ -256,12 +256,14 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal">
                             <TextView
+                                android:id="@+id/tv_sleep_report_analysis_sleep_score_gap_value"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="8"
                                 android:textColor="@color/white"
                                 android:textSize="12sp"/>
                             <ImageView
+                                android:id="@+id/iv_sleep_report_analysis_sleep_score_change_indicator"
                                 android:layout_width="10dp"
                                 android:layout_height="10dp"
                                 android:src="@drawable/ic_arrow_down"

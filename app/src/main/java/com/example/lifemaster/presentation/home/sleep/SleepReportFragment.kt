@@ -52,12 +52,17 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     private lateinit var userAlarmPrefs: SharedPreferences
     private lateinit var userSleepPrefs: SharedPreferences
 
+    private var dailySleepDurations = mutableListOf<String>()
+    private var dailyAlarmDurations = mutableListOf<Int>()
+    private var dailySleepScores = mutableListOf<Float>()
+
+    private var remoteUserSleepRecordList = listOf<SleepResponse>()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentSleepReportBinding.bind(view)
         fetchRemoteData()
         initObservers()
-        initListeners()
     }
 
     private fun fetchRemoteData() {
@@ -74,12 +79,92 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 }
 
                 is Result.Success -> {
+                    remoteUserSleepRecordList = result.data
                     initRemoteUI(result.data)
+                    initRemoteListeners(result.data)
                 }
 
                 is Result.Error -> {
                     Toast.makeText(context, "서버 에러: ${result.throwable}", Toast.LENGTH_SHORT).show()
                     initLocalUI()
+                    initLocalListeners()
+                }
+            }
+        }
+
+        sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { event ->
+            event.getDataIfNotHandled()?.let { isGenerated ->
+                if(isGenerated) {
+                    sleepViewModel.getUserSleepInfo(Constants.USER_ID)
+                }
+            }
+        }
+
+        // 유저의 오늘의 기분 정보 업데이트
+        sleepViewModel.userSleepUpdatedRecord.observe(viewLifecycleOwner) { result ->
+            when(result) {
+                is Result.Loading -> {}
+                is Result.Success -> {
+                    Toast.makeText(context, "오늘의 기분이 업데이트 되었습니다!", Toast.LENGTH_SHORT).show()
+                    val updatedSleepRecord = result.data
+
+                    // 1. 오늘의 기분 UI 업데이트
+                    when (updatedSleepRecord.sleepMood) {
+                        VERY_BAD -> changeSelectedMoodColor(ivSleepReportTodayMoodVeryBad)
+                        BAD -> changeSelectedMoodColor(ivSleepReportTodayMoodBad)
+                        GOOD -> changeSelectedMoodColor(ivSleepReportTodayMoodGood)
+                        VERY_GOOD -> changeSelectedMoodColor(ivSleepReportTodayMoodVeryGood)
+                    }
+
+                    // 2. 차트 UI 업데이트
+                    yValues[yValues.lastIndex] = updatedSleepRecord.sleepScore
+
+                    userSleepDataPoints[userSleepDataPoints.lastIndex] = Entry(
+                        yValues.lastIndex.toFloat(), updatedSleepRecord.sleepScore
+                    )
+
+                    dailySleepScores[dailySleepScores.lastIndex] = updatedSleepRecord.sleepScore
+
+                    val updatedMoodIcon = when(updatedSleepRecord.sleepMood) {
+                        VERY_BAD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad)
+                        BAD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad)
+                        GOOD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good)
+                        VERY_GOOD -> AppCompatResources.getDrawable(requireContext() ,R.drawable.ic_mood_very_good)
+                        else -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_alert)
+                    }
+
+                    val updatedPair = yValues.lastIndex.toFloat() to updatedMoodIcon
+                    userMoodDataPoints[userMoodDataPoints.lastIndex] = updatedPair
+
+                    lineChartSleepReportGraph.invalidate()
+
+                    // 3. 평균 비교 UI 업데이트
+                    val todayUpdatedSleepScore = updatedSleepRecord.sleepScore.toInt()
+                    tvSleepReportAnalysisSleepScoreValue.text = "${todayUpdatedSleepScore}점"
+
+                    val filteredDataExcludingToday = remoteUserSleepRecordList.filter { it.sleepDate != LocalDate.now().toString() }
+                    var sum = 0f
+
+                    filteredDataExcludingToday.forEach { sleepData ->
+                        val sleepScore = sleepData.sleepScore
+                        sum += sleepScore
+                    }
+
+                    var average = (sum/filteredDataExcludingToday.size).toInt()
+
+                    tvSleepReportAnalysisSleepScoreGapValue.text = "${kotlin.math.abs(todayUpdatedSleepScore - average)}"
+                    if(todayUpdatedSleepScore > average) {
+                        ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
+                    } else if(todayUpdatedSleepScore == average) {
+                        ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_average)
+                    } else {
+                        ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
+                        ivSleepReportAnalysisSleepScoreChangeIndicator.rotation = 180f
+                    }
+
+                }
+                is Result.Error -> {
+                    Toast.makeText(context, "서버 에러: ${result.throwable}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -193,9 +278,9 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         }
 
         // 통계 점 클릭 시 나타나는 세부 정보
-        val dailySleepDurations = mutableListOf<String>() // 수면 시간
-        val dailyAlarmDurations = mutableListOf<Int>() // 일어나나는 데 걸린 시간
-        val dailySleepScores = mutableListOf<Float>()
+        dailySleepDurations = mutableListOf<String>() // 수면 시간
+        dailyAlarmDurations = mutableListOf<Int>() // 일어나는 데 걸린 시간
+        dailySleepScores = mutableListOf<Float>()
 
         remoteUserSleepRecordList.forEach { record ->
             dailySleepDurations.add(record.sleepDurationText)
@@ -590,16 +675,26 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         )
     }
 
-    private fun initListeners() = with(binding) {
-        // 오늘의 기분 바꾸기
+    private fun initRemoteListeners(remoteUserSleepRecordList: List<SleepResponse>) = with(binding) {
+
+        val todaySleepRecord = remoteUserSleepRecordList.find { it.sleepDate == LocalDate.now().toString() }
+
+        if(todaySleepRecord == null) {
+            // TODO: 수면 기록이 측정되지 않은 경우 오늘의 기분 표시를 어떻게 할 것인가?
+            return@with
+        }
+
         val todayMoods = listOf(
             ivSleepReportTodayMoodVeryBad,
             ivSleepReportTodayMoodBad,
             ivSleepReportTodayMoodGood,
             ivSleepReportTodayMoodVeryGood
         )
-        for (todayMood in todayMoods) {
+
+        for(todayMood in todayMoods) {
             todayMood.setOnClickListener {
+
+                // UI 변경
                 todayMoods.forEach { it.clearColorFilter() }
                 todayMood.setColorFilter(
                     resources.getColor(
@@ -607,6 +702,102 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                         context?.theme
                     )
                 )
+
+                // 서버 연결
+                when(todayMood) {
+                    ivSleepReportTodayMoodVeryBad -> {
+                        sleepViewModel.updateUserSleepInfo(
+                            UserRequest(
+                                sleepId = todaySleepRecord.sleepId,
+                                sleepDate = todaySleepRecord.sleepDate,
+                                sleepStart = todaySleepRecord.sleepStart,
+                                sleepEnd = todaySleepRecord.sleepEnd,
+                                sleepMood = VERY_BAD,
+                                alarmSnoozeCnt = todaySleepRecord.alarmSnoozeCnt,
+                                timeToWakeUp = todaySleepRecord.timeToWakeUp,
+                                antiSleepMode = todaySleepRecord.antiSleepMode,
+                                userId = Constants.USER_ID
+                            )
+                        )
+
+                        // 통계 UI 변경
+                        changeTodayMoodGraphUI(R.drawable.ic_mood_very_bad)
+                    }
+                    ivSleepReportTodayMoodBad -> {
+                        sleepViewModel.updateUserSleepInfo(
+                            UserRequest(
+                                sleepId = todaySleepRecord.sleepId,
+                                sleepDate = todaySleepRecord.sleepDate,
+                                sleepStart = todaySleepRecord.sleepStart,
+                                sleepEnd = todaySleepRecord.sleepEnd,
+                                sleepMood = BAD,
+                                alarmSnoozeCnt = todaySleepRecord.alarmSnoozeCnt,
+                                timeToWakeUp = todaySleepRecord.timeToWakeUp,
+                                antiSleepMode = todaySleepRecord.antiSleepMode,
+                                userId = Constants.USER_ID
+                            )
+                        )
+                        changeTodayMoodGraphUI(R.drawable.ic_mood_bad)
+                    }
+                    ivSleepReportTodayMoodGood -> {
+                        sleepViewModel.updateUserSleepInfo(
+                            UserRequest(
+                                sleepId = todaySleepRecord.sleepId,
+                                sleepDate = todaySleepRecord.sleepDate,
+                                sleepStart = todaySleepRecord.sleepStart,
+                                sleepEnd = todaySleepRecord.sleepEnd,
+                                sleepMood = GOOD,
+                                alarmSnoozeCnt = todaySleepRecord.alarmSnoozeCnt,
+                                timeToWakeUp = todaySleepRecord.timeToWakeUp,
+                                antiSleepMode = todaySleepRecord.antiSleepMode,
+                                userId = Constants.USER_ID
+                            )
+                        )
+                        changeTodayMoodGraphUI(R.drawable.ic_mood_good)
+                    }
+                    ivSleepReportTodayMoodVeryGood -> {
+                        sleepViewModel.updateUserSleepInfo(
+                            UserRequest(
+                                sleepId = todaySleepRecord.sleepId,
+                                sleepDate = todaySleepRecord.sleepDate,
+                                sleepStart = todaySleepRecord.sleepStart,
+                                sleepEnd = todaySleepRecord.sleepEnd,
+                                sleepMood = VERY_GOOD,
+                                alarmSnoozeCnt = todaySleepRecord.alarmSnoozeCnt,
+                                timeToWakeUp = todaySleepRecord.timeToWakeUp,
+                                antiSleepMode = todaySleepRecord.antiSleepMode,
+                                userId = Constants.USER_ID
+                            )
+                        )
+                        changeTodayMoodGraphUI(R.drawable.ic_mood_very_good)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun initLocalListeners() = with(binding) {
+
+        // 오늘의 기분 바꾸기
+        val todayMoods = listOf(
+            ivSleepReportTodayMoodVeryBad,
+            ivSleepReportTodayMoodBad,
+            ivSleepReportTodayMoodGood,
+            ivSleepReportTodayMoodVeryGood
+        )
+
+        for (todayMood in todayMoods) {
+            todayMood.setOnClickListener {
+
+                // UI 변경
+                todayMoods.forEach { it.clearColorFilter() }
+                todayMood.setColorFilter(
+                    resources.getColor(
+                        R.color.sleep_mood_selected,
+                        context?.theme
+                    )
+                )
+
                 // 오늘의 기분 shared preference에 저장하기
                 when (todayMood) {
                     ivSleepReportTodayMoodVeryBad -> {
@@ -637,7 +828,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         userMoodDataPoints[userMoodDataPoints.lastIndex] =
             userMoodDataPoints.lastIndex.toFloat() to AppCompatResources.getDrawable(
                 requireContext(),
-                R.drawable.ic_mood_very_bad
+                moodIcon
             )
 
         lineChartSleepReportGraph.setXAxisRenderer(
@@ -648,6 +839,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 userMoodDataPoints.toMap()
             )
         )
+
         lineChartSleepReportGraph.invalidate()
     }
 

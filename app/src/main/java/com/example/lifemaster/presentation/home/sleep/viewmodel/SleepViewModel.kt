@@ -29,6 +29,9 @@ class SleepViewModel(private val networkService: NetworkService): ViewModel() {
     private val _userSleepRecordList = MutableLiveData<Result<List<SleepResponse>>>()
     val userSleepRecordList: LiveData<Result<List<SleepResponse>>> get() = _userSleepRecordList
 
+    private val _userSleepUpdatedRecord = MutableLiveData<Result<SleepResponse>>()
+    val userSleepUpdatedRecord: LiveData<Result<SleepResponse>> get() = _userSleepUpdatedRecord
+
     // 유저의 수면 기록 조회
     fun getUserSleepInfo(userId: Int) {
         viewModelScope.launch {
@@ -52,6 +55,18 @@ class SleepViewModel(private val networkService: NetworkService): ViewModel() {
             } catch (e: Exception) {
                 _isUserSleepRecordGenerated.value = Event(false)
                 Log.e("ERROR", "registerUserSleepInfo: $e")
+            }
+        }
+    }
+
+    // 유저의 수면 기록 업데이트
+    fun updateUserSleepInfo(userRequest: UserRequest) {
+        viewModelScope.launch {
+            try {
+                val response = networkService.updateUserSleepRecord(userRequest)
+                _userSleepUpdatedRecord.value = Result.Success(response)
+            } catch (e: Exception) {
+                _userSleepUpdatedRecord.value = Result.Error(e)
             }
         }
     }

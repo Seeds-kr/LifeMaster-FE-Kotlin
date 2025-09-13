@@ -97,4 +97,10 @@ interface NetworkService {
     suspend fun registerUserSleepRecord(
         @Body userRequest: UserRequest
     ): String
+
+    // 유저의 수면 기록 업데이트
+    @PATCH("/sleep")
+    suspend fun updateUserSleepRecord(
+        @Body userRequest: UserRequest
+    ): SleepResponse
 }
