@@ -40,6 +40,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
@@ -157,15 +158,16 @@ class MainActivity : AppCompatActivity() {
 
         Log.e("SLEEP(NIGHT)", "잠든 시간: ${Date(lastUsageTimeBeforeSleep)}")
 
-        // 사용자가 일어난 시간 추적하기 (알람 연동x)
+        // 사용자가 일어난 시간 추적하기 (화면을 킨 시점)
         val wakeUpCalendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 5)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        val wakeTrackingStartTime = wakeUpCalendar.timeInMillis
-        wakeUpCalendar.add(Calendar.HOUR_OF_DAY, 12)
+        val wakeTrackingStartTime = wakeUpCalendar.timeInMillis // 오전 5시
+
+        wakeUpCalendar.add(Calendar.HOUR_OF_DAY, 5) // 오전 10시
         val wakeTrackingEndTime = wakeUpCalendar.timeInMillis
 
         val wakeEvent = UsageEvents.Event()
@@ -188,22 +190,32 @@ class MainActivity : AppCompatActivity() {
         val sharedPreference = getSharedPreferences("user_sleep_info", MODE_PRIVATE)
 
         if(lastUsageTimeBeforeSleep == 0L || firstUsageTimeAfterWake == null) {
-            // 수면 기록이 제대로 안된 경우
+            // 수면 기록 측정이 제대로 안된 경우
             sharedPreference.edit().putString(LocalDate.now().toString(), "null").apply()
             sleepViewModel.isMeasured = false
         } else {
             // 수면 기록이 제대로 된 경우
+            Log.e("VALUE", "잠든 시간: ${Instant.ofEpochMilli(lastUsageTimeBeforeSleep)}, 일어난 시간: ${Instant.ofEpochMilli(firstUsageTimeAfterWake!!)}")
+
+            // viewmodel 설정
             val longTimeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             val shortTimeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+
             val sleepTime = longTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11:58
             val wakeTime = longTimeFormatter.format(firstUsageTimeAfterWake) // 07:44:56
+
             val sleepTimeSeconds = sleepTime.split(":")[2].toInt() // ["01", "11", "58"] → "58" → 58
             val wakeTimeSeconds = wakeTime.split(":")[2].toInt() // ["07", "44", "56"] → "56" → 56
             val duration = Duration.ofMillis(firstUsageTimeAfterWake!! - lastUsageTimeBeforeSleep)
+
             sleepViewModel.isMeasured = true
+
             sleepViewModel.sleepTime = shortTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11
             sleepViewModel.rawSleepTime = lastUsageTimeBeforeSleep
+
             sleepViewModel.wakeTime = shortTimeFormatter.format(firstUsageTimeAfterWake) // 07:44
+            sleepViewModel.rawWakeTime = firstUsageTimeAfterWake
+
             sleepViewModel.sleepDurationHour = duration.toHours().toInt()
             sleepViewModel.sleepDurationMinutes =
                 if (sleepTimeSeconds > wakeTimeSeconds) (duration.toMinutes() % 60 + 1).toInt() else (duration.toMinutes() % 60).toInt()
