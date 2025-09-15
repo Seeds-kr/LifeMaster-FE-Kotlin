@@ -7,11 +7,11 @@
     tools:context=".presentation.home.alarm.view.fragment.AlarmRandomMissionMathFragment">
 
     <TextView
-        android:id="@+id/tv_alarm_random_mission_math_date"
+        android:id="@+id/tvAlarmRandomMissionMathDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="42dp"
-        android:text="2024년 7월 30일"
+        tools:text="2024년 7월 30일"
         android:textColor="#927448"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -19,36 +19,37 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/tv_alarm_random_mission_math_time"
+        android:id="@+id/tvAlarmRandomMissionMathTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="10:20"
+        tools:text="10:20"
         android:textColor="#131313"
         android:textSize="80sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/tv_alarm_random_mission_math_am_pm"
+        app:layout_constraintEnd_toStartOf="@id/tvAlarmRandomMissionMathAmPm"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_alarm_random_mission_math_date" />
+        app:layout_constraintTop_toBottomOf="@id/tvAlarmRandomMissionMathDate" />
 
     <TextView
-        android:id="@+id/tv_alarm_random_mission_math_am_pm"
+        android:id="@+id/tvAlarmRandomMissionMathAmPm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
-        android:text="am"
+        tools:text="am"
         android:textColor="#131313"
         android:textSize="40sp"
         android:textStyle="bold"
-        app:layout_constraintBaseline_toBaselineOf="@id/tv_alarm_random_mission_math_time"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvAlarmRandomMissionMathTime"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/tv_alarm_random_mission_math_time" />
+        app:layout_constraintStart_toEndOf="@id/tvAlarmRandomMissionMathTime" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_alarm_random_mission_math_question"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
+        android:layout_marginHorizontal="74dp"
         app:cardBackgroundColor="#EBE6DF"
         app:cardCornerRadius="8dp"
         app:cardElevation="0dp"
@@ -58,12 +59,13 @@
         app:contentPaddingBottom="12dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_alarm_random_mission_math_time">
+        app:layout_constraintTop_toBottomOf="@id/tvAlarmRandomMissionMathTime">
         <TextView
-            android:id="@+id/tv_alarm_random_mission_math_question"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvAlarmRandomMissionMathQuestion"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="(62 x 8) + 53"
+            android:gravity="center"
+            tools:text="(62 x 8) + 53"
             android:textSize="32sp"
             android:textStyle="bold"
             android:textColor="#BBAB94"/>
@@ -97,10 +99,12 @@
                 android:textStyle="bold"
                 android:textColor="@color/black"/>
             <TextView
+                android:id="@+id/tvAlarmRandomMissionUserAnswer"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="?"
+                android:hint="?"
+                android:textColorHint="@color/black"
                 android:textSize="32sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"
@@ -114,7 +118,7 @@
         android:layout_height="280dp"
         android:layout_marginTop="20dp"
         android:layout_marginHorizontal="16dp"
-        app:constraint_referenced_ids="cv_math_number_1, cv_math_number_2, cv_math_number_3, cv_math_back_space, cv_math_number_4, cv_math_number_5, cv_math_number_6, cv_math_submit_answer, cv_math_number_7, cv_math_number_8, cv_math_number_9, cv_math_number_0"
+        app:constraint_referenced_ids="cvMathNumber1, cvMathNumber2, cvMathNumber3, cvMathBackSpace, cvMathNumber4, cvMathNumber5, cvMathNumber6, cvMathSubmitAnswer, cvMathNumber7, cvMathNumber8, cvMathNumber9, cvMathNumberZero"
         app:flow_maxElementsWrap="4"
         app:flow_wrapMode="aligned"
         app:flow_horizontalGap="14dp"
@@ -124,7 +128,7 @@
         app:layout_constraintTop_toBottomOf="@id/cv_alarm_random_mission_math_answer" />
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_number_1"
+        android:id="@+id/cvMathNumber1"
         style="@style/random_mission_math_pad_default">
         <TextView
             style="@style/random_mission_math_pad_text_default"
@@ -132,7 +136,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_number_2"
+        android:id="@+id/cvMathNumber2"
         style="@style/random_mission_math_pad_default"
         tools:ignore="MissingConstraints">
         <TextView
@@ -141,7 +145,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_number_3"
+        android:id="@+id/cvMathNumber3"
         style="@style/random_mission_math_pad_default"
         tools:ignore="MissingConstraints">
         <TextView
@@ -150,7 +154,7 @@
     </com.google.android.material.card.MaterialCardView>
     
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_back_space"
+        android:id="@+id/cvMathBackSpace"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clickable="true"
@@ -167,7 +171,7 @@
 
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_number_4"
+        android:id="@+id/cvMathNumber4"
         style="@style/random_mission_math_pad_default"
         tools:ignore="MissingConstraints">
         <TextView
@@ -176,7 +180,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_number_5"
+        android:id="@+id/cvMathNumber5"
         style="@style/random_mission_math_pad_default"
         tools:ignore="MissingConstraints">
         <TextView
@@ -185,7 +189,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_number_6"
+        android:id="@+id/cvMathNumber6"
         style="@style/random_mission_math_pad_default"
         tools:ignore="MissingConstraints">
         <TextView
@@ -194,7 +198,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_submit_answer"
+        android:id="@+id/cvMathSubmitAnswer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clickable="true"
@@ -210,7 +214,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_number_7"
+        android:id="@+id/cvMathNumber7"
         style="@style/random_mission_math_pad_default"
         tools:ignore="MissingConstraints">
         <TextView
@@ -219,7 +223,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_number_8"
+        android:id="@+id/cvMathNumber8"
         style="@style/random_mission_math_pad_default"
         tools:ignore="MissingConstraints">
         <TextView
@@ -228,7 +232,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_number_9"
+        android:id="@+id/cvMathNumber9"
         style="@style/random_mission_math_pad_default"
         tools:ignore="MissingConstraints">
         <TextView
@@ -237,7 +241,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math_number_0"
+        android:id="@+id/cvMathNumberZero"
         style="@style/random_mission_math_pad_default"
         tools:ignore="MissingConstraints">
         <TextView
@@ -261,7 +265,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
         <TextView
-            android:id="@+id/tv_alarm_random_mission_math_page"
+            android:id="@+id/tvAlarmRandomMissionMathPage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="1/3"

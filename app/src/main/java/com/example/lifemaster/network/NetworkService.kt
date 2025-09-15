@@ -1,5 +1,6 @@
 package com.example.lifemaster.network
 
+import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.UserRequest
@@ -103,4 +104,13 @@ interface NetworkService {
     suspend fun updateUserSleepRecord(
         @Body userRequest: UserRequest
     ): SleepResponse
+
+    /**
+     * Alarm Mission API
+     */
+    // 수학 문제 생성 API
+    @GET("/time/alarm/mission/math-problem")
+    suspend fun generateMathProblem(
+        @Query("level") level: String
+    ): MathProblemResponse
 }
