@@ -4,6 +4,7 @@ import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,11 +12,14 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeBinding
 import com.example.lifemaster.databinding.ItemChallengeBinding
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
+import com.example.lifemaster.presentation.challenge.viewmodel.ChallengeViewModel
 
 data class MyChallenge(
     val imageRes: Int,
@@ -27,6 +31,8 @@ class ChallengeFragment : Fragment() {
 
     private var _binding: FragmentChallengeBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: ChallengeViewModel by viewModels()
+    private lateinit var challengeAdapter: ChallengeAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,6 +46,17 @@ class ChallengeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupMyChallenges()
         setupRecyclerView()
+        observeViewModel()
+        viewModel.loadChallenges()
+    }
+
+    private fun observeViewModel() {
+        viewModel.challengeData.observe(viewLifecycleOwner) { challengeResponse ->
+            challengeResponse?.content?.let { challengeList ->
+                challengeAdapter.submitList(challengeList)
+                Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${challengeList.size}개")
+            }
+        }
     }
 
     private fun setupMyChallenges() {
@@ -84,26 +101,7 @@ class ChallengeFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        val challengeList = listOf(
-            Challenge(
-                imageUrl = "ic_cold_shower",
-                title = "찬물 샤워 챌린지",
-                participants = 164,
-                description = "여러분, 상쾌한 아침을 시작할 준비 되셨나요? 이제 건강과 활력을 동시에...",
-                date = "2024.06.10 ~",
-                isParticipating = true
-            ),
-            Challenge(
-                imageUrl = "ic_stretching",
-                title = "하루에 20분 스트레칭",
-                participants = 1721,
-                description = "바쁜 일상 속에서 몸과 마음을 돌볼 시간이 필요하지 않으신가요? 지금 바로...",
-                date = "2024.05.19 ~",
-                isParticipating = false
-            )
-        )
-
-        val challengeAdapter = ChallengeAdapter(challengeList)
+        challengeAdapter = ChallengeAdapter(emptyList())
         binding.rvChallenges.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = challengeAdapter
@@ -116,16 +114,12 @@ class ChallengeFragment : Fragment() {
     }
 }
 
-data class Challenge(
-    val imageUrl: String,
-    val title: String,
-    val participants: Int,
-    val description: String,
-    val date: String,
-    val isParticipating: Boolean
-)
+class ChallengeAdapter(private var items: List<ChallengeItem>) : RecyclerView.Adapter<ChallengeAdapter.ChallengeViewHolder>() {
 
-class ChallengeAdapter(private val items: List<Challenge>) : RecyclerView.Adapter<ChallengeAdapter.ChallengeViewHolder>() {
+    fun submitList(newItems: List<ChallengeItem>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChallengeViewHolder {
         val binding = ItemChallengeBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -139,13 +133,14 @@ class ChallengeAdapter(private val items: List<Challenge>) : RecyclerView.Adapte
     override fun getItemCount(): Int = items.size
 
     inner class ChallengeViewHolder(private val binding: ItemChallengeBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(challenge: Challenge) {
-            binding.tvChallengeTitle.text = challenge.title
-            binding.tvParticipantCount.text = "${challenge.participants}명 참여 중"
-            binding.tvChallengeDescription.text = challenge.description
-            binding.tvChallengeDate.text = challenge.date
+        fun bind(challenge: ChallengeItem) {
+            binding.tvChallengeTitle.text = challenge.challName
+            binding.tvParticipantCount.text = "${challenge.challCnt}명 참여 중"
+            binding.tvChallengeDescription.text = challenge.challDesc
+            binding.tvChallengeDate.text = challenge.createdAt
 
-            if (challenge.isParticipating) {
+            //val isParticipating = false // 임시 값
+            /*if (challenge.isParticipating) {
                 binding.btnJoinChallenge.text = "참여중"
                 binding.btnJoinChallenge.setBackgroundResource(R.drawable.btn_background_participating)
                 binding.btnJoinChallenge.setTextColor(ContextCompat.getColor(itemView.context, R.color.challenge_blue))
@@ -153,10 +148,11 @@ class ChallengeAdapter(private val items: List<Challenge>) : RecyclerView.Adapte
                 binding.btnJoinChallenge.text = "참여하기"
                 binding.btnJoinChallenge.setBackgroundResource(R.drawable.btn_background_join)
                 binding.btnJoinChallenge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
-            }
+            }*/
 
-            val imageResId = itemView.context.resources.getIdentifier(challenge.imageUrl, "drawable", itemView.context.packageName)
+            val imageResId = itemView.context.resources.getIdentifier(challenge.challImg, "drawable", itemView.context.packageName)
             binding.ivChallengeBanner.setImageResource(imageResId)
         }
     }
 }
+

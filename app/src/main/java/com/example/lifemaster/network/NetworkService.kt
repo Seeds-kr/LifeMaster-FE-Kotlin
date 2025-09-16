@@ -3,6 +3,7 @@ package com.example.lifemaster.network
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -83,5 +84,11 @@ interface NetworkService {
     fun getEscapeSentence(
         @Header("Authorization") token: String
     ):Call<String>
+
+    // 챌린지 목록 조회
+    @GET("/challenge")
+    fun getChallenges(
+        @Query("page") page: Int
+    ): Call<ChallengeResponse>
 
 }
