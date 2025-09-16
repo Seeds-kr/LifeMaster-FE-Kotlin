@@ -1,5 +1,6 @@
 package com.example.lifemaster.presentation.total.introspection
 
+import ThankViewModel
 import android.os.Bundle
 import android.transition.TransitionManager
 import android.view.LayoutInflater
@@ -11,11 +12,17 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentIntrospectionBinding
+import androidx.fragment.app.viewModels
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class IntrospectionFragment : Fragment() {
 
     private var _binding: FragmentIntrospectionBinding? = null
     private val binding get() = _binding!!
+
+    private val viewModel: ThankViewModel by viewModels()
 
     private var currentMode: Mode = Mode.TODAY
 
@@ -71,12 +78,50 @@ class IntrospectionFragment : Fragment() {
 
                     // "비어있지 않은 항목이 하나라도 있는가?"를 직접적으로 확인
                     if (thanksList.any { it.isNotBlank() }) {
-                        // 실제 내용이 있는 감사만 필터링
-                        val nonEmptyThanks = thanksList.filter { it.isNotBlank() }
-                        Toast.makeText(requireContext(), "${nonEmptyThanks.size}개의 감사 내용이 저장되었습니다", Toast.LENGTH_SHORT).show()
+                        // 현재 날짜를 "yyyy-MM-dd" 형식의 문자열로 변환
+                        val currentDate =
+                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        // ViewModel의 함수를 호출하여 서버에 데이터 전송 요청
+                        viewModel.createThankEntry(
+                            token = "YOUR_TOKEN",
+                            thankOne = thanksList[0],
+                            thankTwo = thanksList[1],
+                            thankThree = thanksList[2],
+                            thankFour = thanksList[3],
+                            thankFive = thanksList[4],
+                            thankDate = currentDate
+                        )
                     } else {
-                        Toast.makeText(requireContext(), "감사 내용을 한 가지 이상 입력해주세요", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "감사 내용을 한 가지 이상 입력해주세요",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
+                }
+            }
+        }
+
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Loading -> {
+                    binding.btnSubmit.isEnabled = false
+                }
+
+                is UiState.Success -> {
+                    binding.btnSubmit.isEnabled = true
+                    Toast.makeText(requireContext(), "감사일기가 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                }
+
+                is UiState.Error -> {
+                    binding.btnSubmit.isEnabled = true
+                    Toast.makeText(requireContext(), "오류: ${state.message}", Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+                else -> {
+                    // Loading, Success, Error가 아닌 나머지 모든 경우 (여기서는 Idle)
+                    binding.btnSubmit.isEnabled = true
                 }
             }
         }

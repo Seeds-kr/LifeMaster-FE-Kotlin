@@ -4,7 +4,9 @@ import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -90,5 +92,12 @@ interface NetworkService {
     fun getChallenges(
         @Query("page") page: Int
     ): Call<ChallengeResponse>
+
+    // 감사일기 생성
+    @POST("/schedule/self-reflection/thank")
+    suspend fun createThank(
+        @Header("Authorization") token: String,
+        @Body request: ThankRequest
+    ): Response<Unit>
 
 }
