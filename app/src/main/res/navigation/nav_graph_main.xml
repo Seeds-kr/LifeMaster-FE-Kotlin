@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph_main"
-    app:startDestination="@id/homeFragment">
+    app:startDestination="@id/alarmRandomMissionMathFragment">
 
     <fragment
         android:id="@+id/alarmSettingFragment"
@@ -121,8 +121,14 @@
         android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmRandomMissionMathFragment"
         android:label="fragment_sleep_report"
         tools:layout="@layout/fragment_alarm_random_mission_math">
+        <argument
+            android:name="currentPageNum"
+            android:defaultValue="1"
+            app:argType="integer"/>
         <action
             android:id="@+id/action_alarmRandomMissionMathFragment_to_alarmListFragment"
-            app:destination="@id/alarmListFragment" />
+            app:destination="@id/alarmListFragment"
+            app:popUpTo="@id/nav_graph_main"
+            app:popUpToInclusive="true"/>
     </fragment>
 </navigation>
