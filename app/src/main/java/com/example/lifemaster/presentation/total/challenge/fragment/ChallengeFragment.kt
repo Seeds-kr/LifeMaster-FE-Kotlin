@@ -139,8 +139,8 @@ class ChallengeAdapter(private var items: List<ChallengeItem>) : RecyclerView.Ad
             binding.tvChallengeDescription.text = challenge.challDesc
             binding.tvChallengeDate.text = challenge.createdAt
 
-            //val isParticipating = false // 임시 값
-            /*if (challenge.isParticipating) {
+            /*val isParticipating = false // 임시 값
+            if (challenge.isParticipating) {
                 binding.btnJoinChallenge.text = "참여중"
                 binding.btnJoinChallenge.setBackgroundResource(R.drawable.btn_background_participating)
                 binding.btnJoinChallenge.setTextColor(ContextCompat.getColor(itemView.context, R.color.challenge_blue))

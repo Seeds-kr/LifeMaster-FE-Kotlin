@@ -100,4 +100,12 @@ interface NetworkService {
         @Body request: ThankRequest
     ): Response<Unit>
 
+    //감사일기 수정
+    @PUT("schedule/self-reflection/thank/{thank-id}")
+    suspend fun updateThank(
+        @Header("Authorization") token: String,
+        @Path("thank-id") thankId: Long,
+        @Body request: ThankRequest
+    ): Response<Unit>
+
 }

@@ -20,6 +20,7 @@ class ThankViewModel : ViewModel() {
     private val _uiState = MutableLiveData<UiState>()
     val uiState: LiveData<UiState> get() = _uiState
 
+    //감사일기 작성 기능
     fun createThankEntry(
         token: String,
         thankOne: String,
@@ -54,4 +55,44 @@ class ThankViewModel : ViewModel() {
             }
         }
     }
+
+    //감사일기 수정 기능
+    fun updateThankEntry(
+        token: String,
+        thankId: Long, // 수정할 감사일기의 ID
+        thankOne: String,
+        thankTwo: String,
+        thankThree: String,
+        thankFour: String,
+        thankFive: String,
+        thankDate: String
+    ) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+
+            val request = ThankRequest(
+                thankOne = thankOne,
+                thankTwo = thankTwo,
+                thankThree = thankThree,
+                thankFour = thankFour,
+                thankFive = thankFive,
+                thankDate = thankDate
+            )
+
+            try {
+                // 수정 API 호출
+                val response = networkService.updateThank("Bearer $token", thankId, request)
+
+                if (response.isSuccessful) {
+                    _uiState.value = UiState.Success
+                } else {
+                    _uiState.value = UiState.Error("오류: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다.")
+            }
+        }
+    }
 }
+
+

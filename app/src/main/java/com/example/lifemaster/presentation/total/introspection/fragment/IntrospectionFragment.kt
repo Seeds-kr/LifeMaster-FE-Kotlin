@@ -21,10 +21,21 @@ class IntrospectionFragment : Fragment() {
 
     private var _binding: FragmentIntrospectionBinding? = null
     private val binding get() = _binding!!
-
     private val viewModel: ThankViewModel by viewModels()
-
     private var currentMode: Mode = Mode.TODAY
+    private var isEditMode = false
+    private var thankId: Long? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            val id = it.getLong(ARG_THANK_ID, 0L)
+            if (id != 0L) {
+                isEditMode = true
+                thankId = id
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,6 +47,18 @@ class IntrospectionFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        //수정 모드일 경우 UI를 '감사일기'로 강제 설정
+        if (isEditMode) {
+            currentMode = Mode.THANKS
+            // 수정 모드에서는 탭 전환을 막아 혼동을 방지
+            binding.btnToday.isEnabled = false
+            binding.btnThanks.isEnabled = false
+
+            // TODO: ViewModel에 ID로 기존 데이터를 불러오는 함수를 만들고 호출하세요.
+            // 예: viewModel.loadThankEntry(thankId!!)
+            // 불러온 데이터로 binding.etThanks1.setText(data.thankOne) 처럼 입력창을 채워줍니다.
+        }
 
         // 초기 화면 설정
         updateUI(animated = false) // 처음에는 애니메이션 없이 UI 설정
@@ -81,6 +104,8 @@ class IntrospectionFragment : Fragment() {
                         // 현재 날짜를 "yyyy-MM-dd" 형식의 문자열로 변환
                         val currentDate =
                             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        val token = "YOUR_TOKEN" // TODO: 실제 토큰으로 교체
+
                         // ViewModel의 함수를 호출하여 서버에 데이터 전송 요청
                         viewModel.createThankEntry(
                             token = "YOUR_TOKEN",
@@ -92,37 +117,29 @@ class IntrospectionFragment : Fragment() {
                             thankDate = currentDate
                         )
                     } else {
-                        Toast.makeText(
-                            requireContext(),
-                            "감사 내용을 한 가지 이상 입력해주세요",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(requireContext(), "감사 내용을 한 가지 이상 입력해주세요", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         }
 
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is UiState.Loading -> {
-                    binding.btnSubmit.isEnabled = false
-                }
+            // 버튼 활성화/비활성화 로직을 한 곳에서 관리
+            binding.btnSubmit.isEnabled = state !is UiState.Loading
 
+            when (state) {
                 is UiState.Success -> {
-                    binding.btnSubmit.isEnabled = true
-                    Toast.makeText(requireContext(), "감사일기가 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "저장되었습니다.", Toast.LENGTH_SHORT).show()
+                    clearThankYouFields() // 입력창 초기화
+                    // TODO: 저장이 완료되면 현재 Fragment를 닫는 로직 추가 (필요시)
+                    // 예: parentFragmentManager.popBackStack()
                 }
 
                 is UiState.Error -> {
-                    binding.btnSubmit.isEnabled = true
-                    Toast.makeText(requireContext(), "오류: ${state.message}", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(requireContext(), "오류: ${state.message}", Toast.LENGTH_SHORT).show()
                 }
-
-                else -> {
-                    // Loading, Success, Error가 아닌 나머지 모든 경우 (여기서는 Idle)
-                    binding.btnSubmit.isEnabled = true
-                }
+                // Loading, Idle 상태는 버튼 활성화 로직에서 이미 처리됨
+                else -> {}
             }
         }
     }
@@ -151,7 +168,13 @@ class IntrospectionFragment : Fragment() {
         binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), if (currentMode == Mode.THANKS) R.color.white else R.color.black))
     }
 
-
+    private fun clearThankYouFields() {
+        binding.etThanks1.text.clear()
+        binding.etThanks2.text.clear()
+        binding.etThanks3.text.clear()
+        binding.etThanks4.text.clear()
+        binding.etThanks5.text.clear()
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -160,5 +183,23 @@ class IntrospectionFragment : Fragment() {
 
     enum class Mode {
         TODAY, THANKS
+    }
+
+    companion object {
+        private const val ARG_THANK_ID = "thank_id"
+
+        // '새로 작성' 모드로 Fragment를 열 때 사용
+        fun newInstance(): IntrospectionFragment {
+            return IntrospectionFragment()
+        }
+
+        // '수정' 모드로 Fragment를 열 때 사용 (수정할 일기의 ID 전달)
+        fun newInstance(thankId: Long): IntrospectionFragment {
+            val fragment = IntrospectionFragment()
+            val args = Bundle()
+            args.putLong(ARG_THANK_ID, thankId)
+            fragment.arguments = args
+            return fragment
+        }
     }
 }
