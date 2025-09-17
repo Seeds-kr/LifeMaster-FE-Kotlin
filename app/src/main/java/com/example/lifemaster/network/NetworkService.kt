@@ -3,7 +3,7 @@ package com.example.lifemaster.network
 import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
-import com.example.lifemaster.presentation.home.sleep.model.UserRequest
+import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import retrofit2.Call
@@ -87,6 +87,9 @@ interface NetworkService {
         @Header("Authorization") token: String
     ):Call<String>
 
+    /**
+     * Sleep Management API
+     */
     // 유저의 수면 기록 조회
     @GET("/sleep/{userId}")
     suspend fun getUserSleepRecord(
@@ -96,13 +99,13 @@ interface NetworkService {
     // 유저의 수면 기록 생성
     @POST("/sleep")
     suspend fun registerUserSleepRecord(
-        @Body userRequest: UserRequest
+        @Body userRequest: SleepRequest
     ): String
 
     // 유저의 수면 기록 업데이트
     @PATCH("/sleep")
     suspend fun updateUserSleepRecord(
-        @Body userRequest: UserRequest
+        @Body sleepRequest: SleepRequest
     ): SleepResponse
 
     /**
