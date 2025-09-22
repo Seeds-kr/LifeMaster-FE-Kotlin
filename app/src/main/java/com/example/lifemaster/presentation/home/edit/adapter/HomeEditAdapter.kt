@@ -23,11 +23,8 @@ class HomeEditAdapter(
         "디톡스" to "#B4D775",
         "그룹 바로가기" to "#AC87CC",
         "자아성찰 바로가기" to "#FFB943",
-        "챌린지" to "#84CAE2",
-        "앱 잠금 설정" to "#B4D775",
-        "자유 게시판" to "#EA9F95",
-        "개선 게시판" to "#EA9F95",
-        "알람 추가" to "#BBAB94"
+        "챌린지" to "#6DABD9",
+        "알람" to "#BBAB94"
     )
 
     inner class ServiceViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
