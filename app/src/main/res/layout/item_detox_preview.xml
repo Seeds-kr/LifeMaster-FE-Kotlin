@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="#1AB4D775">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingVertical="4dp"
+        android:paddingHorizontal="12dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tv_detox_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="누적 집중 시간"
+            android:textColor="#8DB83F"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_detox_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:text="8시간 12분"
+            android:textColor="#131313"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_detox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="47dp"
+            android:text="집중 모드"
+            android:textSize="12sp"
+            android:textColor="@android:color/white"
+            app:cornerRadius="8dp"
+            app:backgroundTint="#8DB83F" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

@@ -26,12 +26,54 @@
         <action
             android:id="@+id/action_homeFragment_to_alarmListFragment"
             app:destination="@id/alarmListFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_detoxFragment"
+            app:destination="@id/detoxFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_groupFragment"
+            app:destination="@id/groupFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
-        android:name="com.example.lifemaster.presentation.community.CommunityFragment"
+        android:name="com.example.lifemaster.presentation.community.view.CommunityFragment"
         android:label="CommunityFragment"
-        tools:layout="@layout/fragment_community"/>
+        tools:layout="@layout/fragment_community_free">
+        <action
+            android:id="@+id/action_communityFragment_to_communityWriteFragment"
+            app:destination="@id/communityWriteFragment"/>
+        <action
+            android:id="@+id/action_communityFragment_to_communityPostFragment"
+            app:destination="@id/communityPostFragment" />
+        <action
+            android:id="@+id/action_communityFragment_to_communityImproveFragment"
+            app:destination="@+id/communityImproveFragment"/>
+    </fragment>
+    <fragment
+        android:id="@+id/communityImproveFragment"
+        android:name="com.example.lifemaster.presentation.community.view.CommunityImproveFragment"
+        tools:layout="@layout/fragment_community_improve">
+        <action
+            android:id="@+id/action_communityImproveFragment_to_communityFragment"
+            app:destination="@id/communityFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/communityWriteFragment"
+        android:name="com.example.lifemaster.presentation.community.view.CommunityWriteFragment"
+        android:label="fragment_community_write"
+        tools:layout="@layout/fragment_community_write">
+        <action
+            android:id="@+id/action_communityWriteFragment_to_communityPostFragment"
+            app:destination="@id/communityPostFragment"/>
+    </fragment>
+    <fragment
+        android:id="@+id/communityPostFragment"
+        android:name="com.example.lifemaster.presentation.community.view.CommunityPostFragment"
+        android:label="fragment_community_post"
+        tools:layout="@layout/fragment_community_post">
+        <action
+            android:id="@+id/action_communityPostFragment_to_communityWriteFragment"
+            app:destination="@id/communityWriteFragment" />
+    </fragment>
     <fragment
         android:id="@+id/detoxFragment"
         android:name="com.example.lifemaster.presentation.total.detox.fragment.DetoxFragment"
