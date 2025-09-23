@@ -8,9 +8,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ItemChallengeBinding
-import com.example.lifemaster.network.ChallengeItem // 네트워크 모델 import
+//import com.example.lifemaster.network.ChallengeItem // 네트워크 모델 import
 
-class ChallengeAdapter : ListAdapter<ChallengeItem, ChallengeAdapter.ChallengeViewHolder>(ChallengeDiffCallback()) {
+/*class ChallengeAdapter : ListAdapter<ChallengeItem, ChallengeAdapter.ChallengeViewHolder>(ChallengeDiffCallback()) {
 
     // 클릭 리스너 프로퍼티 (변수) 두 개를 정의합니다.
     var onItemClickListener: ((ChallengeItem) -> Unit)? = null
@@ -57,4 +57,4 @@ class ChallengeAdapter : ListAdapter<ChallengeItem, ChallengeAdapter.ChallengeVi
             return oldItem == newItem
         }
     }
-}
+}*/
