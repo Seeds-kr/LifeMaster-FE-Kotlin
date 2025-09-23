@@ -27,13 +27,6 @@ class CalendarAdapter(
     override fun onBindViewHolder(holder: CalendarViewHolder, position: Int) {
         val item = days[position]
 
-        if (item.day == 0) {
-            holder.textView.text = ""
-            holder.textView.setBackgroundColor(Color.TRANSPARENT)
-            holder.itemView.isClickable = false
-            return
-        }
-
         holder.itemView.isClickable = true
         holder.textView.text = item.day.toString()
 
