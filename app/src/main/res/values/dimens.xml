@@ -2,4 +2,7 @@
 <resources>
     <dimen name="text_watcher_error">1dp</dimen>
     <dimen name="text_watcher_success">0dp</dimen>
+
+<dimen name="back_btn_top_padding">5dp</dimen>
+<dimen name="back_btn_start_padding">16dp</dimen>
 </resources>

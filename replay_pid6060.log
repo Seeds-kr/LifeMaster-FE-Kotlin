@@ -8182,7 +8182,8 @@ instanceKlass org/gradle/api/internal/tasks/properties/FileParameterUtils$2
 instanceKlass org/gradle/api/internal/tasks/properties/FileParameterUtils
 instanceKlass org/gradle/api/internal/tasks/properties/PropertyVisitor$Adapter
 instanceKlass org/gradle/internal/reflect/ProblemRecordingTypeValidationContext
-instanceKlass org/gradle/api/internal/tasks/properties/DefaultTypeMetadataStore$DefaultTypeMetadata
+instanceKlass org/gradle/api/internal/tasks/properties/DefaultTypeMeta
+dataStore$DefaultTypeMetadata
 instanceKlass org/gradle/api/internal/tasks/properties/DefaultTypeMetadataStore$DefaultPropertyMetadata
 instanceKlass com/google/common/collect/SortedIterables
 instanceKlass org/gradle/internal/reflect/annotations/impl/DefaultTypeAnnotationMetadata

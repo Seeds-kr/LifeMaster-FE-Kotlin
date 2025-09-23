@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/calendarContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:id="@+id/layout_week_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        android:weightSum="7">
+        <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/sun_text" />
+        <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/mon_text" />
+        <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/tue_text" />
+        <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/wed_text" />
+        <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/thu_text" />
+        <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/fri_text" />
+        <TextView style="@style/CalendarWeekHeader" android:layout_weight="1" android:text="@string/sat_text" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/monthRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/weekRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone" />
+</LinearLayout>

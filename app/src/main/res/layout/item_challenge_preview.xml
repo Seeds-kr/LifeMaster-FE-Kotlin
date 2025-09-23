@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginEnd="16dp">
+
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="56dp">
+
+                <ImageView
+                    android:id="@+id/iv_challenge_1_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/ic_shower"
+                    android:src="@drawable/bg_circle_blur"
+                    android:scaleType="centerCrop"
+                    android:adjustViewBounds="true" />
+
+                <ImageView
+                    android:id="@+id/iv_challenge_1_check"
+                    android:layout_width="24dp"
+                    android:layout_height="24.6dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_check"
+                    android:tint="@color/white"
+                    android:scaleType="fitCenter" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tv_challenge_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="찬물 샤워"
+                android:textSize="12sp"
+                android:textColor="#84CAE2"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/iv_challenge_2"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_circle_default"
+                android:src="@drawable/ic_shower"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop" />
+
+            <TextView
+                android:id="@+id/tv_challenge_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="찬물 샤워"
+                android:textSize="12sp"
+                android:textColor="#BDBDBD"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

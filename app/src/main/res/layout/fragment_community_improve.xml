@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingHorizontal="16dp"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:padding="3dp"
+                android:layout_marginEnd="4dp"
+                android:src="@drawable/ic_logo_star"
+                app:tint="#EA9F95" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="커뮤니티"
+                android:textColor="#131313"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="236.5dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="20dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tv_improve_board"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="개선게시판"
+                    android:textSize="12sp"
+                    android:textColor="#131313"/>
+                <ImageView
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:src="@drawable/ic_pink_dot"
+                    android:layout_marginTop="4dp"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <LinearLayout
+                android:id="@+id/tab_free_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tv_free_board"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="자유게시판"
+                    android:textSize="12sp"
+                    android:textColor="#C5C6C6"/>
+                <ImageView
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:src="@drawable/ic_pink_dot"
+                    android:layout_marginTop="4dp"
+                    android:visibility="invisible"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <include
+            android:id="@+id/include_poll"
+            layout="@layout/item_community_poll_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="20dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="전체 글"
+                android:textSize="14sp"
+                android:textColor="#131313" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="최신 순"
+                android:textSize="12sp"
+                android:textColor="#131313"/>
+
+            <ImageButton
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/ic_arrow_down_gray"/>
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerview_improve"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_community_board_preview"/>
+    </LinearLayout>
+</FrameLayout>

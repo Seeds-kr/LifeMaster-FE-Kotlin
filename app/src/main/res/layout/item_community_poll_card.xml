@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/pollCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="8dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:cardElevation="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/pollLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="오늘의 투표"
+                android:textSize="12sp"
+                android:textColor="#EA9F95" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+
+            <TextView
+                android:id="@+id/pollParticipantsnumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="1,253"
+                android:textSize="12sp"
+                android:textColor="#EA9F95"/>
+
+            <TextView
+                android:id="@+id/pollParticipants"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="이 참여했어요"
+                android:textSize="12sp"
+                android:textColor="#9AA1A9"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvPollQuestion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            tools:text="다음 업데이트에 추가되었으면 하는 기능은?"
+            android:textColor="#1C1E21"
+            android:textSize="14sp"
+            android:textStyle="bold"/>
+
+        <LinearLayout
+            android:id="@+id/preVoteContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/option1"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_community_poll_option"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:gravity="center_vertical"
+                android:foreground="?attr/selectableItemBackground">
+
+                <TextView
+                    android:id="@+id/option1Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="가나다라"
+                    android:textSize="12sp"
+                    android:textColor="#131313"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/option2"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_community_poll_option"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:gravity="center_vertical"
+                android:foreground="?attr/selectableItemBackground">
+
+                <TextView
+                    android:id="@+id/option2Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="뽀모도로 비상탈출 신기능"
+                    android:textSize="12sp"
+                    android:textColor="#131313"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/option3"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_community_poll_option"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:gravity="center_vertical"
+                android:foreground="?attr/selectableItemBackground">
+
+                <TextView
+                    android:id="@+id/option3Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="커스텀 챌린지 추가 기능"
+                    android:textSize="12sp"
+                    android:textColor="#131313"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/postVoteContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- 결과 1 -->
+            <FrameLayout
+                android:id="@+id/result1Track"
+                android:layout_width="match_parent"
+                android:layout_height="48dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/bg_community_poll_option"
+                    android:scaleType="fitXY"/>
+
+                <FrameLayout
+                    android:id="@+id/result1Fill"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/result1FillImg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg_community_poll_progress_gray"
+                        android:scaleType="fitXY"/>
+                </FrameLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <TextView
+                        android:id="@+id/result1Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="자유게시판 투표 기능"
+                        android:textSize="12sp"
+                        android:textColor="#131313"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                    <TextView
+                        android:id="@+id/result1Percent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="61%"
+                        android:textSize="12sp"
+                        android:textColor="#9AA1A9"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </FrameLayout>
+
+            <!-- 결과 2 -->
+            <FrameLayout
+                android:id="@+id/result2Track"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/bg_community_poll_option"
+                    android:scaleType="fitXY"/>
+
+                <FrameLayout
+                    android:id="@+id/result2Fill"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/result2FillImg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg_community_poll_progress_gray"
+                        android:scaleType="fitXY"/>
+                </FrameLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <TextView
+                        android:id="@+id/result2Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="뽀모도로 비상탈출 신기능"
+                        android:textSize="12sp"
+                        android:textColor="#131313"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                    <TextView
+                        android:id="@+id/result2Percent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="28%"
+                        android:textSize="12sp"
+                        android:textColor="#9AA1A9"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </FrameLayout>
+
+            <!-- 결과 3 -->
+            <FrameLayout
+                android:id="@+id/result3Track"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/bg_community_poll_option"
+                    android:scaleType="fitXY"/>
+
+                <FrameLayout
+                    android:id="@+id/result3Fill"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/result3FillImg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/bg_community_poll_progress_gray"
+                        android:scaleType="fitXY"/>
+                </FrameLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <TextView
+                        android:id="@+id/result3Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="커스텀 챌린지 추가 기능"
+                        android:textSize="12sp"
+                        android:textColor="#131313"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                    <TextView
+                        android:id="@+id/result3Percent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="9%"
+                        android:textSize="12sp"
+                        android:textColor="#9AA1A9"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
