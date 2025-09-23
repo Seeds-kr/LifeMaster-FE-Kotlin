@@ -20,7 +20,7 @@ import com.example.lifemaster.databinding.FragmentChallengeBinding
 import com.example.lifemaster.databinding.ItemChallengeBinding
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.presentation.challenge.viewmodel.ChallengeViewModel
-//import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
+import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
 
 data class MyChallenge(
     val imageRes: Int,
@@ -101,13 +101,9 @@ class ChallengeFragment : Fragment() {
         }
     }
 
-    /*
-    private fun setupRecyclerView() {
-        // 1. 어댑터를 생성합니다. (ListAdapter는 생성 시 리스트가 필요 없습니다.)
+    /*private fun setupRecyclerView() {
         challengeAdapter = ChallengeAdapter()
 
-        // 2. 생성된 어댑터에 리스너를 설정합니다.
-        // 이제 ChallengeAdapter에 onItemClickListener가 존재하므로 오류가 사라집니다.
         challengeAdapter.onItemClickListener = { challenge ->
             val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(challenge.challId)
             findNavController().navigate(action)
@@ -117,7 +113,6 @@ class ChallengeFragment : Fragment() {
             Toast.makeText(requireContext(), "${challenge.challName} 참여!", Toast.LENGTH_SHORT).show()
         }
 
-        // 3. 리사이클러뷰에 어댑터를 연결합니다.
         binding.rvChallenges.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = challengeAdapter

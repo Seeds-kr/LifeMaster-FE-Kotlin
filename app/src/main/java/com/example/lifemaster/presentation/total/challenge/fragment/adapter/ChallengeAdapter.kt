@@ -8,11 +8,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ItemChallengeBinding
-//import com.example.lifemaster.network.ChallengeItem // 네트워크 모델 import
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem // 네트워크 모델 import
 
-/*class ChallengeAdapter : ListAdapter<ChallengeItem, ChallengeAdapter.ChallengeViewHolder>(ChallengeDiffCallback()) {
+class ChallengeAdapter : ListAdapter<ChallengeItem, ChallengeAdapter.ChallengeViewHolder>(ChallengeDiffCallback()) {
 
-    // 클릭 리스너 프로퍼티 (변수) 두 개를 정의합니다.
     var onItemClickListener: ((ChallengeItem) -> Unit)? = null
     var onJoinButtonClickListener: ((ChallengeItem) -> Unit)? = null
 
@@ -33,8 +32,8 @@ import com.example.lifemaster.databinding.ItemChallengeBinding
 
             Glide.with(itemView.context)
                 .load(challenge.challImg)
-                .placeholder(R.drawable.placeholder_image) // 임시 이미지를 drawable에 추가해주세요
-                .error(R.drawable.error_image) // 임시 이미지를 drawable에 추가해주세요
+                .placeholder(R.drawable.ic_loading) // 임시 이미지
+                .error(R.drawable.ic_alert) // 임시 이미지
                 .into(binding.ivChallengeBanner)
 
             // 아이템 전체 클릭 리스너 설정
@@ -57,4 +56,4 @@ import com.example.lifemaster.databinding.ItemChallengeBinding
             return oldItem == newItem
         }
     }
-}*/
+}
