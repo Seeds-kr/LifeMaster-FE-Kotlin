@@ -279,7 +279,6 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                 llSleepPlaylistClassic.removeViews(2, sampleClassicMusic.size-2)
             }
         }
-        btnSleepPlaylistNavigateToSleepReport.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepReportFragment) }
     }
 
     // 음악 raw 파일을 통해 재생 길이를 가져오는 메소드

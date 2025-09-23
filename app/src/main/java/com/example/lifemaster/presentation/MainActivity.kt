@@ -194,27 +194,26 @@ class MainActivity : AppCompatActivity() {
             sharedPreference.edit().putString(LocalDate.now().toString(), "null").apply()
             sleepViewModel.isMeasured = false
         } else {
-            // 수면 기록이 제대로 된 경우
+            // 수면 기록이 측정이 제대로 된 경우
             Log.e("VALUE", "잠든 시간: ${Instant.ofEpochMilli(lastUsageTimeBeforeSleep)}, 일어난 시간: ${Instant.ofEpochMilli(firstUsageTimeAfterWake!!)}")
 
-            // viewmodel 설정
-            val longTimeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            sleepViewModel.isMeasured = true
+
             val shortTimeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+            sleepViewModel.sleepTime = shortTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11
+            sleepViewModel.rawSleepTime = lastUsageTimeBeforeSleep
+            sleepViewModel.wakeTime = shortTimeFormatter.format(firstUsageTimeAfterWake) // 07:44
+            sleepViewModel.rawWakeTime = firstUsageTimeAfterWake
+
+            val longTimeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
             val sleepTime = longTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11:58
             val wakeTime = longTimeFormatter.format(firstUsageTimeAfterWake) // 07:44:56
 
             val sleepTimeSeconds = sleepTime.split(":")[2].toInt() // ["01", "11", "58"] → "58" → 58
             val wakeTimeSeconds = wakeTime.split(":")[2].toInt() // ["07", "44", "56"] → "56" → 56
+
             val duration = Duration.ofMillis(firstUsageTimeAfterWake!! - lastUsageTimeBeforeSleep)
-
-            sleepViewModel.isMeasured = true
-
-            sleepViewModel.sleepTime = shortTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11
-            sleepViewModel.rawSleepTime = lastUsageTimeBeforeSleep
-
-            sleepViewModel.wakeTime = shortTimeFormatter.format(firstUsageTimeAfterWake) // 07:44
-            sleepViewModel.rawWakeTime = firstUsageTimeAfterWake
 
             sleepViewModel.sleepDurationHour = duration.toHours().toInt()
             sleepViewModel.sleepDurationMinutes =

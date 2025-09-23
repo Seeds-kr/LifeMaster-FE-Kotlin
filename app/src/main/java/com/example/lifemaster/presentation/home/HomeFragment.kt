@@ -52,7 +52,7 @@ class HomeFragment : Fragment() {
 //        initObservers()
         // 수면 정보 UI 업데이트
         binding.tvSleepDate.text = "${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일"
-        binding.tvHomeSleepDuration.text = if(sleepViewModel.isMeasured) "나중에 수정 예정" else "수면 시간 미측정"
+        binding.tvHomeSleepDuration.text = if(sleepViewModel.isMeasured) "${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분" else "수면 시간 미측정"
     }
 
     private fun initViews() = with(binding) {
@@ -124,7 +124,7 @@ class HomeFragment : Fragment() {
 //            dialog.show(childFragmentManager, ToDoDialog.Companion.TAG)
 //        }
         cvGoToAlarm.setOnClickListener { findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment) }
-        btnSleepReport.setOnClickListener { findNavController().navigate(R.id.action_homeFragment_to_sleepPlaylistFragment) }
+        btnSleepReport.setOnClickListener { findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment) }
     }
 
     private fun initObservers() {

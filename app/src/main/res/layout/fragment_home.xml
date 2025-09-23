@@ -159,7 +159,7 @@
                             android:layout_height="36dp"
                             android:background="@drawable/bg_round_radius"
                             android:backgroundTint="@color/sleep_primary"
-                            android:text="수면 정보"
+                            android:text="수면 리포트"
                             android:textColor="@color/white"
                             android:layout_alignParentEnd="true"/>
                     </RelativeLayout>

@@ -30,7 +30,9 @@ import java.time.LocalTime
 import java.util.Locale
 import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
+import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.presentation.Constants
+import com.example.lifemaster.presentation.home.sleep.model.AlarmInfo
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import java.time.Instant
@@ -71,13 +73,13 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { result ->
             when (result) {
                 is Result.Loading -> {
-                    initLoadingUI()
+                    initLoadingUI() // TODO: 로딩 UI 만들기(프로그래스바 등등..)
                 }
 
                 is Result.Success -> {
                     remoteUserSleepRecordList = result.data
-                    initRemoteUI(result.data)
-                    initRemoteListeners(result.data)
+                    initRemoteUI(remoteUserSleepRecordList)
+                    initRemoteListeners(remoteUserSleepRecordList)
                 }
 
                 is Result.Error -> {
@@ -170,6 +172,23 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
     private fun initRemoteUI(remoteUserSleepRecordList: List<SleepResponse>) = with(binding) {
 
+        val todaySleepRecord = remoteUserSleepRecordList.find { it.sleepDate == LocalDate.now().toString() }
+
+        if(todaySleepRecord == null && sleepViewModel.isMeasured == true) {
+            sleepViewModel.registerUserSleepInfo(
+                sleepRequest = SleepRequest(
+                    userId = Constants.USER_ID,
+                    sleepDate = LocalDate.now().toString(),
+                    sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
+                    sleepEnd =  Instant.ofEpochMilli(sleepViewModel.rawWakeTime ?: 0L).toString(),
+                    sleepMood = "GOOD",
+                    alarmInfo = AlarmInfo(
+                        isWakeUpAlarmSet = false
+                    )
+                )
+            )
+        }
+
         // 금일 수면 기록 정보가 없는 경우
         if(!sleepViewModel.isMeasured) {
             tvSleepReportTitle.text = "오늘은\n측정 기록이 없어요"
@@ -187,33 +206,26 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             tvSleepReportAnalysisSleepScoreValue.text = "미측정"
             cvSleepReportAnalysisSleepScoreCompare.isVisible = false
 
-            return@with // TODO: 이후 로직을 수행할 필요가 없는가?
+            return@with // TODO: 이후 로직을 수행할 필요가 있는가?
 
         }
 
-        val todaySleepRecord = remoteUserSleepRecordList.find { it.sleepDate == LocalDate.now().toString() }
-
-        if(todaySleepRecord == null && sleepViewModel.isMeasured == true) {
-            // 금일 측정된 수면 기록은 있지만 아직 업데이트가 안된 경우
-            sleepViewModel.registerUserSleepInfo(
-                userRequest = UserRequest(
-                    userId = Constants.USER_ID,
-                    sleepDate = LocalDate.now().toString(),
-                    sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
-                    sleepEnd =  Instant.ofEpochMilli(sleepViewModel.rawWakeTime ?: 0L).toString(),
-                    sleepMood = "GOOD", // default value
-                    alarmSnoozeCnt = 0,
-                    timeToWakeUp = 0,
-                    antiSleepMode = false
-                )
-            )
+        // 서버에서 금일 데이터 존재 o, 기상 알람 설정 x
+        if(todaySleepRecord?.alarmInfo?.isWakeUpAlarmSet == false) {
+            // 알람을 설정하지 않은 경우
+            tvSleepReportAnalysisAlarmDurationValue.text = "알람 미설정"
+            tvSleepReportAnalysisWakeupDelayTimeValue.text = "기록 없음"
+            cvSleepReportAnalysisWakeupDelayTimeCompare.isVisible = false
+            // TODO: 일어나는데 걸린 시간 카드뷰 value 담기
         }
+
+        // 서버에서 금일 데이터 존재 o, 기상 알람 설정 o
 
         // 금일 수면 타이틀 UI
-        tvSleepReportTitle.text = "오늘은\n총 ${todaySleepRecord.sleepDurationText} 잤어요"
+        tvSleepReportTitle.text = "오늘은\n총 ${todaySleepRecord?.sleepDurationText} 잤어요"
 
         // 금일 기분 UI
-        when (todaySleepRecord.sleepMood) {
+        when (todaySleepRecord?.sleepMood) {
             VERY_BAD -> changeSelectedMoodColor(ivSleepReportTodayMoodVeryBad)
             BAD -> changeSelectedMoodColor(ivSleepReportTodayMoodBad)
             GOOD -> changeSelectedMoodColor(ivSleepReportTodayMoodGood)
@@ -278,7 +290,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
         remoteUserSleepRecordList.forEach { record ->
             dailySleepDurations.add(record.sleepDurationText)
-            dailyAlarmDurations.add(record.timeToWakeUp)
+            dailyAlarmDurations.add(record.alarmInfo.alarmSettings?.timeToWakeUp ?: 0)
             dailySleepScores.add(record.sleepScore)
         }
 
@@ -322,6 +334,8 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 20f
             )
         }
+
+        // TODO: 평균 비교하기
     }
 
     // 선택된 오늘의 기분 UI 색상을 변경하는 메소드
@@ -335,6 +349,11 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
     }
 
     private fun initRemoteListeners(remoteUserSleepRecordList: List<SleepResponse>) = with(binding) {
+
+        // 화면 이동하기
+        ivSleepReportGoToPlaylist.setOnClickListener {
+            findNavController().navigate(R.id.action_sleepReportFragment_to_sleepPlaylistFragment)
+        }
 
         val todaySleepRecord = remoteUserSleepRecordList.find { it.sleepDate == LocalDate.now().toString() }
 
@@ -366,16 +385,17 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 when(todayMood) {
                     ivSleepReportTodayMoodVeryBad -> {
                         sleepViewModel.updateUserSleepInfo(
-                            UserRequest(
+                            SleepRequest(
+                                userId = Constants.USER_ID,
                                 sleepId = todaySleepRecord.sleepId,
                                 sleepDate = todaySleepRecord.sleepDate,
                                 sleepStart = todaySleepRecord.sleepStart,
                                 sleepEnd = todaySleepRecord.sleepEnd,
                                 sleepMood = VERY_BAD,
-                                alarmSnoozeCnt = todaySleepRecord.alarmSnoozeCnt,
-                                timeToWakeUp = todaySleepRecord.timeToWakeUp,
-                                antiSleepMode = todaySleepRecord.antiSleepMode,
-                                userId = Constants.USER_ID
+                                alarmInfo = AlarmInfo(
+                                    isWakeUpAlarmSet = todaySleepRecord.alarmInfo.isWakeUpAlarmSet,
+                                    alarmSettings = todaySleepRecord.alarmInfo.alarmSettings
+                                )
                             )
                         )
 
@@ -384,48 +404,51 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                     }
                     ivSleepReportTodayMoodBad -> {
                         sleepViewModel.updateUserSleepInfo(
-                            UserRequest(
+                            SleepRequest(
+                                userId = Constants.USER_ID,
                                 sleepId = todaySleepRecord.sleepId,
                                 sleepDate = todaySleepRecord.sleepDate,
                                 sleepStart = todaySleepRecord.sleepStart,
                                 sleepEnd = todaySleepRecord.sleepEnd,
                                 sleepMood = BAD,
-                                alarmSnoozeCnt = todaySleepRecord.alarmSnoozeCnt,
-                                timeToWakeUp = todaySleepRecord.timeToWakeUp,
-                                antiSleepMode = todaySleepRecord.antiSleepMode,
-                                userId = Constants.USER_ID
+                                alarmInfo = AlarmInfo(
+                                    isWakeUpAlarmSet = todaySleepRecord.alarmInfo.isWakeUpAlarmSet,
+                                    alarmSettings = todaySleepRecord.alarmInfo.alarmSettings
+                                )
                             )
                         )
                         changeTodayMoodGraphUI(R.drawable.ic_mood_bad)
                     }
                     ivSleepReportTodayMoodGood -> {
                         sleepViewModel.updateUserSleepInfo(
-                            UserRequest(
+                            SleepRequest(
+                                userId = Constants.USER_ID,
                                 sleepId = todaySleepRecord.sleepId,
                                 sleepDate = todaySleepRecord.sleepDate,
                                 sleepStart = todaySleepRecord.sleepStart,
                                 sleepEnd = todaySleepRecord.sleepEnd,
                                 sleepMood = GOOD,
-                                alarmSnoozeCnt = todaySleepRecord.alarmSnoozeCnt,
-                                timeToWakeUp = todaySleepRecord.timeToWakeUp,
-                                antiSleepMode = todaySleepRecord.antiSleepMode,
-                                userId = Constants.USER_ID
+                                alarmInfo = AlarmInfo(
+                                    isWakeUpAlarmSet = todaySleepRecord.alarmInfo.isWakeUpAlarmSet,
+                                    alarmSettings = todaySleepRecord.alarmInfo.alarmSettings
+                                )
                             )
                         )
                         changeTodayMoodGraphUI(R.drawable.ic_mood_good)
                     }
                     ivSleepReportTodayMoodVeryGood -> {
                         sleepViewModel.updateUserSleepInfo(
-                            UserRequest(
+                            SleepRequest(
+                                userId = Constants.USER_ID,
                                 sleepId = todaySleepRecord.sleepId,
                                 sleepDate = todaySleepRecord.sleepDate,
                                 sleepStart = todaySleepRecord.sleepStart,
                                 sleepEnd = todaySleepRecord.sleepEnd,
                                 sleepMood = VERY_GOOD,
-                                alarmSnoozeCnt = todaySleepRecord.alarmSnoozeCnt,
-                                timeToWakeUp = todaySleepRecord.timeToWakeUp,
-                                antiSleepMode = todaySleepRecord.antiSleepMode,
-                                userId = Constants.USER_ID
+                                alarmInfo = AlarmInfo(
+                                    isWakeUpAlarmSet = todaySleepRecord.alarmInfo.isWakeUpAlarmSet,
+                                    alarmSettings = todaySleepRecord.alarmInfo.alarmSettings
+                                )
                             )
                         )
                         changeTodayMoodGraphUI(R.drawable.ic_mood_very_good)
