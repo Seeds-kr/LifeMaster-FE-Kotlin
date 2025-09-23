@@ -138,22 +138,6 @@ class CommunityCommentAdapter(
         notifyItemInserted(items.lastIndex)
     }
 
-    fun updateContentAt(position: Int, newContent: String) {
-        val old = items.getOrNull(position) ?: return
-        items[position] = old.copy(content = newContent, isEdited = true)
-        notifyItemChanged(position)
-    }
-
-    fun removeAt(position: Int) {
-        if (position !in items.indices) return
-        items.removeAt(position)
-        notifyItemRemoved(position)
-    }
-
-    fun tickTime() {
-        if (itemCount > 0) notifyItemRangeChanged(0, itemCount, PAYLOAD_TIME)
-    }
-
     private fun toRelativeTime(timeMillis: Long): String {
         val diff = System.currentTimeMillis() - timeMillis
         val min = TimeUnit.MILLISECONDS.toMinutes(diff)

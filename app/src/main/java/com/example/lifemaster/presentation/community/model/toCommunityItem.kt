@@ -20,22 +20,6 @@ fun PostSummaryDto.toCommunityItem(idStr: String): CommunityItem =
         comments = emptyList()
     )
 
-fun PostDetailDto.toCommunityItem(idStr: String): CommunityItem =
-    CommunityItem(
-        id = idStr,
-        title = this.title.orEmpty(),
-        content = this.content.orEmpty(),
-        author = this.nickname.orEmpty(),
-        authorImage = null,
-        likes = this.likeCount ?: 0,
-        views = 0,
-        createdAt = parseIsoToMillisFlexible(this.createdAt) ?: 0L,
-        fileUri = this.file,
-        type = this.type.orEmpty(),
-        commentCount = 0,
-        comments = emptyList()
-    )
-
 fun parseIsoToMillisFlexible(iso: String?): Long? {
     if (iso.isNullOrBlank()) return null
     val patterns = listOf(
