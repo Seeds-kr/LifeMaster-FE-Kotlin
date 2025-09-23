@@ -1,17 +1,16 @@
 package com.example.lifemaster.presentation.community.model
 
-import java.util.UUID
-
 data class CommunityItem(
-    val id: String = UUID.randomUUID().toString(),
+    val id: String,
     val title: String,
     val content: String,
     val author: String,
-    val views: Int,
-    val likes: Int,
-    val dateText: String,
-    val createdAt: Long = System.currentTimeMillis(),
-    val imageResId: Int? = null,
+    val authorImage: String? = null,
+    val likes: Int = 0,
+    val views: Int = 0,
+    val createdAt: Long = 0L,
     val fileUri: String? = null,
-    val shareCalendar: Boolean = false
+    val type: String = "FREE",
+    val commentCount: Int = 0,
+    val comments: List<Comment> = emptyList()
 )

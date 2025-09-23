@@ -14,15 +14,13 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
-import com.example.lifemaster.presentation.community.model.CommunityItem
+import com.example.lifemaster.presentation.community.model.PostDetailDto
 import com.example.lifemaster.presentation.community.viewmodel.CommunityViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class CommunityWriteFragment : Fragment() {
 
@@ -31,13 +29,14 @@ class CommunityWriteFragment : Fragment() {
         const val ARG_ITEM_ID = "arg_item_id"
         const val MODE_CREATE = "create"
         const val MODE_EDIT = "edit"
+        private const val STATE_CALENDAR_SHARE = "state_calendar_share"
     }
 
-    private var isSelectedState = false
     private val vm: CommunityViewModel by activityViewModels()
 
     private var selectedFileUri: Uri? = null
     private var selectedFileName: String? = null
+    private var isCalendarShareChecked: Boolean = false
 
     private val pickOneDocument =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
@@ -50,63 +49,57 @@ class CommunityWriteFragment : Fragment() {
             applyFileUi()
         }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.fragment_community_write, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
+        inflater.inflate(R.layout.fragment_community_write, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val ivCheck   = view.findViewById<ImageView>(R.id.iv_calendar_share)
+        val rowCalendar = view.findViewById<LinearLayout>(R.id.row_calendar_share)
+        val ivCalendar  = view.findViewById<ImageView>(R.id.iv_calendar_share)
+
         val btnReg    = view.findViewById<LinearLayout>(R.id.btn_register)
-        val tvReg     = (btnReg.findViewById<TextView?>(R.id.tv_register_label)
-            ?: btnReg.getChildAt(0) as? TextView)
+        val tvReg     = btnReg.findViewById<TextView>(R.id.tv_register_label)
+            ?: btnReg.getChildAt(0) as TextView
         val etTitle   = view.findViewById<EditText>(R.id.et_title)
         val etContent = view.findViewById<EditText>(R.id.et_content)
         val btnFile   = view.findViewById<LinearLayout>(R.id.btn_file_upload)
         val ivFileClr = view.findViewById<ImageView>(R.id.iv_file_clear)
 
+        isCalendarShareChecked = savedInstanceState?.getBoolean(STATE_CALENDAR_SHARE) ?: false
+        applyCalendarShareUi(ivCalendar)
+        applyFileUi()
+
         val mode = arguments?.getString(ARG_MODE) ?: MODE_CREATE
-        val editItemId = arguments?.getString(ARG_ITEM_ID)
+        val editId = arguments?.getString(ARG_ITEM_ID)
+        tvReg.text = if (mode == MODE_EDIT) "수정하기" else "등록하기"
 
-        tvReg?.text = if (mode == MODE_EDIT) "수정하기" else "등록하기"
-
-        if (mode == MODE_EDIT && editItemId != null) {
-            vm.getById(editItemId)?.let { item ->
-                etTitle.setText(item.title)
-                etContent.setText(item.content)
-
-                isSelectedState = item.shareCalendar
-                ivCheck.setImageResource(
-                    if (isSelectedState) R.drawable.ic_check_circle_selected
-                    else R.drawable.ic_check_circle_unselected
-                )
-
-                item.fileUri?.let { saved ->
-                    selectedFileUri = Uri.parse(saved)
-                    selectedFileName = getDisplayName(selectedFileUri!!) ?: "첨부됨"
+        if (mode == MODE_EDIT && !editId.isNullOrBlank()) {
+            vm.getById(editId)?.let { item ->
+                if (etTitle.text.isNullOrBlank()) etTitle.setText(item.title)
+                if (etContent.text.isNullOrBlank()) etContent.setText(item.content)
+                item.fileUri?.let {
+                    selectedFileUri = it.toUri()
+                    selectedFileName = it.substringAfterLast('/')
+                    applyFileUi()
                 }
-                applyFileUi()
             }
-        } else {
-            applyFileUi()
-        }
-
-        ivCheck.setOnClickListener {
-            isSelectedState = !isSelectedState
-            ivCheck.setImageResource(
-                if (isSelectedState) R.drawable.ic_check_circle_selected
-                else R.drawable.ic_check_circle_unselected
-            )
-        }
-
-        btnFile.setOnClickListener {
-            if (selectedFileUri == null) {
-                pickOneDocument.launch(arrayOf("*/*"))
+            readAuthToken()?.let { auth ->
+                vm.fetchPostDetail(
+                    token = auth, id = editId,
+                    onDone = { detail -> bindForEdit(detail, etTitle, etContent) },
+                    onError = ::toast
+                )
             }
         }
 
+        btnFile.setOnClickListener { if (selectedFileUri == null) pickOneDocument.launch(arrayOf("*/*")) }
         ivFileClr.setOnClickListener { clearFile() }
+
+        val toggle: (View) -> Unit = {
+            isCalendarShareChecked = !isCalendarShareChecked
+            applyCalendarShareUi(ivCalendar)
+        }
+        rowCalendar.setOnClickListener(toggle)
+        ivCalendar.setOnClickListener(toggle)
 
         btnReg.setOnClickListener {
             val title = etTitle.text?.toString()?.trim().orEmpty()
@@ -118,41 +111,46 @@ class CommunityWriteFragment : Fragment() {
                 content.isEmpty() -> { toast("내용을 입력해주세요."); return@setOnClickListener }
             }
 
-            val fileUriStr = selectedFileUri?.toString()
+            val auth = readAuthToken() ?: return@setOnClickListener
 
-            if (mode == MODE_EDIT && editItemId != null) {
-                vm.updateItem(
-                    id = editItemId,
-                    title = title,
-                    content = content,
-                    shareCalendar = isSelectedState,
-                    fileUri = fileUriStr
+            if (mode == MODE_EDIT && !editId.isNullOrBlank()) {
+                vm.updatePost(
+                    token = auth, id = editId, title = title, content = content, file = selectedFileUri?.toString(),
+                    onSuccess = {
+                        findNavController().previousBackStackEntry?.savedStateHandle?.set("refresh_post", editId)
+                        findNavController().popBackStack()
+                    },
+                    onError = ::toast
                 )
-                findNavController().popBackStack()
             } else {
-                val dateText = SimpleDateFormat("M월 d일", Locale.KOREA).format(Date())
-                val item = CommunityItem(
-                    title = title,
-                    content = content,
-                    author = "ME",
-                    views = 0,
-                    likes = 0,
-                    dateText = dateText,
-                    imageResId = null,
-                    fileUri = fileUriStr,
-                    shareCalendar = isSelectedState
-                )
-                vm.addItemAtTop(item)
-                val bundle = Bundle().apply {
-                    putString(CommunityPostFragment.ARG_ITEM_ID, item.id)
-                    putBoolean(CommunityPostFragment.ARG_SHARE_CALENDAR, isSelectedState)
-                }
-                findNavController().navigate(
-                    R.id.action_communityWriteFragment_to_communityPostFragment,
-                    bundle
+                vm.createPost(
+                    token = auth, title = title, content = content, file = selectedFileUri?.toString(),
+                    onSuccess = {
+                        findNavController().previousBackStackEntry?.savedStateHandle?.set("refresh_posts", true)
+                        findNavController().popBackStack()
+                    },
+                    onError = ::toast
                 )
             }
         }
+    }
+
+    private fun bindForEdit(detail: PostDetailDto, etTitle: EditText, etContent: EditText) {
+        etTitle.setText(detail.title.orEmpty())
+        etContent.setText(detail.content.orEmpty())
+        etContent.post { etContent.setSelection(etContent.text?.length ?: 0) }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_CALENDAR_SHARE, isCalendarShareChecked)
+    }
+
+    private fun applyCalendarShareUi(iv: ImageView) {
+        iv.setImageResource(
+            if (isCalendarShareChecked) R.drawable.ic_check_circle_selected
+            else R.drawable.ic_check_circle_unselected
+        )
     }
 
     private fun applyFileUi() {
@@ -184,9 +182,13 @@ class CommunityWriteFragment : Fragment() {
             cursor = requireContext().contentResolver.query(uri, null, null, null, null)
             val idx = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME) ?: -1
             if (cursor != null && cursor.moveToFirst() && idx >= 0) cursor.getString(idx) else null
-        } finally {
-            cursor?.close()
-        }
+        } finally { cursor?.close() }
+    }
+
+    private fun readAuthToken(): String? {
+        val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
+        if (raw.isBlank()) { toast("로그인 후 작성할 수 있어요."); return null }
+        return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
     }
 
     private fun toast(msg: String) =

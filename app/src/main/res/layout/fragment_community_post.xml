@@ -41,7 +41,6 @@
                 android:clipChildren="false"
                 android:clipToPadding="false">
 
-                <!-- 상단 타이틀/날짜/구분선 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -94,7 +93,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="ME   2024.07.18 12:34"
+                            tools:text="ME   2024.07.18 12:34"
                             android:textColor="#99131313"
                             android:textSize="12sp" />
 
@@ -121,12 +120,14 @@
                         android:background="#1A131313" />
                 </LinearLayout>
 
+                <!-- 달력 영역: 기본 GONE (공유된 글일 때만 VISIBLE로) -->
                 <LinearLayout
                     android:id="@+id/calendarShare"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:layout_marginTop="16dp">
+                    android:layout_marginTop="16dp"
+                    android:visibility="gone">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"

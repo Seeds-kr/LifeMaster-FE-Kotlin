@@ -1,10 +1,11 @@
 package com.example.lifemaster.presentation.community.model
 
 data class Comment(
-    val id: Long = System.currentTimeMillis(),
+    val id: Long,
+    val memberId: Long? = null,
     val nickname: String,
     val content: String,
-    val createdAt: Long = System.currentTimeMillis(),
+    val createdAt: Long,
     val likeCount: Int = 0,
     val isLiked: Boolean = false,
     val isEdited: Boolean = false

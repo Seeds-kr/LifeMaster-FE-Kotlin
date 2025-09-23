@@ -1,60 +1,51 @@
 package com.example.lifemaster.presentation.community.view
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
-import android.database.Cursor
-import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.view.inputmethod.InputMethodManager
 import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.addCallback
+import androidx.appcompat.app.AlertDialog
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentCommunityPostBinding
 import com.example.lifemaster.presentation.community.adapter.CommunityCommentAdapter
 import com.example.lifemaster.presentation.community.model.Comment
+import com.example.lifemaster.presentation.community.model.CommentDto
+import com.example.lifemaster.presentation.community.model.PostDetailDto
 import com.example.lifemaster.presentation.community.viewmodel.CommunityViewModel
-import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import androidx.core.net.toUri
-import androidx.core.graphics.drawable.toDrawable
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.math.roundToInt
+import android.graphics.Color
 
 class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
 
+    companion object { const val ARG_ITEM_ID = "arg_item_id" }
+
+    // 지금은 “누구나 수정/삭제 허용”
+    private val ALLOW_ALL_POST_ACTIONS = true
+
     private var _binding: FragmentCommunityPostBinding? = null
     private val binding get() = _binding!!
+
     private val vm: CommunityViewModel by activityViewModels()
+    private var didIncreaseView = false
 
-    companion object {
-        const val ARG_ITEM_ID = "arg_item_id"
-        const val ARG_SHARE_CALENDAR = "arg_share_calendar"
-    }
-
-    private var currentItemId: String? = null
     private lateinit var commentAdapter: CommunityCommentAdapter
-    private var timeJob: Job? = null
-    private var editingPos: Int? = null
 
-    private fun myNickname(): String {
-        val sp = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        return sp.getString("nickname", "ME") ?: "ME"
-    }
+    private lateinit var postId: String
+    private lateinit var authToken: String
+    private var editingCommentId: Long? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -66,227 +57,299 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        fun goToCommunityList() {
-            val nav = findNavController()
-            val popped = nav.popBackStack(R.id.communityFragment, false)
-            if (!popped) {
-                nav.navigate(
-                    R.id.communityFragment,
-                    null,
-                    androidx.navigation.navOptions {
-                        launchSingleTop = true
-                    }
-                )
-            }
+        binding.includeBackButton.btnBack.setOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
-        binding.includeBackButton.btnBack.setOnClickListener { goToCommunityList() }
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) { goToCommunityList() }
-
-        currentItemId = arguments?.getString(ARG_ITEM_ID)
-
-        vm.getById(currentItemId)?.let { item ->
-            binding.tvTitle.text = item.title
-            binding.tvContent.text = item.content
-            binding.tvLikeCount.text = item.likes.toString()
-            binding.ivLikeIcon.setImageResource(
-                if (vm.isPostLiked(item.id)) R.drawable.ic_fill_heart else R.drawable.ic_heart
-            )
-
-            if (!item.fileUri.isNullOrEmpty()) {
-                binding.layoutFile.visibility = View.VISIBLE
-                val uri = item.fileUri.toUri()
-                binding.tvFileName.text = getDisplayName(uri) ?: "첨부된 파일"
-                binding.layoutFile.setOnClickListener {
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(uri, "*/*")
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                    try { startActivity(intent) }
-                    catch (_: Exception) {
-                        Toast.makeText(requireContext(), "파일을 열 수 있는 앱이 없습니다.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else {
-                binding.layoutFile.visibility = View.GONE
-            }
+        val idArg = arguments?.getString(ARG_ITEM_ID)
+        val token = readAuthToken(requireContext())
+        if (idArg.isNullOrBlank() || token.isNullOrBlank()) {
+            toast("잘못된 접근입니다.")
+            findNavController().popBackStack(); return
         }
+        postId = idArg
+        authToken = token
 
-        setupCalendarArea()
-
+        // 댓글(수정/삭제)
         commentAdapter = CommunityCommentAdapter(
-            myNickname = myNickname(),
-            items = mutableListOf(),
+            myMemberId = null,
+            myNickname = null,
             listener = object : CommunityCommentAdapter.CommentActionListener {
                 override fun onEditRequest(comment: Comment, position: Int) {
-                    editingPos = position
-                    binding.editComment.setText(comment.content)
-                    binding.editComment.setSelection(binding.editComment.text?.length ?: 0)
-                    binding.btnRegister.text = "수정하기"
-                    binding.editComment.requestFocus()
+                    enterEditModeUi(comment)
                 }
                 override fun onDeleteRequest(comment: Comment, position: Int) {
-                    showDeleteConfirm(position)
+                    AlertDialog.Builder(requireContext())
+                        .setMessage("댓글을 삭제할까요?")
+                        .setNegativeButton("취소", null)
+                        .setPositiveButton("삭제") { _, _ ->
+                            vm.deleteComment(
+                                token = authToken,
+                                postId = postId,
+                                commentId = comment.id,
+                                onDone = { toast("삭제했어요") },
+                                onError = ::toast
+                            )
+                        }
+                        .show()
                 }
-            }
+            },
+            allowAllActions = true
         )
-        binding.recyclerviewComment.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerviewComment.adapter = commentAdapter
+        binding.recyclerviewComment.apply {
+            adapter = commentAdapter
+            isNestedScrollingEnabled = false
+        }
+
+        vm.comments.observe(viewLifecycleOwner) { list ->
+            val mapped = (list ?: emptyList()).map { it.toUi() }
+            commentAdapter.submitAll(mapped)
+            binding.tvCommentCount.text = mapped.size.toString()
+        }
+        vm.fetchComments(authToken, postId, onError = ::toast)
+
+        vm.isCommentSyncing.observe(viewLifecycleOwner) { syncing ->
+            binding.btnRegister.isEnabled = !syncing
+        }
 
         binding.btnRegister.setOnClickListener {
             val text = binding.editComment.text?.toString()?.trim().orEmpty()
-            if (text.isEmpty()) return@setOnClickListener
+            if (text.isBlank()) { toast("댓글을 입력해 주세요."); return@setOnClickListener }
 
-            val pos = editingPos
-            if (pos != null) {
-                commentAdapter.updateContentAt(pos, text)
-                editingPos = null
-                binding.btnRegister.text = "등록하기"
-                binding.editComment.setText("")
-                binding.postScroll.post { binding.postScroll.smoothScrollTo(0, binding.postScroll.bottom) }
+            val editingId = editingCommentId
+            if (editingId == null) {
+                vm.addComment(
+                    token = authToken, postId = postId, text = text,
+                    onDone = {
+                        binding.editComment.setText("")
+                        hideKeyboard(binding.editComment)
+                    },
+                    onError = ::toast
+                )
             } else {
-                commentAdapter.add(Comment(nickname = myNickname(), content = text))
-                binding.editComment.setText("")
-                binding.tvCommentCount.text = commentAdapter.itemCount.toString()
-                commentAdapter.tickTime()
-                binding.postScroll.post { binding.postScroll.smoothScrollTo(0, binding.postScroll.bottom) }
+                vm.updateComment(
+                    token = authToken, postId = postId, commentId = editingId, text = text,
+                    onDone = {
+                        exitEditMode()
+                        toast("수정 완료")
+                    },
+                    onError = ::toast
+                )
             }
         }
 
+        vm.postDetail.observe(viewLifecycleOwner) { detail ->
+            detail?.let { bindDetail(it) }
+        }
+        vm.fetchPostDetail(token = authToken, id = postId, onDone = {}, onError = ::toast)
+
+        vm.items.observe(viewLifecycleOwner) {
+            vm.getById(postId)?.let { item ->
+                if (binding.tvTitle.text.isNullOrBlank())
+                    binding.tvTitle.text = item.title
+                if (binding.tvContent.text.isNullOrBlank())
+                    binding.tvContent.text = item.content
+                if (binding.tvViews.text.isNullOrBlank())
+                    binding.tvViews.text = (item.views ?: 0).toString()
+                if (binding.tvLikeCount.text.isNullOrBlank())
+                    binding.tvLikeCount.text = vm.getLikeCount(postId).toString()
+                applyHeart(vm.isPostLiked(postId.toLongOrNull() ?: -1))
+            }
+        }
+
+        if (!didIncreaseView) {
+            binding.tvViews.text = vm.increaseViewCount(postId).toString()
+            didIncreaseView = true
+        }
+
+        // 좋아요
         binding.btnLike.setOnClickListener {
-            val id = currentItemId ?: return@setOnClickListener
-            val newCount = vm.togglePostLike(id)
-            binding.tvLikeCount.text = newCount.toString()
-            binding.ivLikeIcon.setImageResource(
-                if (vm.isPostLiked(id)) R.drawable.ic_fill_heart else R.drawable.ic_heart
+            val pid = postId.toLongOrNull() ?: return@setOnClickListener toast("잘못된 게시글 ID")
+            binding.btnLike.isEnabled = false
+            vm.togglePostLikeRemote(
+                token = authToken,
+                id = pid,
+                onDone = { newCount ->
+                    binding.tvLikeCount.text = newCount.toString()
+                    applyHeart(vm.isPostLiked(pid))
+                    binding.btnLike.isEnabled = true
+                },
+                onError = {
+                    toast(it)
+                    binding.btnLike.isEnabled = true
+                }
             )
         }
 
-        vm.items.observe(viewLifecycleOwner) {
-            val id = currentItemId ?: return@observe
-            vm.getById(id)?.let { item ->
-                binding.tvLikeCount.text = item.likes.toString()
-                binding.ivLikeIcon.setImageResource(
-                    if (vm.isPostLiked(id)) R.drawable.ic_fill_heart else R.drawable.ic_heart
-                )
-                renderCalendarVisibility(item.shareCalendar)
-            }
-        }
-
-        binding.btnMore.setOnClickListener { anchor -> showMoreMenu(anchor) }
-
-        startTimeTicker()
-    }
-
-    private fun setupCalendarArea() {
-        val id = currentItemId
-        val share = vm.getById(id)?.shareCalendar == true
-        if (!share) {
-            renderCalendarVisibility(false)
-            return
-        }
-        renderCalendarVisibility(true)
-
-        val calFrag = (childFragmentManager.findFragmentById(binding.containerCalendar.id)
-                as? CalendarFragment) ?: CalendarFragment().also {
-            childFragmentManager.beginTransaction()
-                .replace(binding.containerCalendar.id, it)
-                .commit()
-            childFragmentManager.executePendingTransactions()
-        }
-
-        renderCalendarHeader(calFrag.getCurrentYear(), calFrag.getCurrentMonth1())
-        calFrag.setOnMonthChangedListener { y, m1 -> renderCalendarHeader(y, m1) }
-        binding.btnPrevMonth.setOnClickListener { calFrag.moveMonth(-1) }
-        binding.btnNextMonth.setOnClickListener { calFrag.moveMonth(1) }
-    }
-
-    private fun renderCalendarVisibility(visible: Boolean) {
-        binding.calendarShare.visibility = if (visible) View.VISIBLE else View.GONE
-    }
-
-    private fun renderCalendarHeader(year: Int, month1: Int) {
-        binding.tvMonth.text = "${month1}월"
-        binding.tvYear.text = year.toString()
-    }
-
-    private fun startTimeTicker() {
-        timeJob?.cancel()
-        timeJob = viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                while (isActive) {
-                    delay(60_000)
-                    commentAdapter.tickTime()
+        // 게시글(수정/삭제)
+        binding.btnMore.isVisible = true
+        binding.btnMore.setOnClickListener {
+            showPostMenu(
+                onEdit = {
+                    val b = Bundle().apply {
+                        putString(CommunityWriteFragment.ARG_MODE, CommunityWriteFragment.MODE_EDIT)
+                        putString(CommunityWriteFragment.ARG_ITEM_ID, postId)
+                    }
+                    findNavController().navigate(R.id.communityWriteFragment, b)
+                },
+                onDelete = {
+                    vm.deletePost(
+                        token = authToken,
+                        id = postId,
+                        onSuccess = { findNavController().popBackStack() },
+                        onError   = ::toast
+                    )
                 }
-            }
+            )
         }
     }
 
-    private fun showDeleteConfirm(position: Int) {
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setMessage("댓글을 삭제할까요?")
-            .setPositiveButton("삭제") { d, _ ->
-                commentAdapter.removeAt(position)
-                binding.tvCommentCount.text = commentAdapter.itemCount.toString()
-                if (editingPos == position) {
-                    editingPos = null
-                    binding.btnRegister.text = "등록하기"
-                    binding.editComment.setText("")
-                }
-                d.dismiss()
-            }
-            .setNegativeButton("취소", null)
-            .show()
+    private fun applyHeart(liked: Boolean) {
+        binding.ivLikeIcon.setImageResource(
+            if (liked) R.drawable.ic_fill_heart else R.drawable.ic_heart
+        )
     }
 
-    @SuppressLint("InflateParams")
-    private fun showMoreMenu(anchor: View) {
-        val content = LayoutInflater.from(anchor.context).inflate(R.layout.dialog_community_menu, null)
-        val popup = PopupWindow(
-            content, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true
-        ).apply {
+    private fun bindDetail(detail: PostDetailDto) {
+        binding.tvTitle.text   = detail.title.orEmpty()
+        binding.tvContent.text = detail.content.orEmpty()
+
+        val author = detail.nickname?.trim().orEmpty()
+        val date   = detail.createdAt?.trim().orEmpty()
+        binding.tvDate.text = when {
+            author.isNotBlank() && date.isNotBlank() -> "$author   $date"
+            date.isNotBlank()                        -> date
+            author.isNotBlank()                      -> author
+            else                                     -> ""
+        }
+
+        val file = detail.file?.trim()
+        if (!file.isNullOrEmpty()) {
+            binding.layoutFile.visibility = View.VISIBLE
+            binding.tvFileName.text = file.substringAfterLast('/')
+        } else {
+            binding.layoutFile.visibility = View.GONE
+        }
+
+        val likeCount = detail.likeCount ?: 0
+        val liked     = detail.liked == true
+        binding.tvLikeCount.text = likeCount.toString()
+        applyHeart(liked)
+
+        if (ALLOW_ALL_POST_ACTIONS) binding.btnMore.isVisible = true
+    }
+
+    private fun enterEditModeUi(c: Comment) {
+        editingCommentId = c.id
+        binding.editComment.setText(c.content)
+        binding.editComment.setSelection(binding.editComment.text?.length ?: 0)
+        binding.btnRegister.text = "수정하기"
+        binding.postScroll.post {
+            binding.postScroll.smoothScrollTo(0, binding.commentBar.top)
+            binding.editComment.requestFocus()
+            showKeyboard(binding.editComment)
+        }
+    }
+
+    private fun exitEditMode() {
+        editingCommentId = null
+        binding.editComment.setText("")
+        binding.btnRegister.text = "등록하기"
+        hideKeyboard(binding.editComment)
+    }
+
+    private fun showPostMenu(onEdit: () -> Unit, onDelete: () -> Unit) {
+        val ctx = requireContext()
+        val anchor = binding.btnMore
+
+        val content = LayoutInflater.from(ctx).inflate(R.layout.dialog_community_menu, null)
+        val btnReport = content.findViewById<TextView>(R.id.btn_report)
+        val btnEdit   = content.findViewById<TextView>(R.id.btn_edit)
+        val btnDelete = content.findViewById<TextView>(R.id.btn_delete)
+
+        val popup = PopupWindow(content, WRAP_CONTENT, WRAP_CONTENT, true).apply {
             isOutsideTouchable = true
             setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-            elevation = 16f
+            elevation = dp(8).toFloat()
         }
 
-        content.findViewById<TextView>(R.id.btn_report)?.setOnClickListener { popup.dismiss() }
-        content.findViewById<TextView>(R.id.btn_edit)?.setOnClickListener {
+        btnReport.setOnClickListener { popup.dismiss(); toast("신고하기는 준비 중이에요.") }
+        btnEdit.setOnClickListener   { popup.dismiss(); onEdit() }
+        btnDelete.setOnClickListener {
             popup.dismiss()
-            currentItemId?.let { id ->
-                val args = Bundle().apply {
-                    putString(CommunityWriteFragment.ARG_MODE, CommunityWriteFragment.MODE_EDIT)
-                    putString(CommunityWriteFragment.ARG_ITEM_ID, id)
-                }
-                findNavController().navigate(R.id.communityWriteFragment, args)
-            }
-        }
-        content.findViewById<TextView>(R.id.btn_delete)?.setOnClickListener {
-            popup.dismiss()
-            currentItemId?.let { id ->
-                vm.deleteById(id)
-                findNavController().popBackStack(R.id.communityFragment, false)
-            }
+            AlertDialog.Builder(ctx)
+                .setMessage("게시글을 삭제할까요?")
+                .setNegativeButton("취소", null)
+                .setPositiveButton("삭제") { _, _ -> onDelete() }
+                .show()
         }
 
-        content.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-        val xOff = anchor.width - content.measuredWidth - 6
-        popup.showAsDropDown(anchor, xOff, 4)
+        content.measure(
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        val popupW = content.measuredWidth
+        val xOff = anchor.width - popupW - dp(6)
+        val yOff = dp(6)
+        popup.showAsDropDown(anchor, xOff, yOff)
     }
 
-    private fun getDisplayName(uri: Uri): String? {
-        var cursor: Cursor? = null
-        return try {
-            cursor = requireContext().contentResolver.query(uri, null, null, null, null)
-            val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME) ?: -1
-            if (cursor != null && cursor.moveToFirst() && nameIndex >= 0) cursor.getString(nameIndex) else null
-        } finally { cursor?.close() }
+    private fun readAuthToken(ctx: Context): String? {
+        val raw = ctx.getSharedPreferences("auth", 0).getString("token", null).orEmpty()
+        if (raw.isBlank()) return null
+        return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
     }
+
+    private fun toast(msg: String?) {
+        if (!msg.isNullOrBlank()) Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showKeyboard(v: View) {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        v.post { imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT) }
+    }
+    private fun hideKeyboard(v: View) {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(v.windowToken, 0)
+    }
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density).roundToInt()
 
     override fun onDestroyView() {
         super.onDestroyView()
-        timeJob?.cancel()
-        timeJob = null
         _binding = null
+    }
+
+    private fun CommentDto.toUi(): Comment =
+        Comment(
+            id        = this.commentId ?: -1L,
+            memberId  = this.memberId,
+            nickname  = this.nickname?.ifBlank { "익명" } ?: "익명",
+            content   = this.comment.orEmpty(),
+            createdAt = parseIsoToMillisFlexible(this.commentDate)
+                ?: System.currentTimeMillis(),
+            likeCount = 0,
+            isLiked   = this.liked == true,
+            isEdited  = false
+        )
+
+    private fun parseIsoToMillisFlexible(iso: String?): Long? {
+        if (iso.isNullOrBlank()) return null
+        val patterns = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+            "yyyy-MM-dd'T'HH:mm:ssX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd"
+        )
+        for (p in patterns) {
+            try {
+                val sdf = SimpleDateFormat(p, Locale.US)
+                sdf.timeZone = TimeZone.getTimeZone("UTC")
+                return sdf.parse(iso)?.time
+            } catch (_: Throwable) {}
+        }
+        return null
     }
 }
