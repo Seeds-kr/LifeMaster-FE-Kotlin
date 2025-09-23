@@ -44,6 +44,17 @@
         <action
             android:id="@+id/action_communityFragment_to_communityPostFragment"
             app:destination="@id/communityPostFragment" />
+        <action
+            android:id="@+id/action_communityFragment_to_communityImproveFragment"
+            app:destination="@+id/communityImproveFragment"/>
+    </fragment>
+    <fragment
+        android:id="@+id/communityImproveFragment"
+        android:name="com.example.lifemaster.presentation.community.view.CommunityImproveFragment"
+        tools:layout="@layout/fragment_community_improve">
+        <action
+            android:id="@+id/action_communityImproveFragment_to_communityFragment"
+            app:destination="@id/communityFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityWriteFragment"
