@@ -1,8 +1,11 @@
 package com.example.lifemaster.network
 
+import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
+import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.login.model.LoginInfo
+import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
@@ -214,4 +217,33 @@ interface NetworkService {
         @Path("pollId") pollId: Long,
         @Body body: VoteRequest
     ): Call<ResponseBody>
+    /**
+     * Sleep Management API
+     */
+    // 유저의 수면 기록 조회
+    @GET("/sleep/{userId}")
+    suspend fun getUserSleepRecord(
+        @Path("userId") userId: Int
+    ): List<SleepResponse>
+
+    // 유저의 수면 기록 생성
+    @POST("/sleep")
+    suspend fun registerUserSleepRecord(
+        @Body userRequest: SleepRequest
+    ): String
+
+    // 유저의 수면 기록 업데이트
+    @PATCH("/sleep")
+    suspend fun updateUserSleepRecord(
+        @Body sleepRequest: SleepRequest
+    ): SleepResponse
+
+    /**
+     * Alarm Mission API
+     */
+    // 수학 문제 생성 API
+    @GET("/time/alarm/mission/math-problem")
+    suspend fun generateMathProblem(
+        @Query("level") level: String
+    ): MathProblemResponse
 }
