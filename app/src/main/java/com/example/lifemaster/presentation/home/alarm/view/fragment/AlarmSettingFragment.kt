@@ -30,6 +30,9 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
     private lateinit var binding: FragmentAlarmSettingBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels()
+    private val alarmViewModel: AlarmViewModel by activityViewModels(
+        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
+    )
     private var randomMissionList = arrayListOf<RandomMissionType>()
     private var randomMissionMathLevel = MathProblemLevel.NONE
     private var isDelaySet: Boolean = false

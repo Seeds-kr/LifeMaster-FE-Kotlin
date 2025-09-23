@@ -5,11 +5,11 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster.databinding.ItemSleepPlaylistBinding
+import com.example.lifemaster.databinding.LayoutSleepPlaylistBinding
 
 class SleepPlaylistAdapter: ListAdapter<SleepItem, SleepPlaylistAdapter.SleepPlaylistViewHolder>(differ) {
 
-    inner class SleepPlaylistViewHolder(private val binding: ItemSleepPlaylistBinding): RecyclerView.ViewHolder(binding.root) {
+    inner class SleepPlaylistViewHolder(private val binding: LayoutSleepPlaylistBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(item: SleepItem) = with(binding) {
             ivSleepPlaylistItemThumbnail.setImageResource(item.thumbnail)
             tvSleepPlaylistItemTitle.text = item.title
@@ -23,7 +23,7 @@ class SleepPlaylistAdapter: ListAdapter<SleepItem, SleepPlaylistAdapter.SleepPla
         viewType: Int
     ): SleepPlaylistViewHolder {
         return SleepPlaylistViewHolder(
-            ItemSleepPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            LayoutSleepPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         )
     }
 

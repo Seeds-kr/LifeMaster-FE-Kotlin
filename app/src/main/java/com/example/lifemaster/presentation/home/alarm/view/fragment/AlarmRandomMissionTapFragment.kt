@@ -2,7 +2,6 @@ package com.example.lifemaster.presentation.home.alarm.view.fragment
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -19,8 +18,11 @@ import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.Constants
 import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
+import com.example.lifemaster.presentation.home.sleep.model.AlarmInfo
+import com.example.lifemaster.presentation.home.sleep.model.AlarmSettingInfo
 import com.example.lifemaster.presentation.home.sleep.model.Result
-import com.example.lifemaster.presentation.home.sleep.model.UserRequest
+import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.google.android.material.card.MaterialCardView
@@ -34,7 +36,9 @@ import kotlin.random.Random
 class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mission_tap) {
 
     private lateinit var binding: FragmentAlarmRandomMissionTapBinding
-    private val alarmViewModel: AlarmViewModel by activityViewModels()
+    private val alarmViewModel: AlarmViewModel by activityViewModels(
+        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
+    )
     private val sleepViewModel: SleepViewModel by activityViewModels {
         SleepViewModelFactory(RetrofitInstance.networkService)
     }
@@ -59,7 +63,6 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
     }
 
     private fun initViews() = with(binding) {
-        Log.e("TTEST", ""+currentPage)
         tvAlarmRandomMissionTapPage.text = "${currentPage}/3"
         taps = listOf(
             cvAlarmRandomMissionTap1,
@@ -151,7 +154,6 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
 
             if(answerTapPositions.equals(userTapPositions)) {
                 if(currentPage == 3) {
-                    alarmViewModel.alarmDismissedAt = System.currentTimeMillis()
                     sleepViewModel.getUserSleepInfo(Constants.USER_ID)
                 } else {
                     findNavController().navigate(
@@ -171,39 +173,52 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
         sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { result ->
             when(result) {
                 is Result.Success -> {
+                    alarmViewModel.alarmDismissedAt = System.currentTimeMillis()
                     val data = result.data
                     val todayRecord = data.find { it.sleepDate == LocalDate.now().toString() }
                     if(todayRecord == null) {
                         // TODO: POST
                         sleepViewModel.registerUserSleepInfo(
-                            userRequest = UserRequest(
+                            sleepRequest = SleepRequest(
                                 userId = Constants.USER_ID,
                                 sleepDate = LocalDate.now().toString(),
                                 sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
                                 sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
                                 sleepMood = "GOOD",
-                                alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
-                                timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
-                                antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
+                                alarmInfo = AlarmInfo(
+                                    isWakeUpAlarmSet = true,
+                                    alarmSettings = AlarmSettingInfo(
+                                        alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
+                                    )
+                                )
                             )
                         )
                     } else {
                         // TODO: PATCH
                         sleepViewModel.updateUserSleepInfo(
-                            userRequest = UserRequest(
+                            sleepRequest = SleepRequest(
                                 userId = Constants.USER_ID,
                                 sleepDate = LocalDate.now().toString(),
                                 sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
                                 sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
                                 sleepMood = "GOOD",
-                                alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
-                                timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
-                                antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
+                                alarmInfo = AlarmInfo(
+                                    isWakeUpAlarmSet = true,
+                                    alarmSettings = AlarmSettingInfo(
+                                        alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
+                                    )
+                                )
                             )
                         )
                     }
                 }
-                is Result.Error -> {}
+                is Result.Error -> {
+                    Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
+                }
                 is Result.Loading -> {}
             }
         }
@@ -219,7 +234,9 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                         R.id.action_alarmRandomMissionTapFragment_to_alarmListFragment,
                         bundleOf("origin" to "alarm_random_mission")
                     )
-                } else Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 

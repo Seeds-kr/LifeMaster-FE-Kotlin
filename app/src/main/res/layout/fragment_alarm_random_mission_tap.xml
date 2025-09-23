@@ -26,13 +26,13 @@
         android:textColor="#131313"
         android:textSize="80sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/tv_alarm_random_mission_tap_am_pm"
+        app:layout_constraintEnd_toStartOf="@id/tvAlarmRandomMissionMathAmPm"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_alarm_random_mission_tap_date" />
 
     <TextView
-        android:id="@+id/tv_alarm_random_mission_tap_am_pm"
+        android:id="@+id/tvAlarmRandomMissionMathAmPm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"

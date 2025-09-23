@@ -38,11 +38,11 @@ data class SleepResponse(
 
 data class AlarmInfo(
     val isWakeUpAlarmSet: Boolean,
-    val alarmSettings: AlarmSettingInfo
+    val alarmSettings: AlarmSettingInfo? = null
 )
 
 data class AlarmSettingInfo(
-    val alarmSnoozeCnt: Int,
-    val timeToWakeUp: Int,
-    val antiSleepMode: Boolean
+    val alarmSnoozeCnt: Int? = null,
+    val timeToWakeUp: Int? = null,
+    val antiSleepMode: Boolean? = null
 )

@@ -6,14 +6,18 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogSelectTimesBinding
+import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 
 class SelectTimeDialog(private val type: String) :
     DialogFragment(R.layout.dialog_select_times) {
     private lateinit var binding: DialogSelectTimesBinding
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by activityViewModels()
-    private val alarmViewModel: AlarmViewModel by activityViewModels()
+    private val alarmViewModel: AlarmViewModel by activityViewModels(
+        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
+    )
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
