@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="92dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_community_menu"
+    android:elevation="8dp">
+
+    <LinearLayout
+        android:id="@+id/row_latest"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:foreground="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:id="@+id/btn_sort_latest"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="최신 순"
+            android:textColor="#565656"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/iv_check_latest"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:src="@drawable/ic_check"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/row_like"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:foreground="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:id="@+id/btn_sort_like"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="좋아요 순"
+            android:textColor="#565656"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/iv_check_like"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:src="@drawable/ic_check"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</LinearLayout>
