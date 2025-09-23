@@ -20,6 +20,7 @@ import com.example.lifemaster.databinding.FragmentChallengeBinding
 import com.example.lifemaster.databinding.ItemChallengeBinding
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.presentation.challenge.viewmodel.ChallengeViewModel
+import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
 
 data class MyChallenge(
     val imageRes: Int,
@@ -101,7 +102,21 @@ class ChallengeFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        challengeAdapter = ChallengeAdapter(emptyList())
+        // 1. 어댑터를 생성합니다. (ListAdapter는 생성 시 리스트가 필요 없습니다.)
+        challengeAdapter = ChallengeAdapter()
+
+        // 2. 생성된 어댑터에 리스너를 설정합니다.
+        // 이제 ChallengeAdapter에 onItemClickListener가 존재하므로 오류가 사라집니다.
+        challengeAdapter.onItemClickListener = { challenge ->
+            val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(challenge.challId)
+            findNavController().navigate(action)
+        }
+
+        challengeAdapter.onJoinButtonClickListener = { challenge ->
+            Toast.makeText(requireContext(), "${challenge.challName} 참여!", Toast.LENGTH_SHORT).show()
+        }
+
+        // 3. 리사이클러뷰에 어댑터를 연결합니다.
         binding.rvChallenges.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = challengeAdapter
@@ -111,48 +126,6 @@ class ChallengeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-}
-
-class ChallengeAdapter(private var items: List<ChallengeItem>) : RecyclerView.Adapter<ChallengeAdapter.ChallengeViewHolder>() {
-
-    fun submitList(newItems: List<ChallengeItem>) {
-        items = newItems
-        notifyDataSetChanged()
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChallengeViewHolder {
-        val binding = ItemChallengeBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ChallengeViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: ChallengeViewHolder, position: Int) {
-        holder.bind(items[position])
-    }
-
-    override fun getItemCount(): Int = items.size
-
-    inner class ChallengeViewHolder(private val binding: ItemChallengeBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(challenge: ChallengeItem) {
-            binding.tvChallengeTitle.text = challenge.challName
-            binding.tvParticipantCount.text = "${challenge.challCnt}명 참여 중"
-            binding.tvChallengeDescription.text = challenge.challDesc
-            binding.tvChallengeDate.text = challenge.createdAt
-
-            /*val isParticipating = false // 임시 값
-            if (challenge.isParticipating) {
-                binding.btnJoinChallenge.text = "참여중"
-                binding.btnJoinChallenge.setBackgroundResource(R.drawable.btn_background_participating)
-                binding.btnJoinChallenge.setTextColor(ContextCompat.getColor(itemView.context, R.color.challenge_blue))
-            } else {
-                binding.btnJoinChallenge.text = "참여하기"
-                binding.btnJoinChallenge.setBackgroundResource(R.drawable.btn_background_join)
-                binding.btnJoinChallenge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
-            }*/
-
-            val imageResId = itemView.context.resources.getIdentifier(challenge.challImg, "drawable", itemView.context.packageName)
-            binding.ivChallengeBanner.setImageResource(imageResId)
-        }
     }
 }
 

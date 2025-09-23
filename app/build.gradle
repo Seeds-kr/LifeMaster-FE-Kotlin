@@ -89,4 +89,6 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
 
     implementation 'com.prolificinteractive:material-calendarview:1.4.3' //자아성찰 캘린더
+
+    implementation "com.github.bumptech.glide:glide:4.16.0" //이미지 로딩을 위한 Glide
 }
