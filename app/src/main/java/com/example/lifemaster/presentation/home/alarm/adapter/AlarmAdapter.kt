@@ -27,11 +27,9 @@ class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
 
         fun bind(item: AlarmItem) = with(binding) {
             includeSwitch.widget.isChecked = true
-            val hour = if (item.time.second in 13..23) item.time.second - 12 else item.time.second
-            val minutes = String.format("%02d", item.time.third)
-            tvTime.text = "${hour}:${minutes}"
-            tvDayOrNight.text = "${item.time.first}"
-            tvAlarmName.text = "${item.title}"
+            tvTime.text = item.timeText
+            tvDayOrNight.text = item.ampmText
+            tvAlarmName.text = item.title
             tvAlarmDelay.text = if (item.isDelaySet) {
                 "미루기 ${item.delayMinute}분 총 ${item.delayCount}회"
             } else {

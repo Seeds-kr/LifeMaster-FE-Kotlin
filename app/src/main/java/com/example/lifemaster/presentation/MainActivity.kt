@@ -19,11 +19,16 @@ import android.view.accessibility.AccessibilityManager
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
@@ -33,7 +38,13 @@ import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockVi
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.SimpleDateFormat
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import kotlin.getValue
 
 class MainActivity : AppCompatActivity() {
@@ -55,6 +66,13 @@ class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var updateRunnable: Runnable
 
+    // 수면 관련 변수
+    private var lastUsageTimeBeforeSleep: Long = 0L // 마지막 사용 시간 = 핸드폰 화면을 끈 시간
+    private var firstUsageTimeAfterWake: Long? = null // 핸드폰을 처음 킨 시간 (잠금 해제x)
+    private val sleepViewModel: SleepViewModel by viewModels {
+        SleepViewModelFactory(RetrofitInstance.networkService)
+    }
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,13 +81,23 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        userToken = intent.getStringExtra("user_token")
-        val sharedPreferences = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putString("token", userToken)
-        editor.commit()
+        val targetFragment = intent.getStringExtra("destination")
+        if (targetFragment == "alarm") {
+            val time = intent.getLongExtra("time", 0L) // 알람이 울린 시간
+            val navController =
+                (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
+            navController.navigate(
+                R.id.alarmRingsFragment,
+                bundleOf("time" to time)
+            )
+            binding.bottomNavigation.isVisible = false
+        }
 
-        Log.d("ttest", userToken!!)
+//        userToken = intent.getStringExtra("user_token")
+//        val sharedPreferences = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
+//        val editor = sharedPreferences.edit()
+//        editor.putString("token", userToken)
+//        editor.commit()
 
         updateRunnable = object : Runnable {
             override fun run() {
@@ -93,9 +121,110 @@ class MainActivity : AppCompatActivity() {
 
         setupListeners()
 
-        requestUsageAccessPermission(this)
+        requestUsageAccessPermission(this) // 사용 용도: 디톡스, 수면시간 측정
+
+        getUserSleepInfo()
 
 //        requestAccessibilityPermission(this)
+    }
+
+    // 사용자의 전날 수면 정보를 가져오는 함수
+    private fun getUserSleepInfo() {
+        // 사용자가 잠든 시간 추적하기
+        val usageStatsManager = getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager // 1. USAGE_STATS_SERVICE란? UsageStatsManager란?
+        val sleepCalendar = Calendar.getInstance().apply {
+            // 오늘 날짜
+            set(Calendar.HOUR_OF_DAY, 4)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val sleepTrackingEndTime = sleepCalendar.timeInMillis // 04:00
+
+        sleepCalendar.add(Calendar.HOUR_OF_DAY, -8)
+        val sleepTrackingStartTime = sleepCalendar.timeInMillis // 20:00
+
+        val sleepEvent = UsageEvents.Event() // 2.
+
+        val sleepUsageEvents = usageStatsManager.queryEvents( // 3.
+            sleepTrackingStartTime,
+            sleepTrackingEndTime
+        )
+
+        while (sleepUsageEvents.hasNextEvent()) {
+            sleepUsageEvents.getNextEvent(sleepEvent)
+            if (sleepEvent.eventType == UsageEvents.Event.SCREEN_NON_INTERACTIVE) lastUsageTimeBeforeSleep = sleepEvent.timeStamp
+        }
+
+        Log.e("SLEEP(NIGHT)", "잠든 시간: ${Date(lastUsageTimeBeforeSleep)}")
+
+        // 사용자가 일어난 시간 추적하기 (화면을 킨 시점)
+        val wakeUpCalendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 5)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val wakeTrackingStartTime = wakeUpCalendar.timeInMillis // 오전 5시
+
+        wakeUpCalendar.add(Calendar.HOUR_OF_DAY, 5) // 오전 10시
+        val wakeTrackingEndTime = wakeUpCalendar.timeInMillis
+
+        val wakeEvent = UsageEvents.Event()
+        val wakeUsageEvents = usageStatsManager.queryEvents(
+            wakeTrackingStartTime,
+            wakeTrackingEndTime
+        ) // 금일 오전 5시 ~ 금일 오전 10시 사이의 이벤트 조회
+
+        while (wakeUsageEvents.hasNextEvent()) {
+            wakeUsageEvents.getNextEvent(wakeEvent)
+            if (wakeEvent.eventType == UsageEvents.Event.SCREEN_INTERACTIVE && firstUsageTimeAfterWake == null) {
+                firstUsageTimeAfterWake = wakeEvent.timeStamp // 기상 후 처음 핸드폰을 킨 시간 추적
+                Log.e("SLEEP(MORNING)", "일어난 시간: ${Date(firstUsageTimeAfterWake ?: 0L)}")
+            }
+        }
+
+        // FIXME: 오전 12:07 시점 앱 다운 + 로그 값 lastUsageTimeBeforeSleep: 1753973258389, firstUsageTimeAfterWake: null
+        // FIXME: 원인 → 자정 이후로 금일 오전 5시 이후부터의 데이터는 존재하지 않기에 null 발생 (= 자정 이후 ~ 오전 5시 이전 앱 들어가면 튕김)
+
+        val sharedPreference = getSharedPreferences("user_sleep_info", MODE_PRIVATE)
+
+        if(lastUsageTimeBeforeSleep == 0L || firstUsageTimeAfterWake == null) {
+            // 수면 기록 측정이 제대로 안된 경우
+            sharedPreference.edit().putString(LocalDate.now().toString(), "null").apply()
+            sleepViewModel.isMeasured = false
+        } else {
+            // 수면 기록이 측정이 제대로 된 경우
+            Log.e("VALUE", "잠든 시간: ${Instant.ofEpochMilli(lastUsageTimeBeforeSleep)}, 일어난 시간: ${Instant.ofEpochMilli(firstUsageTimeAfterWake!!)}")
+
+            sleepViewModel.isMeasured = true
+
+            val shortTimeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+            sleepViewModel.sleepTime = shortTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11
+            sleepViewModel.rawSleepTime = lastUsageTimeBeforeSleep
+            sleepViewModel.wakeTime = shortTimeFormatter.format(firstUsageTimeAfterWake) // 07:44
+            sleepViewModel.rawWakeTime = firstUsageTimeAfterWake
+
+            val longTimeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+
+            val sleepTime = longTimeFormatter.format(lastUsageTimeBeforeSleep) // 01:11:58
+            val wakeTime = longTimeFormatter.format(firstUsageTimeAfterWake) // 07:44:56
+
+            val sleepTimeSeconds = sleepTime.split(":")[2].toInt() // ["01", "11", "58"] → "58" → 58
+            val wakeTimeSeconds = wakeTime.split(":")[2].toInt() // ["07", "44", "56"] → "56" → 56
+
+            val duration = Duration.ofMillis(firstUsageTimeAfterWake!! - lastUsageTimeBeforeSleep)
+
+            sleepViewModel.sleepDurationHour = duration.toHours().toInt()
+            sleepViewModel.sleepDurationMinutes =
+                if (sleepTimeSeconds > wakeTimeSeconds) (duration.toMinutes() % 60 + 1).toInt() else (duration.toMinutes() % 60).toInt()
+
+            // 로컬에 수면 정보 저장
+            sharedPreference.edit().putString(
+                LocalDate.now().toString(),
+                "${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분"
+            ).apply()
+        }
     }
 
     override fun onResume() {
@@ -123,7 +252,8 @@ class MainActivity : AppCompatActivity() {
                                 val pomodoro = pomodoroList.filter { it.taskName == todoItemTitle }
                                 val pomodoro25Count = pomodoro.count { it.focusTime == 20 }
                                 val pomodoro50Count = pomodoro.count { it.focusTime == 40 }
-                                val todoItem = toDoViewModel.todoItems.value?.find { it.title == todoItemTitle }
+                                val todoItem =
+                                    toDoViewModel.todoItems.value?.find { it.title == todoItemTitle }
                                 todoItem?.let {
                                     it.timer25Number = pomodoro25Count
                                     it.timer50Number = pomodoro50Count
@@ -301,22 +431,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 앱 사용 시간에 대한 설정 화면으로 이동하는 함수(권한 없을 시)
+    // 앱 사용 시간 권한이 없을 시 다이얼로그 띄우고 설정 화면으로 이동하는 함수
     private fun requestUsageAccessPermission(context: Context) {
-        if (!isUsageAccessGranted(context)) {
-            val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-            context.startActivity(intent)
+        if (!checkUsageAccessPermission(context)) {
+            val dialog = AlertDialog.Builder(context).apply {
+                setTitle("권한 요청 다이얼로그")
+                setMessage("사용자의 수면시간 추적을 위해 사용 정보 접근 권한이 필요합니다. 설정에 들어가서 권한을 허용해주세요.")
+                setPositiveButton("설정 이동") { _, _ ->
+                    val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                    startActivity(intent)
+                }
+                setCancelable(false)
+                create()
+            }
+            dialog.show()
         }
     }
 
-    // 앱 사용 시간 권한 활성화 여부를 확인하는 함수
-    private fun isUsageAccessGranted(context: Context): Boolean {
-        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        val mode = appOps.checkOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            android.os.Process.myUid(),
-            context.packageName
-        )
+    // 앱 사용 시간 권한 활성 여부를 확인하는 함수
+    private fun checkUsageAccessPermission(context: Context): Boolean {
+        val appOpsManager = context.getSystemService(APP_OPS_SERVICE) as AppOpsManager
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10 이상
+            appOpsManager.unsafeCheckOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(),
+                context.packageName
+            )
+        } else {
+            // Android 10 미만
+            appOpsManager.checkOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(),
+                context.packageName
+            )
+        }
         return mode == AppOpsManager.MODE_ALLOWED
     }
 }

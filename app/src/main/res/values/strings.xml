@@ -28,5 +28,32 @@
     <string name="default_channel_id">notification_channel_id</string>
     <string name="default_channel_name">notification_channel_name</string>
     <string name="default_channel_description">notification_channel_description</string>
+    <string name="sleep_main_title">You Slept</string>
+    <string name="sleep_main_hour_label">h</string>
+    <string name="sleep_main_minute_label">min</string>
+    <string name="sleep_playlist_title">숙면 플레이리스트</string>
+    <string name="sleep_playlist_white_noise_title">백색소음</string>
+    <string name="sleep_playlist_view_more">더보기</string>
+    <string name="sleep_playlist_view_less">접기</string>
+    <string name="sleep_playlist_nature_sounds_title">자연의 소리</string>
+    <string name="sleep_playlist_classic_title">클래식 음악</string>
+    <string name="sleep_report_today_mood">오늘의 기분</string>
+    <string name="sleep_report_analysis_title">평소보다</string>
+    <string name="sleep_report_analysis_sleep_time_title">더 잤어요</string>
+    <string name="sleep_report_analysis_sleep_score_title">수면점수</string>
+    <string name="sleep_report_analysis_alarm_duration_title">알람이 울린 시간</string>
+    <string name="sleep_report_analysis_wakeup_delay_time_title">일어나는 데 걸린 시간</string>
+
+    <!-- 캘린더 -->
+    <string name="month_text">월</string>
+    <string name="week_text">주</string>
+    <string name="day_text">일</string>
+    <string name="mon_text">MON</string>
+    <string name="tue_text">TUE</string>
+    <string name="wed_text">WED</string>
+    <string name="thu_text">THU</string>
+    <string name="fri_text">FRI</string>
+    <string name="sat_text">SAT</string>
+    <string name="sun_text">SUN</string>
 
 </resources>
