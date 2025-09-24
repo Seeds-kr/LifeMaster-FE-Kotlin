@@ -6,6 +6,8 @@ import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
@@ -14,6 +16,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -116,6 +119,27 @@ interface NetworkService {
     fun getEscapeSentence(
         @Header("Authorization") token: String
     ):Call<String>
+
+    // 챌린지 목록 조회
+    @GET("/challenge")
+    fun getChallenges(
+        @Query("page") page: Int
+    ): Call<ChallengeResponse>
+
+    // 감사일기 생성
+    @POST("/schedule/self-reflection/thank")
+    suspend fun createThank(
+        @Header("Authorization") token: String,
+        @Body request: ThankRequest
+    ): Response<Unit>
+
+    //감사일기 수정
+    @PUT("schedule/self-reflection/thank/{thank-id}")
+    suspend fun updateThank(
+        @Header("Authorization") token: String,
+        @Path("thank-id") thankId: Long,
+        @Body request: ThankRequest
+    ): Response<Unit>
 
     // 커뮤니티 게시글 전체 목록 조회
     @GET("posts")

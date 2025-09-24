@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 5감사 스타일 -->
+    <style name="ThanksEditStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_input</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+        <item name="android:inputType">textMultiLine</item>
+    </style>
+    <!-- 챌린지 검색창 스타일 -->
+    <style name="CustomSearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <item name="android:textSize">20sp</item>
+      
     <style name="CalendarWeekHeader">
         <item name="android:layout_width">32dp</item>
         <item name="android:layout_height">22dp</item>
