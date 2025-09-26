@@ -12,7 +12,7 @@ class SleepReportMarkerView(
     context: Context,
     layoutResource: Int,
     private val dailySleepDurations: List<String>,
-    private val dailySleepScores: List<Float> = emptyList<Float>(),
+    private val dailySleepScores: List<Float>,
     private val dailyAlarmDurations: List<Int>
 ) : MarkerView(context, layoutResource) {
 
@@ -22,13 +22,17 @@ class SleepReportMarkerView(
 
     override fun refreshContent(e: Entry?, highlight: Highlight?) {
         val position = e?.x?.toInt() ?: return
-        totalSleepTime.text = if(dailySleepDurations[position] == "null") "수면 기록 없음" else "${dailySleepDurations[position]} 수면"
-        sleepScore.text = if(dailySleepScores.isNotEmpty()) "${dailySleepScores[position]}점" else "0점"
-        timeToWakeUp.text = if(dailyAlarmDurations[position] == -1) "기록 없음" else "${dailyAlarmDurations[position]}분"
+        totalSleepTime.text = "${dailySleepDurations[position]} 수면"
+        sleepScore.text = "${dailySleepScores[position]}점"
+        timeToWakeUp.text = if(dailyAlarmDurations[position] == NO_ALARM_SETTING_DEFAULT_VALUE) "알람 미설정" else "${dailyAlarmDurations[position]}분"
         super.refreshContent(e, highlight)
     }
 
     override fun getOffset(): MPPointF? {
         return MPPointF(-width.toFloat() - 20f, -(height / 2).toFloat())
+    }
+
+    companion object {
+        private const val NO_ALARM_SETTING_DEFAULT_VALUE = -1000
     }
 }
