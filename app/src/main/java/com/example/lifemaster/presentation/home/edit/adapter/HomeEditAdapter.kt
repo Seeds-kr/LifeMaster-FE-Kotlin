@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
 import java.util.*
+import androidx.core.graphics.toColorInt
 
 class HomeEditAdapter(
     private val itemList: MutableList<String>,
@@ -44,7 +45,7 @@ class HomeEditAdapter(
         val item = itemList[position]
         holder.tvServiceName.text = item
 
-        val tintColor = Color.parseColor(iconTintMap[item] ?: "#333333")
+        val tintColor = (iconTintMap[item] ?: "#333333").toColorInt()
         holder.ivServiceIcon.setColorFilter(tintColor)
 
         holder.ivToggle.setImageResource(

@@ -11,6 +11,7 @@ import com.example.lifemaster.presentation.home.HomeConfig
 import com.example.lifemaster.presentation.home.edit.adapter.*
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.content.edit
 
 class HomeEditActivity : AppCompatActivity(), OnStartDragListener {
 
@@ -69,13 +70,13 @@ class HomeEditActivity : AppCompatActivity(), OnStartDragListener {
 
     private fun saveHomeConfiguration() {
         val prefs = getSharedPreferences("home_pref", Context.MODE_PRIVATE)
-        val editor = prefs.edit()
-        val nameToKey = HomeConfig.SERVICE_KEY_MAP
-        val visibleKeys = serviceList.mapNotNull { nameToKey[it] }
-        val allKeys = (serviceList + allFeaturesList).mapNotNull { nameToKey[it] }
-        editor.putStringSet("visible_components", visibleKeys.toSet())
-        editor.putString("component_order", allKeys.joinToString(","))
-        editor.apply()
+        prefs.edit {
+            val nameToKey = HomeConfig.SERVICE_KEY_MAP
+            val visibleKeys = serviceList.mapNotNull { nameToKey[it] }
+            val allKeys = (serviceList + allFeaturesList).mapNotNull { nameToKey[it] }
+            putStringSet("visible_components", visibleKeys.toSet())
+            putString("component_order", allKeys.joinToString(","))
+        }
     }
 
     private fun loadHomeConfiguration() {
