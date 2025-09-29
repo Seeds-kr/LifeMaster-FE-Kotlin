@@ -28,6 +28,8 @@ import retrofit2.Callback
 import retrofit2.Response
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import java.time.LocalDate
 
 class HomeFragment : Fragment() {
@@ -35,6 +37,9 @@ class HomeFragment : Fragment() {
     lateinit var binding: FragmentHomeBinding
     lateinit var todoItems: ArrayList<TodoItem>
     private val toDoViewModel: ToDoViewModel by activityViewModels()
+    private val sleepViewModel: SleepViewModel by activityViewModels {
+        SleepViewModelFactory(RetrofitInstance.networkService)
+    }
     private var userToken: String? = null
     private val calendarVM: CalendarViewModel by activityViewModels()
 
@@ -189,6 +194,10 @@ class HomeFragment : Fragment() {
                     Log.d("server error", "" + t.message)
                 }
             })
+
+        // 수면
+        itemSleepPreview.tvAlarmDate.text = "${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일"
+        itemSleepPreview.tvAlarmTime.text = if(sleepViewModel.isMeasured) "${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 수면" else "금일 수면 미측정"
     }
 
     private fun initListeners() {
@@ -200,6 +209,10 @@ class HomeFragment : Fragment() {
         binding.tvHomeEdit.setOnClickListener {
             val intent = Intent(requireContext(), HomeEditActivity::class.java)
             startActivity(intent)
+        }
+
+        binding.itemSleepPreview.btnSleepReport.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment)
         }
     }
 
