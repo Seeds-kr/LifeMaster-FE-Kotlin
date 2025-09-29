@@ -40,28 +40,25 @@ class ToDoAdapter(
             bindEvents(item)
         }
 
-        private fun bindViews(item: TodoItem) = with(binding) {
-            tvTitle.text = item.title
-            chIsCompleted.isChecked = currentList[adapterPosition].isCompleted
-            llTimerContainer25.removeAllViews()
-            if(item.timer25Number > 0) {
-                llTimerContainer25.visibility = View.VISIBLE
-                repeat(item.timer25Number) {
-                    val timer25ImageView = ImageView(root.context).apply {
-                        setImageResource(R.drawable.ic_timer_25)
-                        val size = 18
-                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
-                            marginEnd = 4.dp
-                        }
-                    }
-                    llTimerContainer25.addView(timer25ImageView)
-                }
-            } else {
-                llTimerContainer25.visibility = View.GONE
-            }
         private fun bindViews(item: TodoModel) = with(binding) {
             tvTodoTitle.text = item.title
             checkboxTodoIsCompleted.isChecked = item.isCompleted
+//            llTimerContainer25.removeAllViews()
+//            if(item.timer25Number > 0) {
+//                llTimerContainer25.visibility = View.VISIBLE
+//                repeat(item.timer25Number) {
+//                    val timer25ImageView = ImageView(root.context).apply {
+//                        setImageResource(R.drawable.ic_timer_25)
+//                        val size = 18
+//                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
+//                            marginEnd = 4.dp
+//                        }
+//                    }
+//                    llTimerContainer25.addView(timer25ImageView)
+//                }
+//            } else {
+//                llTimerContainer25.visibility = View.GONE
+//            }
 
             // 50분 타이머 동적 추가
             llTimerContainer50.removeAllViews()
