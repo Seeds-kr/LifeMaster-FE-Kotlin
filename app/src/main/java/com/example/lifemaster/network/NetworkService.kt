@@ -5,7 +5,7 @@ import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.login.model.LoginInfo
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
@@ -58,11 +58,14 @@ interface NetworkService {
         @Body loginInfo: LoginInfo
     ): Call<String>
 
+    /**
+     * To-Do List API
+     */
     // 모든 To-Do 항목 조회
     @GET("/schedule/todo")
-    fun getTodoItems(
+    suspend fun getTodoItems(
         @Header("Authorization") token: String
-    ): Call<List<TodoItem>>
+    ): List<TodoModel>
 
     // 새 To-Do 생성
     @POST("/schedule/todo/create")

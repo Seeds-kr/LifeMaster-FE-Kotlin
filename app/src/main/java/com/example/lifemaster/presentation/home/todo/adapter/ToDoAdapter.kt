@@ -18,7 +18,7 @@ import com.example.lifemaster.databinding.ItemTodoBinding
 import com.example.lifemaster.dp
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.pomodoro.view.PomodoroActivity
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.view.ToDoLongClickDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import retrofit2.Call
@@ -31,11 +31,11 @@ class ToDoAdapter(
     private val fragmentManager: FragmentManager,
     private val userToken: String?
 ) :
-    ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
+    ListAdapter<TodoModel, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: TodoItem) {
+        fun bind(item: TodoModel) {
             bindViews(item)
             bindEvents(item)
         }
@@ -59,6 +59,9 @@ class ToDoAdapter(
             } else {
                 llTimerContainer25.visibility = View.GONE
             }
+        private fun bindViews(item: TodoModel) = with(binding) {
+            tvTodoTitle.text = item.title
+            checkboxTodoIsCompleted.isChecked = item.isCompleted
 
             // 50분 타이머 동적 추가
             llTimerContainer50.removeAllViews()

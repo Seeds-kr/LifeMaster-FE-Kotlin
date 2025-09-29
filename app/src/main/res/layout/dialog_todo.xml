@@ -9,7 +9,7 @@
     <!-- [?] 다이얼로그 사이즈가 원하는 대로 잘 안나오는 문제 발생 -->
 
     <TextView
-        android:id="@+id/tv_title"
+        android:id="@+id/tvTodoTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="할일 추가"

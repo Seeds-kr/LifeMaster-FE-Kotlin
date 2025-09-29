@@ -37,6 +37,9 @@ class HomeFragment : Fragment() {
     lateinit var binding: FragmentHomeBinding
     lateinit var todoItems: ArrayList<TodoItem>
     private val toDoViewModel: ToDoViewModel by activityViewModels()
+    private val toDoViewModel: ToDoViewModel by activityViewModels {
+        ToDoViewModelFactory(RetrofitInstance.networkService)
+    }
     private val sleepViewModel: SleepViewModel by activityViewModels {
         SleepViewModelFactory(RetrofitInstance.networkService)
     }
@@ -68,6 +71,7 @@ class HomeFragment : Fragment() {
 
         setupCalendarHeader()
         observeCalendarState()
+        fetchRemoteData()
         initViews()
         initListeners()
         initObservers()
@@ -92,6 +96,10 @@ class HomeFragment : Fragment() {
         val (visible, ordered) = loadHomeConfiguration()
         applyHomeLayout(visible, ordered)
         rebindCalendarHeaderUI()
+    }
+
+    private fun fetchRemoteData() {
+        toDoViewModel.getRemoteTodoItems(token = getString(R.string.user_token))
     }
 
     private fun loadHomeConfiguration(): Pair<Set<String>, List<String>> {
@@ -139,7 +147,7 @@ class HomeFragment : Fragment() {
             requireContext().getSharedPreferences("USER_TABLE", Context.MODE_PRIVATE)
         userToken = sharedPreference.getString("token", "null")
 
-        recyclerview.adapter =
+        todoRecyclerview.adapter =
             ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager, userToken)
 
         RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
@@ -221,6 +229,11 @@ class HomeFragment : Fragment() {
             val newList = updateItems.map { it.copy() }
             (binding.recyclerview.adapter as ToDoAdapter).submitList(newList)
         }
+
+        toDoViewModel.remoteTodoItems.observe(viewLifecycleOwner) { remoteTodoItems ->
+            (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(remoteTodoItems)
+        }
+
     }
 
     private fun setupCalendarHeader() = with(binding) {
@@ -293,5 +306,9 @@ class HomeFragment : Fragment() {
 
     private fun weekOfMonth(date: LocalDate): Int {
         return ((date.dayOfMonth - 1) / 7) + 1
+    }
+
+    companion object {
+        const val TAG_TODO = "TODO"
     }
 }

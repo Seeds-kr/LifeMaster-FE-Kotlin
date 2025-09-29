@@ -3,9 +3,13 @@ package com.example.lifemaster.presentation.home.todo.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import androidx.lifecycle.viewModelScope
+import com.example.lifemaster.network.NetworkService
+import com.example.lifemaster.presentation.home.HomeFragment
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
+import kotlinx.coroutines.launch
 
-class ToDoViewModel: ViewModel() {
+class ToDoViewModel(private val networkService: NetworkService): ViewModel() {
 
     private val _todoItems: MutableLiveData<ArrayList<TodoItem>> = MutableLiveData()
     val todoItems: LiveData<ArrayList<TodoItem>> get() = _todoItems
@@ -14,7 +18,20 @@ class ToDoViewModel: ViewModel() {
         _todoItems.value = todoItem
     }
 
-    fun addTodoItems(newItem: TodoItem) {
+    private val _remoteTodoItems: MutableLiveData<List<TodoModel>> = MutableLiveData()
+    val remoteTodoItems: LiveData<List<TodoModel>> get() = _remoteTodoItems
+
+    fun getRemoteTodoItems(token: String) {
+        viewModelScope.launch {
+            try {
+                _remoteTodoItems.value = networkService.getTodoItems(token = token)
+            } catch (e: Exception) {
+                Log.e(HomeFragment.TAG_TODO, e.message ?: "")
+            }
+        }
+    }
+
+    fun addTodoItems(newItem: TodoModel) {
         val currentList = _todoItems.value ?: arrayListOf()
         currentList.add(newItem)
         _todoItems.value = currentList
