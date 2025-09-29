@@ -45,6 +45,7 @@ class HomeFragment : Fragment() {
     }
     private var userToken: String? = null
     private val calendarVM: CalendarViewModel by activityViewModels()
+    private lateinit var remoteTodoItems: List<TodoModel>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -222,6 +223,11 @@ class HomeFragment : Fragment() {
         binding.itemSleepPreview.btnSleepReport.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment)
         }
+
+        binding.ivTodoDelete.setOnClickListener {
+            val dialog = ToDoNewDialog(remoteTodoItems)
+            dialog.show(childFragmentManager, ToDoNewDialog.TAG)
+        }
     }
 
     private fun initObservers() {
@@ -231,6 +237,7 @@ class HomeFragment : Fragment() {
         }
 
         toDoViewModel.remoteTodoItems.observe(viewLifecycleOwner) { remoteTodoItems ->
+            this.remoteTodoItems = remoteTodoItems
             (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(remoteTodoItems)
         }
 
