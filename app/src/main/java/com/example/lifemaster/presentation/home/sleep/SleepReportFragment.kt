@@ -34,6 +34,7 @@ import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import java.time.Instant
 import java.time.ZoneId
 import kotlin.math.abs
+import kotlin.math.round
 
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
@@ -397,8 +398,8 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         }
         val pastSleepScoreAverage = pastSleepScoreSum/(pastSleepRecords.size)
 
-        tvSleepReportAnalysisSleepScoreValue.text = "${todaySleepRecord.sleepScore.toInt()}점"
-        tvSleepReportAnalysisSleepScoreGapValue.text = "${abs((todaySleepRecord.sleepScore - pastSleepScoreAverage).toInt())}"
+        tvSleepReportAnalysisSleepScoreValue.text = "${round(todaySleepRecord.sleepScore).toInt()}점"
+        tvSleepReportAnalysisSleepScoreGapValue.text = "${round(abs((todaySleepRecord.sleepScore - pastSleepScoreAverage))).toInt()}"
 
         if(todaySleepRecord.sleepScore > pastSleepScoreAverage) {
             ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_arrow_up)

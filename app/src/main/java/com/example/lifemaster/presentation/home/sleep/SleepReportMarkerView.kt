@@ -7,6 +7,7 @@ import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
+import kotlin.math.round
 
 class SleepReportMarkerView(
     context: Context,
@@ -23,8 +24,8 @@ class SleepReportMarkerView(
     override fun refreshContent(e: Entry?, highlight: Highlight?) {
         val position = e?.x?.toInt() ?: return
         totalSleepTime.text = "${dailySleepDurations[position]} 수면"
-        sleepScore.text = "${dailySleepScores[position]}점"
-        timeToWakeUp.text = if(dailyAlarmDurations[position] == NO_ALARM_SETTING_DEFAULT_VALUE) "알람 미설정" else "${dailyAlarmDurations[position]}분"
+        sleepScore.text = "${round(dailySleepScores[position]).toInt()}점"
+        timeToWakeUp.text = if(dailyAlarmDurations[position] == NO_ALARM_SETTING_DEFAULT_VALUE) "미측정" else "${dailyAlarmDurations[position]}분"
         super.refreshContent(e, highlight)
     }
 
