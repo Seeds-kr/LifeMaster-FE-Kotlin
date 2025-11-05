@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/rounded_dialog_background"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tvDialogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="탈퇴하기"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvDialogMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="정말로 라이프마스터를 떠나시겠어요?\n이 작업은 되돌릴 수 없어요"
+        android:textSize="14sp"
+        android:textColor="#A0A0A0"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDialogTitle" />
+
+    <Button
+        android:id="@+id/btnCancelDialog"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="취소하기"
+        android:backgroundTint="#81C784"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnWithdrawalDialog"
+        app:layout_constraintTop_toBottomOf="@id/tvDialogMessage" />
+
+    <Button
+        android:id="@+id/btnWithdrawalDialog"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="탈퇴하기"
+        android:backgroundTint="#D8D8D8"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintStart_toEndOf="@id/btnCancelDialog"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDialogMessage" />
+</androidx.constraintlayout.widget.ConstraintLayout>

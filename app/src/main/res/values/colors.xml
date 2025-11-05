@@ -25,4 +25,5 @@
     <color name="sleep_primary">#333333</color>
     <color name="sleep_mood_selected">#927448</color>
     <color name="mint_60">#99A0E0CF</color>
+    <color name="black_dim">#80000000</color>
 </resources>

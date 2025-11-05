@@ -6,7 +6,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object RetrofitInstance {
 
-    private const val BASE_URL = ""
+    private const val BASE_URL = "https://api.lifemaster.harvester.kr/"
 
     val networkService: NetworkService by lazy {
         Retrofit.Builder()
