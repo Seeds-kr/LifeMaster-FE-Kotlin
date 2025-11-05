@@ -10,9 +10,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
@@ -21,6 +23,7 @@ import com.example.lifemaster.databinding.ItemChallengeBinding
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.presentation.challenge.viewmodel.ChallengeViewModel
 import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
+import android.widget.PopupMenu
 
 data class MyChallenge(
     val imageRes: Int,
@@ -33,7 +36,7 @@ class ChallengeFragment : Fragment() {
     private var _binding: FragmentChallengeBinding? = null
     private val binding get() = _binding!!
     private val viewModel: ChallengeViewModel by viewModels()
-    //private lateinit var challengeAdapter: ChallengeAdapter
+    private lateinit var challengeAdapter: ChallengeAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,16 +49,19 @@ class ChallengeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupMyChallenges()
-        //setupRecyclerView()
+        setupRecyclerView()
         observeViewModel()
+        setupSortListener()
         viewModel.loadChallenges()
     }
 
     private fun observeViewModel() {
-        viewModel.challengeData.observe(viewLifecycleOwner) { challengeResponse ->
-            challengeResponse?.content?.let { challengeList ->
-                //challengeAdapter.submitList(challengeList)
-                Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${challengeList.size}개")
+        viewModel.sortedChallengeList.observe(viewLifecycleOwner) { sortedList ->
+            if (sortedList != null) {
+                challengeAdapter.submitList(sortedList)
+                Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${sortedList.size}개")
+            } else {
+                Log.e("ChallengeFragment", "ViewModel에서 정렬된 리스트가 null입니다.")
             }
         }
     }
@@ -101,11 +107,46 @@ class ChallengeFragment : Fragment() {
         }
     }
 
-    /*private fun setupRecyclerView() {
-        challengeAdapter = ChallengeAdapter()
+    private fun setupSortListener() {
+        binding.tvFilter.setOnClickListener {
+            showSortPopupMenu(it)
+        }
+    }
 
+    private fun showSortPopupMenu(view: View) {
+        val popup = PopupMenu(requireContext(), view)
+        popup.menuInflater.inflate(R.menu.challenge_sort_menu, popup.menu)
+
+        popup.setOnMenuItemClickListener { menuItem ->
+            val newCriteria: String
+            val newText: String
+
+            when (menuItem.itemId) {
+                R.id.action_sort_latest -> {
+                    newCriteria = "latest"
+                    newText = "최신순"
+                }
+                R.id.action_sort_popularity -> {
+                    newCriteria = "popularity"
+                    newText = "참여자순"
+                }
+                else -> return@setOnMenuItemClickListener false
+            }
+            viewModel.sortChallenges(newCriteria)
+            binding.tvFilter.text = newText
+
+            true
+        }
+
+        popup.show()
+    }
+
+    private fun setupRecyclerView() {
+        challengeAdapter = ChallengeAdapter()
         challengeAdapter.onItemClickListener = { challenge ->
-            val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(challenge.challId)
+            val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(
+                challenge.challId.toString()
+            )
             findNavController().navigate(action)
         }
 
@@ -117,7 +158,7 @@ class ChallengeFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             adapter = challengeAdapter
         }
-    }*/
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
