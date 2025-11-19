@@ -21,6 +21,8 @@ import com.example.lifemaster.databinding.ItemChallengeBinding
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.presentation.challenge.viewmodel.ChallengeViewModel
 import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
+import android.widget.Toast
+import androidx.navigation.fragment.findNavController
 
 data class MyChallenge(
     val imageRes: Int,
@@ -33,7 +35,7 @@ class ChallengeFragment : Fragment() {
     private var _binding: FragmentChallengeBinding? = null
     private val binding get() = _binding!!
     private val viewModel: ChallengeViewModel by viewModels()
-    //private lateinit var challengeAdapter: ChallengeAdapter
+    private lateinit var challengeAdapter: ChallengeAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,8 +47,8 @@ class ChallengeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupMyChallenges()
-        //setupRecyclerView()
+        // setupMyChallenges()
+        setupRecyclerView()
         observeViewModel()
         viewModel.loadChallenges()
     }
@@ -54,7 +56,7 @@ class ChallengeFragment : Fragment() {
     private fun observeViewModel() {
         viewModel.challengeData.observe(viewLifecycleOwner) { challengeResponse ->
             challengeResponse?.content?.let { challengeList ->
-                //challengeAdapter.submitList(challengeList)
+                challengeAdapter.submitList(challengeList)
                 Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${challengeList.size}개")
             }
         }
@@ -101,7 +103,7 @@ class ChallengeFragment : Fragment() {
         }
     }
 
-    /*private fun setupRecyclerView() {
+    private fun setupRecyclerView() {
         challengeAdapter = ChallengeAdapter()
 
         challengeAdapter.onItemClickListener = { challenge ->
@@ -117,7 +119,7 @@ class ChallengeFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             adapter = challengeAdapter
         }
-    }*/
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
