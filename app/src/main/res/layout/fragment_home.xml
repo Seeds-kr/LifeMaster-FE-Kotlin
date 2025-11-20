@@ -123,6 +123,13 @@
                         android:textColor="@color/black"
                         android:textSize="16sp" />
 
+                    <ImageView
+                        android:id="@+id/ivTodoDelete"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="12dp"
+                        android:src="@drawable/ic_todo_delete"/>
+
                     <Button
                         android:id="@+id/btn_add_todo_item"
                         android:layout_width="wrap_content"
