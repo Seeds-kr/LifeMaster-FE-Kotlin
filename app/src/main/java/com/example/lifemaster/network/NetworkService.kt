@@ -1,17 +1,17 @@
 package com.example.lifemaster.network
 
+import com.example.lifemaster.presentation.community.model.*
 import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
-import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
-import com.example.lifemaster.presentation.login.model.LoginInfo
+import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
+import com.example.lifemaster.presentation.login.model.LoginInfo
+import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
+import com.example.lifemaster.presentation.login.model.RegResponse
+import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
-import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
-import com.example.lifemaster.presentation.login.model.RegisterInfo
-import com.example.lifemaster.presentation.login.model.RegResponse
-import com.example.lifemaster.presentation.community.model.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -71,22 +71,22 @@ interface NetworkService {
     @POST("/schedule/todo/create")
     fun registerTodoItem(
         @Header("Authorization") token: String,
-        @Body todoItem: TodoItem
-    ): Call<TodoItem>
+        @Body todoModel: TodoModel
+    ): Call<TodoModel>
 
     // To-Do 삭제
     @DELETE("/schedule/todo/{id}")
-    fun deleteTodoItem(
+    suspend fun deleteTodoItem(
         @Header("Authorization") token: String,
         @Path("id") id: Int
-    ):Call<Any>
+    ): Any
 
     // 특정 To-Do 조회
     @GET("/schedule/todo/{id}")
     fun getTodoItem(
         @Header("Authorization") token: String,
         @Path("id") id: Int
-    ):Call<TodoItem>
+    ):Call<TodoModel>
 
     // To-Do 업데이트
     @PUT("/schedule/todo/{id}")
@@ -95,14 +95,14 @@ interface NetworkService {
         @Path("id") id: Int,
         @Query("date") date: String,
         @Query("title") title: String
-    ):Call<TodoItem>
+    ):Call<TodoModel>
 
     // To-Do 완료 상태 토글
     @PATCH("/schedule/todo/{id}/toggle-completed")
     fun toggleTodoItem(
         @Header("Authorization") token: String,
         @Path("id") id: Int
-    ):Call<TodoItem>
+    ):Call<TodoModel>
 
     // 새로운 포모도로 타이머 생성
     @POST("/time/pomodoro/create")

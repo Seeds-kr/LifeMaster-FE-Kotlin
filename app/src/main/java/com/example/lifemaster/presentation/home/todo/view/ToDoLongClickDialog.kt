@@ -10,13 +10,13 @@ import com.example.lifemaster.databinding.DialogLongClickTodoBinding
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class ToDoLongClickDialog(
-    private val todoItem: TodoItem,
+    private val todoModel: TodoModel,
     private val todoViewModel: ToDoViewModel,
     private val userToken: String?
 ): DialogFragment(R.layout.dialog_long_click_todo) {
@@ -32,29 +32,29 @@ class ToDoLongClickDialog(
     private fun initListeners() = with(binding) {
         btnModify.setOnClickListener {
             dismiss()
-            val dialog = ToDoDialog(TODO.EDIT, todoItem, userToken)
+            val dialog = ToDoDialog(TODO.EDIT, todoModel, userToken)
             dialog.isCancelable = false
             dialog.show(parentFragmentManager, ToDoDialog.TAG)
         }
         btnDelete.setOnClickListener {
             // 삭제
-            Log.d("ttest", ""+todoItem)
-            RetrofitInstance.networkService.deleteTodoItem(token = "Bearer $userToken", todoItem.id)
-                .enqueue(object : Callback<Any> {
-                    override fun onResponse(call: Call<Any>, response: Response<Any>) {
-                        if (response.isSuccessful) {
-                            Toast.makeText(context, "할일이 삭제되었습니다!", Toast.LENGTH_SHORT).show()
-                            todoViewModel.deleteTodoItems(todoItem)
-                            dismiss()
-                        } else {
-                            Log.d("ttest", response.message())
-                        }
-                    }
-
-                    override fun onFailure(call: Call<Any>, t: Throwable) {
-                        Log.d("ttest", "" + t.message)
-                    }
-                })
+            Log.d("ttest", ""+todoModel)
+//            RetrofitInstance.networkService.deleteTodoItem(token = "Bearer $userToken", todoModel.id)
+//                .enqueue(object : Callback<Any> {
+//                    override fun onResponse(call: Call<Any>, response: Response<Any>) {
+//                        if (response.isSuccessful) {
+//                            Toast.makeText(context, "할일이 삭제되었습니다!", Toast.LENGTH_SHORT).show()
+//                            todoViewModel.deleteTodoItems(todoModel)
+//                            dismiss()
+//                        } else {
+//                            Log.d("ttest", response.message())
+//                        }
+//                    }
+//
+//                    override fun onFailure(call: Call<Any>, t: Throwable) {
+//                        Log.d("ttest", "" + t.message)
+//                    }
+//                })
         }
         btnCancel.setOnClickListener { dismiss() }
     }

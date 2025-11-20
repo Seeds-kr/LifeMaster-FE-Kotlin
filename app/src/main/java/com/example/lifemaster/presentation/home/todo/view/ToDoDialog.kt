@@ -11,7 +11,7 @@ import com.example.lifemaster.databinding.DialogTodoBinding
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter
 
 class ToDoDialog(
     private val caller: TODO,
-    private val todoItem: TodoItem? = null,
+    private val todoModel: TodoModel? = null,
     private val userToken: String? = null
 ) : DialogFragment(R.layout.dialog_todo) {
 
@@ -37,12 +37,12 @@ class ToDoDialog(
     private fun initViews() = with(binding) {
         when(caller) {
             TODO.ADD -> {
-                tvTitle.text = "할일 추가"
+                tvTodoTitle.text = "할일 추가"
                 btnChange.text = "추가하기"
             }
             TODO.EDIT -> {
-                etTitle.setText(todoItem?.title)
-                tvTitle.text = "할일 수정"
+                etTitle.setText(todoModel?.title)
+                tvTodoTitle.text = "할일 수정"
                 btnChange.text = "수정하기"
             }
         }
@@ -62,13 +62,13 @@ class ToDoDialog(
                     else {
                         RetrofitInstance.networkService.registerTodoItem(
                             token = "Bearer $userToken",
-                            todoItem = TodoItem(
+                            todoModel = TodoModel(
                                 date = getTodayDate(),
                                 title = title,
                                 isCompleted = false
                             ),
-                        ).enqueue(object : Callback<TodoItem> {
-                            override fun onResponse(call: Call<TodoItem>, response: Response<TodoItem>) {
+                        ).enqueue(object : Callback<TodoModel> {
+                            override fun onResponse(call: Call<TodoModel>, response: Response<TodoModel>) {
                                 if (response.isSuccessful) {
                                     val newItem = response.body()
                                     newItem?.let { toDoViewModel.addTodoItems(it) }
@@ -79,7 +79,7 @@ class ToDoDialog(
                                 }
                             }
 
-                            override fun onFailure(call: Call<TodoItem>, t: Throwable) {
+                            override fun onFailure(call: Call<TodoModel>, t: Throwable) {
                                 Log.d("server error", "" + t.message)
                             }
                         })
@@ -97,13 +97,13 @@ class ToDoDialog(
                     else {
                         RetrofitInstance.networkService.updateTodoItem(
                             token = "Bearer $userToken",
-                            id = todoItem?.id ?: 0,
+                            id = todoModel?.id ?: 0,
                             title = title,
                             date = getTodayDate()
-                        ).enqueue(object : Callback<TodoItem> {
+                        ).enqueue(object : Callback<TodoModel> {
                             override fun onResponse(
-                                call: Call<TodoItem>,
-                                response: Response<TodoItem>
+                                call: Call<TodoModel>,
+                                response: Response<TodoModel>
                             ) {
                                 if(response.isSuccessful) {
                                     val todoItem = response.body()
@@ -112,7 +112,7 @@ class ToDoDialog(
                                     dismiss()
                                 }
                             }
-                            override fun onFailure(call: Call<TodoItem>, t: Throwable) {
+                            override fun onFailure(call: Call<TodoModel>, t: Throwable) {
                                 Log.d("server", t.message!!)
                             }
                         })

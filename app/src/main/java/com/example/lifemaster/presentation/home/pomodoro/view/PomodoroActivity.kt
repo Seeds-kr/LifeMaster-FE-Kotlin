@@ -20,7 +20,7 @@ import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.home.pomodoro.model.SharedData
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroStatus
 import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import java.util.Timer
 import kotlin.concurrent.timer
 
@@ -33,7 +33,7 @@ class PomodoroActivity : AppCompatActivity() {
 
     private var time = 0
     private var timer: Timer? = null
-    private var todoItem: TodoItem? = null
+    private var todoModel: TodoModel? = null
     var totalDeciSecond = 0
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -48,8 +48,8 @@ class PomodoroActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun initViews() = with(binding) {
-        todoItem = intent.getParcelableExtra("item", TodoItem::class.java)
-        todoItem?.let { tvTodoItemTitle.text = it.title }
+        todoModel = intent.getParcelableExtra("item", TodoModel::class.java)
+        todoModel?.let { tvTodoItemTitle.text = it.title }
         val sharedPreference = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
         userToken = sharedPreference.getString("token", "null")
     }
@@ -238,20 +238,20 @@ class PomodoroActivity : AppCompatActivity() {
             if (totalTime == 25 * 60 * 10) {
                 // 25분
                 val pomodoroItem = PomodoroItem(
-                    taskName = todoItem!!.title,
+                    taskName = todoModel!!.title,
                     focusTime = 20,
                     breakTime = 5,
                     cycles = 0,
-                    date = todoItem!!.calendar.date,
+                    date = todoModel!!.calendar.date,
                     currentTimer = 0
                 )
             } else if (totalTime == 50 * 60 * 10) {
                 val pomodoroItem = PomodoroItem(
-                    taskName = todoItem!!.title,
+                    taskName = todoModel!!.title,
                     focusTime = 40,
                     breakTime = 10,
                     cycles = 0,
-                    date = todoItem!!.calendar.date,
+                    date = todoModel!!.calendar.date,
                     currentTimer = 0
                 )
             }
@@ -290,7 +290,7 @@ class PomodoroActivity : AppCompatActivity() {
 //            })
 
             val intent = Intent(this@PomodoroActivity, MainActivity::class.java).apply {
-                putExtra("todoItemTitle", todoItem?.title)
+                putExtra("todoItemTitle", todoModel?.title)
 //                Intent.setFlags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
             }
 
@@ -313,7 +313,7 @@ class PomodoroActivity : AppCompatActivity() {
 
     private fun initObservers() {
 //        pomodoroViewModel.selectedPosition.observe(viewLifecycleOwner) { selectedPosition ->
-//            binding.tvSelectTodoItem.text = SharedData.todoItems[selectedPosition]
+//            binding.tvSelectTodoItem.text = SharedData.todoModels[selectedPosition]
 //        }
         pomodoroViewModel.buttonCount.observe(this@PomodoroActivity) { btnCount ->
             when (btnCount) {

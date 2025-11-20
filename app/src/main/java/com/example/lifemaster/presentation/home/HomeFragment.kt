@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -20,23 +21,21 @@ import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
 import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
+import com.example.lifemaster.presentation.home.todo.view.ToDoNewDialog
+import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModelFactory
 import java.time.LocalDate
 
 class HomeFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding
-    lateinit var todoItems: ArrayList<TodoItem>
-    private val toDoViewModel: ToDoViewModel by activityViewModels()
+    lateinit var todoModels: ArrayList<TodoModel>
     private val toDoViewModel: ToDoViewModel by activityViewModels {
         ToDoViewModelFactory(RetrofitInstance.networkService)
     }
@@ -151,58 +150,58 @@ class HomeFragment : Fragment() {
         todoRecyclerview.adapter =
             ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager, userToken)
 
-        RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
-            .enqueue(object : Callback<List<TodoItem>> {
-                override fun onResponse(
-                    call: Call<List<TodoItem>>,
-                    response: Response<List<TodoItem>>
-                ) {
-                    if (response.isSuccessful) {
-                        todoItems = response.body() as ArrayList<TodoItem>
-                        RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
-                            .enqueue(object : Callback<List<PomodoroItem>> {
-                                override fun onResponse(
-                                    call: Call<List<PomodoroItem>?>,
-                                    response: Response<List<PomodoroItem>?>
-                                ) {
-                                    if (response.isSuccessful) {
-                                        val response = response.body()
-                                        val filterData1 = response?.groupBy { it.taskName }
-                                        val filterData2 = filterData1?.mapValues { (_, list) ->
-                                            val pomodoro25 =
-                                                list.count { it.focusTime == 20 } // 25분
-                                            val pomodoro50 =
-                                                list.count { it.focusTime == 40 } // 50분
-                                            Pair(pomodoro25, pomodoro50)
-                                        }
-                                        todoItems.forEach { todoItem ->
-                                            val pair = filterData2?.get(todoItem.title)
-                                            if (pair != null) {
-                                                todoItem.timer25Number = pair.first
-                                                todoItem.timer50Number = pair.second
-                                            }
-                                        }
-                                        toDoViewModel.getTodoItems(todoItems)
-                                    }
-                                }
-
-                                override fun onFailure(
-                                    call: Call<List<PomodoroItem>?>,
-                                    t: Throwable
-                                ) {
-                                    TODO("Not yet implemented")
-                                }
-
-                            })
-                    } else {
-                        Log.d("server success", "else")
-                    }
-                }
-
-                override fun onFailure(call: Call<List<TodoItem>>, t: Throwable) {
-                    Log.d("server error", "" + t.message)
-                }
-            })
+//        RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
+//            .enqueue(object : Callback<List<TodoModel>> {
+//                override fun onResponse(
+//                    call: Call<List<TodoModel>>,
+//                    response: Response<List<TodoModel>>
+//                ) {
+//                    if (response.isSuccessful) {
+//                        todoModels = response.body() as ArrayList<TodoModel>
+//                        RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
+//                            .enqueue(object : Callback<List<PomodoroItem>> {
+//                                override fun onResponse(
+//                                    call: Call<List<PomodoroItem>?>,
+//                                    response: Response<List<PomodoroItem>?>
+//                                ) {
+//                                    if (response.isSuccessful) {
+//                                        val response = response.body()
+//                                        val filterData1 = response?.groupBy { it.taskName }
+//                                        val filterData2 = filterData1?.mapValues { (_, list) ->
+//                                            val pomodoro25 =
+//                                                list.count { it.focusTime == 20 } // 25분
+//                                            val pomodoro50 =
+//                                                list.count { it.focusTime == 40 } // 50분
+//                                            Pair(pomodoro25, pomodoro50)
+//                                        }
+//                                        todoModels.forEach { todoItem ->
+//                                            val pair = filterData2?.get(todoItem.title)
+//                                            if (pair != null) {
+//                                                todoItem.timer25Number = pair.first
+//                                                todoItem.timer50Number = pair.second
+//                                            }
+//                                        }
+//                                        toDoViewModel.getTodoItems(todoModels)
+//                                    }
+//                                }
+//
+//                                override fun onFailure(
+//                                    call: Call<List<PomodoroItem>?>,
+//                                    t: Throwable
+//                                ) {
+//                                    TODO("Not yet implemented")
+//                                }
+//
+//                            })
+//                    } else {
+//                        Log.d("server success", "else")
+//                    }
+//                }
+//
+//                override fun onFailure(call: Call<List<TodoModel>>, t: Throwable) {
+//                    Log.d("server error", "" + t.message)
+//                }
+//            })
 
         // 수면
         itemSleepPreview.tvAlarmDate.text = "${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일"
@@ -233,12 +232,19 @@ class HomeFragment : Fragment() {
     private fun initObservers() {
         toDoViewModel.todoItems.observe(viewLifecycleOwner) { updateItems ->
             val newList = updateItems.map { it.copy() }
-            (binding.recyclerview.adapter as ToDoAdapter).submitList(newList)
+//            (binding.recyclerview.adapter as ToDoAdapter).submitList(newList)
         }
 
         toDoViewModel.remoteTodoItems.observe(viewLifecycleOwner) { remoteTodoItems ->
             this.remoteTodoItems = remoteTodoItems
             (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(remoteTodoItems)
+        }
+
+        toDoViewModel.isDeleteSuccess.observe(viewLifecycleOwner) { isDeleteSuccess ->
+            if(isDeleteSuccess) {
+                Toast.makeText(context, "삭제가 완료되었습니다", Toast.LENGTH_SHORT).show()
+                // TODO: UI 반영하기
+            }
         }
 
     }

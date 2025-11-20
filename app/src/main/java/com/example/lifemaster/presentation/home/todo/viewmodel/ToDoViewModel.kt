@@ -1,5 +1,6 @@
 package com.example.lifemaster.presentation.home.todo.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,11 +12,11 @@ import kotlinx.coroutines.launch
 
 class ToDoViewModel(private val networkService: NetworkService): ViewModel() {
 
-    private val _todoItems: MutableLiveData<ArrayList<TodoItem>> = MutableLiveData()
-    val todoItems: LiveData<ArrayList<TodoItem>> get() = _todoItems
+    private val _todoItems: MutableLiveData<ArrayList<TodoModel>> = MutableLiveData()
+    val todoItems: LiveData<ArrayList<TodoModel>> get() = _todoItems
 
-    fun getTodoItems(todoItem: ArrayList<TodoItem>) {
-        _todoItems.value = todoItem
+    fun getTodoItems(todoModel: ArrayList<TodoModel>) {
+        _todoItems.value = todoModel
     }
 
     private val _remoteTodoItems: MutableLiveData<List<TodoModel>> = MutableLiveData()
@@ -26,7 +27,7 @@ class ToDoViewModel(private val networkService: NetworkService): ViewModel() {
             try {
                 _remoteTodoItems.value = networkService.getTodoItems(token = token)
             } catch (e: Exception) {
-                Log.e(HomeFragment.TAG_TODO, e.message ?: "")
+                Log.e(HomeFragment.TAG_TODO, "GET: ${e.message}")
             }
         }
     }
@@ -37,13 +38,27 @@ class ToDoViewModel(private val networkService: NetworkService): ViewModel() {
         _todoItems.value = currentList
     }
 
-    fun deleteTodoItems(deleteItem: TodoItem) {
+    fun deleteTodoItems(deleteItem: TodoModel) {
         val currentList = _todoItems.value ?: arrayListOf()
         currentList.remove(deleteItem)
         _todoItems.value = currentList
     }
 
-    fun changeTodoItems(changeItem: TodoItem) {
+    private val _isDeleteSuccess: MutableLiveData<Boolean> = MutableLiveData(false)
+    val isDeleteSuccess: LiveData<Boolean> get() = _isDeleteSuccess
+
+    fun deleteRemoteTodoItems(token: String, id: Int) {
+        viewModelScope.launch {
+            try {
+                networkService.deleteTodoItem(token = token, id = id)
+                _isDeleteSuccess.value = true
+            } catch (e: Exception) {
+                Log.e(HomeFragment.TAG_TODO, "DELETE: ${e.message}")
+            }
+        }
+    }
+
+    fun changeTodoItems(changeItem: TodoModel) {
         val currentList = _todoItems.value ?: arrayListOf()
         val i = currentList.indexOfFirst { it.id == changeItem.id }
         currentList[i] = changeItem

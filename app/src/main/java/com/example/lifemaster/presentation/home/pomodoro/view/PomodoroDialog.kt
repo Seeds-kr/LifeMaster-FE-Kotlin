@@ -22,7 +22,7 @@ class PomodoroDialog: DialogFragment(), SendSelectedPositionInterface {
         savedInstanceState: Bundle?
     ): View {
         binding = DialogPomodoroBinding.inflate(inflater, container, false)
-//        binding.recyclerview.adapter = PomodoroAdapter(SharedData.todoItems, requireContext(), this) // [?] requireContext 를 전달하는게 맞나? 해당 위치에 작성하는 코드가 맞는가?
+//        binding.recyclerview.adapter = PomodoroAdapter(SharedData.todoModels, requireContext(), this) // [?] requireContext 를 전달하는게 맞나? 해당 위치에 작성하는 코드가 맞는가?
         return binding.root
     }
 

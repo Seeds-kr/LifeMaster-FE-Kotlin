@@ -61,34 +61,34 @@ class ToDoAdapter(
 //            }
 
             // 50분 타이머 동적 추가
-            llTimerContainer50.removeAllViews()
-            if(item.timer50Number > 0) {
-                llTimerContainer50.visibility = View.VISIBLE
-                repeat(item.timer50Number) {
-                    val timer50ImageView = ImageView(root.context).apply {
-                        setImageResource(R.drawable.ic_timer_50)
-                        val size = 18
-                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
-                            marginEnd = 4.dp
-                        }
-                    }
-                    llTimerContainer50.addView(timer50ImageView)
-                }
-            } else {
-                llTimerContainer50.visibility = View.GONE
-            }
+//            llTimerContainer50.removeAllViews()
+//            if(item.timer50Number > 0) {
+//                llTimerContainer50.visibility = View.VISIBLE
+//                repeat(item.timer50Number) {
+//                    val timer50ImageView = ImageView(root.context).apply {
+//                        setImageResource(R.drawable.ic_timer_50)
+//                        val size = 18
+//                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
+//                            marginEnd = 4.dp
+//                        }
+//                    }
+//                    llTimerContainer50.addView(timer50ImageView)
+//                }
+//            } else {
+//                llTimerContainer50.visibility = View.GONE
+//            }
         }
 
-        private fun bindEvents(item: TodoItem) = with(binding) {
+        private fun bindEvents(item: TodoModel) = with(binding) {
             itemView.setOnLongClickListener {
                 val dialog = ToDoLongClickDialog(item, toDoViewModel, userToken)
                 dialog.isCancelable = false
                 dialog.show(fragmentManager, ToDoLongClickDialog.Companion.TAG) // childFragmentManager
                 true
             }
-            chIsCompleted.setOnCheckedChangeListener { _, _ ->
-                toggleTodoStatus(item)
-            }
+//            chIsCompleted.setOnCheckedChangeListener { _, _ ->
+//                toggleTodoStatus(item)
+//            }
             ivGoToPomodoro.setOnClickListener {
                 val intent = Intent(context, PomodoroActivity::class.java).apply {
                     putExtra("item", item)
@@ -97,12 +97,12 @@ class ToDoAdapter(
             }
         }
 
-        private fun toggleTodoStatus(item: TodoItem) {
+        private fun toggleTodoStatus(item: TodoModel) {
             RetrofitInstance.networkService.toggleTodoItem(token = "Bearer $userToken", item.id)
-                .enqueue(object : Callback<TodoItem> {
+                .enqueue(object : Callback<TodoModel> {
                     override fun onResponse(
-                        call: Call<TodoItem>,
-                        response: Response<TodoItem>
+                        call: Call<TodoModel>,
+                        response: Response<TodoModel>
                     ) {
                         if (response.isSuccessful) {
                             val todoItem = response.body() ?: return
@@ -124,7 +124,7 @@ class ToDoAdapter(
                         }
                     }
 
-                    override fun onFailure(call: Call<TodoItem>, t: Throwable) {
+                    override fun onFailure(call: Call<TodoModel>, t: Throwable) {
                         TODO("Not yet implemented")
                     }
                 })
@@ -146,14 +146,12 @@ class ToDoAdapter(
     }
 
     companion object {
-        val differ = object : DiffUtil.ItemCallback<TodoItem>() {
-            override fun areContentsTheSame(oldItem: TodoItem, newItem: TodoItem): Boolean {
-                val result = oldItem == newItem
-                Log.d("DiffUtil", "Comparing: $oldItem vs $newItem => $result")
-                return result
+        val differ = object : DiffUtil.ItemCallback<TodoModel>() {
+            override fun areContentsTheSame(oldItem: TodoModel, newItem: TodoModel): Boolean {
+                return oldItem == newItem
             }
 
-            override fun areItemsTheSame(oldItem: TodoItem, newItem: TodoItem): Boolean {
+            override fun areItemsTheSame(oldItem: TodoModel, newItem: TodoModel): Boolean {
                 return oldItem.id == newItem.id
             }
         }

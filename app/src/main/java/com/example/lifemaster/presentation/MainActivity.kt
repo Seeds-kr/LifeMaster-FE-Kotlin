@@ -30,7 +30,7 @@ import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
@@ -238,7 +238,7 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         // 포모도로 → 할일 업데이트
-        val updateItem = intent.getParcelableExtra("pomodoro", TodoItem::class.java)
+        val updateItem = intent.getParcelableExtra("pomodoro", TodoModel::class.java)
         val todoItemTitle = intent.getStringExtra("todoItemTitle")
         if (todoItemTitle != null) {
             RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
@@ -255,8 +255,8 @@ class MainActivity : AppCompatActivity() {
                                 val todoItem =
                                     toDoViewModel.todoItems.value?.find { it.title == todoItemTitle }
                                 todoItem?.let {
-                                    it.timer25Number = pomodoro25Count
-                                    it.timer50Number = pomodoro50Count
+//                                    it.timer25Number = pomodoro25Count
+//                                    it.timer50Number = pomodoro50Count
                                     toDoViewModel.changeTodoItems(it)
                                 }
                             }

@@ -73,8 +73,8 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
     private fun setupViews() {
         with(binding) {
-            recyclerview.addItemDecoration(DividerItemDecoration(context, LinearLayout.VERTICAL)) // 구분선 넣기
-            recyclerview.adapter = alarmAdapter
+            alarmRecyclerview.addItemDecoration(DividerItemDecoration(context, LinearLayout.VERTICAL)) // 구분선 넣기
+            alarmRecyclerview.adapter = alarmAdapter
         }
     }
 
@@ -91,7 +91,7 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
         alarmViewModel.alarmItems.observe(viewLifecycleOwner) { items ->
             if (binding.llNoAlarmItem.visibility == View.VISIBLE) { // 리팩토링하기
                 binding.llNoAlarmItem.visibility = View.GONE
-                binding.recyclerview.visibility = View.VISIBLE
+                binding.alarmRecyclerview.visibility = View.VISIBLE
             }
             alarmAdapter.submitList(items)
         }
