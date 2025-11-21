@@ -1,15 +1,20 @@
 package com.example.lifemaster.presentation.home.alarm.view.fragment
 
+import android.app.Activity
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -51,6 +56,12 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         )
     }
 
+    private lateinit var ringtonePickerLauncher: ActivityResultLauncher<Intent>
+
+    // 알람 정보
+    private var uriString: String = "" // 음원 URI 정보
+    private var ringtoneTitle: String = "" // 음원 제목
+
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -64,6 +75,27 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         // 알람 반복 요일 뷰 초기화 (하나의 뷰 재활용)
         val dayLabels = listOf("월", "화", "수", "목", "금", "토", "일")
         daysOfWeek.zip(dayLabels).forEach { it.first.tvDayType.text = it.second }
+
+        // 알람 소리 런처 초기화 + URI 및 Music Title 정보 초기화 + Music Title UI binding
+        ringtonePickerLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if(result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                val selectedUri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    data?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+                }
+                if(selectedUri != null) {
+                    uriString = selectedUri.toString()
+                    val ringtone = RingtoneManager.getRingtone(context, selectedUri)
+                    ringtoneTitle = ringtone.getTitle(context)
+                    tvAlarmSettingMusicTitle.text = ringtoneTitle
+                }
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -105,7 +137,11 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
         // 사운드 설정
         ivAlarmSettingSound.setOnClickListener {
-            // TODO: 소리 목록을 가진 다이얼로그 띄우기
+            val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
+                putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+            }
+            ringtonePickerLauncher.launch(intent)
         }
 
         // 알람 저장하기(추가하기)
