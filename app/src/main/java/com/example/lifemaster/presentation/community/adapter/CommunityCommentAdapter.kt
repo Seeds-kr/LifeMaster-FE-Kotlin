@@ -14,14 +14,15 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
 class CommunityCommentAdapter(
-    // 나중에 권한 줄때 (지금은 무시)
+    // 서버의 isMine을 사용하므로 이 둘은 더이상 쓰지 않지만 호환을 위해 유지
     private val myMemberId: Long? = null,
     private val myNickname: String? = null,
 
     private val items: MutableList<Comment> = mutableListOf(),
     private val listener: CommentActionListener? = null,
 
-    private val allowAllActions: Boolean = true
+    // ★ 기본 false: 내 댓글(isMine=true)일 때만 편집/삭제 허용
+    private val allowAllActions: Boolean = false
 ) : RecyclerView.Adapter<CommunityCommentAdapter.VH>() {
 
     companion object { private const val PAYLOAD_TIME = "payload_time" }
@@ -29,6 +30,7 @@ class CommunityCommentAdapter(
     interface CommentActionListener {
         fun onEditRequest(comment: Comment, position: Int)
         fun onDeleteRequest(comment: Comment, position: Int)
+        fun onToggleLike(comment: Comment, position: Int)   // ★ 댓글 좋아요 토글 콜백
     }
 
     inner class VH(v: View) : RecyclerView.ViewHolder(v) {
@@ -48,16 +50,25 @@ class CommunityCommentAdapter(
 
     override fun onBindViewHolder(h: VH, position: Int) {
         val item = items[position]
+
         h.tvContent?.text = item.content
         h.tvTime?.text = toRelativeTime(item.createdAt)
         h.tvNickname?.text = item.nickname
         h.tvLike?.text = item.likeCount.toString()
-        h.btnLike?.setImageResource(if (item.isLiked) R.drawable.ic_fill_heart else R.drawable.ic_heart)
+        h.btnLike?.setImageResource(
+            if (item.isLiked) R.drawable.ic_fill_heart else R.drawable.ic_heart
+        )
         h.tvEdited?.visibility = if (item.isEdited) View.VISIBLE else View.GONE
 
+        // 좋아요 버튼
         h.btnLike?.setOnClickListener {
             val pos = h.adapterPosition
             if (pos == RecyclerView.NO_POSITION) return@setOnClickListener
+
+            // ViewModel로 네트워크 토글 위임
+            listener?.onToggleLike(items[pos], pos)
+
+            // 낙관적 업데이트(즉시 UI 반영)
             val cur = items[pos]
             val newLiked = !cur.isLiked
             val newCount = if (newLiked) cur.likeCount + 1 else (cur.likeCount - 1).coerceAtLeast(0)
@@ -65,12 +76,13 @@ class CommunityCommentAdapter(
             notifyItemChanged(pos)
         }
 
+        // ★ 소유자만(또는 allowAllActions=true면 모두) 롱클릭 메뉴 노출
         h.itemView.setOnLongClickListener { anchor ->
             val pos = h.adapterPosition
             if (pos == RecyclerView.NO_POSITION) return@setOnLongClickListener true
             val itemNow = items[pos]
 
-            if (allowAllActions || isMine(itemNow)) {
+            if (allowAllActions || itemNow.isMine) {
                 val ctx = anchor.context
                 val content = LayoutInflater.from(ctx)
                     .inflate(R.layout.dialog_community_comment_menu, null)
@@ -107,16 +119,6 @@ class CommunityCommentAdapter(
         }
     }
 
-    // 나중에 권한 줄때 (지금은 미사용)
-    private fun isMine(c: Comment): Boolean {
-        val mine = myMemberId
-        return when {
-            mine != null && c.memberId != null -> c.memberId == mine
-            !myNickname.isNullOrBlank()        -> c.nickname == myNickname
-            else                               -> false
-        }
-    }
-
     override fun onBindViewHolder(h: VH, position: Int, payloads: MutableList<Any>) {
         if (payloads.contains(PAYLOAD_TIME)) {
             h.tvTime?.text = toRelativeTime(items[position].createdAt)
@@ -136,6 +138,14 @@ class CommunityCommentAdapter(
     fun add(comment: Comment) {
         items.add(comment)
         notifyItemInserted(items.lastIndex)
+    }
+
+    // 필요 시 외부에서 특정 댓글의 좋아요/카운트만 갱신할 수 있도록 헬퍼 제공
+    fun updateLikeAt(position: Int, liked: Boolean, likeCount: Int) {
+        if (position !in items.indices) return
+        val cur = items[position]
+        items[position] = cur.copy(isLiked = liked, likeCount = likeCount.coerceAtLeast(0))
+        notifyItemChanged(position)
     }
 
     private fun toRelativeTime(timeMillis: Long): String {

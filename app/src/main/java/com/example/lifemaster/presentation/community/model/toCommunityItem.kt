@@ -10,14 +10,13 @@ fun PostSummaryDto.toCommunityItem(idStr: String): CommunityItem =
         title = this.title.orEmpty(),
         content = "",
         author = this.nickName.orEmpty(),
-        authorImage = null,
-        likes = 0,
+        likes = this.likeCount ?: 0,
+        liked = this.liked == true,
         views = this.viewCount ?: 0,
         createdAt = parseIsoToMillisFlexible(this.createdAt) ?: 0L,
         fileUri = null,
         type = "FREE",
-        commentCount = this.commentCount ?: 0,
-        comments = emptyList()
+        commentCount = this.commentCount ?: 0
     )
 
 fun parseIsoToMillisFlexible(iso: String?): Long? {

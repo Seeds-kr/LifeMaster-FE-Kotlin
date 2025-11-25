@@ -7,6 +7,7 @@ data class CommunityItem(
     val author: String,
     val authorImage: String? = null,
     val likes: Int = 0,
+    val liked: Boolean = false,
     val views: Int = 0,
     val createdAt: Long = 0L,
     val fileUri: String? = null,
