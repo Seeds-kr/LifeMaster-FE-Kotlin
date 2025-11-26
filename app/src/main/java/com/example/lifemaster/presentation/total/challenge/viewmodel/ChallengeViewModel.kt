@@ -1,34 +1,26 @@
-package com.example.lifemaster.presentation.challenge.viewmodel
+package com.example.lifemaster.presentation.total.challenge.viewmodel
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
+import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.example.lifemaster.data.repository.challenge.ChallengeRepository
+import com.example.lifemaster.domain.model.ChallengeItem
 import com.example.lifemaster.network.RetrofitInstance
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.flow.Flow
 
+/**
+ * 챌린지 목록 데이터를 관리하고 UI에 노출하는 ViewModel.
+ */
+// ⭐ Hilt/Koin 같은 DI(의존성 주입)를 사용하면 아래 코드가 훨씬 더 간결해집니다.
 class ChallengeViewModel : ViewModel() {
 
-    private val _challengeData = MutableLiveData<ChallengeResponse>()
-    val challengeData: LiveData<ChallengeResponse> = _challengeData
+    private val repository: ChallengeRepository = ChallengeRepository(RetrofitInstance.networkService)
 
-    fun loadChallenges() {
-        RetrofitInstance.networkService.getChallenges(page = 0).enqueue(object : Callback<ChallengeResponse> {
-            override fun onResponse(call: Call<ChallengeResponse>, response: Response<ChallengeResponse>) {
-                if (response.isSuccessful) {
-                    _challengeData.postValue(response.body())
-                    Log.d("ViewModel", "챌린지 로딩 성공")
-                } else {
-                    Log.e("ViewModel", "서버 응답 에러: ${response.code()}")
-                }
-            }
-
-            override fun onFailure(call: Call<ChallengeResponse>, t: Throwable) {
-                Log.e("ViewModel", "통신 실패: ${t.message}")
-            }
-        })
-    }
+    /**
+     * UI(Fragment 또는 Activity)에서 관찰할 챌린지 목록 PagingData Flow입니다.
+     * .cachedIn(viewModelScope)를 통해 화면 회전 등에도 데이터를 안전하게 유지합니다.
+     */
+    val challenges: Flow<PagingData<ChallengeItem>> = repository.getChallengePagingData()
+        .cachedIn(viewModelScope)
 }

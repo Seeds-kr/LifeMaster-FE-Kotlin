@@ -6,7 +6,7 @@ import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
-import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
+import com.example.lifemaster.data.remote.dto.ChallengeListResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
@@ -122,9 +122,12 @@ interface NetworkService {
 
     // 챌린지 목록 조회
     @GET("/challenge")
-    fun getChallenges(
-        @Query("page") page: Int
-    ): Call<ChallengeResponse>
+    suspend fun getChallenges(
+        @Query("page") page: Int,
+        @Query("size") size: Int
+    ): ChallengeListResponse
+
+
 
     // 감사일기 생성
     @POST("/schedule/self-reflection/thank")
