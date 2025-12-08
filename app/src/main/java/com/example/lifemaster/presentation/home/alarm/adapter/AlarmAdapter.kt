@@ -6,48 +6,31 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemAlarmBinding
-import com.example.lifemaster.presentation.home.alarm.model.AlarmItem
+import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 
-class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
+class AlarmAdapter : ListAdapter<AlarmModel, AlarmAdapter.ViewHolder>(differ) {
     inner class ViewHolder(private val binding: ItemAlarmBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        private val dayMapping by lazy {
-            mapOf(
-                "월" to binding.tvMonday,
-                "화" to binding.tvTuesday,
-                "수" to binding.tvWednesday,
-                "목" to binding.tvThursday,
-                "금" to binding.tvFriday,
-                "토" to binding.tvSaturday,
-                "일" to binding.tvSunday
-            )
-        }
-
-        fun bind(item: AlarmItem) = with(binding) {
-            includeSwitch.widget.isChecked = true
+        fun bind(item: AlarmModel) = with(binding) {
             tvTime.text = item.timeText
-            tvDayOrNight.text = item.ampmText
-            tvAlarmName.text = item.title
-            tvAlarmDelay.text = if (item.isDelaySet) {
-                "미루기 ${item.delayMinute}분 총 ${item.delayCount}회"
-            } else {
-                "미루기 없음"
+            tvDayOrNight.text = item.ampm
+            tvAlarmName.text = item.alarmTitle
+            tvMonday.isSelected = item.alarmMon
+            tvTuesday.isSelected = item.alarmTue
+            tvWednesday.isSelected = item.alarmWed
+            tvThursday.isSelected = item.alarmThu
+            tvFriday.isSelected = item.alarmFri
+            tvSaturday.isSelected = item.alarmSat
+            tvSunday.isSelected = item.alarmSun
+            when(item.randomMissionType) {
+                RandomMissionType.MATH_PROBLEM -> ivRandomMissionMath.isSelected = true
+                RandomMissionType.FOLLOW_CLICK -> ivRandomMissionTouch.isSelected = true
+                RandomMissionType.TYPING_SENTENCE -> ivRandomMissionWrite.isSelected = true
+                RandomMissionType.NONE -> Unit
             }
-            item.alarmRepeatDays.forEach { day ->
-                dayMapping[day]?.isSelected = true
-            }
-            item.randomMissions.forEach { randomMissionType ->
-                when (randomMissionType) {
-                    RandomMissionType.MATHEMATICAL_PROBLEM_SOLVING -> ivRandomMissionMath.isSelected =
-                        true
-
-                    RandomMissionType.TOUCH_ALONG -> ivRandomMissionTouch.isSelected = true
-                    RandomMissionType.WRITE_ALONG -> ivRandomMissionWrite.isSelected = true
-                }
-            }
-
+            includeSwitch.alarmSwitch.isChecked = item.switchOnOff
         }
     }
 
@@ -62,12 +45,12 @@ class AlarmAdapter : ListAdapter<AlarmItem, AlarmAdapter.ViewHolder>(differ) {
     }
 
     companion object {
-        val differ = object : DiffUtil.ItemCallback<AlarmItem>() {
-            override fun areContentsTheSame(oldItem: AlarmItem, newItem: AlarmItem): Boolean {
+        val differ = object : DiffUtil.ItemCallback<AlarmModel>() {
+            override fun areContentsTheSame(oldItem: AlarmModel, newItem: AlarmModel): Boolean {
                 return oldItem == newItem
             }
 
-            override fun areItemsTheSame(oldItem: AlarmItem, newItem: AlarmItem): Boolean {
+            override fun areItemsTheSame(oldItem: AlarmModel, newItem: AlarmModel): Boolean {
                 return oldItem.id == newItem.id
             }
         }

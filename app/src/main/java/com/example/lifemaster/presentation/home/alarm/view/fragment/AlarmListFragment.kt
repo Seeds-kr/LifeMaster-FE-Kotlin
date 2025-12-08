@@ -1,11 +1,9 @@
 package com.example.lifemaster.presentation.home.alarm.view.fragment
 
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
-import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -15,26 +13,38 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmListBinding
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.alarm.adapter.AlarmAdapter
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmGenerateViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
 import java.time.ZoneId
 import java.time.LocalDate
+import android.util.Log
+import android.widget.Toast
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
+import com.example.lifemaster.presentation.home.alarm.model.DataResource
+import com.example.lifemaster.presentation.home.alarm.model.mapper.toPresentation
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
     private lateinit var binding: FragmentAlarmListBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels(
         factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
     )
+    private val alarmGenerateViewModel: AlarmGenerateViewModel by activityViewModels()
     private val alarmAdapter = AlarmAdapter()
 
-    @RequiresApi(Build.VERSION_CODES.S)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmListBinding.bind(view)
-        // 수면이랑 연관된 코드인 것 같음
+        // 수면이랑 연관된 코드
         val origin = arguments?.getString("origin")
         if (origin == "alarm_random_mission") {
             requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible =
@@ -80,9 +90,9 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
             )
         )
         alarmRecyclerview.adapter = alarmAdapter
+        alarmGenerateViewModel.fetchAlarmList()
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun initListeners() = with(binding) {
         tvAddAlarmItem.setOnClickListener {
             findNavController().navigate(R.id.action_alarmListFragment_to_alarmSettingFragment)
@@ -90,13 +100,31 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
     }
 
     private fun initObservers() = with(binding) {
-        alarmViewModel.alarmItems.observe(viewLifecycleOwner) { alarms ->
-            // 알람 등록하는 경우에 호출됨
-            if (llNoAlarmItem.isVisible) {
-                llNoAlarmItem.isVisible = false
-                alarmRecyclerview.isVisible = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alarmGenerateViewModel.alarmList.collect { resource ->
+                    when (resource) {
+                        is DataResource.Loading -> { }
+                        is DataResource.Idle -> { }
+                        is DataResource.Success -> {
+                            val alarmResponse: List<AlarmResponse> = resource.data
+                            if (alarmResponse.isNotEmpty()) {
+                                llNoAlarmItem.isVisible = false
+                                alarmRecyclerview.isVisible = true
+                                alarmAdapter.submitList(alarmResponse.map { it.toPresentation() })
+                            }
+                        }
+                        is DataResource.Error -> {
+                            Toast.makeText(context, "알람 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                            Log.e(ALARM, "alarmList fetch error", resource.throwable)
+                        }
+                    }
+                }
             }
-            alarmAdapter.submitList(alarms)
         }
+    }
+
+    companion object {
+        const val ALARM = "ALARM"
     }
 }

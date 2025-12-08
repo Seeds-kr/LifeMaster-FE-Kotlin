@@ -1,6 +1,8 @@
 package com.example.lifemaster.network
 
 import com.example.lifemaster.presentation.community.model.*
+import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
+import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
@@ -244,6 +246,7 @@ interface NetworkService {
         @Path("pollId") pollId: Long,
         @Body body: VoteRequest
     ): Call<ResponseBody>
+
     /**
      * Sleep Management API
      */
@@ -273,4 +276,17 @@ interface NetworkService {
     suspend fun generateMathProblem(
         @Query("level") level: String
     ): MathProblemResponse
+
+    /**
+     * Alarm API
+     */
+    // 새 알람 생성
+    @POST("/time/alarm")
+    suspend fun createNewAlarm(
+        @Body alarmRequest: AlarmRequest
+    )
+
+    // 모든 알람 조회
+    @GET("/time/alarm")
+    suspend fun fetchAlarmList(): List<AlarmResponse>
 }

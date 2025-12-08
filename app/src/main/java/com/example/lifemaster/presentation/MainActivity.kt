@@ -35,6 +35,7 @@ import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -47,6 +48,7 @@ import java.util.Date
 import java.util.Locale
 import kotlin.getValue
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     // View 관련 변수
