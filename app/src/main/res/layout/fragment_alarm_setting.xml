@@ -16,14 +16,13 @@
             android:id="@+id/ivAlarmSettingBack"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:src="@drawable/ic_cancel" />
+            android:src="@drawable/ic_back" />
 
         <EditText
             android:id="@+id/etAlarmSettingTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginTop="@dimen/alarm_setting_top_margin"
             android:background="@drawable/bg_round_and_white"
             android:backgroundTint="#F0F4F5"
             android:hint="알람 이름"
@@ -31,18 +30,30 @@
             android:padding="16dp"
             android:textSize="14sp" />
 
-        <TimePicker
-            android:id="@+id/alarmSettingTimePicker"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginTop="12dp"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="#F0F4F5"
-            android:timePickerMode="spinner" />
+            android:paddingBottom="12dp">
+            <TimePicker
+                android:id="@+id/alarmSettingTimePicker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:timePickerMode="spinner" />
+            <TextView
+                android:id="@+id/tvAlarmSettingRingTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|bottom"
+                tools:text="11월 26일 (수)"/>
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_marginTop="24dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -140,7 +151,7 @@
                     android:textStyle="bold" />
 
                 <include
-                    android:id="@+id/alarmSettingLayoutSwitchDelay"
+                    android:id="@+id/alarmSettingLayoutSwitchSnooze"
                     layout="@layout/layout_custom_switch" />
             </LinearLayout>
 
@@ -149,10 +160,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_round_radius"
-                android:backgroundTint="#EBE6DF"
+                android:backgroundTint="@color/alarm_setting_background"
                 android:gravity="center"
-                android:paddingVertical="@dimen/alarm_setting_status_padding"
                 android:orientation="horizontal"
+                android:paddingVertical="@dimen/alarm_setting_status_padding"
                 android:visibility="gone"
                 tools:visibility="visible">
 
@@ -165,10 +176,11 @@
                     app:cardElevation="0dp">
 
                     <TextView
-                        android:id="@+id/tvAlarmSettingDelayMinutes"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:id="@+id/tvAlarmSettingSnoozeMinutes"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
                         android:layout_gravity="center"
+                        android:gravity="center"
                         android:hint="10"
                         android:textColor="@color/black" />
                 </androidx.cardview.widget.CardView>
@@ -189,7 +201,7 @@
                     app:cardElevation="0dp">
 
                     <TextView
-                        android:id="@+id/tvAlarmSettingDelayCounts"
+                        android:id="@+id/tvAlarmSettingSnoozeCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
@@ -207,9 +219,9 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/alarm_setting_marginTop"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:layout_marginTop="@dimen/alarm_setting_marginTop"
                 android:paddingVertical="@dimen/alarm_setting_padding">
 
                 <TextView
@@ -222,7 +234,7 @@
                     android:textStyle="bold" />
 
                 <include
-                    android:id="@+id/alarmSettingLayoutSwitchAntiSleep"
+                    android:id="@+id/alarmSettingLayoutSwitchSnoozeLock"
                     layout="@layout/layout_custom_switch" />
             </LinearLayout>
 
@@ -231,12 +243,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_round_radius"
-                android:backgroundTint="#EBE6DF"
+                android:backgroundTint="@color/alarm_setting_background"
                 android:gravity="center"
                 android:orientation="horizontal"
+                android:paddingVertical="@dimen/alarm_setting_status_padding"
                 android:visibility="gone"
-                tools:visibility="visible"
-                android:paddingVertical="@dimen/alarm_setting_status_padding">
+                tools:visibility="visible">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -254,7 +266,7 @@
                     app:cardElevation="0dp">
 
                     <TextView
-                        android:id="@+id/tvAlarmSettingAntiSleepMinutes"
+                        android:id="@+id/tvAlarmSettingSnoozeLockMinutes"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
@@ -272,9 +284,9 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/alarm_setting_marginTop"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:layout_marginTop="@dimen/alarm_setting_marginTop"
                 android:paddingVertical="@dimen/alarm_setting_padding">
 
                 <TextView
@@ -307,9 +319,9 @@
             android:id="@+id/btn_save"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:background="@drawable/bg_round_radius"
             android:backgroundTint="@color/alarm_primary"
-            android:layout_marginTop="@dimen/alarm_setting_button_marginTop"
             android:text="저장하기"
             android:textColor="@color/white" />
 

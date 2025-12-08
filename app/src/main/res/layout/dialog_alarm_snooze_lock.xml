@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_round_and_white"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="다시 잠들기 방지"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="다시 잠들기를 방지할 시간을 설정해주세요"
+        android:layout_marginTop="12dp"/>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        app:contentPadding="16dp"
+        app:cardCornerRadius="@dimen/alarm_setting_cardview_corner_radius"
+        app:cardBackgroundColor="#F0F4F5"
+        app:cardElevation="0dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="재확인 대기 시간"
+                android:textStyle="bold"/>
+            <RadioGroup
+                android:id="@+id/rgAlarmSettingSnoozeLockMinutes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp">
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/rbAlarmSettingSnoozeLockMinutes1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:text="1분 뒤"
+                    android:paddingStart="@dimen/alarm_setting_snooze_radiobutton_padding_start"
+                    android:buttonTint="@color/alarm_primary" />
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/rbAlarmSettingSnoozeLockMinutes2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:text="2분 뒤"
+                    android:paddingStart="@dimen/alarm_setting_snooze_radiobutton_padding_start"
+                    android:buttonTint="@color/alarm_primary"
+                    android:checked="true"/>
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/rbAlarmSettingSnoozeLockMinutes3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:text="3분 뒤"
+                    android:paddingStart="@dimen/alarm_setting_snooze_radiobutton_padding_start"
+                    android:buttonTint="@color/alarm_primary"/>
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/rbAlarmSettingSnoozeLockMinutes4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:text="4분 뒤"
+                    android:paddingStart="@dimen/alarm_setting_snooze_radiobutton_padding_start"
+                    android:buttonTint="@color/alarm_primary"/>
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/rbAlarmSettingSnoozeLockMinutes5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:text="5분 뒤"
+                    android:paddingStart="@dimen/alarm_setting_snooze_radiobutton_padding_start"
+                    android:buttonTint="@color/alarm_primary"/>
+            </RadioGroup>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnAlarmSnoozeLockApply"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_round_radius"
+        android:backgroundTint="#BBAB94"
+        android:text="설정하기"
+        android:textSize="12sp"
+        android:textColor="@color/white"
+        android:layout_marginTop="32dp"/>
+
+</LinearLayout>

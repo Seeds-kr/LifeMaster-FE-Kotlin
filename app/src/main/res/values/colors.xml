@@ -26,4 +26,5 @@
     <color name="sleep_mood_selected">#927448</color>
     <color name="todo_primary">#5C76C3</color>
     <color name="mint_60">#99A0E0CF</color>
+    <color name="alarm_setting_background">#EBE6DF</color>
 </resources>

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_round_and_white"
-    android:padding="20dp">
+    android:padding="16dp">
 
     <TextView
         android:layout_width="wrap_content"
@@ -23,7 +24,7 @@
         android:layout_marginBottom="32dp"/>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math"
+        android:id="@+id/cvMath"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
@@ -58,10 +59,12 @@
     </com.google.android.material.card.MaterialCardView>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cv_level"
+        android:id="@+id/cvMathLevel"
         android:layout_width="match_parent"
         android:layout_height="88dp"
         android:layout_marginBottom="12dp"
+        android:visibility="gone"
+        tools:visibility="visible"
         app:cardBackgroundColor="#EBE6DF"
         app:cardCornerRadius="8dp"
         app:contentPadding="12dp"

@@ -18,7 +18,7 @@
         app:strokeColor="@color/selector_alarm_repeat_day"
         app:strokeWidth="1dp">
         <TextView
-            android:id="@+id/tv_day_type"
+            android:id="@+id/tvDayType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="월"
