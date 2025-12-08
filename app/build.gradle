@@ -3,6 +3,8 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.compose'
     id 'kotlin-parcelize'
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 def localProperties = new Properties()
@@ -48,6 +50,10 @@ android {
     androidResources {
         noCompress 'mp3'
     }
+
+    kapt {
+        correctErrorTypes = true
+    }
 }
 
 dependencies {
@@ -91,4 +97,8 @@ dependencies {
     implementation 'com.prolificinteractive:material-calendarview:1.4.3' //자아성찰 캘린더
     implementation "com.github.bumptech.glide:glide:4.16.0" //이미지 로딩을 위한 Glide
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
+    // hilt
+    implementation("com.google.dagger:hilt-android:2.48.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.48.1")
 }
