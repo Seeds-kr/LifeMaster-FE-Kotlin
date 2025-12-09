@@ -23,7 +23,7 @@ data class AlarmModel(
     val antiSnoozeMinute: Int? = null,
     val randomMissionType: RandomMissionType,
     val randomMissionLevel: RandomMissionLevel? = null,
-    var switchOnOff: Boolean = true, // 처음 알람 등록하면 켜지도록 설정 (기본값)
+    val switchOnOff: Boolean = true, // 처음 알람 등록하면 켜지도록 설정 (기본값)
 ) {
     val hour: Int
         get() {

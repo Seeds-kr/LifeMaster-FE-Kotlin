@@ -3,6 +3,7 @@ package com.example.lifemaster.network
 import com.example.lifemaster.presentation.community.model.*
 import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
+import com.example.lifemaster.presentation.home.alarm.model.AlarmToggleRequest
 import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
@@ -289,4 +290,11 @@ interface NetworkService {
     // 모든 알람 조회
     @GET("/time/alarm")
     suspend fun fetchAlarmList(): List<AlarmResponse>
+
+    // 특정 알람 토글 상태 변경 (임시)
+    @PATCH("/time/alarm/{alarmId}/toggle")
+    suspend fun toggleAlarm(
+        @Path("alarmId") alarmId: Int,
+        @Body request: AlarmToggleRequest
+    )
 }

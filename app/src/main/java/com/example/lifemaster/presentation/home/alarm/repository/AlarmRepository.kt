@@ -3,6 +3,7 @@ package com.example.lifemaster.presentation.home.alarm.repository
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
+import com.example.lifemaster.presentation.home.alarm.model.AlarmToggleRequest
 import javax.inject.Inject
 
 /**
@@ -21,6 +22,13 @@ class AlarmRepository @Inject constructor(private val networkService: NetworkSer
     suspend fun fetchAlarmList(): Result<List<AlarmResponse>> = try {
         val response: List<AlarmResponse> = networkService.fetchAlarmList()
         Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun toggleAlarm(alarmId: Int, isEnabled: Boolean): Result<Boolean> = try {
+        networkService.toggleAlarm(alarmId = alarmId, request = AlarmToggleRequest(isEnabled = isEnabled))
+        Result.success(isEnabled)
     } catch (e: Exception) {
         Result.failure(e)
     }

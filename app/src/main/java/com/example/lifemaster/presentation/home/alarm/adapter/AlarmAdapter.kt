@@ -9,7 +9,7 @@ import com.example.lifemaster.databinding.ItemAlarmBinding
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 
-class AlarmAdapter : ListAdapter<AlarmModel, AlarmAdapter.ViewHolder>(differ) {
+class AlarmAdapter(private val onSwitchToggle: (AlarmModel) -> Unit) : ListAdapter<AlarmModel, AlarmAdapter.ViewHolder>(differ) {
     inner class ViewHolder(private val binding: ItemAlarmBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
@@ -31,6 +31,9 @@ class AlarmAdapter : ListAdapter<AlarmModel, AlarmAdapter.ViewHolder>(differ) {
                 RandomMissionType.NONE -> Unit
             }
             includeSwitch.alarmSwitch.isChecked = item.switchOnOff
+            includeSwitch.alarmSwitch.setOnCheckedChangeListener { view, isChecked ->
+                onSwitchToggle.invoke(item.copy(switchOnOff = isChecked))
+            }
         }
     }
 

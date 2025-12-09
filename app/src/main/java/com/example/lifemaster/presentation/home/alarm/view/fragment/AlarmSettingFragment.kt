@@ -6,6 +6,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -28,6 +29,7 @@ import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmRandomMissionDialog
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmSnoozeDialog
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmSnoozeLockDialog
+import com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmListFragment.Companion.ALARM
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmGenerateViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
@@ -408,10 +410,11 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                         is DataResource.Loading -> {}
                         is DataResource.Success -> {
                             Toast.makeText(context, "알람 생성이 완료되었어요.", Toast.LENGTH_SHORT).show()
-                            // TODO: adapter 에 submitList + 화면 전환 → AlarmSettingFragment 코드 읽기
+                            findNavController().popBackStack()
                         }
                         is DataResource.Error -> {
-                            Toast.makeText(context, "알람 생성 실패: ${resource.throwable.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "알람 생성이 실패하였습니다.", Toast.LENGTH_SHORT).show()
+                            Log.e(ALARM, "" + resource.throwable.message)
                         }
                     }
                 }

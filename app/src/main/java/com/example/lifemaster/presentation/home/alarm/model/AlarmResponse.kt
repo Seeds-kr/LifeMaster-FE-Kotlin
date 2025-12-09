@@ -26,4 +26,5 @@ data class AlarmResponse(
     val randomMissionType: RandomMissionType, // MATH_PROBLEM, TYPING, FOLLOW_CLICK 등
     @SerializedName("missionLevel")
     val randomMissionLevel: RandomMissionLevel, // HIGH, MEDIUM, LOW
+    val switchOnOff: Boolean
 )
