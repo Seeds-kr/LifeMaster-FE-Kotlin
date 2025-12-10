@@ -151,8 +151,8 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
                             currentList[index] = rollbackItem
                             alarmAdapter.submitList(currentList.toList())
                         }
-                        DataResource.Idle -> TODO()
-                        DataResource.Loading -> TODO()
+                        DataResource.Idle -> { }
+                        DataResource.Loading -> { }
                     }
                 }
             }

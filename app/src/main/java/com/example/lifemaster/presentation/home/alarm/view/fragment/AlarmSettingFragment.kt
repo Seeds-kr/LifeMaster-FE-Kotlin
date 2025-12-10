@@ -23,8 +23,14 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmSettingBinding
 import com.example.lifemaster.databinding.LayoutAlarmRepeatDayBinding
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.FOLLOW_CLICK
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.HIGH
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LOW
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.MEDIUM
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.MATH_PROBLEM
 import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
+import com.example.lifemaster.presentation.home.alarm.model.RandomMissionLevel
 import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmRandomMissionDialog
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmSnoozeDialog
@@ -56,6 +62,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     private var alarmSoundUri: String? = null // 음원 URI 정보
     private var ringtoneTitle: String? = null // 음원 제목
     private var randomMissionType: RandomMissionType = RandomMissionType.NONE
+    private var randomMissionLevel: RandomMissionLevel? = null
     private var alarmTime: String = ""
 
     // 요일 변환기
@@ -274,16 +281,17 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                     alarmSoundUri = alarmSoundUri.toString(),
                     snoozed = alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked,
                     snoozeTime = if (alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked) {
-                        tvAlarmSettingSnoozeMinutes.text.toString()
+                        tvAlarmSettingSnoozeMinutes.text.toString().toInt()
                     } else null,
                     snoozeCount = if (alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked) {
                         tvAlarmSettingSnoozeCount.text.toString().toInt()
                     } else null,
                     antiSnoozed = alarmSettingLayoutSwitchSnoozeLock.alarmSwitch.isChecked,
                     antiSnoozeTime = if (alarmSettingLayoutSwitchSnoozeLock.alarmSwitch.isChecked) {
-                        tvAlarmSettingSnoozeLockMinutes.text.toString()
+                        tvAlarmSettingSnoozeLockMinutes.text.toString().toInt()
                     } else null,
-                    randomMissionType = randomMissionType
+                    randomMissionType = randomMissionType,
+                    randomMissionLevel = randomMissionLevel
                 )
             )
 
@@ -376,19 +384,31 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         alarmGenerateViewModel.randomMission.observe(viewLifecycleOwner) { randomMission ->
             when (randomMission) {
                 is Map<*, *> -> {
-                    tvAlarmSettingSelectedRandomMission.text =
-                        randomMission.entries.first().let { "${it.key}-${it.value}" }
-                    randomMissionType = RandomMissionType.MATH_PROBLEM
-                }
-
-                is String -> {
-                    when (randomMission) {
-                        AlarmConstants.FOLLOW_CLICK -> randomMissionType =
-                            RandomMissionType.FOLLOW_CLICK
-
-                        AlarmConstants.TYPING_SENTENCE -> randomMissionType =
-                            RandomMissionType.TYPING_SENTENCE
+                    val missionTitle = randomMission.entries.first().key
+                    val missionLevel = randomMission.entries.first().value
+                    when(missionTitle) {
+                        MATH_PROBLEM -> {
+                            tvAlarmSettingSelectedRandomMission.text = "$missionTitle-$missionLevel"
+                            randomMissionType = RandomMissionType.MATH_PROBLEM
+                            when(missionLevel) {
+                                HIGH -> randomMissionLevel = RandomMissionLevel.HIGH
+                                MEDIUM -> randomMissionLevel = RandomMissionLevel.MEDIUM
+                                LOW -> randomMissionLevel = RandomMissionLevel.LOW
+                            }
+                        }
+                        FOLLOW_CLICK -> {
+                            tvAlarmSettingSelectedRandomMission.text = "$missionTitle-$missionLevel"
+                            randomMissionType = RandomMissionType.FOLLOW_CLICK
+                            when(missionLevel) {
+                                HIGH -> randomMissionLevel = RandomMissionLevel.HIGH
+                                MEDIUM -> randomMissionLevel = RandomMissionLevel.MEDIUM
+                                LOW -> randomMissionLevel = RandomMissionLevel.LOW
+                            }
+                        }
                     }
+                }
+                is String -> {
+                    randomMissionType = RandomMissionType.TYPING_SENTENCE
                     tvAlarmSettingSelectedRandomMission.text = randomMission
                 }
             }
