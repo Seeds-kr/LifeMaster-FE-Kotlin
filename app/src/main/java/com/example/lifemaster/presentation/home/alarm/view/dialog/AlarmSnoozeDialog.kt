@@ -9,10 +9,14 @@ import android.widget.RadioButton
 import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogAlarmSnoozeBinding
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmGenerateViewModel
 import com.google.android.material.radiobutton.MaterialRadioButton
+import kotlinx.coroutines.launch
 import kotlin.getValue
 
 class AlarmSnoozeDialog: DialogFragment(R.layout.dialog_alarm_snooze) {
@@ -46,14 +50,20 @@ class AlarmSnoozeDialog: DialogFragment(R.layout.dialog_alarm_snooze) {
     }
 
     private fun initObservers() = with(binding) {
-        alarmGenerateViewModel.snoozeDuration.observe(viewLifecycleOwner) { duration ->
-            rgAlarmSettingSnoozeMinutes.clearCheck()
-            val snoozeMinute = duration.first
-            val snoozeMinuteId = snoozeMinuteIds.single { it.second == snoozeMinute }.first
-            rgAlarmSettingSnoozeMinutes.findViewById<MaterialRadioButton>(snoozeMinuteId).isChecked = true
-            val snoozeCount = duration.second
-            val snoozeCountId = snoozeCountIds.single { it.second == snoozeCount }.first
-            rgAlarmSettingSnoozeCount.findViewById<MaterialRadioButton>(snoozeCountId).isChecked = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alarmGenerateViewModel.snoozeDuration.collect { duration ->
+                    rgAlarmSettingSnoozeMinutes.clearCheck()
+                    val snoozeMinute = duration.first
+                    val snoozeMinuteId = snoozeMinuteIds.single { it.second == snoozeMinute }.first
+                    rgAlarmSettingSnoozeMinutes.findViewById<MaterialRadioButton>(snoozeMinuteId).isChecked =
+                        true
+                    val snoozeCount = duration.second
+                    val snoozeCountId = snoozeCountIds.single { it.second == snoozeCount }.first
+                    rgAlarmSettingSnoozeCount.findViewById<MaterialRadioButton>(snoozeCountId).isChecked =
+                        true
+                }
+            }
         }
     }
 

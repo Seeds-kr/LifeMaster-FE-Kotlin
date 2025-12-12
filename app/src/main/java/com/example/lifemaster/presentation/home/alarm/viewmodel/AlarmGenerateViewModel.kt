@@ -9,7 +9,9 @@ import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.home.alarm.repository.AlarmRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -33,12 +35,16 @@ class AlarmGenerateViewModel @Inject constructor(
         _alarmTime.value = alarmTime
     }
 
-    // 랜덤 미션 (수학 → Map<String, String>, 따라 누르기·따라 쓰기 → String)
-    private val _randomMission = MutableLiveData<Any>()
-    val randomMission: LiveData<Any> = _randomMission
+    private val _randomMission = MutableSharedFlow<Any>(
+        replay = 0, // 일회성 이벤트 처리
+        extraBufferCapacity = 1 // 뷰모델의 코루틴이 UI 스레드 처리 속도에 의해 일시중지 되는 것 방지
+    )
+    val randomMission: SharedFlow<Any> = _randomMission
 
     fun setRandomMission(randomMission: Any) {
-        _randomMission.value = randomMission
+        viewModelScope.launch {
+            _randomMission.emit(randomMission)
+        }
     }
 
     // 알람 반복 요일
@@ -50,19 +56,26 @@ class AlarmGenerateViewModel @Inject constructor(
     }
 
     // 알람 미루기 (시간, 횟수)
-    private val _snoozeDuration =  MutableLiveData<Pair<Int, Int>>()
-    val snoozeDuration: LiveData<Pair<Int, Int>> get() = _snoozeDuration
+    private val _snoozeDuration = MutableSharedFlow<Pair<Int, Int>>(
+        replay = 0,
+        extraBufferCapacity = 1
+    )
+    val snoozeDuration: SharedFlow<Pair<Int, Int>> = _snoozeDuration
 
     fun setSnoozeDuration(snoozeDuration: Pair<Int, Int>) {
-        _snoozeDuration.value = snoozeDuration
+        viewModelScope.launch {
+            _snoozeDuration.emit(snoozeDuration)
+        }
     }
 
     // 다시 잠들기 방지 (시간)
-    private val _snoozeLockMinute =  MutableLiveData<Int>()
-    val snoozeLockMinute: LiveData<Int> get() = _snoozeLockMinute
+    private val _snoozeLockMinute = MutableSharedFlow<Int>()
+    val snoozeLockMinute: SharedFlow<Int> = _snoozeLockMinute
 
     fun setSnoozeLockMinute(snoozeLockMinute: Int) {
-        _snoozeLockMinute.value = snoozeLockMinute
+        viewModelScope.launch {
+            _snoozeLockMinute.emit(snoozeLockMinute)
+        }
     }
 
     private val _alarmCreationState = MutableStateFlow<DataResource<Unit>>(DataResource.Idle)

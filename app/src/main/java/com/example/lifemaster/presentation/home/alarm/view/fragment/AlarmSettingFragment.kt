@@ -381,47 +381,61 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                 tvAlarmSettingRingTime.text = formatAlarmDateLabel(referenceTime = reference)
             }
         }
-        alarmGenerateViewModel.randomMission.observe(viewLifecycleOwner) { randomMission ->
-            when (randomMission) {
-                is Map<*, *> -> {
-                    val missionTitle = randomMission.entries.first().key
-                    val missionLevel = randomMission.entries.first().value
-                    when(missionTitle) {
-                        MATH_PROBLEM -> {
-                            tvAlarmSettingSelectedRandomMission.text = "$missionTitle-$missionLevel"
-                            randomMissionType = RandomMissionType.MATH_PROBLEM
-                            when(missionLevel) {
-                                HIGH -> randomMissionLevel = RandomMissionLevel.HIGH
-                                MEDIUM -> randomMissionLevel = RandomMissionLevel.MEDIUM
-                                LOW -> randomMissionLevel = RandomMissionLevel.LOW
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alarmGenerateViewModel.randomMission.collect { randomMission ->
+                    when (randomMission) {
+                        is Map<*, *> -> {
+                            val missionTitle = randomMission.entries.first().key
+                            val missionLevel = randomMission.entries.first().value
+                            when(missionTitle) {
+                                MATH_PROBLEM -> {
+                                    tvAlarmSettingSelectedRandomMission.text = "$missionTitle-$missionLevel"
+                                    randomMissionType = RandomMissionType.MATH_PROBLEM
+                                    when(missionLevel) {
+                                        HIGH -> randomMissionLevel = RandomMissionLevel.HIGH
+                                        MEDIUM -> randomMissionLevel = RandomMissionLevel.MEDIUM
+                                        LOW -> randomMissionLevel = RandomMissionLevel.LOW
+                                    }
+                                }
+                                FOLLOW_CLICK -> {
+                                    tvAlarmSettingSelectedRandomMission.text = "$missionTitle-$missionLevel"
+                                    randomMissionType = RandomMissionType.FOLLOW_CLICK
+                                    when(missionLevel) {
+                                        HIGH -> randomMissionLevel = RandomMissionLevel.HIGH
+                                        MEDIUM -> randomMissionLevel = RandomMissionLevel.MEDIUM
+                                        LOW -> randomMissionLevel = RandomMissionLevel.LOW
+                                    }
+                                }
                             }
                         }
-                        FOLLOW_CLICK -> {
-                            tvAlarmSettingSelectedRandomMission.text = "$missionTitle-$missionLevel"
-                            randomMissionType = RandomMissionType.FOLLOW_CLICK
-                            when(missionLevel) {
-                                HIGH -> randomMissionLevel = RandomMissionLevel.HIGH
-                                MEDIUM -> randomMissionLevel = RandomMissionLevel.MEDIUM
-                                LOW -> randomMissionLevel = RandomMissionLevel.LOW
-                            }
+                        is String -> {
+                            randomMissionType = RandomMissionType.TYPING_SENTENCE
+                            tvAlarmSettingSelectedRandomMission.text = randomMission
                         }
                     }
                 }
-                is String -> {
-                    randomMissionType = RandomMissionType.TYPING_SENTENCE
-                    tvAlarmSettingSelectedRandomMission.text = randomMission
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alarmGenerateViewModel.snoozeDuration.collect { snoozeDuration ->
+                    tvAlarmSettingSnoozeMinutes.text = snoozeDuration.first.toString()
+                    tvAlarmSettingSnoozeCount.text = snoozeDuration.second.toString()
                 }
             }
         }
-        alarmGenerateViewModel.snoozeDuration.observe(viewLifecycleOwner) { snoozeDuration ->
-            tvAlarmSettingSnoozeMinutes.text = snoozeDuration.first.toString()
-            tvAlarmSettingSnoozeCount.text = snoozeDuration.second.toString()
-        }
-        alarmGenerateViewModel.snoozeLockMinute.observe(viewLifecycleOwner) { snoozeLockMinute ->
-            tvAlarmSettingSnoozeLockMinutes.text = snoozeLockMinute.toString()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alarmGenerateViewModel.snoozeLockMinute.collect { snoozeLockMinute ->
+                    tvAlarmSettingSnoozeLockMinutes.text = snoozeLockMinute.toString()
+                }
+            }
         }
 
-        // stateflow
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 alarmGenerateViewModel.alarmCreationState.collect { resource ->

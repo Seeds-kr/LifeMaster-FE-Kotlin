@@ -13,12 +13,16 @@ import com.example.lifemaster.databinding.DialogAlarmRandomMissionBinding
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.get
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.FOLLOW_CLICK
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.HIGH
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LOW
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.MATH_PROBLEM
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.TYPING_SENTENCE
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmGenerateViewModel
+import kotlinx.coroutines.launch
 
 class AlarmRandomMissionDialog : DialogFragment(R.layout.dialog_alarm_random_mission) {
 
@@ -99,41 +103,46 @@ class AlarmRandomMissionDialog : DialogFragment(R.layout.dialog_alarm_random_mis
     }
 
     private fun initObservers() = with(binding) {
-        alarmGenerateViewModel.randomMission.observe(viewLifecycleOwner) { mission ->
-            when (mission) {
-                is Map<*, *> -> {
-                    when (mission.entries.first().key) {
-                        MATH_PROBLEM -> {
-                            cvMath.isSelected = true
-                            cvMathLevel.isVisible = true
-                            when (mission.entries.first().value) {
-                                HIGH -> {
-                                    cvMathLevelMedium.isSelected = false
-                                    cvMathLevelHigh.isSelected = true
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alarmGenerateViewModel.randomMission.collect { mission ->
+                    when (mission) {
+                        is Map<*, *> -> {
+                            when (mission.entries.first().key) {
+                                MATH_PROBLEM -> {
+                                    cvMath.isSelected = true
+                                    cvMathLevel.isVisible = true
+                                    when (mission.entries.first().value) {
+                                        HIGH -> {
+                                            cvMathLevelMedium.isSelected = false
+                                            cvMathLevelHigh.isSelected = true
+                                        }
+                                        LOW -> {
+                                            cvMathLevelMedium.isSelected = false
+                                            cvMathLevelLow.isSelected = true
+                                        }
+                                    }
                                 }
-                                LOW -> {
-                                    cvMathLevelMedium.isSelected = false
-                                    cvMathLevelLow.isSelected = true
+                                FOLLOW_CLICK -> {
+                                    cvClick.isSelected = true
+                                    cvClickLevel.isVisible = true
+                                    when (mission.entries.first().value) {
+                                        HIGH -> {
+                                            cvClickLevelMedium.isSelected = false
+                                            cvClickLevelHigh.isSelected = true
+                                        }
+                                        LOW -> {
+                                            cvClickLevelMedium.isSelected = false
+                                            cvClickLevelLow.isSelected = true
+                                        }
+                                    }
                                 }
                             }
                         }
-                        FOLLOW_CLICK -> {
-                            cvClick.isSelected = true
-                            cvClickLevel.isVisible = true
-                            when (mission.entries.first().value) {
-                                HIGH -> {
-                                    cvClickLevelMedium.isSelected = false
-                                    cvClickLevelHigh.isSelected = true
-                                }
-                                LOW -> {
-                                    cvClickLevelMedium.isSelected = false
-                                    cvClickLevelLow.isSelected = true
-                                }
-                            }
-                        }
+                        is String -> cvWrite.isSelected = true
                     }
                 }
-                is String -> cvWrite.isSelected = true
             }
         }
     }

@@ -8,9 +8,13 @@ import android.widget.RadioButton
 import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogAlarmSnoozeLockBinding
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmGenerateViewModel
+import kotlinx.coroutines.launch
 import kotlin.getValue
 
 class AlarmSnoozeLockDialog: DialogFragment(R.layout.dialog_alarm_snooze_lock) {
@@ -39,10 +43,16 @@ class AlarmSnoozeLockDialog: DialogFragment(R.layout.dialog_alarm_snooze_lock) {
     }
 
     private fun initObservers() = with(binding) {
-        alarmGenerateViewModel.snoozeLockMinute.observe(viewLifecycleOwner) { minute ->
-            rgAlarmSettingSnoozeLockMinutes.clearCheck()
-            val snoozeLockMinuteId = snoozeLockMinuteIds.single { it.second == minute }.first
-            rgAlarmSettingSnoozeLockMinutes.findViewById<RadioButton>(snoozeLockMinuteId).isChecked = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alarmGenerateViewModel.snoozeLockMinute.collect { minute ->
+                    rgAlarmSettingSnoozeLockMinutes.clearCheck()
+                    val snoozeLockMinuteId =
+                        snoozeLockMinuteIds.single { it.second == minute }.first
+                    rgAlarmSettingSnoozeLockMinutes.findViewById<RadioButton>(snoozeLockMinuteId).isChecked =
+                        true
+                }
+            }
         }
     }
 
