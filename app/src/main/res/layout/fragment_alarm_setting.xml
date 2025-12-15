@@ -234,12 +234,12 @@
                     android:textStyle="bold" />
 
                 <include
-                    android:id="@+id/alarmSettingLayoutSwitchSnoozeLock"
+                    android:id="@+id/alarmSettingLayoutSwitchAntiSnooze"
                     layout="@layout/layout_custom_switch" />
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/llAlarmSettingAntiSleepStatus"
+                android:id="@+id/ll_alarm_setting_anti_snooze_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_round_radius"
@@ -303,7 +303,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
-                    tools:text="세상에서 제일 듣기 싫은 알람.mp4" />
+                    android:text="무음" />
 
                 <ImageView
                     android:id="@+id/ivAlarmSettingSound"

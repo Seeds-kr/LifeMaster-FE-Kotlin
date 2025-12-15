@@ -10,6 +10,10 @@
         android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmSettingFragment"
         android:label="fragment_alarm_setting"
         tools:layout="@layout/fragment_alarm_setting">
+        <argument
+            android:name="alarmModel"
+            app:argType="com.example.lifemaster.presentation.home.alarm.model.AlarmModel"
+            app:nullable="true"/>
     </fragment>
     <fragment
         android:id="@+id/homeFragment"

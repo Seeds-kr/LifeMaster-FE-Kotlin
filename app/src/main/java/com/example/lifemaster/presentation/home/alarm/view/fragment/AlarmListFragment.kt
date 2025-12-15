@@ -26,6 +26,7 @@ import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.lifemaster.presentation.home.alarm.ItemClickListener
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
@@ -33,7 +34,7 @@ import com.example.lifemaster.presentation.home.alarm.model.mapper.toPresentatio
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
+class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListener {
 
     private lateinit var binding: FragmentAlarmListBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels(
@@ -43,10 +44,7 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
     private lateinit var toggleAlarm: AlarmModel
 
-    private val alarmAdapter = AlarmAdapter { item ->
-        toggleAlarm = item
-        alarmGenerateViewModel.toggleAlarm(alarmId = item.id, isEnabled = item.switchOnOff)
-    }
+    private val alarmAdapter = AlarmAdapter(this)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -101,7 +99,8 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
     private fun initListeners() = with(binding) {
         tvAddAlarmItem.setOnClickListener {
-            findNavController().navigate(R.id.action_alarmListFragment_to_alarmSettingFragment)
+            val action = AlarmListFragmentDirections.actionAlarmListFragmentToAlarmSettingFragment(alarmModel = null as AlarmModel?)
+            findNavController().navigate(action)
         }
     }
 
@@ -157,6 +156,20 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
                 }
             }
         }
+    }
+
+    override fun onItemClick(item: AlarmModel) {
+        val action = AlarmListFragmentDirections.actionAlarmListFragmentToAlarmSettingFragment(alarmModel = item)
+        findNavController().navigate(action)
+    }
+
+    override fun onItemLongClick() {
+        TODO("Not yet implemented")
+    }
+
+    override fun onSwitchToggle(alarm: AlarmModel) {
+        toggleAlarm = alarm
+        alarmGenerateViewModel.toggleAlarm(alarmId = alarm.id, isEnabled = alarm.switchOnOff)
     }
 
     companion object {

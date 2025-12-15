@@ -1,9 +1,12 @@
 package com.example.lifemaster.presentation.home.alarm.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import java.time.Instant
 import java.time.ZoneId
 
 // UI, Presentation Layer
+@Parcelize
 data class AlarmModel(
     val id: Int,
     val alarmTitle: String,
@@ -15,16 +18,16 @@ data class AlarmModel(
     val alarmFri: Boolean,
     val alarmSat: Boolean,
     val alarmSun: Boolean,
-    val alarmSound: String,
+    val alarmSound: String? = null, // null = 무음
     val snoozed: Boolean,
     val snoozeMinute: Int? = null,
     val snoozeCount: Int? = null,
     val antiSnoozed: Boolean,
     val antiSnoozeMinute: Int? = null,
-    val randomMissionType: RandomMissionType,
+    val randomMissionType: RandomMissionType? = null,
     val randomMissionLevel: RandomMissionLevel? = null,
     val switchOnOff: Boolean = true, // 처음 알람 등록하면 켜지도록 설정 (기본값)
-) {
+): Parcelable {
     val hour: Int
         get() {
             val hour = Instant.parse(alarmTime).atZone(ZoneId.systemDefault()).hour
@@ -50,5 +53,4 @@ data class AlarmModel(
         get() {
             return if (hour < 12) "AM" else "PM"
         }
-
 }

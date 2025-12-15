@@ -18,9 +18,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.FOLLOW_CLICK
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.HIGH
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.MEDIUM
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LOW
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.MATH_PROBLEM
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.TYPING_SENTENCE
+import com.example.lifemaster.presentation.home.alarm.model.RandomMissionLevel
+import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmGenerateViewModel
 import kotlinx.coroutines.launch
 
@@ -49,6 +52,11 @@ class AlarmRandomMissionDialog : DialogFragment(R.layout.dialog_alarm_random_mis
             binding.cvClickLevelLow
         )
     }
+    private val randomMissionLevelMapper = mapOf(
+        HIGH to RandomMissionLevel.HIGH,
+        MEDIUM to RandomMissionLevel.MEDIUM,
+        LOW to RandomMissionLevel.LOW
+    )
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return Dialog(requireContext()).apply {
@@ -103,63 +111,63 @@ class AlarmRandomMissionDialog : DialogFragment(R.layout.dialog_alarm_random_mis
     }
 
     private fun initObservers() = with(binding) {
-
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 alarmGenerateViewModel.randomMission.collect { mission ->
-                    when (mission) {
-                        is Map<*, *> -> {
-                            when (mission.entries.first().key) {
-                                MATH_PROBLEM -> {
-                                    cvMath.isSelected = true
-                                    cvMathLevel.isVisible = true
-                                    when (mission.entries.first().value) {
-                                        HIGH -> {
-                                            cvMathLevelMedium.isSelected = false
-                                            cvMathLevelHigh.isSelected = true
-                                        }
-                                        LOW -> {
-                                            cvMathLevelMedium.isSelected = false
-                                            cvMathLevelLow.isSelected = true
-                                        }
+                    if(mission != null) {
+                        val missionType = mission.entries.first().key
+                        val missionLevel = mission.entries.first().value
+                        when (missionType) {
+                            RandomMissionType.MATH_PROBLEM -> {
+                                cvMath.isSelected = true
+                                cvMathLevel.isVisible = true
+                                when (missionLevel) {
+                                    RandomMissionLevel.HIGH -> {
+                                        cvMathLevelMedium.isSelected = false
+                                        cvMathLevelHigh.isSelected = true
                                     }
-                                }
-                                FOLLOW_CLICK -> {
-                                    cvClick.isSelected = true
-                                    cvClickLevel.isVisible = true
-                                    when (mission.entries.first().value) {
-                                        HIGH -> {
-                                            cvClickLevelMedium.isSelected = false
-                                            cvClickLevelHigh.isSelected = true
-                                        }
-                                        LOW -> {
-                                            cvClickLevelMedium.isSelected = false
-                                            cvClickLevelLow.isSelected = true
-                                        }
+                                    RandomMissionLevel.LOW -> {
+                                        cvMathLevelMedium.isSelected = false
+                                        cvMathLevelLow.isSelected = true
                                     }
+                                    else -> { /* initView에서 기본값 처리 */ }
                                 }
                             }
+                            RandomMissionType.FOLLOW_CLICK -> {
+                                cvClick.isSelected = true
+                                cvClickLevel.isVisible = true
+                                when (missionLevel) {
+                                    RandomMissionLevel.HIGH -> {
+                                        cvClickLevelMedium.isSelected = false
+                                        cvClickLevelHigh.isSelected = true
+                                    }
+                                    RandomMissionLevel.LOW -> {
+                                        cvClickLevelMedium.isSelected = false
+                                        cvClickLevelLow.isSelected = true
+                                    }
+                                    else -> { /* initView에서 기본값 처리 */ }
+                                }
+                            }
+                            RandomMissionType.TYPING_SENTENCE -> cvWrite.isSelected = true
                         }
-                        is String -> cvWrite.isSelected = true
                     }
                 }
             }
         }
     }
 
-
-    // 타입이 Any인 이유: Map, String 타입 중 무엇이 저장될 지 알 수 없어서
-    private fun getSelectedMissions(): Any? = with(binding) {
+    private fun getSelectedMissions(): Map<RandomMissionType, RandomMissionLevel?>? = with(binding) {
         return if (cvMath.isSelected) {
-            val selectedLevelText =
-                (mathRandomMissionLevel.single { it.isSelected }[0] as TextView).text // "상", "중", "하"
-            mapOf(MATH_PROBLEM to selectedLevelText) // ex) {수학 문제 풀기 = 상}
+            val selectedLevelText = (mathRandomMissionLevel.single { it.isSelected }[0] as TextView).text.toString()
+            val randomMissionLevel = randomMissionLevelMapper[selectedLevelText]
+            mapOf(RandomMissionType.MATH_PROBLEM to randomMissionLevel)
         } else if (cvClick.isSelected) {
             val selectedLevelText =
-                (clickRandomMissionLevel.single { it.isSelected }[0] as TextView).text
-            mapOf(FOLLOW_CLICK to selectedLevelText) // ex) {따라 누르기 = 중}
+                (clickRandomMissionLevel.single { it.isSelected }[0] as TextView).text.toString()
+            val randomMissionLevel = randomMissionLevelMapper[selectedLevelText]
+            mapOf(RandomMissionType.FOLLOW_CLICK to randomMissionLevel)
         } else if (cvWrite.isSelected) {
-            TYPING_SENTENCE // ex) "글 따라쓰기"
+            mapOf(RandomMissionType.TYPING_SENTENCE to null)
         } else {
             null
         }

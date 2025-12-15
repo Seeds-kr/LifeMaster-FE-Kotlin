@@ -297,4 +297,11 @@ interface NetworkService {
         @Path("alarmId") alarmId: Int,
         @Body request: AlarmToggleRequest
     )
+
+    // 기존 알람 업데이트
+    @PUT("/time/alarm/{alarmId}/update-status")
+    suspend fun updateAlarm(
+        @Path("alarmId") alarmId: Int,
+        @Body request: AlarmRequest
+    )
 }

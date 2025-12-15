@@ -7,11 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
+import com.example.lifemaster.presentation.home.alarm.model.RandomMissionLevel
+import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 import com.example.lifemaster.presentation.home.alarm.repository.AlarmRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -23,59 +23,42 @@ import javax.inject.Inject
 @HiltViewModel
 class AlarmGenerateViewModel @Inject constructor(
     private val repository: AlarmRepository
-): ViewModel() {
+) : ViewModel() {
 
-    // TODO: 알람 생성 관련 변수 저장 필요
+    // 랜덤 미션
+    private val _randomMission = MutableStateFlow<Map<RandomMissionType, RandomMissionLevel?>?>(null)
+    val randomMission = _randomMission.asStateFlow()
 
-    // 알람 시간(시/분)
-    private val _alarmTime = MutableLiveData<Pair<Int, Int>>()
-    val alarmTime: LiveData<Pair<Int, Int>> get() = _alarmTime
-
-    fun setAlarmTime(alarmTime: Pair<Int, Int>) {
-        _alarmTime.value = alarmTime
+    fun setRandomMission(randomMission: Map<RandomMissionType, RandomMissionLevel?>) {
+        _randomMission.value = randomMission
     }
 
-    private val _randomMission = MutableSharedFlow<Any>(
-        replay = 0, // 일회성 이벤트 처리
-        extraBufferCapacity = 1 // 뷰모델의 코루틴이 UI 스레드 처리 속도에 의해 일시중지 되는 것 방지
-    )
-    val randomMission: SharedFlow<Any> = _randomMission
-
-    fun setRandomMission(randomMission: Any) {
-        viewModelScope.launch {
-            _randomMission.emit(randomMission)
-        }
-    }
-
-    // 알람 반복 요일
-    private val _repeatDays = MutableLiveData<List<String>>()
-    val repeatDays: LiveData<List<String>> get() = _repeatDays
-
-    fun setRepeatDays(repeatDays: List<String>) {
-        _repeatDays.value = repeatDays
+    fun resetRandomMission() {
+        _randomMission.value = null
     }
 
     // 알람 미루기 (시간, 횟수)
-    private val _snoozeDuration = MutableSharedFlow<Pair<Int, Int>>(
-        replay = 0,
-        extraBufferCapacity = 1
-    )
-    val snoozeDuration: SharedFlow<Pair<Int, Int>> = _snoozeDuration
+    private val _snoozeDuration = MutableStateFlow<Pair<Int, Int>>(Pair(10, 2))
+    val snoozeDuration = _snoozeDuration.asStateFlow()
 
     fun setSnoozeDuration(snoozeDuration: Pair<Int, Int>) {
-        viewModelScope.launch {
-            _snoozeDuration.emit(snoozeDuration)
-        }
+        _snoozeDuration.value = snoozeDuration
+    }
+
+    fun resetSnoozeDuration() {
+        _snoozeDuration.value = Pair(10, 2)
     }
 
     // 다시 잠들기 방지 (시간)
-    private val _snoozeLockMinute = MutableSharedFlow<Int>()
-    val snoozeLockMinute: SharedFlow<Int> = _snoozeLockMinute
+    private val _snoozeAntiMinute = MutableStateFlow<Int>(2)
+    val snoozeLockMinute = _snoozeAntiMinute.asStateFlow()
 
     fun setSnoozeLockMinute(snoozeLockMinute: Int) {
-        viewModelScope.launch {
-            _snoozeLockMinute.emit(snoozeLockMinute)
-        }
+        _snoozeAntiMinute.value = snoozeLockMinute
+    }
+
+    fun resetSnoozeAntiMinute() {
+        _snoozeAntiMinute.value = 2
     }
 
     private val _alarmCreationState = MutableStateFlow<DataResource<Unit>>(DataResource.Idle)
@@ -117,11 +100,28 @@ class AlarmGenerateViewModel @Inject constructor(
     fun toggleAlarm(alarmId: Int, isEnabled: Boolean) {
         viewModelScope.launch {
             _alarmToggleState.value = DataResource.Loading
-            val result: Result<Boolean> = repository.toggleAlarm(alarmId = alarmId, isEnabled = isEnabled)
+            val result: Result<Boolean> =
+                repository.toggleAlarm(alarmId = alarmId, isEnabled = isEnabled)
             result.onSuccess { isEnabled ->
                 _alarmToggleState.value = DataResource.Success(isEnabled)
             }.onFailure { error ->
                 _alarmToggleState.value = DataResource.Error(error)
+            }
+        }
+    }
+
+    private val _alarmUpdateState = MutableStateFlow<DataResource<Unit>>(DataResource.Idle)
+    val alarmUpdateState = _alarmUpdateState.asStateFlow()
+
+    // 특정 알람 상태 업데이트
+    fun updateAlarm(alarmId: Int, request: AlarmRequest) {
+        viewModelScope.launch {
+            _alarmUpdateState.value = DataResource.Loading
+            val result: Result<Unit> = repository.updateAlarm(alarmId = alarmId, request = request)
+            result.onSuccess {
+                _alarmUpdateState.value = DataResource.Success(Unit)
+            }.onFailure { error ->
+                _alarmUpdateState.value = DataResource.Error(error)
             }
         }
     }
