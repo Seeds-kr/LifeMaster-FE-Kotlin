@@ -43,4 +43,12 @@ class AlarmRepository @Inject constructor(private val networkService: NetworkSer
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    // 특정 알람 삭제
+    suspend fun deleteAlarm(alarmId: Int): Result<Int> = try {
+        networkService.deleteAlarm(alarmId = alarmId)
+        Result.success(alarmId)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

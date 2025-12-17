@@ -1,6 +1,7 @@
 package com.example.lifemaster.presentation.home.alarm.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -37,6 +38,10 @@ class AlarmAdapter(private val itemClickListener: ItemClickListener) : ListAdapt
             }
             root.setOnClickListener {
                 itemClickListener.onItemClick(item)
+            }
+            root.setOnLongClickListener {
+                itemClickListener.onItemLongClick(item.id)
+                true
             }
         }
     }

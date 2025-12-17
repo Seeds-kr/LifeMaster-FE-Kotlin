@@ -126,4 +126,20 @@ class AlarmGenerateViewModel @Inject constructor(
         }
     }
 
+    private val _alarmDeleteState = MutableStateFlow<DataResource<Int>>(DataResource.Idle)
+    val alarmDeleteState = _alarmDeleteState.asStateFlow()
+
+    // 특정 알람 삭제
+    fun deleteAlarm(alarmId: Int) {
+        viewModelScope.launch {
+            _alarmDeleteState.value = DataResource.Loading
+            val result: Result<Int> = repository.deleteAlarm(alarmId = alarmId)
+            result.onSuccess { alarmId ->
+                _alarmDeleteState.value = DataResource.Success(alarmId)
+            }.onFailure { error ->
+                _alarmDeleteState.value = DataResource.Error(error)
+            }
+        }
+    }
+
 }

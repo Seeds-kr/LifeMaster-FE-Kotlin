@@ -23,6 +23,7 @@ import java.time.ZoneId
 import java.time.LocalDate
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -45,6 +46,7 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
     private lateinit var toggleAlarm: AlarmModel
 
     private val alarmAdapter = AlarmAdapter(this)
+    private lateinit var alarmList: MutableList<AlarmModel>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -113,10 +115,11 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                         is DataResource.Idle -> { }
                         is DataResource.Success -> {
                             val alarmResponse: List<AlarmResponse> = resource.data
+                            alarmList = alarmResponse.map { it.toPresentation() }.toMutableList()
                             if (alarmResponse.isNotEmpty()) {
                                 llNoAlarmItem.isVisible = false
                                 alarmRecyclerview.isVisible = true
-                                alarmAdapter.submitList(alarmResponse.map { it.toPresentation() })
+                                alarmAdapter.submitList(alarmList)
                             }
                         }
                         is DataResource.Error -> {
@@ -127,7 +130,6 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                 }
             }
         }
-
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 alarmGenerateViewModel.alarmToggleState.collect { resource ->
@@ -156,6 +158,26 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                 }
             }
         }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                alarmGenerateViewModel.alarmDeleteState.collect { resource ->
+                    when(resource) {
+                        is DataResource.Error -> {
+                            Toast.makeText(context, "알람을 삭제하지 못했습니다.", Toast.LENGTH_SHORT).show()
+                        }
+                        DataResource.Idle -> TODO()
+                        DataResource.Loading -> TODO()
+                        is DataResource.Success -> {
+                            val deleteAlarmId = resource.data
+                            val removeAlarm = alarmList.find { it.id == deleteAlarmId }
+                            alarmList.remove(removeAlarm)
+                            alarmAdapter.submitList(alarmList)
+                            Toast.makeText(context, "알람을 삭제했습니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onItemClick(item: AlarmModel) {
@@ -163,8 +185,12 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
         findNavController().navigate(action)
     }
 
-    override fun onItemLongClick() {
-        TODO("Not yet implemented")
+    override fun onItemLongClick(alarmId: Int) {
+        AlertDialog.Builder(requireContext()).setTitle("알람 삭제").setMessage("알람을 삭제하시겠습니까?").setPositiveButton("확인") { dialog, which ->
+            alarmGenerateViewModel.deleteAlarm(alarmId = alarmId)
+        }.setNegativeButton("취소") { dialog, which ->
+            dialog.dismiss()
+        }.show()
     }
 
     override fun onSwitchToggle(alarm: AlarmModel) {

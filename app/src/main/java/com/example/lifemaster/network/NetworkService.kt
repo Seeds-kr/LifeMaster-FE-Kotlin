@@ -304,4 +304,10 @@ interface NetworkService {
         @Path("alarmId") alarmId: Int,
         @Body request: AlarmRequest
     )
+
+    // 특정 알람 삭제
+    @DELETE("/time/alarm/{alarmId}")
+    suspend fun deleteAlarm(
+        @Path("alarmId") alarmId: Int
+    )
 }
