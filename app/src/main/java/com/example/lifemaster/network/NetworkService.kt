@@ -291,15 +291,14 @@ interface NetworkService {
     @GET("/time/alarm")
     suspend fun fetchAlarmList(): List<AlarmResponse>
 
-    // 특정 알람 토글 상태 변경 (임시)
+    // 특정 알람 토글 상태 변경
     @PATCH("/time/alarm/{alarmId}/toggle")
     suspend fun toggleAlarm(
-        @Path("alarmId") alarmId: Int,
-        @Body request: AlarmToggleRequest
-    )
+        @Path("alarmId") alarmId: Int
+    ): Boolean
 
     // 기존 알람 업데이트
-    @PUT("/time/alarm/{alarmId}/update-status")
+    @PUT("/time/alarm/{alarmId}")
     suspend fun updateAlarm(
         @Path("alarmId") alarmId: Int,
         @Body request: AlarmRequest

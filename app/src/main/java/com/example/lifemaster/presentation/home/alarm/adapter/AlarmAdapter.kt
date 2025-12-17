@@ -34,7 +34,7 @@ class AlarmAdapter(private val itemClickListener: ItemClickListener) : ListAdapt
             }
             includeSwitch.alarmSwitch.isChecked = item.switchOnOff
             includeSwitch.alarmSwitch.setOnCheckedChangeListener { view, isChecked ->
-                itemClickListener.onSwitchToggle(alarm = item.copy(switchOnOff = isChecked))
+                itemClickListener.onSwitchToggle(alarmId = item.id, alarmStatus = isChecked)
             }
             root.setOnClickListener {
                 itemClickListener.onItemClick(item)

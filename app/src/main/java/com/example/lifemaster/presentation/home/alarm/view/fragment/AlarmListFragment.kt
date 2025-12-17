@@ -43,7 +43,8 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
     )
     private val alarmGenerateViewModel: AlarmGenerateViewModel by activityViewModels()
 
-    private lateinit var toggleAlarm: AlarmModel
+    private var alarmId: Int? = null
+    private var alarmStatus: Boolean? = null
 
     private val alarmAdapter = AlarmAdapter(this)
     private lateinit var alarmList: MutableList<AlarmModel>
@@ -146,9 +147,9 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                             // TODO: 테스트 확인 필요 → 네트워크 끈 상태에서 알람 스위치 바꿔보기 (예상 동작: 토스트 메세지 뜨면서 스위치 안바뀌어야함)
                             Toast.makeText(context, "네트워크가 불안정합니다.", Toast.LENGTH_SHORT).show()
                             val currentList = alarmAdapter.currentList.toMutableList()
-                            val index = currentList.indexOfFirst { it.id == toggleAlarm.id }
+                            val index = currentList.indexOfFirst { it.id == alarmId }
                             val oldItem = currentList[index]
-                            val rollbackItem = oldItem.copy(switchOnOff = !toggleAlarm.switchOnOff)
+                            val rollbackItem = oldItem.copy(switchOnOff = !alarmStatus!!)
                             currentList[index] = rollbackItem
                             alarmAdapter.submitList(currentList.toList())
                         }
@@ -165,8 +166,8 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                         is DataResource.Error -> {
                             Toast.makeText(context, "알람을 삭제하지 못했습니다.", Toast.LENGTH_SHORT).show()
                         }
-                        DataResource.Idle -> TODO()
-                        DataResource.Loading -> TODO()
+                        DataResource.Idle -> {}
+                        DataResource.Loading -> {}
                         is DataResource.Success -> {
                             val deleteAlarmId = resource.data
                             val removeAlarm = alarmList.find { it.id == deleteAlarmId }
@@ -193,9 +194,10 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
         }.show()
     }
 
-    override fun onSwitchToggle(alarm: AlarmModel) {
-        toggleAlarm = alarm
-        alarmGenerateViewModel.toggleAlarm(alarmId = alarm.id, isEnabled = alarm.switchOnOff)
+    override fun onSwitchToggle(alarmId: Int, alarmStatus: Boolean) {
+        this.alarmId = alarmId
+        this.alarmStatus = alarmStatus
+        alarmGenerateViewModel.toggleAlarm(alarmId = alarmId)
     }
 
     companion object {

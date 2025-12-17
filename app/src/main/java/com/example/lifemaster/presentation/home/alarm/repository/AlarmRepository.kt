@@ -29,9 +29,9 @@ class AlarmRepository @Inject constructor(private val networkService: NetworkSer
     }
 
     // 특정 알람 토글 상태 변경
-    suspend fun toggleAlarm(alarmId: Int, isEnabled: Boolean): Result<Boolean> = try {
-        networkService.toggleAlarm(alarmId = alarmId, request = AlarmToggleRequest(isEnabled = isEnabled))
-        Result.success(isEnabled)
+    suspend fun toggleAlarm(alarmId: Int): Result<Boolean> = try {
+        val response: Boolean = networkService.toggleAlarm(alarmId = alarmId)
+        Result.success(response)
     } catch (e: Exception) {
         Result.failure(e)
     }

@@ -97,11 +97,10 @@ class AlarmGenerateViewModel @Inject constructor(
     val alarmToggleState: StateFlow<DataResource<Boolean>> = _alarmToggleState.asStateFlow()
 
     // 특정 알람 토글
-    fun toggleAlarm(alarmId: Int, isEnabled: Boolean) {
+    fun toggleAlarm(alarmId: Int) {
         viewModelScope.launch {
             _alarmToggleState.value = DataResource.Loading
-            val result: Result<Boolean> =
-                repository.toggleAlarm(alarmId = alarmId, isEnabled = isEnabled)
+            val result: Result<Boolean> = repository.toggleAlarm(alarmId = alarmId)
             result.onSuccess { isEnabled ->
                 _alarmToggleState.value = DataResource.Success(isEnabled)
             }.onFailure { error ->

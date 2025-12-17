@@ -16,12 +16,13 @@ data class AlarmRequest(
     @SerializedName("alarmSound")
     val alarmSoundUri: String? = null,
     val snoozed: Boolean,
-    val snoozeTime: Int? = null, // 분 단위. 서버 수정 예정.
+    @SerializedName("snoozeTime")
+    val snoozeMinute: Int? = null,
     val snoozeCount: Int? = null,
     @SerializedName("reSleptPrevention")
     val antiSnoozed: Boolean,
     @SerializedName("reSleptPreventionTime")
-    val antiSnoozeTime: Int? = null, // 분 단위. 서버 수정 예정.
+    val antiSnoozeMinute: Int? = null,
     val randomMissionType: RandomMissionType? = null,
     @SerializedName("missionLevel")
     val randomMissionLevel: RandomMissionLevel? = null

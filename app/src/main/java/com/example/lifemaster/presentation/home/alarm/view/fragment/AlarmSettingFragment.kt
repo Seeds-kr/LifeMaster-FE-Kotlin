@@ -10,7 +10,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.addCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -191,7 +190,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                 llAlarmSettingAntiSnoozeStatus.isVisible = true
                 alarmGenerateViewModel.setSnoozeLockMinute(snoozeLockMinute = alarm.antiSnoozeMinute!!)
             }
-            alarmSoundUri = alarm.alarmSound?.toUri()
+            alarmSoundUri = alarm.alarmSoundUri?.toUri()
             tvAlarmSettingMusicTitle.text = RingtoneManager.getRingtone(context, alarmSoundUri).getTitle(context)
         } else {
             // 새로운 알람을 추가하는 경우
@@ -334,14 +333,14 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                     alarmSun = alarmSettingLayoutSunday.cardview.isSelected,
                     alarmSoundUri = alarmSoundUri?.toString(),
                     snoozed = alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked,
-                    snoozeTime = if (alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked) {
+                    snoozeMinute = if (alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked) {
                         tvAlarmSettingSnoozeMinutes.text.toString().toInt()
                     } else null,
                     snoozeCount = if (alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked) {
                         tvAlarmSettingSnoozeCount.text.toString().toInt()
                     } else null,
                     antiSnoozed = alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked,
-                    antiSnoozeTime = if (alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked) {
+                    antiSnoozeMinute = if (alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked) {
                         tvAlarmSettingSnoozeLockMinutes.text.toString().toInt()
                     } else null,
                     randomMissionType = randomMissionType,
@@ -363,14 +362,14 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                         alarmSun = alarmSettingLayoutSunday.cardview.isSelected,
                         alarmSoundUri = alarmSoundUri?.toString(),
                         snoozed = alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked,
-                        snoozeTime = if (alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked) {
+                        snoozeMinute = if (alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked) {
                             tvAlarmSettingSnoozeMinutes.text.toString().toInt()
                         } else null,
                         snoozeCount = if (alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked) {
                             tvAlarmSettingSnoozeCount.text.toString().toInt()
                         } else null,
                         antiSnoozed = alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked,
-                        antiSnoozeTime = if (alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked) {
+                        antiSnoozeMinute = if (alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked) {
                             tvAlarmSettingSnoozeLockMinutes.text.toString().toInt()
                         } else null,
                         randomMissionType = randomMissionType,

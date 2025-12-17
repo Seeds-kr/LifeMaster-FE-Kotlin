@@ -14,7 +14,7 @@ fun AlarmResponse.toPresentation(): AlarmModel = AlarmModel(
     alarmFri = alarmFri,
     alarmSat = alarmSat,
     alarmSun = alarmSun,
-    alarmSound = alarmSound,
+    alarmSoundUri = alarmSoundUri,
     snoozed = snoozed,
     snoozeMinute = snoozeMinute,
     snoozeCount = snoozeCount,
@@ -22,5 +22,5 @@ fun AlarmResponse.toPresentation(): AlarmModel = AlarmModel(
     antiSnoozeMinute = antiSnoozeMinute,
     randomMissionType = randomMissionType,
     randomMissionLevel = randomMissionLevel,
-    switchOnOff = switchOnOff
+    switchOnOff = alarmStatus
 )

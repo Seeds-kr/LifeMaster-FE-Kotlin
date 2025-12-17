@@ -18,7 +18,7 @@ data class AlarmModel(
     val alarmFri: Boolean,
     val alarmSat: Boolean,
     val alarmSun: Boolean,
-    val alarmSound: String? = null, // null = 무음
+    val alarmSoundUri: String? = null, // null = 무음
     val snoozed: Boolean,
     val snoozeMinute: Int? = null,
     val snoozeCount: Int? = null,
@@ -30,13 +30,13 @@ data class AlarmModel(
 ): Parcelable {
     val hour: Int
         get() {
-            val hour = Instant.parse(alarmTime).atZone(ZoneId.systemDefault()).hour
+            val hour = Instant.parse(alarmTime+"Z").atZone(ZoneId.systemDefault()).hour
             return hour
         }
 
     val minute: Int
         get() {
-            val minute = Instant.parse(alarmTime).atZone(ZoneId.systemDefault()).minute
+            val minute = Instant.parse(alarmTime+"Z").atZone(ZoneId.systemDefault()).minute
             return minute
         }
 
