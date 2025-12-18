@@ -28,6 +28,14 @@ class AlarmRepository @Inject constructor(private val networkService: NetworkSer
         Result.failure(e)
     }
 
+    // 특정 알람 조회
+    suspend fun fetchAlarm(alarmId: Int): Result<AlarmResponse> = try {
+        val response = networkService.fetchAlarm(alarmId = alarmId)
+        Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     // 특정 알람 토글 상태 변경
     suspend fun toggleAlarm(alarmId: Int): Result<Boolean> = try {
         val response: Boolean = networkService.toggleAlarm(alarmId = alarmId)

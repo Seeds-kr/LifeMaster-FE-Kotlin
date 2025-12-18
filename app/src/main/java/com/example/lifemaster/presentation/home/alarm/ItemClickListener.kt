@@ -3,7 +3,7 @@ package com.example.lifemaster.presentation.home.alarm
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 
 interface ItemClickListener {
-    fun onItemClick(alarm: AlarmModel)
+    fun onItemClick(alarmId: Int)
     fun onItemLongClick(alarmId: Int)
     fun onSwitchToggle(alarmId: Int, alarmStatus: Boolean)
 }

@@ -102,7 +102,7 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
 
     private fun initListeners() = with(binding) {
         tvAddAlarmItem.setOnClickListener {
-            val action = AlarmListFragmentDirections.actionAlarmListFragmentToAlarmSettingFragment(alarmModel = null as AlarmModel?)
+            val action = AlarmListFragmentDirections.actionAlarmListFragmentToAlarmSettingFragment()
             findNavController().navigate(action)
         }
     }
@@ -181,8 +181,8 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
         }
     }
 
-    override fun onItemClick(item: AlarmModel) {
-        val action = AlarmListFragmentDirections.actionAlarmListFragmentToAlarmSettingFragment(alarmModel = item)
+    override fun onItemClick(alarmId: Int) {
+        val action = AlarmListFragmentDirections.actionAlarmListFragmentToAlarmSettingFragment(alarmId = alarmId)
         findNavController().navigate(action)
     }
 

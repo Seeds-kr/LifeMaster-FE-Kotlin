@@ -37,7 +37,7 @@ class AlarmAdapter(private val itemClickListener: ItemClickListener) : ListAdapt
                 itemClickListener.onSwitchToggle(alarmId = item.id, alarmStatus = isChecked)
             }
             root.setOnClickListener {
-                itemClickListener.onItemClick(item)
+                itemClickListener.onItemClick(item.id)
             }
             root.setOnLongClickListener {
                 itemClickListener.onItemLongClick(item.id)

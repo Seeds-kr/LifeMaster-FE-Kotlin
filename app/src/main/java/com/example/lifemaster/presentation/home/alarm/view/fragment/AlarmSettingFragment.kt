@@ -53,6 +53,8 @@ import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Locale
 import androidx.core.net.toUri
+import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
+import com.example.lifemaster.presentation.home.alarm.model.mapper.toPresentation
 
 @AndroidEntryPoint
 class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
@@ -120,10 +122,10 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmSettingBinding.bind(view)
-        val alarmItem: AlarmModel? = args.alarmModel
-        initViews(alarmItem)
+        val alarmId = args.alarmId
+        initViews(alarmId)
         initStates()
-        initListeners(alarmItem)
+        initListeners(alarmId)
         initObservers()
     }
 
@@ -159,7 +161,14 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
     }
 
-    private fun initViews(alarm: AlarmModel?) = with(binding) {
+    private fun initViews(alarmId: Int) = with(binding) {
+        if (alarmId != NO_ALARM) {
+            // 기존 알람 아이템을 클릭한 경우
+            alarmGenerateViewModel.fetchAlarm(alarmId = alarmId)
+        } else {
+            // 새로운 알람을 추가하는 경우
+            tvAlarmSettingRingTime.text = formatAlarmDateLabel(referenceTime = TOMORROW)
+        }
         // 공통 기능
         requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible =
             false
@@ -167,39 +176,10 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
             it.first.tvDayType.text = it.second
             it.first.cardview.tag = dayToValueMapper[it.second]
         }
-        if (alarm != null) {
-            // 기존 알람 아이템을 클릭한 경우
-            etAlarmSettingTitle.setText(alarm.alarmTitle)
-            alarmSettingTimePicker.hour = alarm.hour
-            alarmSettingTimePicker.minute = alarm.minute
-            setAlarmSettingRingTime(alarm)
-            if (alarm.randomMissionType != null) {
-                alarmGenerateViewModel.setRandomMission(randomMission = mapOf(alarm.randomMissionType to alarm.randomMissionLevel))
-            }
-            daysOfWeek.forEach { dayOfWeek ->
-                if (selectedDays.contains(dayOfWeek.cardview.tag)) dayOfWeek.cardview.isSelected =
-                    true
-            }
-            if (alarm.snoozed) {
-                alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked = true
-                llAlarmSettingDelayStatus.isVisible = true
-                alarmGenerateViewModel.setSnoozeDuration(snoozeDuration = alarm.snoozeMinute!! to alarm.snoozeCount!!)
-            }
-            if (alarm.antiSnoozed) {
-                alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked = true
-                llAlarmSettingAntiSnoozeStatus.isVisible = true
-                alarmGenerateViewModel.setSnoozeLockMinute(snoozeLockMinute = alarm.antiSnoozeMinute!!)
-            }
-            alarmSoundUri = alarm.alarmSoundUri?.toUri()
-            tvAlarmSettingMusicTitle.text = RingtoneManager.getRingtone(context, alarmSoundUri).getTitle(context)
-        } else {
-            // 새로운 알람을 추가하는 경우
-            tvAlarmSettingRingTime.text = formatAlarmDateLabel(referenceTime = TOMORROW)
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    private fun initListeners(alarm: AlarmModel?) = with(binding) {
+    private fun initListeners(alarmId: Int) = with(binding) {
 
         // 뒤로가기 버튼
         ivAlarmSettingBack.setOnClickListener {
@@ -319,9 +299,9 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                     .atZone(ZoneId.systemDefault()).toInstant().toString()
             }
 
-            if(alarm != null) {
+            if(alarmId != NO_ALARM) {
                 // 알람 수정하기
-                alarmGenerateViewModel.updateAlarm(alarmId = alarm.id, request = AlarmRequest(
+                alarmGenerateViewModel.updateAlarm(alarmId = alarmId, request = AlarmRequest(
                     alarmTitle = etAlarmSettingTitle.text.toString(),
                     alarmTime = alarmTime,
                     alarmMon = alarmSettingLayoutMonday.cardview.isSelected,
@@ -466,70 +446,102 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                alarmGenerateViewModel.randomMission.collect { mission ->
-                    if(mission != null) {
-                        val missionType = mission.entries.first().key
-                        val missionLevel = mission.entries.first().value
-                        if (missionType == RandomMissionType.MATH_PROBLEM || missionType == RandomMissionType.FOLLOW_CLICK) {
-                            tvAlarmSettingSelectedRandomMission.text = "${randomMissionTypeMapper[missionType]}-${randomMissionLevelMapper[missionLevel]}"
-                        } else if(missionType == RandomMissionType.TYPING_SENTENCE) {
-                            tvAlarmSettingSelectedRandomMission.text = "${randomMissionTypeMapper[missionType]}"
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    alarmGenerateViewModel.randomMission.collect { mission ->
+                        if(mission != null) {
+                            val missionType = mission.entries.first().key
+                            val missionLevel = mission.entries.first().value
+                            if (missionType == RandomMissionType.MATH_PROBLEM || missionType == RandomMissionType.FOLLOW_CLICK) {
+                                tvAlarmSettingSelectedRandomMission.text = "${randomMissionTypeMapper[missionType]}-${randomMissionLevelMapper[missionLevel]}"
+                            } else if(missionType == RandomMissionType.TYPING_SENTENCE) {
+                                tvAlarmSettingSelectedRandomMission.text = "${randomMissionTypeMapper[missionType]}"
+                            }
+                            randomMissionType = missionType
+                            randomMissionLevel = missionLevel
                         }
-                        randomMissionType = missionType
-                        randomMissionLevel = missionLevel
                     }
                 }
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                alarmGenerateViewModel.snoozeDuration.collect { snoozeDuration ->
-                    tvAlarmSettingSnoozeMinutes.text = snoozeDuration.first.toString()
-                    tvAlarmSettingSnoozeCount.text = snoozeDuration.second.toString()
+                launch {
+                    alarmGenerateViewModel.snoozeDuration.collect { snoozeDuration ->
+                        tvAlarmSettingSnoozeMinutes.text = snoozeDuration.first.toString()
+                        tvAlarmSettingSnoozeCount.text = snoozeDuration.second.toString()
+                    }
                 }
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                alarmGenerateViewModel.snoozeLockMinute.collect { snoozeLockMinute ->
-                    tvAlarmSettingSnoozeLockMinutes.text = snoozeLockMinute.toString()
+                launch {
+                    alarmGenerateViewModel.snoozeLockMinute.collect { snoozeLockMinute ->
+                        tvAlarmSettingSnoozeLockMinutes.text = snoozeLockMinute.toString()
+                    }
                 }
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                alarmGenerateViewModel.alarmCreationState.collect { resource ->
-                    when (resource) {
-                        is DataResource.Idle -> {}
-                        is DataResource.Loading -> {}
-                        is DataResource.Success -> {
-                            Toast.makeText(context, "알람 생성이 완료되었어요.", Toast.LENGTH_SHORT).show()
-                            clearUI()
-                            findNavController().popBackStack()
-                        }
+                launch {
+                    alarmGenerateViewModel.alarmCreationState.collect { resource ->
+                        when (resource) {
+                            is DataResource.Idle -> {}
+                            is DataResource.Loading -> {}
+                            is DataResource.Success -> {
+                                Toast.makeText(context, "알람 생성이 완료되었어요.", Toast.LENGTH_SHORT).show()
+                                clearUI()
+                                findNavController().popBackStack()
+                            }
 
-                        is DataResource.Error -> {
-                            Toast.makeText(context, "알람 생성이 실패하였습니다.", Toast.LENGTH_SHORT).show()
-                            Log.e(ALARM, "" + resource.throwable.message)
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "알람 생성이 실패하였습니다.", Toast.LENGTH_SHORT).show()
+                                Log.e(ALARM, "" + resource.throwable.message)
+                            }
                         }
                     }
                 }
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                alarmGenerateViewModel.alarmUpdateState.collect { resource ->
-                    when(resource) {
-                        is DataResource.Error -> {
-                            Toast.makeText(context, "알람 업데이트가 실패했습니다.", Toast.LENGTH_SHORT).show()
+                launch {
+                    alarmGenerateViewModel.alarmUpdateState.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "알람 업데이트가 실패했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<*> -> {
+                                Toast.makeText(context, "알람 업데이트가 완료되었어요.", Toast.LENGTH_SHORT).show()
+                                clearUI()
+                                findNavController().popBackStack()
+                            }
                         }
-                        DataResource.Idle -> {}
-                        DataResource.Loading -> {}
-                        is DataResource.Success<*> -> {
-                            Toast.makeText(context, "알람 업데이트가 완료되었어요.", Toast.LENGTH_SHORT).show()
-                            clearUI()
-                            findNavController().popBackStack()
+                    }
+                }
+                launch {
+                    alarmGenerateViewModel.alarm.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "알람 상세 조회에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                Log.e(ALARM, "error: ${resource.throwable.message}")
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success -> {
+                                val alarm = resource.data.toPresentation()
+                                etAlarmSettingTitle.setText(alarm.alarmTitle)
+                                alarmSettingTimePicker.hour = alarm.hour
+                                alarmSettingTimePicker.minute = alarm.minute
+                                setAlarmSettingRingTime(alarm)
+                                if (alarm.randomMissionType != null) {
+                                    alarmGenerateViewModel.setRandomMission(randomMission = mapOf(alarm.randomMissionType to alarm.randomMissionLevel))
+                                }
+                                daysOfWeek.forEach { dayOfWeek ->
+                                    if (selectedDays.contains(dayOfWeek.cardview.tag)) dayOfWeek.cardview.isSelected =
+                                        true
+                                }
+                                if (alarm.snoozed) {
+                                    alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked = true
+                                    llAlarmSettingDelayStatus.isVisible = true
+                                    alarmGenerateViewModel.setSnoozeDuration(snoozeDuration = alarm.snoozeMinute!! to alarm.snoozeCount!!)
+                                }
+                                if (alarm.antiSnoozed) {
+                                    alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked = true
+                                    llAlarmSettingAntiSnoozeStatus.isVisible = true
+                                    alarmGenerateViewModel.setSnoozeLockMinute(snoozeLockMinute = alarm.antiSnoozeMinute!!)
+                                }
+                                alarmSoundUri = alarm.alarmSoundUri?.toUri()
+                                tvAlarmSettingMusicTitle.text = RingtoneManager.getRingtone(context, alarmSoundUri).getTitle(context)
+                            }
                         }
                     }
                 }
@@ -554,7 +566,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         if (selectedDays.isEmpty()) {
             val today: LocalDate = LocalDate.now(ZoneId.systemDefault())
             val targetDate: LocalDate =
-                Instant.parse(alarm.alarmTime).atZone(ZoneId.systemDefault()).toLocalDate()
+                Instant.parse(alarm.alarmTime+"Z").atZone(ZoneId.systemDefault()).toLocalDate()
             val daysDifference =
                 ChronoUnit.DAYS.between(today, targetDate).toInt() // targetDate - today
             when (daysDifference) {
@@ -611,6 +623,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         private const val TODAY = "today"
         private const val TOMORROW = "tomorrow"
         private const val ALL_DAYS_COUNT = 7
+        private const val NO_ALARM = -1
     }
 }
 
