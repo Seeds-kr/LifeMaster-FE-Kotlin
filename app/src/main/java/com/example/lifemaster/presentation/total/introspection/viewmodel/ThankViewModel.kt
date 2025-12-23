@@ -1,9 +1,13 @@
+package com.example.lifemaster.presentation.total.introspection.viewmodel
+
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
+import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
 import kotlinx.coroutines.launch
 
 sealed class UiState {
@@ -19,6 +23,9 @@ class ThankViewModel : ViewModel() {
 
     private val _uiState = MutableLiveData<UiState>()
     val uiState: LiveData<UiState> get() = _uiState
+
+    private val _thankData = MutableLiveData<ThankResponse?>()
+    val thankData: LiveData<ThankResponse?> get() = _thankData
 
     //감사일기 작성 기능
     fun createThankEntry(
@@ -46,7 +53,12 @@ class ThankViewModel : ViewModel() {
                 val response = networkService.createThank("Bearer $token", request)
 
                 if (response.isSuccessful) {
+                    response.body()?.let {
+                        // thankId를 받을 수 있음 (필요시 사용)
                     _uiState.value = UiState.Success
+                    } ?: run {
+                        _uiState.value = UiState.Error("응답 데이터가 없습니다.")
+                    }
                 } else {
                     _uiState.value = UiState.Error("오류: ${response.code()}")
                 }
@@ -83,6 +95,45 @@ class ThankViewModel : ViewModel() {
                 // 수정 API 호출
                 val response = networkService.updateThank("Bearer $token", thankId, request)
 
+                if (response.isSuccessful) {
+                    _uiState.value = UiState.Success
+                } else {
+                    _uiState.value = UiState.Error("오류: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다.")
+            }
+        }
+    }
+
+    // 감사일기 조회 기능
+    fun loadThankEntry(token: String, thankId: Long) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val response = networkService.getThank("Bearer $token", thankId)
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        _thankData.value = it
+                        _uiState.value = UiState.Success
+                    } ?: run {
+                        _uiState.value = UiState.Error("데이터를 불러올 수 없습니다.")
+                    }
+                } else {
+                    _uiState.value = UiState.Error("오류: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다.")
+            }
+        }
+    }
+
+    // 감사일기 삭제 기능
+    fun deleteThankEntry(token: String, thankId: Long) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val response = networkService.deleteThank("Bearer $token", thankId)
                 if (response.isSuccessful) {
                     _uiState.value = UiState.Success
                 } else {

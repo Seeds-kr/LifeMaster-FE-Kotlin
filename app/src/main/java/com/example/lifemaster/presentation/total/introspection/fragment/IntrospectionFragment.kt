@@ -1,6 +1,6 @@
 package com.example.lifemaster.presentation.total.introspection
 
-import ThankViewModel
+import com.example.lifemaster.presentation.total.introspection.viewmodel.ThankViewModel
 import android.os.Bundle
 import android.transition.TransitionManager
 import android.view.LayoutInflater
@@ -55,9 +55,12 @@ class IntrospectionFragment : Fragment() {
             binding.btnToday.isEnabled = false
             binding.btnThanks.isEnabled = false
 
-            // TODO: ViewModel에 ID로 기존 데이터를 불러오는 함수를 만들고 호출하세요.
-            // 예: viewModel.loadThankEntry(thankId!!)
-            // 불러온 데이터로 binding.etThanks1.setText(data.thankOne) 처럼 입력창을 채워줍니다.
+            // 기존 데이터 불러오기
+            readAuthToken()?.let { token ->
+                thankId?.let { viewModel.loadThankEntry(token, it) }
+            } ?: run {
+                Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            }
         }
 
         // 초기 화면 설정
@@ -104,7 +107,10 @@ class IntrospectionFragment : Fragment() {
                         // 현재 날짜를 "yyyy-MM-dd" 형식의 문자열로 변환
                         val currentDate =
                             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                        val token = "YOUR_TOKEN" // TODO: 실제 토큰으로 교체
+                        val token = readAuthToken() ?: run {
+                            Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                            return@setOnClickListener
+                        }
 
                         // ViewModel의 함수를 호출하여 서버에 데이터 전송 요청
                         viewModel.createThankEntry(
@@ -183,6 +189,12 @@ class IntrospectionFragment : Fragment() {
 
     enum class Mode {
         TODAY, THANKS
+    }
+
+    private fun readAuthToken(): String? {
+        val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
+        if (raw.isBlank()) return null
+        return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
     }
 
     companion object {
