@@ -8,6 +8,7 @@ import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
+import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
@@ -134,11 +135,25 @@ interface NetworkService {
     ): Response<Unit>
 
     //감사일기 수정
-    @PUT("schedule/self-reflection/thank/{thank-id}")
+    @PUT("/schedule/self-reflection/thank/{thank-id}")
     suspend fun updateThank(
         @Header("Authorization") token: String,
         @Path("thank-id") thankId: Long,
         @Body request: ThankRequest
+    ): Response<Unit>
+
+    // 감사일기 조회
+    @GET("/schedule/self-reflection/thank/{thank-id}")
+    suspend fun getThank(
+        @Header("Authorization") token: String,
+        @Path("thank-id") thankId: Long
+    ): Response<ThankResponse>
+
+    // 감사일기 삭제
+    @DELETE("/schedule/self-reflection/thank/{thank-id}")
+    suspend fun deleteThank(
+        @Header("Authorization") token: String,
+        @Path("thank-id") thankId: Long
     ): Response<Unit>
 
     // 커뮤니티 게시글 전체 목록 조회
