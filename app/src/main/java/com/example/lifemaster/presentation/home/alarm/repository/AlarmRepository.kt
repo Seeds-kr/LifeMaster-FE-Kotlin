@@ -59,4 +59,20 @@ class AlarmRepository @Inject constructor(private val networkService: NetworkSer
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    // 전체 알람 활성화
+    suspend fun activateAllAlarms() = try {
+        networkService.activateAllAlarms()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    // 전체 알람 비활성화
+    suspend fun deactivateAllAlarms() = try {
+        networkService.deactivateAllAlarms()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

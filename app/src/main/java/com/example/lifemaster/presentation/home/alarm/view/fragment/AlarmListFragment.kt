@@ -24,6 +24,7 @@ import java.time.LocalDate
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.PopupMenu
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -101,79 +102,123 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
     }
 
     private fun initListeners() = with(binding) {
-        tvAddAlarmItem.setOnClickListener {
+        ivAlarmItemAdd.setOnClickListener {
             val action = AlarmListFragmentDirections.actionAlarmListFragmentToAlarmSettingFragment()
             findNavController().navigate(action)
+        }
+        ivAlarmItemOption.setOnClickListener {
+            val popup = PopupMenu(requireContext(), ivAlarmItemOption)
+            popup.menuInflater.inflate(R.menu.alarm_option_menu, popup.menu)
+            popup.setOnMenuItemClickListener { item ->
+                when(item.itemId) {
+                    R.id.alarm_activate -> {
+                        alarmGenerateViewModel.activateAllAlarms()
+                        true
+                    }
+                    R.id.alarm_deactivate -> {
+                        alarmGenerateViewModel.deactivateAllAlarms()
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
         }
     }
 
     private fun initObservers() = with(binding) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                alarmGenerateViewModel.alarmList.collect { resource ->
-                    when (resource) {
-                        is DataResource.Loading -> { }
-                        is DataResource.Idle -> { }
-                        is DataResource.Success -> {
-                            val alarmResponse: List<AlarmResponse> = resource.data
-                            alarmList = alarmResponse.map { it.toPresentation() }.toMutableList()
-                            if (alarmResponse.isNotEmpty()) {
-                                llNoAlarmItem.isVisible = false
-                                alarmRecyclerview.isVisible = true
+                launch {
+                    alarmGenerateViewModel.alarmList.collect { resource ->
+                        when (resource) {
+                            is DataResource.Loading -> { }
+                            is DataResource.Idle -> { }
+                            is DataResource.Success -> {
+                                val alarmResponse: List<AlarmResponse> = resource.data
+                                alarmList = alarmResponse.map { it.toPresentation() }.toMutableList()
+                                if (alarmResponse.isNotEmpty()) {
+                                    llNoAlarmItem.isVisible = false
+                                    alarmRecyclerview.isVisible = true
+                                    alarmAdapter.submitList(alarmList)
+                                }
+                            }
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "알람 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                                Log.e(ALARM, "alarmList fetch error", resource.throwable)
+                            }
+                        }
+                    }
+                }
+                launch {
+                    alarmGenerateViewModel.alarmToggleState.collect { resource ->
+                        when(resource) {
+                            is DataResource.Success -> {
+                                val isEnabled = resource.data
+                                if(isEnabled) {
+                                    Toast.makeText(context, "알람이 켜졌습니다.", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "알람이 꺼졌습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            is DataResource.Error -> {
+                                // TODO: 테스트 확인 필요 → 네트워크 끈 상태에서 알람 스위치 바꿔보기 (예상 동작: 토스트 메세지 뜨면서 스위치 안바뀌어야함)
+                                Toast.makeText(context, "네트워크가 불안정합니다.", Toast.LENGTH_SHORT).show()
+                                val currentList = alarmAdapter.currentList.toMutableList()
+                                val index = currentList.indexOfFirst { it.id == alarmId }
+                                val oldItem = currentList[index]
+                                val rollbackItem = oldItem.copy(switchOnOff = !alarmStatus!!)
+                                currentList[index] = rollbackItem
+                                alarmAdapter.submitList(currentList.toList())
+                            }
+                            DataResource.Idle -> { }
+                            DataResource.Loading -> { }
+                        }
+                    }
+                }
+                launch {
+                    alarmGenerateViewModel.alarmDeleteState.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "알람을 삭제하지 못했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success -> {
+                                val deleteAlarmId = resource.data
+                                val removeAlarm = alarmList.find { it.id == deleteAlarmId }
+                                alarmList.remove(removeAlarm)
                                 alarmAdapter.submitList(alarmList)
+                                Toast.makeText(context, "알람을 삭제했습니다.", Toast.LENGTH_SHORT).show()
                             }
-                        }
-                        is DataResource.Error -> {
-                            Toast.makeText(context, "알람 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
-                            Log.e(ALARM, "alarmList fetch error", resource.throwable)
                         }
                     }
                 }
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                alarmGenerateViewModel.alarmToggleState.collect { resource ->
-                    when(resource) {
-                        is DataResource.Success -> {
-                            val isEnabled = resource.data
-                            if(isEnabled) {
-                                Toast.makeText(context, "알람이 켜졌습니다.", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "알람이 꺼졌습니다.", Toast.LENGTH_SHORT).show()
+                launch {
+                    alarmGenerateViewModel.alarmActivateState.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {}
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success -> {
+                                val newAlarmList = alarmAdapter.currentList.map { it.copy(switchOnOff = true) }
+                                alarmAdapter.submitList(newAlarmList)
+                                Toast.makeText(context, "전체 알람을 켰습니다.", Toast.LENGTH_SHORT).show()
                             }
                         }
-                        is DataResource.Error -> {
-                            // TODO: 테스트 확인 필요 → 네트워크 끈 상태에서 알람 스위치 바꿔보기 (예상 동작: 토스트 메세지 뜨면서 스위치 안바뀌어야함)
-                            Toast.makeText(context, "네트워크가 불안정합니다.", Toast.LENGTH_SHORT).show()
-                            val currentList = alarmAdapter.currentList.toMutableList()
-                            val index = currentList.indexOfFirst { it.id == alarmId }
-                            val oldItem = currentList[index]
-                            val rollbackItem = oldItem.copy(switchOnOff = !alarmStatus!!)
-                            currentList[index] = rollbackItem
-                            alarmAdapter.submitList(currentList.toList())
-                        }
-                        DataResource.Idle -> { }
-                        DataResource.Loading -> { }
                     }
                 }
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                alarmGenerateViewModel.alarmDeleteState.collect { resource ->
-                    when(resource) {
-                        is DataResource.Error -> {
-                            Toast.makeText(context, "알람을 삭제하지 못했습니다.", Toast.LENGTH_SHORT).show()
-                        }
-                        DataResource.Idle -> {}
-                        DataResource.Loading -> {}
-                        is DataResource.Success -> {
-                            val deleteAlarmId = resource.data
-                            val removeAlarm = alarmList.find { it.id == deleteAlarmId }
-                            alarmList.remove(removeAlarm)
-                            alarmAdapter.submitList(alarmList)
-                            Toast.makeText(context, "알람을 삭제했습니다.", Toast.LENGTH_SHORT).show()
+                launch {
+                    alarmGenerateViewModel.alarmDeactivateState.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {}
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success -> {
+                                val newAlarmList = alarmAdapter.currentList.map { it.copy(switchOnOff = false) }
+                                alarmAdapter.submitList(newAlarmList)
+                                Toast.makeText(context, "전체 알람을 껐습니다.", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 }

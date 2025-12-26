@@ -157,4 +157,36 @@ class AlarmGenerateViewModel @Inject constructor(
         }
     }
 
+    private val _alarmActivateState = MutableStateFlow<DataResource<Unit>>(DataResource.Idle)
+    val alarmActivateState = _alarmActivateState.asStateFlow()
+
+    // 전체 알람 활성화
+    fun activateAllAlarms() {
+        viewModelScope.launch {
+            _alarmActivateState.value = DataResource.Loading
+            val result: Result<Unit> = repository.activateAllAlarms()
+            result.onSuccess {
+                _alarmActivateState.value = DataResource.Success(Unit)
+            }.onFailure { error ->
+                _alarmActivateState.value = DataResource.Error(error)
+            }
+        }
+    }
+
+    private val _alarmDeactivateState = MutableStateFlow<DataResource<Unit>>(DataResource.Idle)
+    val alarmDeactivateState = _alarmDeactivateState.asStateFlow()
+
+    // 전체 알람 비활성화
+    fun deactivateAllAlarms() {
+        viewModelScope.launch {
+            _alarmDeactivateState.value = DataResource.Loading
+            val result: Result<Unit> = repository.deactivateAllAlarms()
+            result.onSuccess {
+                _alarmDeactivateState.value = DataResource.Success(Unit)
+            }.onFailure { error ->
+                _alarmDeactivateState.value = DataResource.Error(error)
+            }
+        }
+    }
+
 }

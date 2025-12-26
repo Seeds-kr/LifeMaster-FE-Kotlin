@@ -315,4 +315,12 @@ interface NetworkService {
     suspend fun deleteAlarm(
         @Path("alarmId") alarmId: Int
     )
+
+    // 전체 알람 활성화 (비활성화된 모든 알람을 활성화합니다)
+    @PATCH("/time/alarm/activate-all")
+    suspend fun activateAllAlarms()
+
+    // 전체 알람 비활성화 (활성화된 모든 알람을 비활성화합니다)
+    @PATCH("time/alarm/deactivate-all")
+    suspend fun deactivateAllAlarms()
 }
