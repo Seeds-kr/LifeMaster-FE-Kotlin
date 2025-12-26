@@ -53,8 +53,8 @@ import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Locale
 import androidx.core.net.toUri
-import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.alarm.model.mapper.toPresentation
+import java.time.Duration
 
 @AndroidEntryPoint
 class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
@@ -167,7 +167,8 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
             alarmGenerateViewModel.fetchAlarm(alarmId = alarmId)
         } else {
             // 새로운 알람을 추가하는 경우
-            tvAlarmSettingRingTime.text = formatAlarmDateLabel(referenceTime = TOMORROW)
+            tvAlarmSettingRemainingTime.text = "1일 뒤에 울려요"
+            tvAlarmSettingRepeatDays.text = formatAlarmDateLabel(referenceTime = TOMORROW)
         }
         // 공통 기능
         requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible =
@@ -207,20 +208,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                     selectedDays.remove(dayInt)
                 }
 
-                if (selectedDays.isEmpty()) {
-                    val now = LocalTime.now()
-                    val selected =
-                        LocalTime.of(alarmSettingTimePicker.hour, alarmSettingTimePicker.minute)
-                    val reference = if (selected.isAfter(now)) TODAY else TOMORROW
-                    tvAlarmSettingRingTime.text = formatAlarmDateLabel(referenceTime = reference)
-                } else if (selectedDays.size == ALL_DAYS_COUNT) {
-                    tvAlarmSettingRingTime.text = "매일"
-                } else {
-                    val sortedDays = selectedDays.sorted()
-                    val textDays = sortedDays.mapNotNull { valueToDayMapper[it] }
-                    tvAlarmSettingRingTime.text = "매주 " + textDays.joinToString(", ")
-                }
-
+                updateRemainingAndRepeatTimeText(hour = alarmSettingTimePicker.hour, minute = alarmSettingTimePicker.minute)
             }
         }
 
@@ -283,17 +271,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                 }
             } else {
                 // 반복 요일 있음
-                val todayValue = LocalDate.now().dayOfWeek.value
-                val convertedDays = selectedDays.map { dayValue ->
-                    if (dayValue > todayValue) dayValue - todayValue
-                    else if (dayValue < todayValue) dayValue + 7 - todayValue
-                    else {
-                        if (LocalTime.of(alarmSettingTimePicker.hour, alarmSettingTimePicker.minute)
-                                .isAfter(LocalTime.now())
-                        ) 0 else 7
-                    }
-                }
-                val daysUntilAlarm = convertedDays.min()
+                val daysUntilAlarm = getRemainingDaysUntilAlarmRings(LocalTime.of(alarmSettingTimePicker.hour, alarmSettingTimePicker.minute))
                 alarmTime = LocalDate.now().plusDays(daysUntilAlarm.toLong())
                     .atTime(alarmSettingTimePicker.hour, alarmSettingTimePicker.minute)
                     .atZone(ZoneId.systemDefault()).toInstant().toString()
@@ -437,14 +415,10 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     }
 
     private fun initObservers() = with(binding) {
-        alarmSettingTimePicker.setOnTimeChangedListener { timePicker, timePickerHour, timePickerMinute ->
-            if (selectedDays.isEmpty()) {
-                val now = LocalTime.now()
-                val selected = LocalTime.of(timePickerHour, timePickerMinute)
-                val reference = if (selected.isAfter(now)) TODAY else TOMORROW
-                tvAlarmSettingRingTime.text = formatAlarmDateLabel(referenceTime = reference)
-            }
+        alarmSettingTimePicker.setOnTimeChangedListener { _, hour, minute ->
+            updateRemainingAndRepeatTimeText(hour, minute)
         }
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -479,7 +453,11 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                             is DataResource.Idle -> {}
                             is DataResource.Loading -> {}
                             is DataResource.Success -> {
-                                Toast.makeText(context, "알람 생성이 완료되었어요.", Toast.LENGTH_SHORT).show()
+                                val alarmTime = resource.data
+                                val targetDateTime = Instant.parse(alarmTime).atZone(ZoneId.systemDefault()).toLocalDateTime()
+                                val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
+                                val toastMessage = formatRemainingTime(start = currentDateTime, end = targetDateTime)
+                                Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
                                 clearUI()
                                 findNavController().popBackStack()
                             }
@@ -499,8 +477,12 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                             }
                             DataResource.Idle -> {}
                             DataResource.Loading -> {}
-                            is DataResource.Success<*> -> {
-                                Toast.makeText(context, "알람 업데이트가 완료되었어요.", Toast.LENGTH_SHORT).show()
+                            is DataResource.Success -> {
+                                val alarmTime = resource.data
+                                val targetDateTime = Instant.parse(alarmTime).atZone(ZoneId.systemDefault()).toLocalDateTime()
+                                val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
+                                val toastMessage = formatRemainingTime(start = currentDateTime, end = targetDateTime)
+                                Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
                                 clearUI()
                                 findNavController().popBackStack()
                             }
@@ -521,13 +503,12 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                                 etAlarmSettingTitle.setText(alarm.alarmTitle)
                                 alarmSettingTimePicker.hour = alarm.hour
                                 alarmSettingTimePicker.minute = alarm.minute
-                                setAlarmSettingRingTime(alarm)
+                                setRemainingAndRepeatTimeText(alarm)
                                 if (alarm.randomMissionType != null) {
                                     alarmGenerateViewModel.setRandomMission(randomMission = mapOf(alarm.randomMissionType to alarm.randomMissionLevel))
                                 }
                                 daysOfWeek.forEach { dayOfWeek ->
-                                    if (selectedDays.contains(dayOfWeek.cardview.tag)) dayOfWeek.cardview.isSelected =
-                                        true
+                                    if (selectedDays.contains(dayOfWeek.cardview.tag)) dayOfWeek.cardview.isSelected = true
                                 }
                                 if (alarm.snoozed) {
                                     alarmSettingLayoutSwitchSnooze.alarmSwitch.isChecked = true
@@ -554,7 +535,85 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible = true // 하단 바 상태 변경
     }
 
-    private fun setAlarmSettingRingTime(alarm: AlarmModel) = with(binding) {
+    /**
+     * 알람 울리기까지 남은 시간, 알람 울리는 구체적 날짜(텍스트)를 업데이트하는 메소드
+     */
+    private fun updateRemainingAndRepeatTimeText(hour: Int, minute: Int) = with(binding) {
+        val now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES) // 초, 밀리초 단위 0으로 설정
+        val alarmTime = LocalTime.of(hour, minute)
+        val targetDateTime: LocalDateTime = if (selectedDays.isEmpty()) {
+            if (alarmTime.isAfter(now.toLocalTime())) {
+                LocalDateTime.of(now.toLocalDate(), alarmTime)
+            } else {
+                LocalDateTime.of(now.toLocalDate().plusDays(1), alarmTime)
+            }
+        } else {
+            val daysDiff = getRemainingDaysUntilAlarmRings(alarmTime)
+            LocalDateTime.of(now.toLocalDate().plusDays(daysDiff.toLong()), alarmTime)
+        }
+
+        // 결과 출력
+        tvAlarmSettingRemainingTime.text = formatRemainingTime(now, targetDateTime)
+        tvAlarmSettingRepeatDays.text = when {
+            selectedDays.isEmpty() -> {
+                val isToday = targetDateTime.toLocalDate() == now.toLocalDate()
+                formatAlarmDateLabel(referenceTime = if(isToday) TODAY else TOMORROW)
+            }
+            selectedDays.size == ALL_DAYS_COUNT -> "매일"
+            else -> {
+                val sortedDays = selectedDays.sorted()
+                val textDays = sortedDays.mapNotNull { valueToDayMapper[it] }
+                "매주 " + textDays.joinToString(", ")
+            }
+        }
+    }
+
+    /**
+     * 두 시간의 차이를 분석하여 언제 울리는 지 텍스트를 생성하는 메소드 ex. "4일 5시간 12분 뒤에 울려요"
+     */
+    private fun formatRemainingTime(start: LocalDateTime, end: LocalDateTime): String {
+        val duration = Duration.between(start, end)
+        val days = duration.toDays()
+        val hours = duration.toHours() % 24
+        val minutes = duration.toMinutes() % 60
+
+        val parts = mutableListOf<String>()
+        if (days > 0) parts.add("${days}일")
+        if (hours > 0) parts.add("${hours}시간")
+        if (minutes > 0 || (days == 0L && hours == 0L)) parts.add("${minutes}분")
+
+        return "${parts.joinToString(" ")} 뒤에 알람이 울려요"
+    }
+
+    /**
+     * 현재 시점과 알람이 울리기 전까지 며칠 남았는 지 값을 반환하는 메소드
+     */
+    private fun getRemainingDaysUntilAlarmRings(alarmTime: LocalTime): Int {
+
+        val now = LocalDateTime.now()
+        val todayValue = now.dayOfWeek.value // 월(1) ~ 일(7)
+        val currentTime = now.toLocalTime()
+
+        val sortedDays = selectedDays.sorted()
+
+        for (dayValue in sortedDays) {
+            if (dayValue > todayValue) {
+                return dayValue - todayValue
+            } else if (dayValue == todayValue) {
+                if (alarmTime.isAfter(currentTime)) {
+                    return 0
+                }
+            }
+        }
+
+        // 만약 리스트의 모든 요일이 오늘보다 이전이거나, 오늘인데 시간이 이미 지났다면
+        // 리스트의 첫 번째 요일(가장 작은 값) = 다음 주에 돌아오는 가장 빠른 날
+        val nextWeekDay = sortedDays.first()
+        return nextWeekDay + 7 - todayValue
+    }
+
+    // 알람이 언제 울리는 지 텍스트로 표기하는 메소드. 예) 매주 월, 화, 수 / 매일 / 내일
+    private fun setRemainingAndRepeatTimeText(alarm: AlarmModel) = with(binding) {
         if (alarm.alarmMon) selectedDays.add(DayOfWeek.MONDAY.value)
         if (alarm.alarmTue) selectedDays.add(DayOfWeek.TUESDAY.value)
         if (alarm.alarmWed) selectedDays.add(DayOfWeek.WEDNESDAY.value)
@@ -562,32 +621,12 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         if (alarm.alarmFri) selectedDays.add(DayOfWeek.FRIDAY.value)
         if (alarm.alarmSat) selectedDays.add(DayOfWeek.SATURDAY.value)
         if (alarm.alarmSun) selectedDays.add(DayOfWeek.SUNDAY.value)
-
-        if (selectedDays.isEmpty()) {
-            val today: LocalDate = LocalDate.now(ZoneId.systemDefault())
-            val targetDate: LocalDate =
-                Instant.parse(alarm.alarmTime+"Z").atZone(ZoneId.systemDefault()).toLocalDate()
-            val daysDifference =
-                ChronoUnit.DAYS.between(today, targetDate).toInt() // targetDate - today
-            when (daysDifference) {
-                0 -> tvAlarmSettingRingTime.text = formatAlarmDateLabel(referenceTime = TODAY)
-                1 -> tvAlarmSettingRingTime.text = formatAlarmDateLabel(referenceTime = TOMORROW)
-                else -> tvAlarmSettingRingTime.text =
-                    "${targetDate.year}년 ${targetDate.dayOfMonth}월 ${targetDate.dayOfMonth}일 (${
-                        targetDate.dayOfWeek.getDisplayName(
-                            TextStyle.SHORT, Locale.KOREAN
-                        )
-                    })"
-            }
-        } else if (selectedDays.size == ALL_DAYS_COUNT) {
-            tvAlarmSettingRingTime.text = "매일"
-        } else {
-            val sortedDays = selectedDays.sorted() // [1, 3, 4]
-            val textDays = sortedDays.map { valueToDayMapper[it] } // [월, 수, 목]
-            tvAlarmSettingRingTime.text = "매주" + textDays.joinToString(", ") // 매주 월, 수. 목
-        }
+        updateRemainingAndRepeatTimeText(hour = alarm.hour, minute = alarm.minute)
     }
 
+    /**
+     * 알람이 오늘 또는 내일 울리는 경우 그에 맞는 텍스트를 표기하는 메소드
+     */
     private fun formatAlarmDateLabel(referenceTime: String): String {
         var alarmDateLabel = ""
         when (referenceTime) {

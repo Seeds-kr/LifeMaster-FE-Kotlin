@@ -13,9 +13,9 @@ import javax.inject.Inject
 class AlarmRepository @Inject constructor(private val networkService: NetworkService) {
 
     // 새 알람 생성
-    suspend fun createNewAlarm(alarmRequest: AlarmRequest): Result<Unit> = try {
+    suspend fun createNewAlarm(alarmRequest: AlarmRequest): Result<String> = try {
         networkService.createNewAlarm(alarmRequest = alarmRequest)
-        Result.success(Unit)
+        Result.success(alarmRequest.alarmTime)
     } catch (e: Exception) {
         Result.failure(e)
     }
@@ -45,9 +45,9 @@ class AlarmRepository @Inject constructor(private val networkService: NetworkSer
     }
 
     // 특정 알람 상태 업데이트
-    suspend fun updateAlarm(alarmId: Int, request: AlarmRequest): Result<Unit> = try {
+    suspend fun updateAlarm(alarmId: Int, request: AlarmRequest): Result<String> = try {
         networkService.updateAlarm(alarmId = alarmId, request = request)
-        Result.success(Unit)
+        Result.success(request.alarmTime)
     } catch (e: Exception) {
         Result.failure(e)
     }

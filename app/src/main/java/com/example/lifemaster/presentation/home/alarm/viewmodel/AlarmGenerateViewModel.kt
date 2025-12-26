@@ -61,16 +61,16 @@ class AlarmGenerateViewModel @Inject constructor(
         _snoozeAntiMinute.value = 2
     }
 
-    private val _alarmCreationState = MutableStateFlow<DataResource<Unit>>(DataResource.Idle)
-    val alarmCreationState: StateFlow<DataResource<Unit>> = _alarmCreationState
+    private val _alarmCreationState = MutableStateFlow<DataResource<String>>(DataResource.Idle)
+    val alarmCreationState: StateFlow<DataResource<String>> = _alarmCreationState
 
     // 새 알람 생성
     fun createNewAlarm(alarmRequest: AlarmRequest) {
         viewModelScope.launch {
             _alarmCreationState.value = DataResource.Loading
-            val result: Result<Unit> = repository.createNewAlarm(alarmRequest = alarmRequest)
-            result.onSuccess {
-                _alarmCreationState.value = DataResource.Success(Unit)
+            val result: Result<String> = repository.createNewAlarm(alarmRequest = alarmRequest)
+            result.onSuccess { alarmTime ->
+                _alarmCreationState.value = DataResource.Success(alarmTime)
             }.onFailure { error ->
                 _alarmCreationState.value = DataResource.Error(error)
             }
@@ -125,16 +125,16 @@ class AlarmGenerateViewModel @Inject constructor(
         }
     }
 
-    private val _alarmUpdateState = MutableStateFlow<DataResource<Unit>>(DataResource.Idle)
+    private val _alarmUpdateState = MutableStateFlow<DataResource<String>>(DataResource.Idle)
     val alarmUpdateState = _alarmUpdateState.asStateFlow()
 
     // 특정 알람 상태 업데이트
     fun updateAlarm(alarmId: Int, request: AlarmRequest) {
         viewModelScope.launch {
             _alarmUpdateState.value = DataResource.Loading
-            val result: Result<Unit> = repository.updateAlarm(alarmId = alarmId, request = request)
-            result.onSuccess {
-                _alarmUpdateState.value = DataResource.Success(Unit)
+            val result: Result<String> = repository.updateAlarm(alarmId = alarmId, request = request)
+            result.onSuccess { alarmTime ->
+                _alarmUpdateState.value = DataResource.Success(alarmTime)
             }.onFailure { error ->
                 _alarmUpdateState.value = DataResource.Error(error)
             }
