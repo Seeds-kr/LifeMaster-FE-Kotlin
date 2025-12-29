@@ -13,4 +13,11 @@ class AlarmMissionRepository @Inject constructor(private val networkService: Net
         Result.failure(e)
     }
 
+    suspend fun generateFollowClickProblem(alarmId: Int, level: String): Result<List<List<Int>>> = try {
+        val response = networkService.generateFollowClickProblem(alarmId = alarmId, level = level)
+        Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
 }

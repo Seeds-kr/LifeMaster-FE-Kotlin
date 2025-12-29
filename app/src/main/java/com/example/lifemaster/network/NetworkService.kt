@@ -1,9 +1,17 @@
 package com.example.lifemaster.network
 
-import com.example.lifemaster.presentation.community.model.*
+import com.example.lifemaster.presentation.community.model.CommentDto
+import com.example.lifemaster.presentation.community.model.NewCommentRequest
+import com.example.lifemaster.presentation.community.model.NewPostRequest
+import com.example.lifemaster.presentation.community.model.PollDetailsDto
+import com.example.lifemaster.presentation.community.model.PollListItem
+import com.example.lifemaster.presentation.community.model.PollResultDto
+import com.example.lifemaster.presentation.community.model.PostDetailDto
+import com.example.lifemaster.presentation.community.model.PostSummaryDto
+import com.example.lifemaster.presentation.community.model.UpdatePostRequest
+import com.example.lifemaster.presentation.community.model.VoteRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
-import com.example.lifemaster.presentation.home.alarm.model.AlarmToggleRequest
 import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
@@ -324,4 +332,11 @@ interface NetworkService {
         @Query("alarmId") alarmId: Int,
         @Query("level") level: String
     ): MathProblemResponse
+
+    // 5x5 클릭 그리드 생성 API
+    @GET("/time/alarm/mission/follow-click")
+    suspend fun generateFollowClickProblem(
+        @Query("alarmId") alarmId: Int,
+        @Query("level") level: String
+    ): List<List<Int>>
 }

@@ -30,4 +30,19 @@ class AlarmMissionViewModel @Inject constructor(private val repository: AlarmMis
             }
         }
     }
+
+    private val _followClickInfo = MutableStateFlow<DataResource<List<List<Int>>>>(DataResource.Idle)
+    val followClickInfo = _followClickInfo.asStateFlow()
+
+    fun generateFollowClickProblem(alarmId: Int, level: String) {
+        viewModelScope.launch {
+            _followClickInfo.value = DataResource.Loading
+            val result: Result<List<List<Int>>> = repository.generateFollowClickProblem(alarmId = alarmId, level = level)
+            result.onSuccess { response ->
+                _followClickInfo.value = DataResource.Success(response)
+            }.onFailure { error ->
+                _followClickInfo.value = DataResource.Error(error)
+            }
+        }
+    }
 }
