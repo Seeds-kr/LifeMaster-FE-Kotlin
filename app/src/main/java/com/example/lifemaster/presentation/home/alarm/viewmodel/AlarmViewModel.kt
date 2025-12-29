@@ -33,19 +33,4 @@ class AlarmViewModel(private val networkService: NetworkService): ViewModel() {
         _alarmItems.value = currentList
     }
 
-    /**
-     * 수학 문제 랜덤 생성
-     */
-    private val _mathProblemInfo = MutableLiveData<MathProblemResponse>()
-    val mathProblemInfo: LiveData<MathProblemResponse> get() = _mathProblemInfo
-
-    fun generateMathProblem(level: String) {
-        viewModelScope.launch {
-            try {
-                _mathProblemInfo.value = networkService.generateMathProblem(level)
-            } catch (e: Exception) {
-                Log.e("ERROR", "generateMathProblem: $e")
-            }
-        }
-    }
 }

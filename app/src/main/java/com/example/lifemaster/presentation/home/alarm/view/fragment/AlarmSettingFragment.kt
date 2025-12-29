@@ -24,10 +24,10 @@ import androidx.navigation.fragment.navArgs
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmSettingBinding
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.FOLLOW_CLICK
-import com.example.lifemaster.presentation.home.alarm.AlarmConstants.HIGH
-import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LOW
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LEVEL_HIGH
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LEVEL_LOW
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.MATH_PROBLEM
-import com.example.lifemaster.presentation.home.alarm.AlarmConstants.MEDIUM
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LEVEL_MEDIUM
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.TYPING_SENTENCE
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
@@ -111,9 +111,9 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
         RandomMissionType.TYPING_SENTENCE to TYPING_SENTENCE
     )
     private val randomMissionLevelMapper = mapOf(
-        RandomMissionLevel.HIGH to HIGH,
-        RandomMissionLevel.MEDIUM to MEDIUM,
-        RandomMissionLevel.LOW to LOW
+        RandomMissionLevel.HIGH to LEVEL_HIGH,
+        RandomMissionLevel.MEDIUM to LEVEL_MEDIUM,
+        RandomMissionLevel.LOW to LEVEL_LOW
     )
 
     private val selectedDays = mutableSetOf<Int>()

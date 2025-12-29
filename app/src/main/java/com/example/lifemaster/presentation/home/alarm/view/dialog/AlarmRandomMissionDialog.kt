@@ -16,12 +16,9 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.lifemaster.presentation.home.alarm.AlarmConstants.FOLLOW_CLICK
-import com.example.lifemaster.presentation.home.alarm.AlarmConstants.HIGH
-import com.example.lifemaster.presentation.home.alarm.AlarmConstants.MEDIUM
-import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LOW
-import com.example.lifemaster.presentation.home.alarm.AlarmConstants.MATH_PROBLEM
-import com.example.lifemaster.presentation.home.alarm.AlarmConstants.TYPING_SENTENCE
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LEVEL_HIGH
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LEVEL_MEDIUM
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LEVEL_LOW
 import com.example.lifemaster.presentation.home.alarm.model.RandomMissionLevel
 import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmGenerateViewModel
@@ -53,9 +50,9 @@ class AlarmRandomMissionDialog : DialogFragment(R.layout.dialog_alarm_random_mis
         )
     }
     private val randomMissionLevelMapper = mapOf(
-        HIGH to RandomMissionLevel.HIGH,
-        MEDIUM to RandomMissionLevel.MEDIUM,
-        LOW to RandomMissionLevel.LOW
+        LEVEL_HIGH to RandomMissionLevel.HIGH,
+        LEVEL_MEDIUM to RandomMissionLevel.MEDIUM,
+        LEVEL_LOW to RandomMissionLevel.LOW
     )
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

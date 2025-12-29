@@ -270,15 +270,6 @@ interface NetworkService {
     ): SleepResponse
 
     /**
-     * Alarm Mission API
-     */
-    // 수학 문제 생성 API
-    @GET("/time/alarm/mission/math-problem")
-    suspend fun generateMathProblem(
-        @Query("level") level: String
-    ): MathProblemResponse
-
-    /**
      * Alarm API
      */
     // 새 알람 생성
@@ -323,4 +314,14 @@ interface NetworkService {
     // 전체 알람 비활성화 (활성화된 모든 알람을 비활성화합니다)
     @PATCH("time/alarm/deactivate-all")
     suspend fun deactivateAllAlarms()
+
+    /**
+     * Alarm Mission API
+     */
+    // 수학 문제 생성 API
+    @GET("/time/alarm/mission/math-problem")
+    suspend fun generateMathProblem(
+        @Query("alarmId") alarmId: Int,
+        @Query("level") level: String
+    ): MathProblemResponse
 }

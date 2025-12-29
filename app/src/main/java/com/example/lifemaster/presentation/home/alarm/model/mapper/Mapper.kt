@@ -2,6 +2,8 @@ package com.example.lifemaster.presentation.home.alarm.model.mapper
 
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
+import com.example.lifemaster.presentation.home.alarm.model.MathProblemModel
+import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 
 fun AlarmResponse.toPresentation(): AlarmModel = AlarmModel(
     id = id,
@@ -23,4 +25,9 @@ fun AlarmResponse.toPresentation(): AlarmModel = AlarmModel(
     randomMissionType = randomMissionType,
     randomMissionLevel = randomMissionLevel,
     switchOnOff = alarmStatus
+)
+
+fun MathProblemResponse.toPresentation(): MathProblemModel = MathProblemModel(
+    question = question,
+    correctAnswer = correctAnswer
 )
