@@ -20,4 +20,11 @@ class AlarmMissionRepository @Inject constructor(private val networkService: Net
         Result.failure(e)
     }
 
+    suspend fun generateTypingSentence(alarmId: Int): Result<String> = try {
+        val response = networkService.generateTypingSentence(alarmId = alarmId)
+        Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
 }

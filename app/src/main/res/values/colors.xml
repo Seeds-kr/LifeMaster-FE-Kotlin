@@ -11,12 +11,13 @@
     <color name="blue_30">#4D5C76C3</color>
     <color name="blue_10">#1A5C76C3</color>
     <color name="gray_100">#6B6D6D</color>
-    <color name="edit_text_gray">#C5C6C6</color>
+    <color name="edit_text_hint">#C5C6C6</color>
     <color name="green_100">#8DB83F</color>
     <color name="light_green_100">#B4D775</color>
     <color name="very_light_green_100">#F8FBF2</color>
     <color name="red_100">#ff0000</color>
     <color name="alarm_primary">#BBAB94</color>
+    <color name="alarm_secondary">#EBE6DF</color>
     <color name="orange">#FFA726</color>
     <color name="amber">#FFCC80</color>
     <color name="middle_gray">#F0F4F5</color>
@@ -26,5 +27,5 @@
     <color name="sleep_mood_selected">#927448</color>
     <color name="todo_primary">#5C76C3</color>
     <color name="mint_60">#99A0E0CF</color>
-    <color name="alarm_setting_background">#EBE6DF</color>
+    <color name="black_800">#131313</color>
 </resources>

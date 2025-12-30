@@ -99,6 +99,9 @@
         <action
             android:id="@+id/action_alarmRingsFragment_to_alarmRandomMissionMathFragment"
             app:destination="@id/alarmRandomMissionMathFragment" />
+        <action
+            android:id="@+id/action_alarmRingsFragment_to_alarmRandomMissionTypingFragment"
+            app:destination="@id/alarmRandomMissionTypingFragment" />
     </fragment>
     <fragment
         android:id="@+id/groupFragment"
@@ -204,5 +207,18 @@
             app:destination="@id/alarmListFragment"
             app:popUpTo="@id/nav_graph_main"
             app:popUpToInclusive="true"/>
+    </fragment>
+    <fragment
+        android:id="@+id/alarmRandomMissionTypingFragment"
+        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmRandomMissionTypingFragment"
+        android:label="fragment_alarm_random_mission_typing"
+        tools:layout="@layout/fragment_alarm_random_mission_typing" >
+        <argument
+            android:name="currentPageNum"
+            android:defaultValue="1"
+            app:argType="integer"/>
+        <action
+            android:id="@+id/action_alarmRandomMissionTypingFragment_self"
+            app:destination="@id/alarmRandomMissionTypingFragment" />
     </fragment>
 </navigation>

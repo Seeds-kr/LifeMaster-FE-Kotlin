@@ -339,4 +339,10 @@ interface NetworkService {
         @Query("alarmId") alarmId: Int,
         @Query("level") level: String
     ): List<List<Int>>
+
+    // 랜덤 문장 생성
+    @GET("time/alarm/mission/typing")
+    suspend fun generateTypingSentence(
+        @Query("alarmId") alarmId: Int
+    ): String
 }
