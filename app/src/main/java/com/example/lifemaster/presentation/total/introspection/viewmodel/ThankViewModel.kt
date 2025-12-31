@@ -8,6 +8,8 @@ import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
+import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
+import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
 import kotlinx.coroutines.launch
 
 sealed class UiState {
@@ -136,6 +138,41 @@ class ThankViewModel : ViewModel() {
                 val response = networkService.deleteThank("Bearer $token", thankId)
                 if (response.isSuccessful) {
                     _uiState.value = UiState.Success
+                } else {
+                    _uiState.value = UiState.Error("오류: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다.")
+            }
+        }
+    }
+
+    // 다이어리 생성 기능
+    fun createDiaryEntry(
+        token: String,
+        diaryContent: String,
+        diaryDate: String,
+        date: String
+    ) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+
+            val request = DiaryRequest(
+                diaryContent = diaryContent,
+                diaryDate = diaryDate,
+                date = date
+            )
+
+            try {
+                val response = networkService.createDiary("Bearer $token", request)
+
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        // diaryId를 받을 수 있음 (필요시 사용)
+                        _uiState.value = UiState.Success
+                    } ?: run {
+                        _uiState.value = UiState.Error("응답 데이터가 없습니다.")
+                    }
                 } else {
                     _uiState.value = UiState.Error("오류: ${response.code()}")
                 }

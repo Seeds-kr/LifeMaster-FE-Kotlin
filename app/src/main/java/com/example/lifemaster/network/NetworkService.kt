@@ -10,6 +10,8 @@ import com.example.lifemaster.data.remote.dto.ChallengeListResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
+import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
+import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
@@ -159,6 +161,13 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Path("thank-id") thankId: Long
     ): Response<Unit>
+
+    // 다이어리 생성
+    @POST("/schedule/self-reflection/diary")
+    suspend fun createDiary(
+        @Header("Authorization") token: String,
+        @Body request: DiaryRequest
+    ): Response<DiaryResponse>
 
     // 커뮤니티 게시글 전체 목록 조회
     @GET("posts")

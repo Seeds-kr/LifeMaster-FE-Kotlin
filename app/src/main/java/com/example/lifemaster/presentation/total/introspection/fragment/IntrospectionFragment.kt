@@ -97,8 +97,21 @@ class IntrospectionFragment : Fragment() {
                     if (text.isBlank()) {
                         Toast.makeText(requireContext(), "내용을 입력해주세요", Toast.LENGTH_SHORT).show()
                     } else {
-                        // 저장 로직 (오늘의 일기)
-                        Toast.makeText(requireContext(), "일기가 저장되었습니다", Toast.LENGTH_SHORT).show()
+                        // 현재 날짜를 "yyyy-MM-dd" 형식의 문자열로 변환
+                        val currentDate =
+                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        val token = readAuthToken() ?: run {
+                            Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                            return@setOnClickListener
+                        }
+
+                        // ViewModel의 함수를 호출하여 서버에 데이터 전송 요청
+                        viewModel.createDiaryEntry(
+                            token = token,
+                            diaryContent = text,
+                            diaryDate = currentDate,
+                            date = currentDate
+                        )
                     }
                 }
 
@@ -123,7 +136,7 @@ class IntrospectionFragment : Fragment() {
 
                         // ViewModel의 함수를 호출하여 서버에 데이터 전송 요청
                         viewModel.createThankEntry(
-                            token = "YOUR_TOKEN",
+                            token = token,
                             thankOne = thanksList[0],
                             thankTwo = thanksList[1],
                             thankThree = thanksList[2],
