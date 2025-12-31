@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -81,6 +82,14 @@ class IntrospectionFragment : Fragment() {
             }
         }
 
+        // 수정 모드일 때 제출 버튼을 길게 누르면 삭제 다이얼로그 표시
+        if (isEditMode) {
+            binding.btnSubmit.setOnLongClickListener {
+                showDeleteConfirmDialog()
+                true
+            }
+        }
+
         binding.btnSubmit.setOnClickListener {
             when (currentMode) {
                 Mode.TODAY -> {
@@ -135,10 +144,16 @@ class IntrospectionFragment : Fragment() {
 
             when (state) {
                 is UiState.Success -> {
-                    Toast.makeText(requireContext(), "저장되었습니다.", Toast.LENGTH_SHORT).show()
-                    clearThankYouFields() // 입력창 초기화
-                    // TODO: 저장이 완료되면 현재 Fragment를 닫는 로직 추가 (필요시)
-                    // 예: parentFragmentManager.popBackStack()
+                    // 삭제 성공 여부를 확인하기 위해 상태를 구분해야 하지만,
+                    // 현재는 Success로 통일되어 있으므로 메시지만 표시
+                    if (!isEditMode) {
+                        Toast.makeText(requireContext(), "저장되었습니다.", Toast.LENGTH_SHORT).show()
+                        clearThankYouFields() // 입력창 초기화 (수정 모드가 아닐 때만)
+                    } else {
+                        // 수정 모드에서는 저장/삭제 성공 후 Fragment 닫기
+                        Toast.makeText(requireContext(), "완료되었습니다.", Toast.LENGTH_SHORT).show()
+                        parentFragmentManager.popBackStack()
+                    }
                 }
 
                 is UiState.Error -> {
@@ -194,7 +209,36 @@ class IntrospectionFragment : Fragment() {
     private fun readAuthToken(): String? {
         val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
         if (raw.isBlank()) return null
-        return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
+        // ViewModel에서 "Bearer "를 추가하므로 순수 토큰만 반환
+        return if (raw.startsWith("Bearer ")) raw.substring(7) else raw
+    }
+
+    private fun showDeleteConfirmDialog() {
+        if (thankId == null) {
+            Toast.makeText(requireContext(), "삭제할 항목이 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setMessage("감사일기를 삭제할까요?")
+            .setNegativeButton("취소", null)
+            .setPositiveButton("삭제") { _, _ ->
+                deleteThankEntry()
+            }
+            .show()
+    }
+
+    private fun deleteThankEntry() {
+        val token = readAuthToken() ?: run {
+            Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        thankId?.let { id ->
+            viewModel.deleteThankEntry(token, id)
+        } ?: run {
+            Toast.makeText(requireContext(), "삭제할 항목이 없습니다.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     companion object {
