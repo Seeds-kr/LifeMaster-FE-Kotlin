@@ -74,15 +74,15 @@ interface NetworkService {
     /**
      * To-Do List API
      */
-    // 모든 To-Do 항목 조회
-    @GET("/schedule/todo")
-    suspend fun getTodoItems(): List<TodoModel>
-
     // 새 To-Do 생성
     @POST("/schedule/todo/create")
     suspend fun addTodoItem(
         @Body request: TodoRequest
     ): TodoResponse
+
+    // 현재 유저의 To-Do 항목 조회
+    @GET("/schedule/todo/member/{memberId}")
+    suspend fun getTodoItems(): List<TodoResponse>
 
     // To-Do 삭제
     @DELETE("/schedule/todo/{id}")

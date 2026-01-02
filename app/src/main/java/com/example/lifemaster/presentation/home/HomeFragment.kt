@@ -3,7 +3,6 @@ package com.example.lifemaster.presentation.home
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,11 +28,11 @@ import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFa
 import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
 import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
-import com.example.lifemaster.presentation.home.todo.model.TodoResponse
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import android.util.Log
 
 class HomeFragment : Fragment() {
 
@@ -59,7 +58,6 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.e("TTEST", "HomeFragment: ${toDoViewModel.hashCode()}")
 
         binding.containerCalendar.post {
             if (childFragmentManager.findFragmentById(R.id.container_calendar) == null) {
@@ -147,6 +145,7 @@ class HomeFragment : Fragment() {
     private fun initViews() = with(binding) {
 
         todoRecyclerview.adapter = ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager)
+        toDoViewModel.getTodoItems()
 
 //        RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
 //            .enqueue(object : Callback<List<TodoModel>> {
@@ -227,15 +226,15 @@ class HomeFragment : Fragment() {
     }
 
     private fun initObservers() {
-        toDoViewModel.todoItems.observe(viewLifecycleOwner) { updateItems ->
-            val newList = updateItems.map { it.copy() }
-//            (binding.recyclerview.adapter as ToDoAdapter).submitList(newList)
-        }
-
-        toDoViewModel.remoteTodoItems.observe(viewLifecycleOwner) { remoteTodoItems ->
-            this.remoteTodoItems = remoteTodoItems
-            (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(remoteTodoItems)
-        }
+//        toDoViewModel.todoItems.observe(viewLifecycleOwner) { updateItems ->
+//            val newList = updateItems.map { it.copy() }
+////            (binding.recyclerview.adapter as ToDoAdapter).submitList(newList)
+//        }
+//
+//        toDoViewModel.todoItems.observe(viewLifecycleOwner) { remoteTodoItems ->
+//            this.remoteTodoItems = remoteTodoItems
+//            (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(remoteTodoItems)
+//        }
 
         toDoViewModel.isDeleteSuccess.observe(viewLifecycleOwner) { isDeleteSuccess ->
             if(isDeleteSuccess) {
@@ -250,7 +249,7 @@ class HomeFragment : Fragment() {
                     toDoViewModel.newTodoItem.collect { resource ->
                         when(resource) {
                             is DataResource.Error -> {
-                                Toast.makeText(context, "할일이 추가되지 않았습니다.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
                             }
                             DataResource.Idle -> {}
                             DataResource.Loading -> {}
@@ -258,11 +257,26 @@ class HomeFragment : Fragment() {
                                 Toast.makeText(context, "할일이 추가되었습니다.", Toast.LENGTH_SHORT).show()
                                 todoDialog.dismiss()
                                 val newItem = resource.data
-                                val todoList = (binding.todoRecyclerview.adapter as ToDoAdapter).currentList
-                                val newList = todoList.toMutableList().apply {
-                                    add(0, newItem)
+                                val oldList = (binding.todoRecyclerview.adapter as ToDoAdapter).currentList
+                                val newList = oldList.toMutableList().apply {
+                                    add(newItem)
                                 }
                                 (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(newList)
+                            }
+                        }
+                    }
+                }
+                launch {
+                    toDoViewModel.todoItems.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "할일 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<List<TodoModel>> -> {
+                                val todoItems: List<TodoModel> = resource.data
+                                (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(todoItems)
                             }
                         }
                     }

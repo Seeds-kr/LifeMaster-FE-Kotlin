@@ -1,6 +1,5 @@
 package com.example.lifemaster.presentation.home.todo.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,12 +12,14 @@ import com.example.lifemaster.presentation.home.todo.model.toPresentation
 import com.example.lifemaster.presentation.home.todo.repository.TodoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ToDoViewModel @Inject constructor(private val repository: TodoRepository): ViewModel() {
+class ToDoViewModel @Inject constructor(private val repository: TodoRepository) : ViewModel() {
 
     private val _newTodoItem = MutableSharedFlow<DataResource<TodoModel>>()
     val newTodoItem = _newTodoItem.asSharedFlow()
@@ -35,37 +36,40 @@ class ToDoViewModel @Inject constructor(private val repository: TodoRepository):
         }
     }
 
-    private val _todoItems: MutableLiveData<ArrayList<TodoModel>> = MutableLiveData()
-    val todoItems: LiveData<ArrayList<TodoModel>> get() = _todoItems
+    private val _todoItems = MutableStateFlow<DataResource<List<TodoModel>>>(DataResource.Idle)
+    val todoItems = _todoItems.asStateFlow()
 
-    fun getTodoItems(todoModel: ArrayList<TodoModel>) {
-        _todoItems.value = todoModel
+    fun getTodoItems() {
+        viewModelScope.launch {
+            _todoItems.value = DataResource.Loading
+            val result: Result<List<TodoResponse>> = repository.getTodoItems()
+            result.onSuccess { remoteItems ->
+                val todoItems = remoteItems.map { it.toPresentation() }
+                _todoItems.value = DataResource.Success(todoItems)
+            }.onFailure { error ->
+                _todoItems.value = DataResource.Error(error)
+            }
+        }
     }
 
-    private val _remoteTodoItems: MutableLiveData<List<TodoModel>> = MutableLiveData()
-    val remoteTodoItems: LiveData<List<TodoModel>> get() = _remoteTodoItems
-
-//    fun getRemoteTodoItems(token: String) {
-//        viewModelScope.launch {
-//            try {
-//                _remoteTodoItems.value = networkService.getTodoItems()
-//            } catch (e: Exception) {
-//                Log.e(HomeFragment.TAG_TODO, "GET: ${e.message}")
-//            }
-//        }
+//    private val _todoItems: MutableLiveData<ArrayList<TodoModel>> = MutableLiveData()
+//    val todoItems: LiveData<ArrayList<TodoModel>> get() = _todoItems
+//
+//    fun getTodoItems(todoModel: ArrayList<TodoModel>) {
+//        _todoItems.value = todoModel
 //    }
-
-    fun addTodoItems(newItem: TodoModel) {
-        val currentList = _todoItems.value ?: arrayListOf()
-        currentList.add(newItem)
-        _todoItems.value = currentList
-    }
-
-    fun deleteTodoItems(deleteItem: TodoModel) {
-        val currentList = _todoItems.value ?: arrayListOf()
-        currentList.remove(deleteItem)
-        _todoItems.value = currentList
-    }
+//
+//    fun addTodoItems(newItem: TodoModel) {
+//        val currentList = _todoItems.value ?: arrayListOf()
+//        currentList.add(newItem)
+//        _todoItems.value = currentList
+//    }
+//
+//    fun deleteTodoItems(deleteItem: TodoModel) {
+//        val currentList = _todoItems.value ?: arrayListOf()
+//        currentList.remove(deleteItem)
+//        _todoItems.value = currentList
+//    }
 
     private val _isDeleteSuccess: MutableLiveData<Boolean> = MutableLiveData(false)
     val isDeleteSuccess: LiveData<Boolean> get() = _isDeleteSuccess
@@ -81,10 +85,10 @@ class ToDoViewModel @Inject constructor(private val repository: TodoRepository):
 //        }
 //    }
 
-    fun changeTodoItems(changeItem: TodoModel) {
-        val currentList = _todoItems.value ?: arrayListOf()
-        val i = currentList.indexOfFirst { it.id == changeItem.id }
-        currentList[i] = changeItem
-        _todoItems.value = currentList
-    }
+//    fun changeTodoItems(changeItem: TodoModel) {
+//        val currentList = _todoItems.value ?: arrayListOf()
+//        val i = currentList.indexOfFirst { it.id == changeItem.id }
+//        currentList[i] = changeItem
+//        _todoItems.value = currentList
+//    }
 }

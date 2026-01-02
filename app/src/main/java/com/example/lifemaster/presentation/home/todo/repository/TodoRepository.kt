@@ -15,9 +15,11 @@ class TodoRepository @Inject constructor(private val networkService: NetworkServ
         Result.failure(e)
     }
 
-//    suspend fun getRemoteTodoItems() = try {
-//        networkService.getTodoItems()
-//    } catch (e: Exception) {
-//        Result.failure(e)
-//    }
+    // 모든 할일 조회
+    suspend fun getTodoItems(): Result<List<TodoResponse>> = try {
+        val response = networkService.getTodoItems()
+        Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }
