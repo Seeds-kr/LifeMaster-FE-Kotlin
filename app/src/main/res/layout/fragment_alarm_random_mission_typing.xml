@@ -181,7 +181,7 @@
         android:id="@+id/btn_random_mission_typing_next_page"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_round_radius"
+        android:background="@drawable/bg_round_radius_8dp"
         android:backgroundTint="@color/alarm_primary"
         android:text="0/15 진행 중"
         android:textColor="@color/white"

@@ -92,7 +92,7 @@
         android:id="@+id/btnAlarmSnoozeLockApply"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_round_radius"
+        android:background="@drawable/bg_round_radius_8dp"
         android:backgroundTint="#BBAB94"
         android:text="설정하기"
         android:textSize="12sp"

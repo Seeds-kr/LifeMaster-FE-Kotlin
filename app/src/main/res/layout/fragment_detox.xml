@@ -111,7 +111,7 @@
             android:id="@+id/btn_edit_repeat_lock_block_service"
             android:layout_width="60dp"
             android:layout_height="32dp"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#B4D775"
             android:text="편집"
             android:textColor="@color/white" />
@@ -121,7 +121,7 @@
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:layout_marginTop="20dp"
-        android:background="@drawable/bg_round_radius"
+        android:background="@drawable/bg_round_radius_8dp"
         android:backgroundTint="@color/white"
         android:gravity="center_vertical"
         android:orientation="horizontal"
@@ -170,7 +170,7 @@
                 android:id="@+id/btn_add_repeat_lock_app"
                 android:layout_width="60dp"
                 android:layout_height="32dp"
-                android:background="@drawable/bg_round_radius"
+                android:background="@drawable/bg_round_radius_8dp"
                 android:backgroundTint="#B4D775"
                 android:text="추가"
                 android:textColor="@color/white" />
@@ -186,7 +186,7 @@
                 android:layout_width="0dp"
                 android:layout_height="40dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_round_radius"
+                android:background="@drawable/bg_round_radius_8dp"
                 android:backgroundTint="@color/white"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
@@ -214,7 +214,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_marginStart="12dp"
-                android:background="@drawable/bg_round_radius"
+                android:background="@drawable/bg_round_radius_8dp"
                 android:backgroundTint="@color/white"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
@@ -248,7 +248,7 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="20dp"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="@color/white"
             android:gravity="center_vertical"
             android:orientation="horizontal"
@@ -288,7 +288,7 @@
                 android:id="@+id/btn_time_lock_setting"
                 android:layout_width="60dp"
                 android:layout_height="32dp"
-                android:background="@drawable/bg_round_radius"
+                android:background="@drawable/bg_round_radius_8dp"
                 android:backgroundTint="#B4D775"
                 android:text="추가"
                 android:textColor="@color/white" />
@@ -299,7 +299,7 @@
             android:layout_height="0dp"
             android:layout_marginTop="12dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:orientation="vertical"
             android:backgroundTint="@color/white">
 
