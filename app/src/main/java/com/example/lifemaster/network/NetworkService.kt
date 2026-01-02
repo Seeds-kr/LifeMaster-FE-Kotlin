@@ -17,6 +17,8 @@ import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
+import com.example.lifemaster.presentation.home.todo.model.TodoRequest
+import com.example.lifemaster.presentation.home.todo.model.TodoResponse
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegResponse
@@ -74,35 +76,29 @@ interface NetworkService {
      */
     // 모든 To-Do 항목 조회
     @GET("/schedule/todo")
-    suspend fun getTodoItems(
-        @Header("Authorization") token: String
-    ): List<TodoModel>
+    suspend fun getTodoItems(): List<TodoModel>
 
     // 새 To-Do 생성
     @POST("/schedule/todo/create")
-    fun registerTodoItem(
-        @Header("Authorization") token: String,
-        @Body todoModel: TodoModel
-    ): Call<TodoModel>
+    suspend fun addTodoItem(
+        @Body request: TodoRequest
+    ): TodoResponse
 
     // To-Do 삭제
     @DELETE("/schedule/todo/{id}")
     suspend fun deleteTodoItem(
-        @Header("Authorization") token: String,
         @Path("id") id: Int
     ): Any
 
     // 특정 To-Do 조회
     @GET("/schedule/todo/{id}")
     fun getTodoItem(
-        @Header("Authorization") token: String,
         @Path("id") id: Int
     ):Call<TodoModel>
 
     // To-Do 업데이트
     @PUT("/schedule/todo/{id}")
     fun updateTodoItem(
-        @Header("Authorization") token: String,
         @Path("id") id: Int,
         @Query("date") date: String,
         @Query("title") title: String
@@ -111,7 +107,6 @@ interface NetworkService {
     // To-Do 완료 상태 토글
     @PATCH("/schedule/todo/{id}/toggle-completed")
     fun toggleTodoItem(
-        @Header("Authorization") token: String,
         @Path("id") id: Int
     ):Call<TodoModel>
 

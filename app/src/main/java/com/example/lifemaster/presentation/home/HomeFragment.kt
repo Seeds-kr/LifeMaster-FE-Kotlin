@@ -12,39 +12,41 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
-import com.example.lifemaster.presentation.home.todo.model.TODO
-import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
-import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
-import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoModel
+import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
-import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
-import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
+import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
+import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
-import com.example.lifemaster.presentation.home.todo.view.ToDoNewDialog
-import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModelFactory
+import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
+import com.example.lifemaster.presentation.home.todo.model.TODO
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
+import com.example.lifemaster.presentation.home.todo.model.TodoResponse
+import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
+import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 class HomeFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding
     lateinit var todoModels: ArrayList<TodoModel>
-    private val toDoViewModel: ToDoViewModel by activityViewModels {
-        ToDoViewModelFactory(RetrofitInstance.networkService)
-    }
+    private val toDoViewModel: ToDoViewModel by activityViewModels()
     private val sleepViewModel: SleepViewModel by activityViewModels {
         SleepViewModelFactory(RetrofitInstance.networkService)
     }
-    private var userToken: String? = null
     private val calendarVM: CalendarViewModel by activityViewModels()
     private lateinit var remoteTodoItems: List<TodoModel>
+
+    private val todoDialog = ToDoDialog(caller = TODO.ADD)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,6 +59,7 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.e("TTEST", "HomeFragment: ${toDoViewModel.hashCode()}")
 
         binding.containerCalendar.post {
             if (childFragmentManager.findFragmentById(R.id.container_calendar) == null) {
@@ -99,7 +102,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun fetchRemoteData() {
-        toDoViewModel.getRemoteTodoItems(token = getString(R.string.user_token))
+//        toDoViewModel.getRemoteTodoItems(token = getString(R.string.user_token))
     }
 
     private fun loadHomeConfiguration(): Pair<Set<String>, List<String>> {
@@ -143,12 +146,7 @@ class HomeFragment : Fragment() {
 
     private fun initViews() = with(binding) {
 
-        val sharedPreference =
-            requireContext().getSharedPreferences("USER_TABLE", Context.MODE_PRIVATE)
-        userToken = sharedPreference.getString("token", "null")
-
-        todoRecyclerview.adapter =
-            ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager, userToken)
+        todoRecyclerview.adapter = ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager)
 
 //        RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
 //            .enqueue(object : Callback<List<TodoModel>> {
@@ -210,8 +208,7 @@ class HomeFragment : Fragment() {
 
     private fun initListeners() {
         binding.btnAddTodoItem.setOnClickListener {
-            val dialog = ToDoDialog(caller = TODO.ADD, userToken = userToken)
-            dialog.show(childFragmentManager, ToDoDialog.Companion.TAG)
+            todoDialog.show(childFragmentManager, ToDoDialog.TAG)
         }
 
         binding.tvHomeEdit.setOnClickListener {
@@ -223,10 +220,10 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment)
         }
 
-        binding.ivTodoDelete.setOnClickListener {
-            val dialog = ToDoNewDialog(remoteTodoItems)
-            dialog.show(childFragmentManager, ToDoNewDialog.TAG)
-        }
+//        binding.ivTodoDelete.setOnClickListener {
+//            val dialog = ToDoNewDialog(remoteTodoItems)
+//            dialog.show(childFragmentManager, ToDoNewDialog.TAG)
+//        }
     }
 
     private fun initObservers() {
@@ -247,6 +244,31 @@ class HomeFragment : Fragment() {
             }
         }
 
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    toDoViewModel.newTodoItem.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "할일이 추가되지 않았습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<TodoModel> -> {
+                                Toast.makeText(context, "할일이 추가되었습니다.", Toast.LENGTH_SHORT).show()
+                                todoDialog.dismiss()
+                                val newItem = resource.data
+                                val todoList = (binding.todoRecyclerview.adapter as ToDoAdapter).currentList
+                                val newList = todoList.toMutableList().apply {
+                                    add(0, newItem)
+                                }
+                                (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(newList)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun setupCalendarHeader() = with(binding) {
