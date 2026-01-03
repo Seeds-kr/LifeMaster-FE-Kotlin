@@ -91,7 +91,7 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/card_todo"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="208dp"
             android:layout_marginBottom="10dp"
             android:visibility="visible"
             app:cardCornerRadius="12dp"

@@ -1,21 +1,19 @@
 package com.example.lifemaster.presentation.home.todo.view
 
+import android.app.Dialog
+import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogTodoBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.todo.model.TODO
-import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.model.TodoRequest
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -27,6 +25,12 @@ class ToDoDialog(
 
     private lateinit var binding: DialogTodoBinding
     private val toDoViewModel: ToDoViewModel by activityViewModels()
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return Dialog(requireContext()).apply {
+            window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
