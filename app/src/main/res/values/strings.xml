@@ -61,6 +61,14 @@
     <string name="All_group">전체 그룹 보기</string>
     <string name="joined_groups">참여 중인 그룹</string>
     <string name="joined_groups_count">14</string>
+    <string name="group_list_title">하루에 뽀모도로 10회하기</string>
+    <string name="group_list_participants_num">140명 참여 중</string>
+    <string name="group_list_more">더보기</string>
+    <string name="search_group">그룹 이름으로 검색하기</string>
+    <string name="my_stats">내 통계</string>
+    <string name="create_group">새 그룹 생성</string>
+    <string name="sleep_stats">수면 통계</string>
+    <string name="pomodoro_stats">뽀모도로 통계</string>
 
     <!-- 미리보기 -->
     <string name="alarm_preview_date">7월 20일</string>
