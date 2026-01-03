@@ -63,7 +63,10 @@
                     android:hint="@string/search_group"
                     android:textColorHint="@color/black"
                     android:textSize="12sp"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    android:inputType="text"
+                    android:imeOptions="actionSearch"
+                    android:importantForAutofill="no"/>
 
                 <ImageView
                     android:id="@+id/iv_search"
