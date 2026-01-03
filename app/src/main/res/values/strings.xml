@@ -66,6 +66,8 @@
     <string name="alarm_preview_date">7월 20일</string>
     <string name="alarm_preview_time">오전 8:50</string>
     <string name="alarm_preview_setting">설정</string>
+    <string name="today_diary">오늘의 일기</string>
+    <string name="five_thank">5감사</string>
 
     <!-- 커뮤니티 -->
     <string name="today_poll">오늘의 투표</string>
