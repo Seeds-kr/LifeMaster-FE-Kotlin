@@ -67,4 +67,8 @@
     <string name="alarm_preview_time">오전 8:50</string>
     <string name="alarm_preview_setting">설정</string>
 
+    <!-- 커뮤니티 -->
+    <string name="today_poll">오늘의 투표</string>
+    <string name="poll_participants">명이 참여했어요</string>
+
 </resources>
