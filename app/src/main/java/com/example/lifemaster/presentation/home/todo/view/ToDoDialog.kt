@@ -21,8 +21,8 @@ import java.time.format.DateTimeFormatter
 
 // 할일 추가하기, 할일 수정하기에서 같이 사용하는 다이얼로그
 class ToDoDialog(
-    private val caller: TODO,
-    private val todoModel: TodoModel? = null
+    private val origin: TODO,
+    private val item: TodoModel? = null
 ) : DialogFragment(R.layout.dialog_todo) {
 
     private lateinit var binding: DialogTodoBinding
@@ -36,23 +36,23 @@ class ToDoDialog(
     }
 
     private fun initViews() = with(binding) {
-        when (caller) {
+        when (origin) {
             TODO.ADD -> {
                 tvTodoTitle.text = "할일 추가"
                 btnChange.text = "추가하기"
             }
-
             TODO.EDIT -> {
-                etTodoTitle.setText(todoModel?.title)
+                if(item == null) return@with
                 tvTodoTitle.text = "할일 수정"
                 btnChange.text = "수정하기"
+                etTodoTitle.setText(item.title)
             }
         }
     }
 
     private fun initListeners() = with(binding) {
 
-        when (caller) {
+        when (origin) {
             TODO.ADD -> {
                 btnChange.setOnClickListener {
                     val title = etTodoTitle.text.toString()
@@ -74,41 +74,25 @@ class ToDoDialog(
 
             TODO.EDIT -> {
                 btnChange.setOnClickListener {
+                    if(item == null) return@setOnClickListener
                     val title = etTodoTitle.text.toString()
-                    if (title.isBlank()) Toast.makeText(
-                        requireContext(),
-                        "내용을 입력해 주세요!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    else {
-                        RetrofitInstance.networkService.updateTodoItem(
-                            id = todoModel?.id ?: 0,
-                            title = title,
-                            date = getTodayDate()
-                        ).enqueue(object : Callback<TodoModel> {
-                            override fun onResponse(
-                                call: Call<TodoModel>,
-                                response: Response<TodoModel>
-                            ) {
-                                if (response.isSuccessful) {
-                                    val todoItem = response.body()
-                                    todoItem?.let { toDoViewModel.changeTodoItems(it) }
-                                    Toast.makeText(context, "할일이 수정되었습니다!", Toast.LENGTH_SHORT)
-                                        .show()
-                                    dismiss()
-                                }
-                            }
-
-                            override fun onFailure(call: Call<TodoModel>, t: Throwable) {
-                                Log.d("server", t.message!!)
-                            }
-                        })
+                    if (title.isBlank()) {
+                        Toast.makeText(
+                            requireContext(),
+                            "내용을 입력해 주세요!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                       toDoViewModel.updateItem(
+                           id = item.id,
+                           date = getTodayDate(),
+                           title = title
+                       )
                     }
                 }
             }
         }
 
-        // 공통
         btnCancel.setOnClickListener {
             dismiss()
         }

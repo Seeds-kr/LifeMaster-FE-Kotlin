@@ -65,30 +65,19 @@ class ToDoViewModel @Inject constructor(private val repository: TodoRepository) 
         }
     }
 
-//    private val _todoItems: MutableLiveData<ArrayList<TodoModel>> = MutableLiveData()
-//    val todoItems: LiveData<ArrayList<TodoModel>> get() = _todoItems
-//
-//    fun getTodoItems(todoModel: ArrayList<TodoModel>) {
-//        _todoItems.value = todoModel
-//    }
-//
-//    fun addTodoItems(newItem: TodoModel) {
-//        val currentList = _todoItems.value ?: arrayListOf()
-//        currentList.add(newItem)
-//        _todoItems.value = currentList
-//    }
-//
-//    fun deleteTodoItems(deleteItem: TodoModel) {
-//        val currentList = _todoItems.value ?: arrayListOf()
-//        currentList.remove(deleteItem)
-//        _todoItems.value = currentList
-//    }
+    private val _updateItem = MutableSharedFlow<DataResource<TodoModel>>()
+    val updateItem = _updateItem.asSharedFlow()
 
+    fun updateItem(id: Int, date: String, title: String) {
+        viewModelScope.launch {
+            _updateItem.emit(DataResource.Loading)
+            val result: Result<TodoResponse> = repository.updateItem(id = id, date = date, title = title)
+            result.onSuccess { updateItem ->
+                _updateItem.emit(DataResource.Success(updateItem.toPresentation()))
+            }.onFailure { error ->
+                _updateItem.emit(DataResource.Error(error))
+            }
+        }
+    }
 
-//    fun changeTodoItems(changeItem: TodoModel) {
-//        val currentList = _todoItems.value ?: arrayListOf()
-//        val i = currentList.indexOfFirst { it.id == changeItem.id }
-//        currentList[i] = changeItem
-//        _todoItems.value = currentList
-//    }
 }

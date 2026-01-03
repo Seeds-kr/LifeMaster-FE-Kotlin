@@ -90,18 +90,18 @@ interface NetworkService {
         @Path("id") id: Int
     ): Response<Unit>
 
+    // To-Do 업데이트
+    @PUT("/schedule/todo/{id}")
+    suspend fun updateTodoItem(
+        @Path("id") id: Int,
+        @Query("date") date: String,
+        @Query("title") title: String
+    ): TodoResponse
+
     // 특정 To-Do 조회
     @GET("/schedule/todo/{id}")
     fun getTodoItem(
         @Path("id") id: Int
-    ):Call<TodoModel>
-
-    // To-Do 업데이트
-    @PUT("/schedule/todo/{id}")
-    fun updateTodoItem(
-        @Path("id") id: Int,
-        @Query("date") date: String,
-        @Query("title") title: String
     ):Call<TodoModel>
 
     // To-Do 완료 상태 토글

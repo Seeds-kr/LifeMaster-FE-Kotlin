@@ -30,4 +30,12 @@ class TodoRepository @Inject constructor(private val networkService: NetworkServ
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    // 할일 수정
+    suspend fun updateItem(id: Int, date: String, title: String): Result<TodoResponse> = try {
+        val response = networkService.updateTodoItem(id = id, date = date, title = title)
+        Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

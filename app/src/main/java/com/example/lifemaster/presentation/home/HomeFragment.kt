@@ -32,12 +32,10 @@ import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import android.util.Log
 
 class HomeFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding
-    lateinit var todoModels: ArrayList<TodoModel>
     private val toDoViewModel: ToDoViewModel by activityViewModels()
     private val sleepViewModel: SleepViewModel by activityViewModels {
         SleepViewModelFactory(RetrofitInstance.networkService)
@@ -45,7 +43,8 @@ class HomeFragment : Fragment() {
     private val calendarVM: CalendarViewModel by activityViewModels()
     private lateinit var remoteTodoItems: List<TodoModel>
 
-    private val todoDialog = ToDoDialog(caller = TODO.ADD)
+    private val todoAddDialog = ToDoDialog(origin = TODO.ADD)
+    private lateinit var todoEditDialog: ToDoDialog
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -144,7 +143,12 @@ class HomeFragment : Fragment() {
 
     private fun initViews() = with(binding) {
 
-        todoRecyclerview.adapter = ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager)
+        todoRecyclerview.adapter = ToDoAdapter(context = requireContext(), onEditClicked = { item ->
+            todoEditDialog = ToDoDialog(origin = TODO.EDIT, item = item)
+            todoEditDialog.show(childFragmentManager, ToDoDialog.TAG)
+        }, onDeleteClicked = { alarmId ->
+            toDoViewModel.deleteTodoItem(deleteId = alarmId)
+        })
         toDoViewModel.getTodoItems()
 
 //        RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
@@ -205,48 +209,28 @@ class HomeFragment : Fragment() {
         itemSleepPreview.tvAlarmTime.text = if(sleepViewModel.isMeasured) "${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 수면" else "금일 수면 미측정"
     }
 
-    private fun initListeners() {
-        binding.btnAddTodoItem.setOnClickListener {
-            todoDialog.show(childFragmentManager, ToDoDialog.TAG)
+    private fun initListeners() = with(binding) {
+        btnAddTodoItem.setOnClickListener {
+            todoAddDialog.show(childFragmentManager, ToDoDialog.TAG)
         }
 
-        binding.tvHomeEdit.setOnClickListener {
+        tvHomeEdit.setOnClickListener {
             val intent = Intent(requireContext(), HomeEditActivity::class.java)
             startActivity(intent)
         }
 
-        binding.itemSleepPreview.btnSleepReport.setOnClickListener {
+        itemSleepPreview.btnSleepReport.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment)
         }
 
-//        binding.ivTodoDelete.setOnClickListener {
-//            val dialog = ToDoNewDialog(remoteTodoItems)
-//            dialog.show(childFragmentManager, ToDoNewDialog.TAG)
-//        }
     }
 
-    private fun initObservers() {
-//        toDoViewModel.todoItems.observe(viewLifecycleOwner) { updateItems ->
-//            val newList = updateItems.map { it.copy() }
-////            (binding.recyclerview.adapter as ToDoAdapter).submitList(newList)
-//        }
-//
-//        toDoViewModel.todoItems.observe(viewLifecycleOwner) { remoteTodoItems ->
-//            this.remoteTodoItems = remoteTodoItems
-//            (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(remoteTodoItems)
-//        }
-
-        toDoViewModel.isDeleteSuccess.observe(viewLifecycleOwner) { isDeleteSuccess ->
-            if(isDeleteSuccess) {
-                Toast.makeText(context, "삭제가 완료되었습니다", Toast.LENGTH_SHORT).show()
-                // TODO: UI 반영하기
-            }
-        }
+    private fun initObservers() = with(binding) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    toDoViewModel.newTodoItem.collect { resource ->
+                    toDoViewModel.newItem.collect { resource ->
                         when(resource) {
                             is DataResource.Error -> {
                                 Toast.makeText(context, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
@@ -255,7 +239,7 @@ class HomeFragment : Fragment() {
                             DataResource.Loading -> {}
                             is DataResource.Success<TodoModel> -> {
                                 Toast.makeText(context, "할일이 추가되었습니다.", Toast.LENGTH_SHORT).show()
-                                todoDialog.dismiss()
+                                todoAddDialog.dismiss()
                                 val newItem = resource.data
                                 val oldList = (binding.todoRecyclerview.adapter as ToDoAdapter).currentList
                                 val newList = oldList.toMutableList().apply {
@@ -267,7 +251,7 @@ class HomeFragment : Fragment() {
                     }
                 }
                 launch {
-                    toDoViewModel.todoItems.collect { resource ->
+                    toDoViewModel.currentItems.collect { resource ->
                         when(resource) {
                             is DataResource.Error -> {
                                 Toast.makeText(context, "할일 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
@@ -277,6 +261,43 @@ class HomeFragment : Fragment() {
                             is DataResource.Success<List<TodoModel>> -> {
                                 val todoItems: List<TodoModel> = resource.data
                                 (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(todoItems)
+                            }
+                        }
+                    }
+                }
+                launch {
+                    toDoViewModel.deletionState.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<Int> -> {
+                                val deletedAlarmId = resource.data
+                                val oldList = (todoRecyclerview.adapter as ToDoAdapter).currentList
+                                val updatedList = oldList.toMutableList().filterNot { it.id == deletedAlarmId }
+                                (todoRecyclerview.adapter as ToDoAdapter).submitList(updatedList)
+                                Toast.makeText(context, "할일이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+                launch {
+                    toDoViewModel.updateItem.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<TodoModel> -> {
+                                val updateItem = resource.data
+                                val oldList = (todoRecyclerview.adapter as ToDoAdapter).currentList
+                                val updatedList = oldList.map { if(it.id == updateItem.id) updateItem else it }
+                                (todoRecyclerview.adapter as ToDoAdapter).submitList(updatedList)
+                                todoEditDialog.dismiss()
+                                Toast.makeText(context, "할일이 수정되었습니다.", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }

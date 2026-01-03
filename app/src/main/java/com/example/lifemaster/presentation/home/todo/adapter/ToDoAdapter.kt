@@ -19,6 +19,7 @@ import retrofit2.Response
 
 class ToDoAdapter (
     private val context: Context,
+    private val onEditClicked: (TodoModel) -> Unit,
     private val onDeleteClicked: (Int) -> Unit
 ) :
     ListAdapter<TodoModel, ToDoAdapter.ToDoViewHolder>(differ) {
@@ -75,7 +76,7 @@ class ToDoAdapter (
 //                toggleTodoStatuIs(item)
 //            }
             flTodoEdit.setOnClickListener {
-
+                onEditClicked(item)
             }
             flTodoDelete.setOnClickListener {
                 onDeleteClicked(item.id)
