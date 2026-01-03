@@ -64,9 +64,7 @@
                     android:textColorHint="@color/black"
                     android:textSize="12sp"
                     android:singleLine="true"
-                    android:inputType="text"
-                    android:imeOptions="actionSearch"
-                    android:importantForAutofill="no"/>
+                    android:inputType="text" />
 
                 <ImageView
                     android:id="@+id/iv_search"
