@@ -2,34 +2,24 @@ package com.example.lifemaster.presentation.home.todo.adapter
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lifemaster.R
+import com.daimajia.swipe.SwipeLayout
 import com.example.lifemaster.databinding.ItemTodoBinding
-import com.example.lifemaster.dp
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.pomodoro.view.PomodoroActivity
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
-import com.example.lifemaster.presentation.home.todo.view.ToDoLongClickDialog
-import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ToDoAdapter(
+class ToDoAdapter (
     private val context: Context,
-    private val toDoViewModel: ToDoViewModel,
-    private val fragmentManager: FragmentManager,
-    private val userToken: String?
+    private val onDeleteClicked: (Int) -> Unit
 ) :
     ListAdapter<TodoModel, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
@@ -43,6 +33,7 @@ class ToDoAdapter(
         private fun bindViews(item: TodoModel) = with(binding) {
             tvTodoTitle.text = item.title
             checkboxTodoIsCompleted.isChecked = item.isCompleted
+            root.showMode = SwipeLayout.ShowMode.PullOut
 //            llTimerContainer25.removeAllViews()
 //            if(item.timer25Number > 0) {
 //                llTimerContainer25.visibility = View.VISIBLE
@@ -80,15 +71,15 @@ class ToDoAdapter(
         }
 
         private fun bindEvents(item: TodoModel) = with(binding) {
-            itemView.setOnLongClickListener {
-                val dialog = ToDoLongClickDialog(item, toDoViewModel, userToken)
-                dialog.isCancelable = false
-                dialog.show(fragmentManager, ToDoLongClickDialog.Companion.TAG) // childFragmentManager
-                true
-            }
 //            chIsCompleted.setOnCheckedChangeListener { _, _ ->
-//                toggleTodoStatus(item)
+//                toggleTodoStatuIs(item)
 //            }
+            flTodoEdit.setOnClickListener {
+
+            }
+            flTodoDelete.setOnClickListener {
+                onDeleteClicked(item.id)
+            }
             ivGoToPomodoro.setOnClickListener {
                 val intent = Intent(context, PomodoroActivity::class.java).apply {
                     putExtra("item", item)
@@ -98,7 +89,7 @@ class ToDoAdapter(
         }
 
         private fun toggleTodoStatus(item: TodoModel) {
-            RetrofitInstance.networkService.toggleTodoItem(token = "Bearer $userToken", item.id)
+            RetrofitInstance.networkService.toggleTodoItem(item.id)
                 .enqueue(object : Callback<TodoModel> {
                     override fun onResponse(
                         call: Call<TodoModel>,

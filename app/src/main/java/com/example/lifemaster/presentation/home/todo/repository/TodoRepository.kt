@@ -22,4 +22,12 @@ class TodoRepository @Inject constructor(private val networkService: NetworkServ
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    // 할일 삭제
+    suspend fun deleteTodoItem(deleteId: Int): Result<Int> = try {
+        networkService.deleteTodoItem(id = deleteId)
+        Result.success(deleteId)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

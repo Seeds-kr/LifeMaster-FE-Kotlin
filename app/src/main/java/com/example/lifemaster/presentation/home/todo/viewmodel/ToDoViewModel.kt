@@ -1,7 +1,5 @@
 package com.example.lifemaster.presentation.home.todo.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
@@ -21,33 +19,48 @@ import javax.inject.Inject
 @HiltViewModel
 class ToDoViewModel @Inject constructor(private val repository: TodoRepository) : ViewModel() {
 
-    private val _newTodoItem = MutableSharedFlow<DataResource<TodoModel>>()
-    val newTodoItem = _newTodoItem.asSharedFlow()
+    private val _newItem = MutableSharedFlow<DataResource<TodoModel>>()
+    val newItem = _newItem.asSharedFlow()
 
     fun addTodoItem(request: TodoRequest) {
         viewModelScope.launch {
-            _newTodoItem.emit(DataResource.Loading)
+            _newItem.emit(DataResource.Loading)
             val result: Result<TodoResponse> = repository.addTodoItem(request = request)
             result.onSuccess { todoItem ->
-                _newTodoItem.emit(DataResource.Success(todoItem.toPresentation()))
+                _newItem.emit(DataResource.Success(todoItem.toPresentation()))
             }.onFailure { error ->
-                _newTodoItem.emit(DataResource.Error(error))
+                _newItem.emit(DataResource.Error(error))
             }
         }
     }
 
-    private val _todoItems = MutableStateFlow<DataResource<List<TodoModel>>>(DataResource.Idle)
-    val todoItems = _todoItems.asStateFlow()
+    private val _currentItems = MutableStateFlow<DataResource<List<TodoModel>>>(DataResource.Idle)
+    val currentItems = _currentItems.asStateFlow()
 
     fun getTodoItems() {
         viewModelScope.launch {
-            _todoItems.value = DataResource.Loading
+            _currentItems.value = DataResource.Loading
             val result: Result<List<TodoResponse>> = repository.getTodoItems()
             result.onSuccess { remoteItems ->
                 val todoItems = remoteItems.map { it.toPresentation() }
-                _todoItems.value = DataResource.Success(todoItems)
+                _currentItems.value = DataResource.Success(todoItems)
             }.onFailure { error ->
-                _todoItems.value = DataResource.Error(error)
+                _currentItems.value = DataResource.Error(error)
+            }
+        }
+    }
+
+    private val _deletionState = MutableSharedFlow<DataResource<Int>>()
+    val deletionState = _deletionState.asSharedFlow()
+
+    fun deleteTodoItem(deleteId: Int) {
+        viewModelScope.launch {
+            _deletionState.emit(DataResource.Loading)
+            val result: Result<Int> = repository.deleteTodoItem(deleteId = deleteId)
+            result.onSuccess { deleteId ->
+                _deletionState.emit(DataResource.Success(deleteId))
+            }.onFailure { error ->
+                _deletionState.emit(DataResource.Error(error))
             }
         }
     }
@@ -71,19 +84,6 @@ class ToDoViewModel @Inject constructor(private val repository: TodoRepository) 
 //        _todoItems.value = currentList
 //    }
 
-    private val _isDeleteSuccess: MutableLiveData<Boolean> = MutableLiveData(false)
-    val isDeleteSuccess: LiveData<Boolean> get() = _isDeleteSuccess
-
-//    fun deleteRemoteTodoItems(token: String, id: Int) {
-//        viewModelScope.launch {
-//            try {
-//                networkService.deleteTodoItem(id = id)
-//                _isDeleteSuccess.value = true
-//            } catch (e: Exception) {
-//                Log.e(HomeFragment.TAG_TODO, "DELETE: ${e.message}")
-//            }
-//        }
-//    }
 
 //    fun changeTodoItems(changeItem: TodoModel) {
 //        val currentList = _todoItems.value ?: arrayListOf()

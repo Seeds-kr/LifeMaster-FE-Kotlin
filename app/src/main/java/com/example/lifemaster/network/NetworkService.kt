@@ -88,7 +88,7 @@ interface NetworkService {
     @DELETE("/schedule/todo/{id}")
     suspend fun deleteTodoItem(
         @Path("id") id: Int
-    ): Any
+    ): Response<Unit>
 
     // 특정 To-Do 조회
     @GET("/schedule/todo/{id}")
