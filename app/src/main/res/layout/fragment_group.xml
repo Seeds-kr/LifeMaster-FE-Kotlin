@@ -60,8 +60,8 @@
                     android:backgroundTint="@color/white"
                     android:paddingHorizontal="16dp"
                     android:gravity="center_vertical"
-                    android:text="@string/search_group"
-                    android:textColor="@color/black"
+                    android:hint="@string/search_group"
+                    android:textColorHint="@color/black"
                     android:textSize="12sp"
                     android:singleLine="true" />
 
