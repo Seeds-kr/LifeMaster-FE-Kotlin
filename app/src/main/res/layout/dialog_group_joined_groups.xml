@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_joined_groups_box"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="16dp"
     app:cardBackgroundColor="@android:color/white"
     app:cardCornerRadius="12dp"
     app:cardElevation="0dp">
@@ -13,25 +13,29 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:paddingHorizontal="12dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="12dp">
 
         <!-- 리스트 -->
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_joined_groups"
+            android:id="@+id/rv_group_list"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            android:layout_height="168dp"
+            android:background="@drawable/bg_round_and_white"
+            android:overScrollMode="never"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_group_list" />
 
         <!-- 더보기 -->
         <LinearLayout
             android:id="@+id/btn_joined_groups_more"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/bg_rectangle_and_gray"
             android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/tv_more"
