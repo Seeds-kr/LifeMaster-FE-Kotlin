@@ -56,4 +56,15 @@
     <string name="sat_text">SAT</string>
     <string name="sun_text">SUN</string>
 
+    <!-- 그룹 -->
+    <string name="group">그룹</string>
+    <string name="All_group">전체 그룹 보기</string>
+    <string name="joined_groups">참여 중인 그룹</string>
+    <string name="joined_groups_count">14</string>
+
+    <!-- 미리보기 -->
+    <string name="alarm_preview_date">7월 20일</string>
+    <string name="alarm_preview_time">오전 8:50</string>
+    <string name="alarm_preview_setting">설정</string>
+
 </resources>
