@@ -27,6 +27,9 @@
             android:id="@+id/action_homeFragment_to_alarmListFragment"
             app:destination="@id/alarmListFragment" />
         <action
+            android:id="@+id/action_homeFragment_to_alarmSettingFragment"
+            app:destination="@id/alarmSettingFragment" />
+        <action
             android:id="@+id/action_homeFragment_to_sleepReportFragment"
             app:destination="@id/sleepReportFragment" />
         <action
@@ -35,6 +38,12 @@
         <action
             android:id="@+id/action_homeFragment_to_groupFragment"
             app:destination="@id/groupFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_introspectionFragment"
+            app:destination="@id/introspectionFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_challengeFragment"
+            app:destination="@id/challengeFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
@@ -112,7 +121,13 @@
         android:id="@+id/introspectionFragment"
         android:name="com.example.lifemaster.presentation.total.introspection.IntrospectionFragment"
         android:label="fragment_introspection"
-        tools:layout="@layout/fragment_introspection" />
+        tools:layout="@layout/fragment_introspection">
+
+        <argument
+            android:name="startTab"
+            android:defaultValue="TODAY"
+            app:argType="string" />
+    </fragment>
     <fragment
         android:id="@+id/challengeFragment"
         android:name="com.example.lifemaster.presentation.challenge.ChallengeFragment"
