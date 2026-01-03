@@ -56,4 +56,7 @@
     <string name="sat_text">SAT</string>
     <string name="sun_text">SUN</string>
 
+    <!-- 서버 메세지 -->
+    <string name="server_error_message">네트워크 오류가 발생했습니다.</string>
+
 </resources>

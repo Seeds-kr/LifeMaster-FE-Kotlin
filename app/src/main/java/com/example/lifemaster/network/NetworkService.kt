@@ -98,15 +98,15 @@ interface NetworkService {
         @Query("title") title: String
     ): TodoResponse
 
+    // To-Do 완료 상태 토글
+    @PATCH("/schedule/todo/{id}/toggle-completed")
+    suspend fun toggleTodoItem(
+        @Path("id") id: Int
+    ): TodoResponse
+
     // 특정 To-Do 조회
     @GET("/schedule/todo/{id}")
     fun getTodoItem(
-        @Path("id") id: Int
-    ):Call<TodoModel>
-
-    // To-Do 완료 상태 토글
-    @PATCH("/schedule/todo/{id}/toggle-completed")
-    fun toggleTodoItem(
         @Path("id") id: Int
     ):Call<TodoModel>
 

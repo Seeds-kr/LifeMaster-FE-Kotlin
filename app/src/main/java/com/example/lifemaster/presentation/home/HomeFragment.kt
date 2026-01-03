@@ -143,13 +143,16 @@ class HomeFragment : Fragment() {
 
     private fun initViews() = with(binding) {
 
-        todoRecyclerview.adapter = ToDoAdapter(context = requireContext(), onEditClicked = { item ->
+        toDoViewModel.getTodoItems()
+
+        todoRecyclerview.adapter = ToDoAdapter(context = requireContext(), onToggleClicked = { id ->
+            toDoViewModel.toggleItem(id = id)
+        }, onEditClicked = { item ->
             todoEditDialog = ToDoDialog(origin = TODO.EDIT, item = item)
             todoEditDialog.show(childFragmentManager, ToDoDialog.TAG)
         }, onDeleteClicked = { alarmId ->
             toDoViewModel.deleteTodoItem(deleteId = alarmId)
         })
-        toDoViewModel.getTodoItems()
 
 //        RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
 //            .enqueue(object : Callback<List<TodoModel>> {
@@ -298,6 +301,28 @@ class HomeFragment : Fragment() {
                                 (todoRecyclerview.adapter as ToDoAdapter).submitList(updatedList)
                                 todoEditDialog.dismiss()
                                 Toast.makeText(context, "할일이 수정되었습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+                launch {
+                    toDoViewModel.toggleItem.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, resources.getString(R.string.server_error_message), Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<TodoModel> -> {
+                                val data = resource.data
+                                val oldList = (todoRecyclerview.adapter as ToDoAdapter).currentList
+                                val newList = oldList.map { if(it.id == data.id) data else it }
+                                (todoRecyclerview.adapter as ToDoAdapter).submitList(newList)
+                                if(data.isCompleted) {
+                                    Toast.makeText(context, "할일이 체크되었습니다.", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "할일이 해제되었습니다.", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     }

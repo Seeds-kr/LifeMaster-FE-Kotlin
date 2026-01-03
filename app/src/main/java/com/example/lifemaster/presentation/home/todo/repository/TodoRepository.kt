@@ -38,4 +38,12 @@ class TodoRepository @Inject constructor(private val networkService: NetworkServ
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    // 할일 토글
+    suspend fun toggleItem(id: Int): Result<TodoResponse> = try {
+        val response = networkService.toggleTodoItem(id = id)
+        Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

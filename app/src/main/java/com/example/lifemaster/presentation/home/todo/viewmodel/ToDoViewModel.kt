@@ -80,4 +80,19 @@ class ToDoViewModel @Inject constructor(private val repository: TodoRepository) 
         }
     }
 
+    private val _toggleItem = MutableSharedFlow<DataResource<TodoModel>>()
+    val toggleItem = _toggleItem.asSharedFlow()
+
+    fun toggleItem(id: Int) {
+        viewModelScope.launch {
+            _toggleItem.emit(DataResource.Loading)
+            val result = repository.toggleItem(id = id)
+            result.onSuccess { item ->
+                _toggleItem.emit(DataResource.Success(item.toPresentation()))
+            }.onFailure { error ->
+                _toggleItem.emit(DataResource.Error(error))
+            }
+        }
+    }
+
 }

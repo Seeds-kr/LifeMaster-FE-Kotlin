@@ -20,7 +20,8 @@ import retrofit2.Response
 class ToDoAdapter (
     private val context: Context,
     private val onEditClicked: (TodoModel) -> Unit,
-    private val onDeleteClicked: (Int) -> Unit
+    private val onDeleteClicked: (Int) -> Unit,
+    private val onToggleClicked: (Int) -> Unit
 ) :
     ListAdapter<TodoModel, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
@@ -33,7 +34,7 @@ class ToDoAdapter (
 
         private fun bindViews(item: TodoModel) = with(binding) {
             tvTodoTitle.text = item.title
-            checkboxTodoIsCompleted.isChecked = item.isCompleted
+            cbTodoToggle.isChecked = item.isCompleted
             root.showMode = SwipeLayout.ShowMode.PullOut
 //            llTimerContainer25.removeAllViews()
 //            if(item.timer25Number > 0) {
@@ -72,9 +73,9 @@ class ToDoAdapter (
         }
 
         private fun bindEvents(item: TodoModel) = with(binding) {
-//            chIsCompleted.setOnCheckedChangeListener { _, _ ->
-//                toggleTodoStatuIs(item)
-//            }
+            cbTodoToggle.setOnCheckedChangeListener { _, _ ->
+                onToggleClicked(item.id)
+            }
             flTodoEdit.setOnClickListener {
                 onEditClicked(item)
             }
@@ -89,38 +90,6 @@ class ToDoAdapter (
             }
         }
 
-        private fun toggleTodoStatus(item: TodoModel) {
-            RetrofitInstance.networkService.toggleTodoItem(item.id)
-                .enqueue(object : Callback<TodoModel> {
-                    override fun onResponse(
-                        call: Call<TodoModel>,
-                        response: Response<TodoModel>
-                    ) {
-                        if (response.isSuccessful) {
-                            val todoItem = response.body() ?: return
-                            if (todoItem.isCompleted) {
-                                Toast.makeText(
-                                    context,
-                                    "할일이 완료되었습니다!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "할일이 해제되었습니다!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        } else {
-
-                        }
-                    }
-
-                    override fun onFailure(call: Call<TodoModel>, t: Throwable) {
-                        TODO("Not yet implemented")
-                    }
-                })
-        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToDoViewHolder {
