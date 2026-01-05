@@ -169,6 +169,21 @@ interface NetworkService {
         @Body request: DiaryRequest
     ): Response<DiaryResponse>
 
+    // 다이어리 수정
+    @PUT("/schedule/self-reflection/diary/{diary-id}")
+    suspend fun updateDiary(
+        @Header("Authorization") token: String,
+        @Path("diary-id") diaryId: Long,
+        @Body request: DiaryRequest
+    ): Response<DiaryResponse>
+
+    // 다이어리 삭제
+    @DELETE("/schedule/self-reflection/diary/{diary-id}")
+    suspend fun deleteDiary(
+        @Header("Authorization") token: String,
+        @Path("diary-id") diaryId: Long
+    ): Response<Unit>
+
     // 커뮤니티 게시글 전체 목록 조회
     @GET("posts")
     fun getPostsByType(

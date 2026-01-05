@@ -181,6 +181,54 @@ class ThankViewModel : ViewModel() {
             }
         }
     }
+
+    // 다이어리 수정 기능
+    fun updateDiaryEntry(
+        token: String,
+        diaryId: Long,
+        diaryContent: String,
+        diaryDate: String,
+        date: String
+    ) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+
+            val request = DiaryRequest(
+                diaryContent = diaryContent,
+                diaryDate = diaryDate,
+                date = date
+            )
+
+            try {
+                val response = networkService.updateDiary("Bearer $token", diaryId, request)
+
+                if (response.isSuccessful) {
+                    _uiState.value = UiState.Success
+                } else {
+                    _uiState.value = UiState.Error("오류: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다.")
+            }
+        }
+    }
+
+    // 다이어리 삭제 기능
+    fun deleteDiaryEntry(token: String, diaryId: Long) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val response = networkService.deleteDiary("Bearer $token", diaryId)
+                if (response.isSuccessful) {
+                    _uiState.value = UiState.Success
+                } else {
+                    _uiState.value = UiState.Error("오류: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다.")
+            }
+        }
+    }
 }
 
 

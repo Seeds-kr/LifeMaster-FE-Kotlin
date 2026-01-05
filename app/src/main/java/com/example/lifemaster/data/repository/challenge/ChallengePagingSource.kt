@@ -43,8 +43,8 @@ class ChallengePagingSource(
                 )
             }
 
-            // 다음 페이지 키 계산: 로드한 데이터가 비어있으면 마지막 페이지로 간주합니다.
-            val nextKey = if (challenges.isEmpty()) null else currentPage + 1
+            // 다음 페이지 키 계산: API 응답의 last 필드를 사용하여 마지막 페이지 여부를 정확히 판단합니다.
+            val nextKey = if (response.last) null else currentPage + 1
 
             LoadResult.Page(
                 data = challenges,
