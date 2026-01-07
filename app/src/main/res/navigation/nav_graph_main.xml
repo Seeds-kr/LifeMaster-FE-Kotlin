@@ -32,6 +32,9 @@
         <action
             android:id="@+id/action_homeFragment_to_groupFragment"
             app:destination="@id/groupFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_pomodoroFragment"
+            app:destination="@id/pomodoroFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
@@ -220,5 +223,15 @@
         <action
             android:id="@+id/action_alarmRandomMissionTypingFragment_self"
             app:destination="@id/alarmRandomMissionTypingFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/pomodoroFragment"
+        android:name="com.example.lifemaster.presentation.home.pomodoro.view.PomodoroFragment"
+        android:label="fragment_pomodoro"
+        tools:layout="@layout/fragment_pomodoro">
+        <argument
+            android:name="todoItem"
+            app:argType="com.example.lifemaster.presentation.home.todo.model.TodoModel"
+            app:nullable="false"/>
     </fragment>
 </navigation>

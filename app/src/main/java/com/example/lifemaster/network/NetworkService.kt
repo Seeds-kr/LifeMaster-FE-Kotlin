@@ -13,7 +13,8 @@ import com.example.lifemaster.presentation.community.model.VoteRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
@@ -110,18 +111,20 @@ interface NetworkService {
         @Path("id") id: Int
     ):Call<TodoModel>
 
+    /**
+     * Pomodoro Timer API
+     */
     // 새로운 포모도로 타이머 생성
     @POST("/time/pomodoro/create")
-    fun registerPomodoroTimer(
-        @Header("Authorization") token: String,
-        @Body pomodoroItem: PomodoroItem
-    ):Call<Any>
+    suspend fun registerPomodoroItem(
+        @Body pomodoroRequest: PomodoroRequest
+    ): Response<PomodoroResponse>
 
     // 모든 포모도로 타이머 조회
     @GET("/time/pomodoro")
     fun getPomodoroItems(
         @Header("Authorization") token: String
-    ):Call<List<PomodoroItem>>
+    ):Call<List<PomodoroRequest>>
 
     // 비상 탈출 문장 생성
     @GET("/time/pomodoro/escape/generate")

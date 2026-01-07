@@ -36,21 +36,21 @@ import java.time.LocalDate
 class HomeFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding
+
     private val toDoViewModel: ToDoViewModel by activityViewModels()
+    private val todoAddDialog = ToDoDialog(origin = TODO.ADD)
+    private lateinit var todoEditDialog: ToDoDialog
+
     private val sleepViewModel: SleepViewModel by activityViewModels {
         SleepViewModelFactory(RetrofitInstance.networkService)
     }
     private val calendarVM: CalendarViewModel by activityViewModels()
-    private lateinit var remoteTodoItems: List<TodoModel>
-
-    private val todoAddDialog = ToDoDialog(origin = TODO.ADD)
-    private lateinit var todoEditDialog: ToDoDialog
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentHomeBinding.inflate(inflater)
         return binding.root
     }
@@ -152,6 +152,9 @@ class HomeFragment : Fragment() {
             todoEditDialog.show(childFragmentManager, ToDoDialog.TAG)
         }, onDeleteClicked = { alarmId ->
             toDoViewModel.deleteTodoItem(deleteId = alarmId)
+        }, onViewClicked = { item ->
+            val action = HomeFragmentDirections.actionHomeFragmentToPomodoroFragment(todoItem = item)
+            findNavController().navigate(action)
         })
 
 //        RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
@@ -163,10 +166,10 @@ class HomeFragment : Fragment() {
 //                    if (response.isSuccessful) {
 //                        todoModels = response.body() as ArrayList<TodoModel>
 //                        RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
-//                            .enqueue(object : Callback<List<PomodoroItem>> {
+//                            .enqueue(object : Callback<List<PomodoroRequest>> {
 //                                override fun onResponse(
-//                                    call: Call<List<PomodoroItem>?>,
-//                                    response: Response<List<PomodoroItem>?>
+//                                    call: Call<List<PomodoroRequest>?>,
+//                                    response: Response<List<PomodoroRequest>?>
 //                                ) {
 //                                    if (response.isSuccessful) {
 //                                        val response = response.body()
@@ -190,7 +193,7 @@ class HomeFragment : Fragment() {
 //                                }
 //
 //                                override fun onFailure(
-//                                    call: Call<List<PomodoroItem>?>,
+//                                    call: Call<List<PomodoroRequest>?>,
 //                                    t: Throwable
 //                                ) {
 //                                    TODO("Not yet implemented")
@@ -230,6 +233,7 @@ class HomeFragment : Fragment() {
 
     private fun initObservers() = with(binding) {
 
+        // 할일
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {

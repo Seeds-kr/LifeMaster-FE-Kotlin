@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/linearLayout"
     android:padding="12dp"
     android:background = "@drawable/selector_pomodoro_dialog_background"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp">
-
-    <!-- [?] android:elevation vs app:cardElevation 비교 -->
 
     <TextView
         android:id="@+id/tv_todo_content"
@@ -21,6 +18,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_timer_25" />
+        android:src="@drawable/ic_timer_25"
+        android:visibility="gone"/>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

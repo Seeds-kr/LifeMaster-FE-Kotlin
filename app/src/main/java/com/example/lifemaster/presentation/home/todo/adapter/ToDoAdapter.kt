@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.daimajia.swipe.SwipeLayout
 import com.example.lifemaster.databinding.ItemTodoBinding
 import com.example.lifemaster.network.RetrofitInstance
-import com.example.lifemaster.presentation.home.pomodoro.view.PomodoroActivity
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import retrofit2.Call
 import retrofit2.Callback
@@ -21,7 +20,8 @@ class ToDoAdapter (
     private val context: Context,
     private val onEditClicked: (TodoModel) -> Unit,
     private val onDeleteClicked: (Int) -> Unit,
-    private val onToggleClicked: (Int) -> Unit
+    private val onToggleClicked: (Int) -> Unit,
+    private val onViewClicked: (TodoModel) -> Unit
 ) :
     ListAdapter<TodoModel, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
@@ -82,11 +82,8 @@ class ToDoAdapter (
             flTodoDelete.setOnClickListener {
                 onDeleteClicked(item.id)
             }
-            ivGoToPomodoro.setOnClickListener {
-                val intent = Intent(context, PomodoroActivity::class.java).apply {
-                    putExtra("item", item)
-                }
-                context.startActivity(intent)
+            root.setOnClickListener {
+                onViewClicked(item)
             }
         }
 

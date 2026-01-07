@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".presentation.home.pomodoro.view.PomodoroActivity">
+    tools:context=".presentation.home.pomodoro.view.PomodoroFragment">
 
     <ImageView
         android:layout_width="48dp"
@@ -60,8 +60,8 @@
         android:id="@+id/circularTimerView"
         android:layout_width="160dp"
         android:layout_height="160dp"
-        android:layout_marginBottom="20dp"
-        android:layout_gravity="center_horizontal"/>
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="20dp" />
 
     <TextView
         android:id="@+id/tv_timer_title"
@@ -69,14 +69,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="4dp"
-        android:text="할일 종료까지"
+        android:text="해야할 일을 시작하세요"
         android:textColor="@color/black" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:orientation="horizontal">
         <TextView
             android:id="@+id/tv_minutes_and_seconds"
             android:layout_width="wrap_content"
@@ -85,22 +80,15 @@
             android:text="@string/tv_pomodoro_timer_not_set"
             android:textColor="@color/black"
             android:textSize="60sp"
-            android:textStyle="bold" />
-        <TextView
-            android:id="@+id/tv_decisecond"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"
-            android:textSize="30sp"
-            android:layout_marginStart="8dp"/>
-    </LinearLayout>
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal"/>
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardview_todo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        app:cardCornerRadius="8dp"
+        app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:contentPadding="16dp"
         app:strokeColor="@color/blue_30"
@@ -112,28 +100,24 @@
             android:layout_gravity="center_vertical"
             android:text="@string/item_is_not_selected"
             android:textColor="@color/blue_100" />
+
         <ImageView
-            android:id="@+id/iv_timer_25"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|end"
-            android:src="@drawable/ic_timer_25"
-            android:visibility="invisible"/>
-        <ImageView
-            android:id="@+id/iv_timer_50"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|end"
-            android:src="@drawable/ic_timer_50"
-            android:visibility="invisible"/>
+            android:src="@drawable/ic_calendar_right"
+            app:tint="@color/todo_primary"/>
+
     </com.google.android.material.card.MaterialCardView>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_start_pomodoro"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:padding="16dp"
         android:text="시작하기"
-        android:textSize="12sp"/>
+        android:textColor="@color/white"
+        android:background="@drawable/bg_round_radius_12dp"
+        android:backgroundTint="@color/todo_primary"/>
 </androidx.appcompat.widget.LinearLayoutCompat>
