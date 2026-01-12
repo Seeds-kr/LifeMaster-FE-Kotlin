@@ -84,9 +84,33 @@ class ChallengeFragment : Fragment() {
         }
 
         challengeAdapter.onJoinButtonClickListener = { challenge ->
-            Toast.makeText(context, "${challenge.challName} 참여 버튼 클릭됨", Toast.LENGTH_SHORT).show()
-            // TODO: ViewModel을 통해 참여 API를 호출하는 로직 구현
+            val token = readAuthToken()
+            if (token == null) {
+                Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                return@onJoinButtonClickListener
+            }
+            
+            viewModel.joinChallenge(
+                token = token,
+                challId = challenge.challId,
+                onSuccess = { message ->
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                },
+                onError = { errorMessage ->
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            )
         }
+    }
+
+    /**
+     * SharedPreferences에서 인증 토큰을 읽어옵니다.
+     * @return Bearer 토큰 문자열 또는 null (로그인하지 않은 경우)
+     */
+    private fun readAuthToken(): String? {
+        val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
+        if (raw.isBlank()) return null
+        return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
     }
 
     override fun onDestroyView() {

@@ -4,11 +4,23 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeDetailBinding
+import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
 
 class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
     private lateinit var binding: FragmentChallengeDetailBinding
+    private val viewModel: ChallengeViewModel by viewModels()
+    
+    private var challId: Long = 0L
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            challId = it.getLong("challId", 0L)
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -19,7 +31,37 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
     private fun initListeners() {
         // '참여하기' 버튼(ID: btn_join)에 클릭 리스너 설정
         binding.btnJoin.setOnClickListener {
-            Toast.makeText(requireContext(), "챌린지 참여 완료!", Toast.LENGTH_SHORT).show()
+            if (challId == 0L) {
+                Toast.makeText(requireContext(), "챌린지 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            val token = readAuthToken()
+            if (token == null) {
+                Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            viewModel.joinChallenge(
+                token = token,
+                challId = challId,
+                onSuccess = { message ->
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                },
+                onError = { errorMessage ->
+                    Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            )
         }
+    }
+
+    /**
+     * SharedPreferences에서 인증 토큰을 읽어옵니다.
+     * @return Bearer 토큰 문자열 또는 null (로그인하지 않은 경우)
+     */
+    private fun readAuthToken(): String? {
+        val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
+        if (raw.isBlank()) return null
+        return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
     }
 }

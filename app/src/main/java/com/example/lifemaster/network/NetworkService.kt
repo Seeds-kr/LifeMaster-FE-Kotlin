@@ -131,7 +131,12 @@ interface NetworkService {
         @Query("size") size: Int
     ): ChallengeListResponse
 
-
+    // 챌린지 참여
+    @POST("/challenge/{challId}/join")
+    suspend fun joinChallenge(
+        @Header("Authorization") token: String,
+        @Path("challId") challId: Long
+    ): Response<String>
 
     // 감사일기 생성
     @POST("/schedule/self-reflection/thank")
