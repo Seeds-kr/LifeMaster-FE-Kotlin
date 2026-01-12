@@ -161,16 +161,31 @@ class IntrospectionFragment : Fragment() {
                             return@setOnClickListener
                         }
 
-                        // ViewModel의 함수를 호출하여 서버에 데이터 전송 요청
-                        viewModel.createThankEntry(
-                            token = token,
-                            thankOne = thanksList[0],
-                            thankTwo = thanksList[1],
-                            thankThree = thanksList[2],
-                            thankFour = thanksList[3],
-                            thankFive = thanksList[4],
-                            thankDate = currentDate
-                        )
+                        // 수정 모드인지 확인
+                        if (isEditMode && thankId != null) {
+                            // 감사일기 수정
+                            viewModel.updateThankEntry(
+                                token = token,
+                                thankId = thankId!!,
+                                thankOne = thanksList[0],
+                                thankTwo = thanksList[1],
+                                thankThree = thanksList[2],
+                                thankFour = thanksList[3],
+                                thankFive = thanksList[4],
+                                thankDate = currentDate
+                            )
+                        } else {
+                            // 감사일기 생성
+                            viewModel.createThankEntry(
+                                token = token,
+                                thankOne = thanksList[0],
+                                thankTwo = thanksList[1],
+                                thankThree = thanksList[2],
+                                thankFour = thanksList[3],
+                                thankFive = thanksList[4],
+                                thankDate = currentDate
+                            )
+                        }
                     } else {
                         Toast.makeText(requireContext(), "감사 내용을 한 가지 이상 입력해주세요", Toast.LENGTH_SHORT).show()
                     }
