@@ -8,6 +8,7 @@ import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
 import kotlinx.coroutines.launch
@@ -78,19 +79,17 @@ class ThankViewModel : ViewModel() {
         thankTwo: String,
         thankThree: String,
         thankFour: String,
-        thankFive: String,
-        thankDate: String
+        thankFive: String
     ) {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
 
-            val request = ThankRequest(
+            val request = ThankUpdateRequest(
                 thankOne = thankOne,
                 thankTwo = thankTwo,
                 thankThree = thankThree,
                 thankFour = thankFour,
-                thankFive = thankFive,
-                thankDate = thankDate
+                thankFive = thankFive
             )
 
             try {

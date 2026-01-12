@@ -10,6 +10,7 @@ import com.example.lifemaster.data.remote.dto.ChallengeListResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
@@ -172,7 +173,7 @@ interface NetworkService {
     suspend fun updateThank(
         @Header("Authorization") token: String,
         @Path("thank-id") thankId: Long,
-        @Body request: ThankRequest
+        @Body request: ThankUpdateRequest
     ): Response<Unit>
 
     // 감사일기 조회

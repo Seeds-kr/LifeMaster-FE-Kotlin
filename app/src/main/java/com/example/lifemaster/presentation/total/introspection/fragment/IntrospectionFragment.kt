@@ -171,8 +171,7 @@ class IntrospectionFragment : Fragment() {
                                 thankTwo = thanksList[1],
                                 thankThree = thanksList[2],
                                 thankFour = thanksList[3],
-                                thankFive = thanksList[4],
-                                thankDate = currentDate
+                                thankFive = thanksList[4]
                             )
                         } else {
                             // 감사일기 생성
