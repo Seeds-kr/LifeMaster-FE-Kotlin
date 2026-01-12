@@ -193,6 +193,17 @@ class IntrospectionFragment : Fragment() {
             }
         }
 
+        // 감사일기 조회 데이터를 UI에 반영
+        viewModel.thankData.observe(viewLifecycleOwner) { thankData ->
+            thankData?.let {
+                binding.etThanks1.setText(it.thankOne)
+                binding.etThanks2.setText(it.thankTwo)
+                binding.etThanks3.setText(it.thankThree)
+                binding.etThanks4.setText(it.thankFour)
+                binding.etThanks5.setText(it.thankFive)
+            }
+        }
+
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             // 버튼 활성화/비활성화 로직을 한 곳에서 관리
             binding.btnSubmit.isEnabled = state !is UiState.Loading
