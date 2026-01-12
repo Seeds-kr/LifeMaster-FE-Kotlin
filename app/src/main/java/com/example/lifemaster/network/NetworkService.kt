@@ -138,6 +138,13 @@ interface NetworkService {
         @Path("challId") challId: Long
     ): Response<String>
 
+    // 챌린지 참여 취소
+    @DELETE("/challenge/{challId}/leave")
+    suspend fun leaveChallenge(
+        @Header("Authorization") token: String,
+        @Path("challId") challId: Long
+    ): Response<String>
+
     // 챌린지 상세 조회
     @GET("/challenge/{challId}")
     suspend fun getChallengeDetail(

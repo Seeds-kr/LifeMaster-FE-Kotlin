@@ -67,6 +67,34 @@ class ChallengeViewModel : ViewModel() {
     }
 
     /**
+     * 챌린지 참여 취소 API를 호출하는 함수
+     * @param token Authorization 토큰 (Bearer 포함)
+     * @param challId 참여 취소할 챌린지 ID
+     * @param onSuccess 성공 시 호출될 콜백
+     * @param onError 실패 시 호출될 콜백 (에러 메시지 전달)
+     */
+    fun leaveChallenge(
+        token: String,
+        challId: Long,
+        onSuccess: (String) -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.leaveChallenge(token, challId)
+                if (response.isSuccessful) {
+                    val message = response.body() ?: "챌린지 참여 취소 완료!"
+                    onSuccess(message)
+                } else {
+                    onError("챌린지 참여 취소 실패 (${response.code()})")
+                }
+            } catch (e: Exception) {
+                onError("네트워크 오류: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    /**
      * 챌린지 상세 정보 조회 API를 호출하는 함수
      * @param token Authorization 토큰 (Bearer 포함)
      * @param challId 조회할 챌린지 ID

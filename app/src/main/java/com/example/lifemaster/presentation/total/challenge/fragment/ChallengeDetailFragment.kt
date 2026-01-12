@@ -102,6 +102,31 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
                 }
             )
         }
+
+        // '참여 취소' 버튼(ID: btn_leave)에 클릭 리스너 설정
+        binding.btnLeave.setOnClickListener {
+            if (challId == 0L) {
+                Toast.makeText(requireContext(), "챌린지 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            val token = readAuthToken()
+            if (token == null) {
+                Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            viewModel.leaveChallenge(
+                token = token,
+                challId = challId,
+                onSuccess = { message ->
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                },
+                onError = { errorMessage ->
+                    Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
     }
 
     /**
