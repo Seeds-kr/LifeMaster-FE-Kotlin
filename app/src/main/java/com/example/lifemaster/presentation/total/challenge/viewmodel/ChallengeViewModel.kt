@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.lifemaster.data.repository.challenge.ChallengeRepository
+import com.example.lifemaster.data.remote.dto.ChallengeItemDto
 import com.example.lifemaster.domain.model.ChallengeItem
 import com.example.lifemaster.network.RetrofitInstance
 import kotlinx.coroutines.flow.Flow
@@ -47,6 +48,38 @@ class ChallengeViewModel : ViewModel() {
                     onSuccess(message)
                 } else {
                     onError("챌린지 참여 실패 (${response.code()})")
+                }
+            } catch (e: Exception) {
+                onError("네트워크 오류: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    /**
+     * 챌린지 상세 정보 조회 API를 호출하는 함수
+     * @param token Authorization 토큰 (Bearer 포함)
+     * @param challId 조회할 챌린지 ID
+     * @param onSuccess 성공 시 호출될 콜백 (ChallengeItemDto 전달)
+     * @param onError 실패 시 호출될 콜백 (에러 메시지 전달)
+     */
+    fun getChallengeDetail(
+        token: String,
+        challId: Long,
+        onSuccess: (ChallengeItemDto) -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getChallengeDetail(token, challId)
+                if (response.isSuccessful) {
+                    val challengeDetail = response.body()
+                    if (challengeDetail != null) {
+                        onSuccess(challengeDetail)
+                    } else {
+                        onError("챌린지 정보를 불러올 수 없습니다.")
+                    }
+                } else {
+                    onError("챌린지 조회 실패 (${response.code()})")
                 }
             } catch (e: Exception) {
                 onError("네트워크 오류: ${e.localizedMessage}")

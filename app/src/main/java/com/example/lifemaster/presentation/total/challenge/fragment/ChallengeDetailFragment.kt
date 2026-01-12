@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.bumptech.glide.Glide
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeDetailBinding
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
@@ -25,7 +26,55 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentChallengeDetailBinding.bind(view)
+        
+        if (challId != 0L) {
+            loadChallengeDetail()
+        } else {
+            Toast.makeText(requireContext(), "챌린지 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+        }
+        
         initListeners()
+    }
+    
+    /**
+     * 챌린지 상세 정보를 서버에서 로드합니다.
+     */
+    private fun loadChallengeDetail() {
+        val token = readAuthToken()
+        if (token == null) {
+            Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        viewModel.getChallengeDetail(
+            token = token,
+            challId = challId,
+            onSuccess = { challengeDetail ->
+                updateUI(challengeDetail)
+            },
+            onError = { errorMessage ->
+                Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+    
+    /**
+     * 챌린지 상세 정보로 UI를 업데이트합니다.
+     */
+    private fun updateUI(challengeDetail: com.example.lifemaster.data.remote.dto.ChallengeItemDto) {
+        // 챌린지 제목 설정
+        binding.tvChallengeTitle.text = challengeDetail.challName
+        
+        // 챌린지 이미지 로드
+        Glide.with(this)
+            .load(challengeDetail.challImg)
+            .into(binding.ivChallengeBanner)
+        
+        // 챌린지 설명 설정
+        binding.tvSection1Body.text = challengeDetail.challDesc
+        
+        // 섹션 제목도 챌린지 이름으로 설정
+        binding.tvSection1Title.text = challengeDetail.challName
     }
 
     private fun initListeners() {
