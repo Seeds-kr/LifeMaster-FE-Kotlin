@@ -49,7 +49,9 @@ data class ChallengeItemDto(
     @SerializedName("user")
     val user: ChallengeUserDto? = null,
     @SerializedName("challCnt")
-    val challCnt: Int
+    val challCnt: Int,
+    @SerializedName("challMe")
+    val challMe: Boolean? = null // 검색 결과에만 포함되는 필드 (내가 참여한 챌린지 여부)
 )
 
 /**

@@ -145,6 +145,14 @@ interface NetworkService {
         @Path("challId") challId: Long
     ): Response<com.example.lifemaster.data.remote.dto.ChallengeItemDto>
 
+    // 챌린지 검색
+    @GET("/challenge/search")
+    suspend fun searchChallenges(
+        @Header("Authorization") token: String,
+        @Query("name") name: String,
+        @Query("page") page: Int = 0
+    ): com.example.lifemaster.data.remote.dto.ChallengeListResponse
+
     // 감사일기 생성
     @POST("/schedule/self-reflection/thank")
     suspend fun createThank(

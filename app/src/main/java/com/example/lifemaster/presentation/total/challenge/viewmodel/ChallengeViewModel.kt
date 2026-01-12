@@ -10,6 +10,9 @@ import com.example.lifemaster.domain.model.ChallengeItem
 import com.example.lifemaster.network.RetrofitInstance
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * 챌린지 목록 데이터를 관리하고 UI에 노출하는 ViewModel.
@@ -26,6 +29,14 @@ class ChallengeViewModel : ViewModel() {
      */
     val challenges: Flow<PagingData<ChallengeItem>> = repository.getChallengePagingData()
         .cachedIn(viewModelScope)
+
+    // 검색 결과를 저장하는 StateFlow (PagingData로 변환)
+    private val _searchResults = MutableStateFlow<PagingData<ChallengeItem>>(PagingData.empty())
+    val searchResults = _searchResults.asStateFlow()
+    
+    // 검색 모드 여부
+    private val _isSearchMode = MutableStateFlow(false)
+    val isSearchMode = _isSearchMode.asStateFlow()
 
     /**
      * 챌린지 참여 API를 호출하는 함수
@@ -85,5 +96,51 @@ class ChallengeViewModel : ViewModel() {
                 onError("네트워크 오류: ${e.localizedMessage}")
             }
         }
+    }
+
+    /**
+     * 챌린지 검색 API를 호출하는 함수
+     * @param token Authorization 토큰 (Bearer 포함)
+     * @param searchQuery 검색어
+     * @param page 페이지 번호 (기본값: 0)
+     * @param onSuccess 성공 시 호출될 콜백
+     * @param onError 실패 시 호출될 콜백 (에러 메시지 전달)
+     */
+    fun searchChallenges(
+        token: String,
+        searchQuery: String,
+        page: Int = 0,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.searchChallenges(token, searchQuery, page)
+                // API 응답(DTO)을 앱에서 사용할 모델(Domain Model)로 변환
+                val challenges: List<ChallengeItem> = response.content.map { dto ->
+                    ChallengeItem(
+                        challId = dto.challId,
+                        challName = dto.challName,
+                        challTitle = dto.challDesc,
+                        challImg = dto.challImg,
+                        challJoinCnt = dto.challCnt
+                    )
+                }
+                // 검색 결과를 PagingData로 변환
+                _searchResults.value = PagingData.from(challenges)
+                _isSearchMode.value = true
+                onSuccess()
+            } catch (e: Exception) {
+                onError("네트워크 오류: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    /**
+     * 검색 모드를 해제하고 일반 목록으로 돌아갑니다.
+     */
+    fun clearSearch() {
+        _isSearchMode.value = false
+        _searchResults.value = PagingData.empty()
     }
 }
