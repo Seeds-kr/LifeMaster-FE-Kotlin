@@ -4,15 +4,24 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.example.lifemaster.R
+import com.example.lifemaster.data.repository.challenge.ChallengeRepository
 import com.example.lifemaster.databinding.FragmentChallengeDetailBinding
+import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
+import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModelFactory
 
 class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
     private lateinit var binding: FragmentChallengeDetailBinding
-    private val viewModel: ChallengeViewModel by viewModels()
+    
+    // DI를 사용하여 ViewModel 생성
+    private val viewModel: ChallengeViewModel by lazy {
+        val repository = ChallengeRepository(RetrofitInstance.networkService)
+        val factory = ChallengeViewModelFactory(repository, RetrofitInstance.networkService)
+        ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
+    }
     
     private var challId: Long = 0L
 

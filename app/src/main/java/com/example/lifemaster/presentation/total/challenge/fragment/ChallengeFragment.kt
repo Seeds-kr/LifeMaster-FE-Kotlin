@@ -6,14 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster.R
+import com.example.lifemaster.data.repository.challenge.ChallengeRepository
 import com.example.lifemaster.databinding.FragmentChallengeBinding
+import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
+import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModelFactory
 import kotlinx.coroutines.flow.collectLatest // Flow의 데이터를 수집
 import kotlinx.coroutines.launch
 
@@ -21,7 +24,14 @@ class ChallengeFragment : Fragment() {
 
     private var _binding: FragmentChallengeBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: ChallengeViewModel by viewModels()
+    
+    // DI를 사용하여 ViewModel 생성
+    private val viewModel: ChallengeViewModel by lazy {
+        val repository = ChallengeRepository(RetrofitInstance.networkService)
+        val factory = ChallengeViewModelFactory(repository, RetrofitInstance.networkService)
+        ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
+    }
+    
     private lateinit var challengeAdapter: ChallengeAdapter
 
     override fun onCreateView(

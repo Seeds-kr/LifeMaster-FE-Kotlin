@@ -7,21 +7,19 @@ import androidx.paging.cachedIn
 import com.example.lifemaster.data.repository.challenge.ChallengeRepository
 import com.example.lifemaster.data.remote.dto.ChallengeItemDto
 import com.example.lifemaster.domain.model.ChallengeItem
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 
-/**
- * 챌린지 목록 데이터를 관리하고 UI에 노출하는 ViewModel.
- */
-// ⭐ Hilt/Koin 같은 DI(의존성 주입)를 사용하면 아래 코드가 훨씬 더 간결해집니다.
-class ChallengeViewModel : ViewModel() {
-
-    private val repository: ChallengeRepository = ChallengeRepository(RetrofitInstance.networkService)
-    private val apiService = RetrofitInstance.networkService
+// 챌린지 목록 데이터를 관리하고 UI에 노출하는 ViewModel
+// DI(의존성 주입) 패턴을 사용하여 의존성을 생성자로 주입받습니다.
+class ChallengeViewModel(
+    private val repository: ChallengeRepository,
+    private val apiService: NetworkService
+) : ViewModel() {
 
     /**
      * UI(Fragment 또는 Activity)에서 관찰할 챌린지 목록 PagingData Flow입니다.
