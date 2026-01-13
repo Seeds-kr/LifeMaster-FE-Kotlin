@@ -14,16 +14,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 
-// 챌린지 목록 데이터를 관리하고 UI에 노출하는 ViewModel
-// DI(의존성 주입) 패턴을 사용하여 의존성을 생성자로 주입받습니다.
+// DI(의존성 주입) 패턴을 사용하여 의존성을 생성자로 주입받음
 class ChallengeViewModel(
     private val repository: ChallengeRepository,
     private val apiService: NetworkService
 ) : ViewModel() {
 
     /**
-     * UI(Fragment 또는 Activity)에서 관찰할 챌린지 목록 PagingData Flow입니다.
-     * .cachedIn(viewModelScope)를 통해 화면 회전 등에도 데이터를 안전하게 유지합니다.
+     * UI(Fragment 또는 Activity)에서 관찰할 챌린지 목록 PagingData Flow
+     * .cachedIn(viewModelScope)를 통해 화면 회전 등에도 데이터를 안전하게 유지
      */
     val challenges: Flow<PagingData<ChallengeItem>> = repository.getChallengePagingData()
         .cachedIn(viewModelScope)
@@ -163,7 +162,7 @@ class ChallengeViewModel(
     }
 
     /**
-     * 검색 모드를 해제하고 일반 목록으로 돌아갑니다.
+     * 검색 모드를 해제하고 일반 목록으로 돌아감
      */
     fun clearSearch() {
         _isSearchMode.value = false
