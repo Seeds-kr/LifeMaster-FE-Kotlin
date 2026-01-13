@@ -77,7 +77,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:textColor="@color/edit_text_gray"
+            android:textColor="@color/edit_text_hint"
             android:background="@android:color/transparent"
             android:textStyle="bold"
             android:hint="여기에 따라 입력하세요"/>
@@ -115,7 +115,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:textColor="@color/edit_text_gray"
+            android:textColor="@color/edit_text_hint"
             android:background="@android:color/transparent"
             android:textStyle="bold"
             android:hint="여기에 따라 입력하세요"/>
@@ -153,7 +153,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:textColor="@color/edit_text_gray"
+            android:textColor="@color/edit_text_hint"
             android:background="@android:color/transparent"
             android:textStyle="bold"
             android:hint="여기에 따라 입력하세요"/>

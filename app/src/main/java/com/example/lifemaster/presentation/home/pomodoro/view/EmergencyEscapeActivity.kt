@@ -3,7 +3,6 @@ package com.example.lifemaster.presentation.home.pomodoro.view
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Editable
-import android.util.Log
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -26,7 +25,6 @@ class EmergencyEscapeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("ttest(Escape)", "onCreate")
         binding = ActivityEmergencyEscapeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -111,7 +109,6 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 }
             }
         }
-
         emergencyEscapeViewModel.writtenSentence.observe(this) { sentence ->
             binding.btnNextPage.text = "${sentence}/15 진행 중"
         }
@@ -119,21 +116,23 @@ class EmergencyEscapeActivity : AppCompatActivity() {
 
     private fun initListeners(answerList: List<EditText>) = with(binding) {
         btnNextPage.setOnClickListener {
+
             answerList.forEach { if (it.isFocused) it.clearFocus() }
             emergencyEscapeViewModel.clickButton()
-//            if (etAnswerFirst.text.toString() == tvQuestionFirst.text.toString()
-//                && etAnswerSecond.text.toString() == tvQuestionSecond.text.toString()
-//                && etAnswerThird.text.toString() == tvQuestionThird.text.toString()
-//            ) {
-//                answerList.forEach {
-//                    if (it.isFocused) it.clearFocus()
-//                }
-//                emergencyEscapeViewModel.clickButton()
-//            } else if (etAnswerFirst.text.isBlank() || etAnswerSecond.text.isBlank() || etAnswerThird.text.isBlank()) {
-//                Toast.makeText(this@EmergencyEscapeActivity, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()
-//            } else {
-//                Toast.makeText(this@EmergencyEscapeActivity, "문장을 정확하게 입력해주세요!", Toast.LENGTH_SHORT).show()
-//            }
+
+            if (etAnswerFirst.text.toString() == tvQuestionFirst.text.toString()
+                && etAnswerSecond.text.toString() == tvQuestionSecond.text.toString()
+                && etAnswerThird.text.toString() == tvQuestionThird.text.toString()
+            ) {
+                answerList.forEach {
+                    if (it.isFocused) it.clearFocus()
+                }
+                emergencyEscapeViewModel.clickButton()
+            } else if (etAnswerFirst.text.isBlank() || etAnswerSecond.text.isBlank() || etAnswerThird.text.isBlank()) {
+                Toast.makeText(this@EmergencyEscapeActivity, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this@EmergencyEscapeActivity, "문장을 정확하게 입력해주세요!", Toast.LENGTH_SHORT).show()
+            }
         }
 
         ivBackToPomodoro.setOnClickListener {
@@ -206,7 +205,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 ) {
                     cvSentenceFirst.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_success)
-                    etAnswerFirst.setTextColor(getColor(R.color.edit_text_gray))
+                    etAnswerFirst.setTextColor(getColor(R.color.edit_text_hint))
                 } else {
                     cvSentenceFirst.strokeColor = getColor(R.color.red_100)
                     cvSentenceFirst.strokeWidth =
@@ -222,7 +221,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 ) {
                     cvSentenceSecond.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_success)
-                    etAnswerSecond.setTextColor(getColor(R.color.edit_text_gray))
+                    etAnswerSecond.setTextColor(getColor(R.color.edit_text_hint))
                 } else {
                     cvSentenceSecond.strokeColor = getColor(R.color.red_100)
                     cvSentenceSecond.strokeWidth =
@@ -238,7 +237,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 ) {
                     cvSentenceThird.strokeWidth =
                         resources.getDimensionPixelSize(R.dimen.text_watcher_success)
-                    etAnswerThird.setTextColor(getColor(R.color.edit_text_gray))
+                    etAnswerThird.setTextColor(getColor(R.color.edit_text_hint))
                 } else {
                     cvSentenceThird.strokeColor = getColor(R.color.red_100)
                     cvSentenceThird.strokeWidth =
@@ -247,35 +246,5 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d("Activity_EmergencyEscape", "onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("Activity_EmergencyEscape", "onResume")
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Log.d("Activity_EmergencyEscape", "onPause")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.d("Activity_EmergencyEscape", "onStop")
-    }
-
-    override fun onRestart() {
-        super.onRestart()
-        Log.d("Activity_EmergencyEscape", "onRestart")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d("Activity_EmergencyEscape", "onDestroy")
     }
 }

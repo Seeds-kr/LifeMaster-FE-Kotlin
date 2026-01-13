@@ -2,7 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.compose'
-    id 'kotlin-parcelize'
+    id("kotlin-parcelize")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("androidx.navigation.safeargs.kotlin")
@@ -14,7 +14,6 @@ localProperties.load(new FileInputStream(rootProject.file("local.properties")))
 android {
     namespace 'com.example.lifemaster'
     compileSdk 34
-
 
     viewBinding {
         enabled = true
