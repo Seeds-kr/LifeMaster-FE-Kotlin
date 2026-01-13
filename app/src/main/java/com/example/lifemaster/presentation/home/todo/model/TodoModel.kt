@@ -10,4 +10,6 @@ data class TodoModel(
     val date: String,
     val title: String,
     @SerializedName("completed") val isCompleted: Boolean,
+    val timer25Number: Int = 0,
+    val timer50Number: Int = 0
 ) : Parcelable

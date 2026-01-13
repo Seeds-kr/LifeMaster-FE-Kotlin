@@ -75,9 +75,11 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
                 PomodoroButtonStatus.TODO -> {
                     if(pomodoroTimeType == PomodoroTimeType.TIMER_25) {
                         tvTimerTitle.text = "다음 휴식 시간까지"
+                        btnStartPomodoro.text = "비상 탈출"
                         startTimer(TIMER_25)
                     } else if(pomodoroTimeType == PomodoroTimeType.TIMER_50) {
                         tvTimerTitle.text = "다음 휴식 시간까지"
+                        btnStartPomodoro.text = "비상 탈출"
                         startTimer(TIMER_50)
                     } else {
                         Toast.makeText(context, "시간을 설정해 주세요.", Toast.LENGTH_SHORT).show()
@@ -123,9 +125,9 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
     }
 
     private fun onTimerTodoFinished(focusTotalSeconds: Int) = with(binding) {
+        pomodoroViewModel.currentStatus = PomodoroButtonStatus.REST
         tvTimerTitle.text = "휴식을 취하세요"
         btnStartPomodoro.text = "휴식하기"
-        pomodoroViewModel.currentStatus = PomodoroButtonStatus.REST
         val restTotalSeconds = if(focusTotalSeconds == TIMER_25) TIMER_25_REST else TIMER_50_REST
         updateTimerText(restTotalSeconds)
     }
@@ -187,6 +189,7 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
                                 tvTimerTitle.text = "해야할 일을 시작하세요"
                                 updateTimerText(TIMER_25)
                                 pomodoroTimeType = PomodoroTimeType.TIMER_25
+                                btnStartPomodoro.text = "시작하기"
                                 // TODO: 받아온 data 활용하기, 포모도로 타이머 UI 반영하기
                             }
                             is DataResource.Error -> {

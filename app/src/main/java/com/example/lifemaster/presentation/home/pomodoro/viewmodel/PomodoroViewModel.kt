@@ -12,7 +12,9 @@ import com.example.lifemaster.presentation.home.pomodoro.model.toPresentation
 import com.example.lifemaster.presentation.home.pomodoro.repository.PomodoroRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,6 +34,21 @@ class PomodoroViewModel @Inject constructor(private val repository: PomodoroRepo
                 _newPomodoroItem.emit(DataResource.Success(response.toPresentation()))
             }.onFailure { error ->
                 _newPomodoroItem.emit(DataResource.Error(error))
+            }
+        }
+    }
+
+    private val _allPomodoroItems = MutableStateFlow<DataResource<List<PomodoroModel>>>(DataResource.Idle)
+    val allPomodoroItems = _allPomodoroItems.asStateFlow()
+
+    fun getPomodoroAllItems() {
+        viewModelScope.launch {
+            _allPomodoroItems.value = DataResource.Loading
+            val result = repository.getPomodoroAllItems()
+            result.onSuccess { response ->
+                _allPomodoroItems.value = DataResource.Success(response.map { it.toPresentation() })
+            }.onFailure { error ->
+                _allPomodoroItems.value = DataResource.Error(error)
             }
         }
     }

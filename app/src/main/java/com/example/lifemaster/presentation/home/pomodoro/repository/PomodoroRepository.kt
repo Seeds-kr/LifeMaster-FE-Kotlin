@@ -16,4 +16,15 @@ class PomodoroRepository @Inject constructor(private val networkService: Network
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    suspend fun getPomodoroAllItems(): Result<List<PomodoroResponse>> = try {
+        val response = networkService.getPomodoroItemsByMember()
+        if(response.isSuccessful && response.body() != null) {
+            Result.success(response.body()!!)
+        } else {
+            Result.failure(Exception("Error Code: ${response.code()}"))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

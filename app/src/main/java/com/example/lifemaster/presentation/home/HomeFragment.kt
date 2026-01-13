@@ -23,6 +23,8 @@ import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
 import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroModel
+import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
@@ -37,10 +39,16 @@ class HomeFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding
 
+    // 할일 관련 변수
     private val toDoViewModel: ToDoViewModel by activityViewModels()
     private val todoAddDialog = ToDoDialog(origin = TODO.ADD)
     private lateinit var todoEditDialog: ToDoDialog
+    private lateinit var todoItems: List<TodoModel>
 
+    // 포모도로 관련 변수
+    private val pomodoroViewModel: PomodoroViewModel by activityViewModels()
+
+    // 수면 관련 변수
     private val sleepViewModel: SleepViewModel by activityViewModels {
         SleepViewModelFactory(RetrofitInstance.networkService)
     }
@@ -99,7 +107,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun fetchRemoteData() {
-//        toDoViewModel.getRemoteTodoItems(token = getString(R.string.user_token))
+        toDoViewModel.getTodoItems()
     }
 
     private fun loadHomeConfiguration(): Pair<Set<String>, List<String>> {
@@ -143,8 +151,6 @@ class HomeFragment : Fragment() {
 
     private fun initViews() = with(binding) {
 
-        toDoViewModel.getTodoItems()
-
         todoRecyclerview.adapter = ToDoAdapter(context = requireContext(), onToggleClicked = { id ->
             toDoViewModel.toggleItem(id = id)
         }, onEditClicked = { item ->
@@ -156,59 +162,6 @@ class HomeFragment : Fragment() {
             val action = HomeFragmentDirections.actionHomeFragmentToPomodoroFragment(todoItem = item)
             findNavController().navigate(action)
         })
-
-//        RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
-//            .enqueue(object : Callback<List<TodoModel>> {
-//                override fun onResponse(
-//                    call: Call<List<TodoModel>>,
-//                    response: Response<List<TodoModel>>
-//                ) {
-//                    if (response.isSuccessful) {
-//                        todoModels = response.body() as ArrayList<TodoModel>
-//                        RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
-//                            .enqueue(object : Callback<List<PomodoroRequest>> {
-//                                override fun onResponse(
-//                                    call: Call<List<PomodoroRequest>?>,
-//                                    response: Response<List<PomodoroRequest>?>
-//                                ) {
-//                                    if (response.isSuccessful) {
-//                                        val response = response.body()
-//                                        val filterData1 = response?.groupBy { it.taskName }
-//                                        val filterData2 = filterData1?.mapValues { (_, list) ->
-//                                            val pomodoro25 =
-//                                                list.count { it.focusTime == 20 } // 25분
-//                                            val pomodoro50 =
-//                                                list.count { it.focusTime == 40 } // 50분
-//                                            Pair(pomodoro25, pomodoro50)
-//                                        }
-//                                        todoModels.forEach { todoItem ->
-//                                            val pair = filterData2?.get(todoItem.title)
-//                                            if (pair != null) {
-//                                                todoItem.timer25Number = pair.first
-//                                                todoItem.timer50Number = pair.second
-//                                            }
-//                                        }
-//                                        toDoViewModel.getTodoItems(todoModels)
-//                                    }
-//                                }
-//
-//                                override fun onFailure(
-//                                    call: Call<List<PomodoroRequest>?>,
-//                                    t: Throwable
-//                                ) {
-//                                    TODO("Not yet implemented")
-//                                }
-//
-//                            })
-//                    } else {
-//                        Log.d("server success", "else")
-//                    }
-//                }
-//
-//                override fun onFailure(call: Call<List<TodoModel>>, t: Throwable) {
-//                    Log.d("server error", "" + t.message)
-//                }
-//            })
 
         // 수면
         itemSleepPreview.tvAlarmDate.text = "${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일"
@@ -266,8 +219,8 @@ class HomeFragment : Fragment() {
                             DataResource.Idle -> {}
                             DataResource.Loading -> {}
                             is DataResource.Success<List<TodoModel>> -> {
-                                val todoItems: List<TodoModel> = resource.data
-                                (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(todoItems)
+                                todoItems = resource.data
+                                pomodoroViewModel.getPomodoroAllItems()
                             }
                         }
                     }
@@ -327,6 +280,26 @@ class HomeFragment : Fragment() {
                                 } else {
                                     Toast.makeText(context, "할일이 해제되었습니다.", Toast.LENGTH_SHORT).show()
                                 }
+                            }
+                        }
+                    }
+                }
+                launch {
+                    pomodoroViewModel.allPomodoroItems.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {}
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<List<PomodoroModel>> -> {
+                                val allPomodoroItems = resource.data
+                                val pomodoroTodoItems = mutableListOf<TodoModel>()
+                                todoItems.forEach { todoItem ->
+                                    val pomodoroItems = allPomodoroItems.filter { it.todo.id == todoItem.id }
+                                    val timer50Number = pomodoroItems.filter { it.focusTime == 50 }.size
+                                    val timer25Number = pomodoroItems.filter { it.focusTime == 25 }.size
+                                    pomodoroTodoItems.add(todoItem.copy(timer50Number = timer50Number, timer25Number = timer25Number))
+                                }
+                                (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(pomodoroTodoItems)
                             }
                         }
                     }

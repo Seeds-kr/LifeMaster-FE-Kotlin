@@ -1,20 +1,15 @@
 package com.example.lifemaster.presentation.home.todo.adapter
 
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.daimajia.swipe.SwipeLayout
 import com.example.lifemaster.databinding.ItemTodoBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class ToDoAdapter (
     private val context: Context,
@@ -36,40 +31,12 @@ class ToDoAdapter (
             tvTodoTitle.text = item.title
             cbTodoToggle.isChecked = item.isCompleted
             root.showMode = SwipeLayout.ShowMode.PullOut
-//            llTimerContainer25.removeAllViews()
-//            if(item.timer25Number > 0) {
-//                llTimerContainer25.visibility = View.VISIBLE
-//                repeat(item.timer25Number) {
-//                    val timer25ImageView = ImageView(root.context).apply {
-//                        setImageResource(R.drawable.ic_timer_25)
-//                        val size = 18
-//                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
-//                            marginEnd = 4.dp
-//                        }
-//                    }
-//                    llTimerContainer25.addView(timer25ImageView)
-//                }
-//            } else {
-//                llTimerContainer25.visibility = View.GONE
-//            }
-
-            // 50분 타이머 동적 추가
-//            llTimerContainer50.removeAllViews()
-//            if(item.timer50Number > 0) {
-//                llTimerContainer50.visibility = View.VISIBLE
-//                repeat(item.timer50Number) {
-//                    val timer50ImageView = ImageView(root.context).apply {
-//                        setImageResource(R.drawable.ic_timer_50)
-//                        val size = 18
-//                        layoutParams = LinearLayout.LayoutParams(size.dp, size.dp).apply {
-//                            marginEnd = 4.dp
-//                        }
-//                    }
-//                    llTimerContainer50.addView(timer50ImageView)
-//                }
-//            } else {
-//                llTimerContainer50.visibility = View.GONE
-//            }
+            ivItemTodoTimer25.isVisible = (item.timer25Number != 0)
+            tvItemTodoTimer25Count.isVisible = (item.timer25Number != 0)
+            ivItemTodoTimer50.isVisible = (item.timer50Number != 0)
+            tvItemTodoTimer50Count.isVisible = (item.timer50Number != 0)
+            tvItemTodoTimer25Count.text = item.timer25Number.toString()
+            tvItemTodoTimer50Count.text = item.timer50Number.toString()
         }
 
         private fun bindEvents(item: TodoModel) = with(binding) {

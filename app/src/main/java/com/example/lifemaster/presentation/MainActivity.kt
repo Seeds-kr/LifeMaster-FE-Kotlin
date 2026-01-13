@@ -236,47 +236,6 @@ class MainActivity : AppCompatActivity() {
         handler.post(updateRunnable)
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        // 포모도로 → 할일 업데이트
-        val updateItem = intent.getParcelableExtra("pomodoro", TodoModel::class.java)
-        val todoItemTitle = intent.getStringExtra("todoItemTitle")
-        if (todoItemTitle != null) {
-            RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
-                .enqueue(object : Callback<List<PomodoroItem>> {
-                    override fun onResponse(
-                        call: Call<List<PomodoroItem>?>,
-                        response: Response<List<PomodoroItem>?>
-                    ) {
-                        if (response.isSuccessful) {
-                            response.body()?.let { pomodoroList ->
-                                val pomodoro = pomodoroList.filter { it.taskName == todoItemTitle }
-                                val pomodoro25Count = pomodoro.count { it.focusTime == 20 }
-                                val pomodoro50Count = pomodoro.count { it.focusTime == 40 }
-                                val todoItem =
-                                    toDoViewModel.todoItems.value?.find { it.title == todoItemTitle }
-                                todoItem?.let {
-//                                    it.timer25Number = pomodoro25Count
-//                                    it.timer50Number = pomodoro50Count
-                                    toDoViewModel.changeTodoItems(it)
-                                }
-                            }
-                        }
-                    }
-
-                    override fun onFailure(
-                        call: Call<List<PomodoroItem>?>,
-                        t: Throwable
-                    ) {
-                        TODO("Not yet implemented")
-                    }
-
-                })
-        }
-        updateItem?.let { toDoViewModel.changeTodoItems(it) }
-    }
-
     override fun onPause() {
         super.onPause()
         handler.removeCallbacks(updateRunnable)

@@ -126,6 +126,10 @@ interface NetworkService {
         @Header("Authorization") token: String
     ):Call<List<PomodoroRequest>>
 
+    // 회원 전체 포모도로 타이머 조회
+    @GET("/time/pomodoro/member/{memberId}")
+    suspend fun getPomodoroItemsByMember(): Response<List<PomodoroResponse>>
+
     // 비상 탈출 문장 생성
     @GET("/time/pomodoro/escape/generate")
     fun getEscapeSentence(

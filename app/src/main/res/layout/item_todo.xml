@@ -10,13 +10,13 @@
         android:id="@+id/bottom_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:layout_gravity="end">
+        android:layout_gravity="end"
+        android:orientation="horizontal">
 
         <View
             android:layout_width="8dp"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
 
         <FrameLayout
             android:id="@+id/fl_todo_edit"
@@ -24,12 +24,13 @@
             android:layout_height="match_parent"
             android:background="@drawable/bg_left_round_12dp"
             android:backgroundTint="@color/todo_edit">
+
             <ImageView
                 android:layout_width="16dp"
                 android:layout_height="16dp"
+                android:layout_gravity="center"
                 android:src="@drawable/ic_edit"
-                app:tint="@color/white"
-                android:layout_gravity="center"/>
+                app:tint="@color/white" />
         </FrameLayout>
 
         <FrameLayout
@@ -37,12 +38,13 @@
             android:layout_width="40dp"
             android:layout_height="match_parent"
             android:background="@color/red_100">
+
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
+                android:layout_gravity="center"
                 android:src="@drawable/ic_trashcan"
-                app:tint="@color/white"
-                android:layout_gravity="center"/>
+                app:tint="@color/white" />
         </FrameLayout>
 
     </LinearLayout>
@@ -54,11 +56,13 @@
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:contentPadding="12dp">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:orientation="horizontal">
+
             <CheckBox
                 android:id="@+id/cb_todo_toggle"
                 android:layout_width="16dp"
@@ -73,26 +77,33 @@
                 android:textSize="14sp"
                 tools:text="구체적으로 할 일을 적으세요." />
 
-            <LinearLayout
-                android:id="@+id/ll_timer_container_25"
+            <ImageView
+                android:id="@+id/iv_item_todo_timer_25"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal" />
+                android:src="@drawable/ic_timer_25" />
 
-            <LinearLayout
-                android:id="@+id/ll_timer_container_50"
+            <TextView
+                android:id="@+id/tv_item_todo_timer_25_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal" />
-            <!--        <ImageView-->
-            <!--            android:layout_width="wrap_content"-->
-            <!--            android:layout_height="wrap_content"-->
-            <!--            tools:src="@drawable/ic_timer_25"/>-->
-            <!--        <ImageView-->
-            <!--            android:layout_width="wrap_content"-->
-            <!--            android:layout_height="wrap_content"-->
-            <!--            android:layout_marginStart="4dp"-->
-            <!--            tools:src="@drawable/ic_timer_50"/>-->
+                android:layout_marginStart="2dp"
+                tools:text="2"/>
+
+            <ImageView
+                android:id="@+id/iv_item_todo_timer_50"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/ic_timer_50" />
+
+            <TextView
+                android:id="@+id/tv_item_todo_timer_50_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                tools:text="5"/>
+
             <ImageView
                 android:id="@+id/iv_go_to_pomodoro"
                 android:layout_width="wrap_content"
