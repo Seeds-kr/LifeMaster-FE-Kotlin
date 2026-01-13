@@ -36,9 +36,7 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
         initListeners()
     }
     
-    /**
-     * 챌린지 상세 정보를 서버에서 로드합니다.
-     */
+    // 서버에서 챌린지 상세 정보 로드
     private fun loadChallengeDetail() {
         val token = readAuthToken()
         if (token == null) {
@@ -58,9 +56,7 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
         )
     }
     
-    /**
-     * 챌린지 상세 정보로 UI를 업데이트합니다.
-     */
+    // 챌린지 상세 정보로 UI를 업데이트
     private fun updateUI(challengeDetail: com.example.lifemaster.data.remote.dto.ChallengeItemDto) {
         // 챌린지 제목 설정
         binding.tvChallengeTitle.text = challengeDetail.challName
@@ -129,10 +125,8 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
         }
     }
 
-    /**
-     * SharedPreferences에서 인증 토큰을 읽어옵니다.
-     * @return Bearer 토큰 문자열 또는 null (로그인하지 않은 경우)
-     */
+    // SharedPreferences에서 인증 토큰을 읽어옴옴
+    // @return Bearer 토큰 문자열 또는 null (로그인하지 않은 경우)
     private fun readAuthToken(): String? {
         val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
         if (raw.isBlank()) return null
