@@ -7,9 +7,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ItemCommunityBoardPreviewBinding
 import com.example.lifemaster.presentation.community.model.CommunityItem
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class CommunityAdapter(
     private val onClick: (CommunityItem) -> Unit
@@ -33,16 +30,10 @@ class CommunityAdapter(
             tvAuthor.text = item.author.ifBlank { "익명" }
             tvViews.text = item.views.toString()
             tvLikes.text = item.likes.toString()
-            tvDate.text = formatKoreanDate(item.createdAt)
+            tvDate.text = item.createdAt ?: ""
             ivImage.setImageResource(R.drawable.ic_community_image)
 
             root.setOnClickListener { onClick(item) }
-        }
-
-        private fun formatKoreanDate(epochMillis: Long): String {
-            if (epochMillis <= 0L) return ""
-            val sdf = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA)
-            return sdf.format(Date(epochMillis))
         }
     }
 

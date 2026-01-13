@@ -25,6 +25,7 @@ import com.example.lifemaster.presentation.community.model.Comment
 import com.example.lifemaster.presentation.community.model.CommentDto
 import com.example.lifemaster.presentation.community.model.PostDetailDto
 import com.example.lifemaster.presentation.community.viewmodel.CommunityViewModel
+import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -33,6 +34,7 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
 
     companion object {
         const val ARG_ITEM_ID = "arg_item_id"
+        private const val TAG_SHARED_CALENDAR = "tag_shared_calendar"
     }
 
     private var _binding: FragmentCommunityPostBinding? = null
@@ -44,8 +46,8 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
     private lateinit var authToken: String
 
     private var editingCommentId: Long? = null
-
     private lateinit var commentAdapter: CommunityCommentAdapter
+    private var attachedCalendarOwnerId: Long? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -76,6 +78,7 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
         setupCommentList()
         observeViewModel()
         setupActions()
+        setupSharedCalendarHeaderControls()
     }
 
     private fun setupCommentList() {
@@ -204,7 +207,7 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
         binding.btnMore.isVisible = true
         binding.btnMore.setOnClickListener {
             showPostMenu(
-                isMine = false, // 실제 노출 로직은 bindDetail에서 처리
+                isMine = false,
                 onEdit = {
                     val b = Bundle().apply {
                         putString(CommunityWriteFragment.ARG_MODE, CommunityWriteFragment.MODE_EDIT)
@@ -258,6 +261,85 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
         val isMyPost = detail.isMine == true
         binding.btnReport.isVisible = !isMyPost
         binding.btnMore.isVisible = true
+
+        // 달력 공유 표시
+        val shared = (detail.calendarShared == true)
+        val ownerId = detail.memberId ?: -1L
+
+        if (shared && ownerId > 0L) {
+            binding.calendarShare.isVisible = true
+            attachSharedCalendar(ownerMemberId = ownerId)
+        } else {
+            binding.calendarShare.isVisible = false
+            detachSharedCalendarIfAny()
+        }
+    }
+
+    private fun attachSharedCalendar(ownerMemberId: Long) {
+        if (!isAdded) return
+
+        if (attachedCalendarOwnerId == ownerMemberId &&
+            childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR) != null
+        ) {
+            // 초기값(7월/2024)으로 남아있을 수 있으니 다시 갱신
+            updateSharedCalendarHeaderTitle()
+            return
+        }
+
+        attachedCalendarOwnerId = ownerMemberId
+
+        // 기존 달력이 있으면 제거 후 교체
+        childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR)?.let { prev ->
+            childFragmentManager.beginTransaction().remove(prev).commitAllowingStateLoss()
+        }
+
+        val fragment = CalendarFragment().apply {
+            arguments = Bundle().apply {
+                putLong(CalendarFragment.ARG_TARGET_MEMBER_ID, ownerMemberId)
+                putBoolean(CalendarFragment.ARG_CALENDAR_READ_ONLY, true)
+            }
+        }
+
+        childFragmentManager.beginTransaction()
+            .replace(R.id.container_calendar, fragment, TAG_SHARED_CALENDAR)
+            .commitAllowingStateLoss()
+
+        childFragmentManager.executePendingTransactions()
+        updateSharedCalendarHeaderTitle()
+    }
+
+    private fun detachSharedCalendarIfAny() {
+        attachedCalendarOwnerId = null
+        childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR)?.let { f ->
+            childFragmentManager.beginTransaction()
+                .remove(f)
+                .commitAllowingStateLoss()
+        }
+    }
+
+    private fun setupSharedCalendarHeaderControls() {
+        binding.btnPrevMonth.setOnClickListener {
+            val cal = childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR) as? CalendarFragment
+            if (cal == null) return@setOnClickListener
+            cal.moveMonth(-1)
+            updateSharedCalendarHeaderTitle()
+        }
+
+        binding.btnNextMonth.setOnClickListener {
+            val cal = childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR) as? CalendarFragment
+            if (cal == null) return@setOnClickListener
+            cal.moveMonth(+1)
+            updateSharedCalendarHeaderTitle()
+        }
+    }
+
+    private fun updateSharedCalendarHeaderTitle() {
+        val cal = childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR) as? CalendarFragment ?: return
+        val y = cal.getCurrentYear()
+        val m = cal.getCurrentMonth1()
+
+        binding.tvMonth.text = "${m}월"
+        binding.tvYear.text = y.toString()
     }
 
     private fun showPostMenu(
@@ -412,6 +494,7 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        detachSharedCalendarIfAny()
         _binding = null
     }
 
@@ -442,8 +525,7 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
                 val sdf = SimpleDateFormat(p, Locale.US)
                 sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
                 return sdf.parse(iso)?.time
-            } catch (_: Throwable) {
-            }
+            } catch (_: Throwable) {}
         }
         return null
     }

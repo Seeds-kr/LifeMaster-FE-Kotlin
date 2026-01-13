@@ -30,6 +30,7 @@ class CommunityWriteFragment : Fragment() {
         const val MODE_CREATE = "create"
         const val MODE_EDIT = "edit"
         private const val STATE_CALENDAR_SHARE = "state_calendar_share"
+        const val ARG_POST_TYPE = "arg_post_type"
     }
 
     private val vm: CommunityViewModel by activityViewModels()
@@ -70,6 +71,8 @@ class CommunityWriteFragment : Fragment() {
 
         val mode = arguments?.getString(ARG_MODE) ?: MODE_CREATE
         val editId = arguments?.getString(ARG_ITEM_ID)
+        val postType = arguments?.getString(ARG_POST_TYPE) ?: "FREE"
+
         tvReg.text = if (mode == MODE_EDIT) "수정하기" else "등록하기"
 
         if (mode == MODE_EDIT && !editId.isNullOrBlank()) {
@@ -82,16 +85,24 @@ class CommunityWriteFragment : Fragment() {
                     applyFileUi()
                 }
             }
+
             readAuthToken()?.let { auth ->
                 vm.fetchPostDetail(
-                    token = auth, id = editId,
-                    onDone = { detail -> bindForEdit(detail, etTitle, etContent) },
+                    token = auth,
+                    id = editId,
+                    onDone = { detail ->
+                        bindForEdit(detail, etTitle, etContent)
+                        isCalendarShareChecked = detail.calendarShared ?: false
+                        applyCalendarShareUi(ivCalendar)
+                    },
                     onError = ::toast
                 )
             }
         }
 
-        btnFile.setOnClickListener { if (selectedFileUri == null) pickOneDocument.launch(arrayOf("*/*")) }
+        btnFile.setOnClickListener {
+            if (selectedFileUri == null) pickOneDocument.launch(arrayOf("*/*"))
+        }
         ivFileClr.setOnClickListener { clearFile() }
 
         val toggle: (View) -> Unit = {
@@ -115,7 +126,13 @@ class CommunityWriteFragment : Fragment() {
 
             if (mode == MODE_EDIT && !editId.isNullOrBlank()) {
                 vm.updatePost(
-                    token = auth, id = editId, title = title, content = content, file = selectedFileUri?.toString(),
+                    token = auth,
+                    id = editId,
+                    title = title,
+                    content = content,
+                    file = selectedFileUri?.toString(),
+                    type = postType,
+                    calendarShared = isCalendarShareChecked,
                     onSuccess = {
                         findNavController().previousBackStackEntry?.savedStateHandle?.set("refresh_post", editId)
                         findNavController().popBackStack()
@@ -124,7 +141,12 @@ class CommunityWriteFragment : Fragment() {
                 )
             } else {
                 vm.createPost(
-                    token = auth, title = title, content = content, file = selectedFileUri?.toString(),
+                    token = auth,
+                    title = title,
+                    content = content,
+                    file = selectedFileUri?.toString(),
+                    type = postType,
+                    calendarShared = isCalendarShareChecked,
                     onSuccess = {
                         findNavController().previousBackStackEntry?.savedStateHandle?.set("refresh_posts", true)
                         findNavController().popBackStack()

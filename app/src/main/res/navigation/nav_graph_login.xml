@@ -45,7 +45,7 @@
     <fragment
         android:id="@+id/findPasswordFragment"
         android:name="com.example.lifemaster.presentation.login.view.FindPasswordFragment"
-        android:label="비밀번호 찾기"
+        android:label="findPassword"
         tools:layout="@layout/fragment_find_password">
 
         <action
@@ -56,13 +56,18 @@
     <fragment
         android:id="@+id/resetPasswordFragment"
         android:name="com.example.lifemaster.presentation.login.view.ResetPasswordFragment"
-        android:label="비밀번호 재설정"
-        tools:layout="@layout/fragment_reset_password" />
+        android:label="resetPassword"
+        tools:layout="@layout/fragment_reset_password">
+        <argument
+            android:name="token"
+            app:argType="string"
+            android:defaultValue="@null" />
+    </fragment>
 
     <fragment
         android:id="@+id/signupProfileFragment"
         android:name="com.example.lifemaster.presentation.login.view.RegisterProfileFragment"
-        android:label="회원가입 프로필 설정"
+        android:label="registerProfile"
         tools:layout="@layout/fragment_register_profile" />
 
 </navigation>

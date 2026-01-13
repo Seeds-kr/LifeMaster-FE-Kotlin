@@ -8,7 +8,6 @@ import java.time.LocalDate
 enum class CalendarMode { MONTH, WEEK, DAY }
 
 class CalendarViewModel : ViewModel() {
-
     private val _mode = MutableLiveData(CalendarMode.MONTH)
     val mode: LiveData<CalendarMode> = _mode
 

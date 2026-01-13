@@ -50,11 +50,8 @@ class CommunityViewModel : ViewModel() {
         val safeCount = count.coerceAtLeast(0)
         likeCounts[id] = safeCount
 
-        _postDetail.value =
-            _postDetail.value?.copy(liked = liked, likeCount = safeCount)
-
+        _postDetail.value = _postDetail.value?.copy(liked = liked, likeCount = safeCount)
         mutateItem(id) { it.copy(likes = safeCount) }
-
         resortMainIfNeeded()
     }
 
@@ -64,23 +61,14 @@ class CommunityViewModel : ViewModel() {
         if (cur.isEmpty()) return
 
         val resorted = cur.sortedWith(
-            compareByDescending<CommunityItem> { it.likes ?: 0 }
-                .thenByDescending { it.createdAt ?: 0L }
+            compareByDescending<CommunityItem> { it.likes }
                 .thenByDescending { it.id }
         )
         if (resorted != cur) _items.postValue(resorted)
     }
 
     fun isPostLiked(id: Long): Boolean = likedPosts.contains(id.toString())
-
     fun getLikeCount(id: String): Int = likeCounts[id] ?: 0
-
-    fun increaseViewCount(postId: String): Int {
-        val next = (viewCounts[postId] ?: 0) + 1
-        viewCounts[postId] = next
-        mutateItem(postId) { it.copy(views = next) }
-        return next
-    }
 
     private fun primeLikeStateFromSummaries(dtos: List<PostSummaryDto>) {
         dtos.forEach { dto ->
@@ -90,20 +78,12 @@ class CommunityViewModel : ViewModel() {
         }
     }
 
-    fun setSortAndRefresh(
-        token: String,
-        mode: SortMode,
-        onError: (String) -> Unit = {}
-    ) {
+    fun setSortAndRefresh(token: String, mode: SortMode, onError: (String) -> Unit = {}) {
         _sortMode.value = mode
         fetchPostsByType(token, "FREE", onError)
     }
 
-    fun fetchPostsByType(
-        token: String,
-        type: String,
-        onError: (String) -> Unit = {}
-    ) {
+    fun fetchPostsByType(token: String, type: String, onError: (String) -> Unit = {}) {
         RetrofitInstance.networkService
             .getPostsByType(bear(token), type)
             .enqueue(object : Callback<List<PostSummaryDto>> {
@@ -112,21 +92,22 @@ class CommunityViewModel : ViewModel() {
                     res: Response<List<PostSummaryDto>>
                 ) {
                     if (!res.isSuccessful) {
-                        onError("목록 조회 실패 (${res.code()})")
+                        onError("${res.code()}")
                         return
                     }
                     val body = res.body().orEmpty()
-
                     primeLikeStateFromSummaries(body)
 
                     var items = body.mapIndexed { idx, dto ->
-                        dto.toCommunityItem(idStr = dto.id?.toString() ?: "tmp_$idx")
+                        dto.toCommunityItem(
+                            idStr = dto.id?.toString() ?: "tmp_$idx",
+                            type = type
+                        )
                     }
 
                     if (_sortMode.value == SortMode.LIKES) {
                         items = items.sortedWith(
-                            compareByDescending<CommunityItem> { it.likes ?: 0 }
-                                .thenByDescending { it.createdAt ?: 0L }
+                            compareByDescending<CommunityItem> { it.likes }
                                 .thenByDescending { it.id }
                         )
                     }
@@ -134,24 +115,13 @@ class CommunityViewModel : ViewModel() {
                     _items.postValue(items)
                 }
 
-                override fun onFailure(
-                    call: Call<List<PostSummaryDto>>,
-                    t: Throwable
-                ) {
-                    onError("네트워크 오류(목록): ${t.localizedMessage}")
+                override fun onFailure(call: Call<List<PostSummaryDto>>, t: Throwable) {
+                    onError("${t.localizedMessage}")
                 }
             })
     }
 
-    fun fetchFreePosts(
-        token: String,
-        onError: (String) -> Unit = {}
-    ) = fetchPostsByType(token, "FREE", onError)
-
-    fun fetchPopularPosts(
-        token: String,
-        onError: (String) -> Unit = {}
-    ) {
+    fun fetchPopularPosts(token: String, onError: (String) -> Unit = {}) {
         RetrofitInstance.networkService
             .getPopularPosts(bear(token))
             .enqueue(object : Callback<List<PostSummaryDto>> {
@@ -173,10 +143,7 @@ class CommunityViewModel : ViewModel() {
                     )
                 }
 
-                override fun onFailure(
-                    call: Call<List<PostSummaryDto>>,
-                    t: Throwable
-                ) {
+                override fun onFailure(call: Call<List<PostSummaryDto>>, t: Throwable) {
                     onError("네트워크 오류(인기글): ${t.localizedMessage}")
                     _bestItems.postValue(emptyList())
                 }
@@ -195,10 +162,7 @@ class CommunityViewModel : ViewModel() {
         RetrofitInstance.networkService
             .getPostDetail(bear(token), id)
             .enqueue(object : Callback<PostDetailDto> {
-                override fun onResponse(
-                    call: Call<PostDetailDto>,
-                    res: Response<PostDetailDto>
-                ) {
+                override fun onResponse(call: Call<PostDetailDto>, res: Response<PostDetailDto>) {
                     val body = res.body()
                     if (!res.isSuccessful || body == null) {
                         onError("상세 조회 실패 (${res.code()})")
@@ -218,10 +182,7 @@ class CommunityViewModel : ViewModel() {
                     onDone(merged)
                 }
 
-                override fun onFailure(
-                    call: Call<PostDetailDto>,
-                    t: Throwable
-                ) {
+                override fun onFailure(call: Call<PostDetailDto>, t: Throwable) {
                     onError("네트워크 오류(상세): ${t.localizedMessage}")
                 }
             })
@@ -245,21 +206,14 @@ class CommunityViewModel : ViewModel() {
         RetrofitInstance.networkService
             .togglePostLike(bear(token), key)
             .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(
-                    call: Call<ResponseBody>,
-                    res: Response<ResponseBody>
-                ) {
+                override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
                     if (res.isSuccessful) return
-
                     updateLikeStateEverywhere(key, beforeLiked, beforeCnt)
                     onDone(beforeCnt)
                     onError("좋아요 실패 (${res.code()})")
                 }
 
-                override fun onFailure(
-                    call: Call<ResponseBody>,
-                    t: Throwable
-                ) {
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     updateLikeStateEverywhere(key, beforeLiked, beforeCnt)
                     onDone(beforeCnt)
                     onError("네트워크 오류(좋아요): ${t.localizedMessage}")
@@ -267,11 +221,7 @@ class CommunityViewModel : ViewModel() {
             })
     }
 
-    fun fetchComments(
-        token: String,
-        postId: String,
-        onError: (String) -> Unit = {}
-    ) {
+    fun fetchComments(token: String, postId: String, onError: (String) -> Unit = {}) {
         RetrofitInstance.networkService
             .getComments(bear(token), postId)
             .enqueue(object : Callback<List<CommentDto>> {
@@ -279,17 +229,11 @@ class CommunityViewModel : ViewModel() {
                     call: Call<List<CommentDto>>,
                     res: Response<List<CommentDto>>
                 ) {
-                    if (res.isSuccessful) {
-                        _comments.postValue(res.body() ?: emptyList())
-                    } else {
-                        onError("댓글 조회 실패 (${res.code()})")
-                    }
+                    if (res.isSuccessful) _comments.postValue(res.body() ?: emptyList())
+                    else onError("댓글 조회 실패 (${res.code()})")
                 }
 
-                override fun onFailure(
-                    call: Call<List<CommentDto>>,
-                    t: Throwable
-                ) {
+                override fun onFailure(call: Call<List<CommentDto>>, t: Throwable) {
                     onError("네트워크 오류(댓글): ${t.localizedMessage}")
                 }
             })
@@ -306,23 +250,15 @@ class CommunityViewModel : ViewModel() {
         RetrofitInstance.networkService
             .createComment(bear(token), postId, NewCommentRequest(text))
             .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(
-                    call: Call<ResponseBody>,
-                    res: Response<ResponseBody>
-                ) {
+                override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
                     _isCommentSyncing.postValue(false)
                     if (res.isSuccessful) {
                         onDone()
                         fetchComments(token, postId, onError)
-                    } else {
-                        onError("댓글 등록 실패 (${res.code()})")
-                    }
+                    } else onError("댓글 등록 실패 (${res.code()})")
                 }
 
-                override fun onFailure(
-                    call: Call<ResponseBody>,
-                    t: Throwable
-                ) {
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     _isCommentSyncing.postValue(false)
                     onError("네트워크 오류(댓글 등록): ${t.localizedMessage}")
                 }
@@ -341,23 +277,15 @@ class CommunityViewModel : ViewModel() {
         RetrofitInstance.networkService
             .updateComment(bear(token), postId, commentId.toString(), NewCommentRequest(text))
             .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(
-                    call: Call<ResponseBody>,
-                    res: Response<ResponseBody>
-                ) {
+                override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
                     _isCommentSyncing.postValue(false)
                     if (res.isSuccessful) {
                         onDone()
                         fetchComments(token, postId, onError)
-                    } else {
-                        onError("댓글 수정 실패 (${res.code()})")
-                    }
+                    } else onError("댓글 수정 실패 (${res.code()})")
                 }
 
-                override fun onFailure(
-                    call: Call<ResponseBody>,
-                    t: Throwable
-                ) {
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     _isCommentSyncing.postValue(false)
                     onError("네트워크 오류(댓글 수정): ${t.localizedMessage}")
                 }
@@ -386,10 +314,7 @@ class CommunityViewModel : ViewModel() {
         RetrofitInstance.networkService
             .toggleCommentLike(bear(token), commentId.toString())
             .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(
-                    call: Call<ResponseBody>,
-                    res: Response<ResponseBody>
-                ) {
+                override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
                     if (res.isSuccessful) {
                         fetchComments(token, postId)
                         return
@@ -398,21 +323,14 @@ class CommunityViewModel : ViewModel() {
                     rollbackCommentLike(commentId, beforeLiked, beforeCnt)
                 }
 
-                override fun onFailure(
-                    call: Call<ResponseBody>,
-                    t: Throwable
-                ) {
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     onError("댓글 좋아요 네트워크 오류: ${t.localizedMessage}")
                     rollbackCommentLike(commentId, beforeLiked, beforeCnt)
                 }
             })
     }
 
-    private fun rollbackCommentLike(
-        commentId: Long,
-        liked: Boolean,
-        count: Int
-    ) {
+    private fun rollbackCommentLike(commentId: Long, liked: Boolean, count: Int) {
         val rollback = _comments.value.orEmpty().toMutableList()
         val i = rollback.indexOfFirst { it.commentId == commentId }
         if (i >= 0) {
@@ -432,23 +350,15 @@ class CommunityViewModel : ViewModel() {
         RetrofitInstance.networkService
             .deleteComment(bear(token), postId, commentId.toString())
             .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(
-                    call: Call<ResponseBody>,
-                    res: Response<ResponseBody>
-                ) {
+                override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
                     _isCommentSyncing.postValue(false)
                     if (res.isSuccessful) {
                         onDone()
                         fetchComments(token, postId, onError)
-                    } else {
-                        onError("댓글 삭제 실패 (${res.code()})")
-                    }
+                    } else onError("댓글 삭제 실패 (${res.code()})")
                 }
 
-                override fun onFailure(
-                    call: Call<ResponseBody>,
-                    t: Throwable
-                ) {
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     _isCommentSyncing.postValue(false)
                     onError("네트워크 오류(댓글 삭제): ${t.localizedMessage}")
                 }
@@ -461,10 +371,17 @@ class CommunityViewModel : ViewModel() {
         content: String,
         file: String?,
         type: String = "FREE",
+        calendarShared: Boolean = false,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        val body = NewPostRequest(title = title, content = content, file = file, type = type)
+        val body = NewPostRequest(
+            title = title,
+            content = content,
+            file = file,
+            type = type,
+            calendarShared = calendarShared
+        )
         RetrofitInstance.networkService
             .createPost(bear(token), body)
             .enqueue(simpleCallback("게시글 등록", onSuccess, onError))
@@ -477,23 +394,24 @@ class CommunityViewModel : ViewModel() {
         content: String,
         file: String?,
         type: String = "FREE",
+        calendarShared: Boolean = false,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        val body = UpdatePostRequest(title = title, content = content, file = file, type = type)
+        val body = UpdatePostRequest(
+            title = title,
+            content = content,
+            file = file,
+            type = type,
+            calendarShared = calendarShared
+        )
+
         RetrofitInstance.networkService
             .updatePost(bear(token), id, body)
             .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(
-                    call: Call<ResponseBody>,
-                    res: Response<ResponseBody>
-                ) {
+                override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
                     if (!res.isSuccessful) {
-                        val err = try {
-                            res.errorBody()?.string()
-                        } catch (_: Throwable) {
-                            null
-                        }
+                        val err = try { res.errorBody()?.string() } catch (_: Throwable) { null }
                         onError("게시글 수정 실패 (${res.code()})${err?.let { "\n$it" } ?: ""}")
                         return
                     }
@@ -515,33 +433,23 @@ class CommunityViewModel : ViewModel() {
                         title = title,
                         content = content,
                         file = file,
-                        type = type
+                        type = type,
+                        calendarShared = calendarShared
                     )
                     onSuccess()
                 }
 
-                override fun onFailure(
-                    call: Call<ResponseBody>,
-                    t: Throwable
-                ) {
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     onError("네트워크 오류(수정): ${t.localizedMessage}")
                 }
             })
     }
 
-    fun deletePost(
-        token: String,
-        id: String,
-        onSuccess: () -> Unit = {},
-        onError: (String) -> Unit = {}
-    ) {
+    fun deletePost(token: String, id: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         RetrofitInstance.networkService
             .deletePost(bear(token), id)
             .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(
-                    call: Call<ResponseBody>,
-                    res: Response<ResponseBody>
-                ) {
+                override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
                     if (!res.isSuccessful) {
                         onError("게시글 삭제 실패 (${res.code()})")
                         return
@@ -556,22 +464,13 @@ class CommunityViewModel : ViewModel() {
                     onSuccess()
                 }
 
-                override fun onFailure(
-                    call: Call<ResponseBody>,
-                    t: Throwable
-                ) {
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     onError("네트워크 오류(삭제): ${t.localizedMessage}")
                 }
             })
     }
 
-    fun reportPost(
-        token: String,
-        postId: Long,
-        reason: String,
-        onSuccess: () -> Unit = {},
-        onError: (String) -> Unit = {}
-    ) {
+    fun reportPost(token: String, postId: Long, reason: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         RetrofitInstance.networkService
             .reportPost(bear(token), ReportRequest(postId, reason.ifBlank { "신고" }))
             .enqueue(simpleCallback("신고", onSuccess, onError))
@@ -580,32 +479,17 @@ class CommunityViewModel : ViewModel() {
     private fun bear(token: String): String =
         if (token.startsWith("Bearer ")) token else "Bearer $token"
 
-    private fun simpleCallback(
-        action: String,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ): Callback<ResponseBody> =
+    private fun simpleCallback(action: String, onSuccess: () -> Unit, onError: (String) -> Unit): Callback<ResponseBody> =
         object : Callback<ResponseBody> {
-            override fun onResponse(
-                call: Call<ResponseBody>,
-                res: Response<ResponseBody>
-            ) {
-                if (res.isSuccessful) {
-                    onSuccess()
-                } else {
-                    val err = try {
-                        res.errorBody()?.string()
-                    } catch (_: Throwable) {
-                        null
-                    }
+            override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
+                if (res.isSuccessful) onSuccess()
+                else {
+                    val err = try { res.errorBody()?.string() } catch (_: Throwable) { null }
                     onError("$action 실패 (${res.code()})${err?.let { "\n$it" } ?: ""}")
                 }
             }
 
-            override fun onFailure(
-                call: Call<ResponseBody>,
-                t: Throwable
-            ) {
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 onError("네트워크 오류($action): ${t.localizedMessage}")
             }
         }

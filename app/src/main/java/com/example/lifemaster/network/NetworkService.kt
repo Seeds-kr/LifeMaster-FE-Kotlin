@@ -4,6 +4,8 @@ import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
+import com.example.lifemaster.presentation.home.calendar.model.CalendarEntry
+import com.example.lifemaster.presentation.home.calendar.model.EventBody
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
@@ -11,7 +13,12 @@ import com.example.lifemaster.presentation.total.introspection.model.ThankReques
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
+import com.example.lifemaster.presentation.login.model.EmailRequest
+import com.example.lifemaster.presentation.login.model.PasswordResetDto
+import com.example.lifemaster.presentation.login.model.PasswordResponseDto
 import com.example.lifemaster.presentation.community.model.*
+import com.example.lifemaster.presentation.home.preview.model.AlarmRemote
+import com.example.lifemaster.presentation.login.model.RegNickResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -20,7 +27,9 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.Header
+import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
@@ -50,13 +59,31 @@ interface NetworkService {
         @Part("regId") regId: RequestBody,
         @Part("nickName") nickName: RequestBody,
         @Part image: MultipartBody.Part? = null
-    ): Call<Void>
+    ): Call<RegNickResponse>
 
     // 유저 로그인 API
     @POST("/user/login")
     fun enterUserLogin(
         @Body loginInfo: LoginInfo
     ): Call<String>
+
+    // 비밀번호 재설정
+    @Headers("Content-Type: application/json")
+    @POST("auth/password/reset/confirm-email")
+    fun requestResetEmail(
+        @Body body: EmailRequest
+    ): Call<PasswordResponseDto>
+
+    @GET("auth/password/reset/verify")
+    fun verifyResetToken(
+        @Query("token") token: String
+    ): Call<PasswordResponseDto>
+
+    @Headers("Content-Type: application/json")
+    @POST("auth/password/reset")
+    fun resetPassword(
+        @Body body: PasswordResetDto
+    ): Call<PasswordResponseDto>
 
     // 모든 To-Do 항목 조회
     @GET("/schedule/todo")
@@ -141,6 +168,56 @@ interface NetworkService {
         @Body request: ThankRequest
     ): Response<Unit>
 
+    @GET("/calendar")
+    suspend fun getCalendarAll(
+        @Header("Authorization") token: String? = null
+    ): List<CalendarEntry>
+
+    @GET("/calendar/{date}")
+    suspend fun getCalendarByDate(
+        @Path("date") date: String,
+        @Header("Authorization") token: String? = null
+    ): CalendarEntry
+
+    @GET("/calendar/month/{date}")
+    suspend fun getCalendarByMonth(
+        @Path("date") yyyymm: String,
+        @Header("Authorization") token: String? = null
+    ): List<CalendarEntry>
+
+    @POST("/calendar/create")
+    suspend fun createDay(
+        @Query("date") date: String,
+        @Header("Authorization") token: String? = null
+    ): CalendarEntry
+
+    @POST("/calendar/{date}/add")
+    suspend fun addEvent(
+        @Path("date") date: String,
+        @Body body: EventBody,
+        @Header("Authorization") token: String? = null
+    ): CalendarEntry
+
+    @POST("/calendar/create/{date}/events")
+    suspend fun createEvents(
+        @Path("date") date: String,
+        @Body events: List<String>,
+        @Header("Authorization") token: String? = null
+    ): CalendarEntry
+
+    @DELETE("/calendar/{date}")
+    suspend fun deleteAllEventsOnDate(
+        @Path("date") date: String,
+        @Header("Authorization") token: String? = null
+    ): String
+
+    @HTTP(method = "DELETE", path = "/calendar/{date}/event", hasBody = true)
+    suspend fun deleteSpecificEvent(
+        @Path("date") date: String,
+        @Body body: EventBody,
+        @Header("Authorization") token: String? = null
+    ): String
+
     // 커뮤니티 게시글 전체 목록 조회
     @GET("posts")
     fun getPostsByType(
@@ -177,6 +254,21 @@ interface NetworkService {
         @Path("postId") id: String
     ): Call<ResponseBody>
 
+    // 특정 멤버 전체 캘린더 조회
+    @GET("/calendar/member/{memberId}")
+    suspend fun getCalendarAllByMember(
+        @Path("memberId") memberId: Long,
+        @Header("Authorization") token: String? = null
+    ): List<CalendarEntry>
+
+    // 특정 멤버 월별 캘린더 조회
+    @GET("/calendar/member/{memberId}/month/{yyyymm}")
+    suspend fun getCalendarByMemberMonth(
+        @Path("memberId") memberId: Long,
+        @Path("yyyymm") yyyymm: String,
+        @Header("Authorization") token: String? = null
+    ): List<CalendarEntry>
+
     // 게시글 좋아요
     @POST("posts/like/{postId}")
     fun togglePostLike(
@@ -188,6 +280,13 @@ interface NetworkService {
     fun getPopularPosts(
         @Header("Authorization") token: String
     ): Call<List<PostSummaryDto>>
+
+    // 신고하기
+    @POST("reports")
+    fun reportPost(
+        @Header("Authorization") token: String,
+        @Body body: ReportRequest
+    ): Call<ResponseBody>
 
     // 댓글 조회
     @GET("posts/{postId}/comments")
@@ -202,6 +301,13 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Path("postId") postId: String,
         @Body body: NewCommentRequest
+    ): Call<ResponseBody>
+
+    // 댓글 좋아요 토글 (postId 필요 없음)
+    @POST("comments/like/{commentId}")
+    fun toggleCommentLike(
+        @Header("Authorization") token: String,
+        @Path("commentId") commentId: String
     ): Call<ResponseBody>
 
     // 댓글 수정
@@ -223,24 +329,29 @@ interface NetworkService {
 
     // 개선게시판 투표
     @GET("/community/improvePost/poll/all")
-    fun getPollList(): Call<List<PollListItem>>
+    fun getPollList(
+        @Header("Authorization") token: String
+    ): Call<List<PollListItem>>
 
     @GET("/community/improvePost/poll/{pollId}/details")
     fun getPollDetails(
+        @Header("Authorization") token: String,
         @Path("pollId") pollId: Long
     ): Call<PollDetailsDto>
 
     @GET("/community/improvePost/poll/{pollId}/results")
     fun getPollResults(
+        @Header("Authorization") token: String,
         @Path("pollId") pollId: Long
     ): Call<Map<String, PollResultDto>>
 
     @POST("/community/improvePost/poll/{pollId}/vote")
     fun castVote(
-        @Header("Authorization") authorization: String?,
+        @Header("Authorization") authorization: String,
         @Path("pollId") pollId: Long,
         @Body body: VoteRequest
     ): Call<ResponseBody>
+
     /**
      * Sleep Management API
      */
@@ -270,4 +381,10 @@ interface NetworkService {
     suspend fun generateMathProblem(
         @Query("level") level: String
     ): MathProblemResponse
+
+    // 알람 미리 보기
+    @GET("/time/alarm")
+    suspend fun getAlarms(
+        @Header("Authorization") auth: String
+    ): List<AlarmRemote>
 }
