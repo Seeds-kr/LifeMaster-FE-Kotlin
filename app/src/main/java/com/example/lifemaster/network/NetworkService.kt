@@ -212,6 +212,7 @@ interface NetworkService {
         @Path("diary-id") diaryId: Long
     ): Response<Unit>
 
+
     // 커뮤니티 게시글 전체 목록 조회
     @GET("posts")
     fun getPostsByType(

@@ -41,6 +41,7 @@
         android:name="com.example.lifemaster.presentation.community.view.CommunityFragment"
         android:label="CommunityFragment"
         tools:layout="@layout/fragment_community_free">
+        tools:layout="@layout/fragment_community_free" >
         <action
             android:id="@+id/action_communityFragment_to_communityWriteFragment"
             app:destination="@id/communityWriteFragment"/>
@@ -133,6 +134,11 @@
                 android:name="challId"
                 app:argType="Long" />
     </fragment>
+        tools:layout="@layout/fragment_challenge_detail">
+        <argument
+            android:name="challId"
+            app:argType="string" />
+
 
     <fragment
         android:id="@+id/totalFragment"

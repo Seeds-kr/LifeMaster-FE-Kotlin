@@ -6,8 +6,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object RetrofitInstance {
 
-    private const val BASE_URL =
-        "https://api.lifemaster.harvester.kr"
+    private const val BASE_URL = "https://api.lifemaster.harvester.kr/"
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()

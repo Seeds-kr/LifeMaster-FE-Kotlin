@@ -19,6 +19,13 @@ class ChallengeViewModel(
     private val repository: ChallengeRepository,
     private val apiService: NetworkService
 ) : ViewModel() {
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
+import com.example.lifemaster.network.RetrofitInstance
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.time.LocalDateTime
 
     /**
      * UI(Fragment 또는 Activity)에서 관찰할 챌린지 목록 PagingData Flow
@@ -30,10 +37,13 @@ class ChallengeViewModel(
     // 검색 결과를 저장하는 StateFlow (PagingData로 변환)
     private val _searchResults = MutableStateFlow<PagingData<ChallengeItem>>(PagingData.empty())
     val searchResults = _searchResults.asStateFlow()
-    
+
     // 검색 모드 여부
     private val _isSearchMode = MutableStateFlow(false)
     val isSearchMode = _isSearchMode.asStateFlow()
+    private val _originalChallengeData = MutableLiveData<List<ChallengeItem>>()
+    private val _sortedChallengeList = MutableLiveData<List<ChallengeItem>>()
+    val sortedChallengeList: LiveData<List<ChallengeItem>> = _sortedChallengeList
 
     /**
      * 챌린지 참여 API를 호출하는 함수
@@ -79,11 +89,22 @@ class ChallengeViewModel(
         viewModelScope.launch {
             try {
                 val response = apiService.leaveChallenge(token, challId)
+    fun loadChallenges() {
+        Log.d("API_CALL", "챌린지 API 호출 시작")
+
+        RetrofitInstance.networkService.getChallenges(page = 0).enqueue(object : Callback<ChallengeResponse> {
+            override fun onResponse(call: Call<ChallengeResponse>, response: Response<ChallengeResponse>) {
                 if (response.isSuccessful) {
                     val message = response.body() ?: "챌린지 참여 취소 완료!"
                     onSuccess(message)
+                    response.body()?.content?.let { list ->
+                        _originalChallengeData.value = list
+                        sortChallenges("latest")
+                        Log.d("ViewModel", "챌린지 로딩 성공: ${list.size}개")
+                    }
                 } else {
                     onError("챌린지 참여 취소 실패 (${response.code()})")
+                    Log.e("ViewModel", "서버 응답 에러: ${response.code()} - ${response.message()}")
                 }
             } catch (e: Exception) {
                 onError("네트워크 오류: ${e.localizedMessage}")
@@ -167,5 +188,27 @@ class ChallengeViewModel(
     fun clearSearch() {
         _isSearchMode.value = false
         _searchResults.value = PagingData.empty()
+    }
+}
+
+            override fun onFailure(call: Call<ChallengeResponse>, t: Throwable) {
+                Log.e("ViewModel", "통신 실패: ${t.message}")
+            }
+        })
+    }
+
+    fun sortChallenges(criteria: String) {
+        val currentList = _originalChallengeData.value ?: return
+
+        val sortedList = when (criteria) {
+            "latest" -> currentList.sortedWith(compareByDescending { it.createdAt })
+            "oldest" -> currentList.sortedWith(compareBy { it.createdAt })
+            "popularity" -> currentList.sortedWith(compareByDescending { it.challCnt })
+            "name" -> currentList.sortedWith(compareBy { it.challName })
+            else -> currentList
+        }
+
+        _sortedChallengeList.value = sortedList
+        Log.d("ViewModel", "챌린지 정렬 완료: 기준=$criteria")
     }
 }

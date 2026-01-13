@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentIntrospectionBinding
 import androidx.fragment.app.viewModels
+import com.example.lifemaster.presentation.total.introspection.viewmodel.UiState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -77,6 +78,10 @@ class IntrospectionFragment : Fragment() {
             // 수정 모드에서는 탭 전환을 막아 혼동을 방지
             binding.btnToday.isEnabled = false
             binding.btnThanks.isEnabled = false
+
+            // 기존 데이터 불러오기
+            val token = "YOUR_TOKEN" // TODO: 실제 토큰으로 교체
+            thankId?.let { viewModel.loadThankEntry(token, it) }
         }
 
         // 초기 화면 설정
@@ -185,6 +190,29 @@ class IntrospectionFragment : Fragment() {
                                 thankDate = currentDate
                             )
                         }
+                        if (isEditMode && thankId != null) {
+                            // 수정 모드
+                            viewModel.updateThankEntry(
+                                token = token,
+                                thankId = thankId!!,
+                                thankOne = thanksList[0],
+                                thankTwo = thanksList[1],
+                                thankThree = thanksList[2],
+                                thankFour = thanksList[3],
+                                thankFive = thanksList[4]
+                            )
+                        } else {
+                            // 생성 모드
+                            viewModel.createThankEntry(
+                                token = token,
+                                thankOne = thanksList[0],
+                                thankTwo = thanksList[1],
+                                thankThree = thanksList[2],
+                                thankFour = thanksList[3],
+                                thankFive = thanksList[4],
+                                thankDate = currentDate
+                            )
+                        }
                     } else {
                         Toast.makeText(requireContext(), "감사 내용을 한 가지 이상 입력해주세요", Toast.LENGTH_SHORT).show()
                     }
@@ -195,6 +223,17 @@ class IntrospectionFragment : Fragment() {
         // 감사일기 조회 데이터를 UI에 반영
         viewModel.thankData.observe(viewLifecycleOwner) { thankData ->
             thankData?.let {
+                binding.etThanks1.setText(it.thankOne)
+                binding.etThanks2.setText(it.thankTwo)
+                binding.etThanks3.setText(it.thankThree)
+                binding.etThanks4.setText(it.thankFour)
+                binding.etThanks5.setText(it.thankFive)
+            }
+        }
+
+        viewModel.thankData.observe(viewLifecycleOwner) { thankData ->
+            thankData?.let {
+                // 불러온 데이터로 입력창 채우기
                 binding.etThanks1.setText(it.thankOne)
                 binding.etThanks2.setText(it.thankTwo)
                 binding.etThanks3.setText(it.thankThree)
@@ -219,6 +258,12 @@ class IntrospectionFragment : Fragment() {
                         Toast.makeText(requireContext(), "완료되었습니다.", Toast.LENGTH_SHORT).show()
                         parentFragmentManager.popBackStack()
                     }
+                    Toast.makeText(requireContext(), "저장되었습니다.", Toast.LENGTH_SHORT).show()
+                    if (!isEditMode) {
+                        clearThankYouFields() // 입력창 초기화 (수정 모드가 아닐 때만)
+                    }
+                    // TODO: 저장이 완료되면 현재 Fragment를 닫는 로직 추가 (필요시)
+                    // 예: parentFragmentManager.popBackStack()
                 }
 
                 is UiState.Error -> {

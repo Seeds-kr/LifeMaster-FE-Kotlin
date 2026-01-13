@@ -1,13 +1,20 @@
 package com.example.lifemaster.presentation.total.challenge.fragment
 
+import android.graphics.RenderEffect
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster.R
@@ -19,19 +26,26 @@ import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeVi
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModelFactory
 import kotlinx.coroutines.flow.collectLatest // Flow의 데이터를 수집
 import kotlinx.coroutines.launch
+import android.widget.PopupMenu
+
+data class MyChallenge(
+    val imageRes: Int,
+    val isCompleted: Boolean,
+    val completionTime: String? = null
+)
 
 class ChallengeFragment : Fragment() {
 
     private var _binding: FragmentChallengeBinding? = null
     private val binding get() = _binding!!
-    
+
     // DI를 사용하여 ViewModel 생성
     private val viewModel: ChallengeViewModel by lazy {
         val repository = ChallengeRepository(RetrofitInstance.networkService)
         val factory = ChallengeViewModelFactory(repository, RetrofitInstance.networkService)
         ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
     }
-    
+
     private lateinit var challengeAdapter: ChallengeAdapter
 
     override fun onCreateView(
@@ -44,6 +58,45 @@ class ChallengeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupMyChallenges()
+        setupRecyclerView()
+        observeViewModel()
+        setupSortListener()
+        viewModel.loadChallenges()
+    }
+
+    private fun observeViewModel() {
+        viewModel.sortedChallengeList.observe(viewLifecycleOwner) { sortedList ->
+            if (sortedList != null) {
+                challengeAdapter.submitList(sortedList)
+                Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${sortedList.size}개")
+            } else {
+                Log.e("ChallengeFragment", "ViewModel에서 정렬된 리스트가 null입니다.")
+            }
+        }
+    }
+
+    private fun setupMyChallenges() {
+        val myChallenge1 = MyChallenge(
+            imageRes = R.drawable.ic_cold_shower,
+            isCompleted = true,
+            completionTime = "9:12am"
+        )
+        val myChallenge2 = MyChallenge(
+            imageRes = R.drawable.ic_stretching,
+            isCompleted = false
+        )
+
+        setupMyChallengeView(binding.myChallenge1.root, myChallenge1)
+        setupMyChallengeView(binding.myChallenge2.root, myChallenge2)
+    }
+
+    private fun setupMyChallengeView(challengeView: View, challengeData: MyChallenge) {
+        val imageView = challengeView.findViewById<ImageView>(R.id.iv_challenge_image)
+        val checkmark = challengeView.findViewById<ImageView>(R.id.iv_checkmark)
+        val timeTextView = challengeView.findViewById<TextView>(R.id.tv_completion_time)
+
+        imageView.setImageResource(challengeData.imageRes)
 
         setupRecyclerView()
         setupClickListeners()
@@ -52,7 +105,56 @@ class ChallengeFragment : Fragment() {
         observeChallengeData()
         observeSearchResults()
     }
-    
+
+    private fun setupRecyclerView()=with(binding) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val blurEffect = RenderEffect.createBlurEffect(20f, 20f, Shader.TileMode.CLAMP)
+                imageView.setRenderEffect(blurEffect)
+            }
+        } else {
+            checkmark.visibility = View.GONE
+            timeTextView.visibility = View.GONE
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                imageView.setRenderEffect(null)
+            }
+        }
+    }
+
+    private fun setupSortListener() {
+        binding.tvFilter.setOnClickListener {
+            showSortPopupMenu(it)
+        }
+    }
+
+    private fun showSortPopupMenu(view: View) {
+        val popup = PopupMenu(requireContext(), view)
+        popup.menuInflater.inflate(R.menu.challenge_sort_menu, popup.menu)
+
+        popup.setOnMenuItemClickListener { menuItem ->
+            val newCriteria: String
+            val newText: String
+
+            when (menuItem.itemId) {
+                R.id.action_sort_latest -> {
+                    newCriteria = "latest"
+                    newText = "최신순"
+                }
+                R.id.action_sort_popularity -> {
+                    newCriteria = "popularity"
+                    newText = "참여자순"
+                }
+                else -> return@setOnMenuItemClickListener false
+            }
+            viewModel.sortChallenges(newCriteria)
+            binding.tvFilter.text = newText
+
+            true
+        }
+
+        popup.show()
+    }
+
     private fun setupRecyclerView() {
         challengeAdapter = ChallengeAdapter()
         binding.rvChallenges.apply {
@@ -91,6 +193,10 @@ class ChallengeFragment : Fragment() {
                 putLong("challId", challenge.challId)
             }
             findNavController().navigate(R.id.action_challengeFragment_to_challengeDetailFragment, bundle)
+            val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(
+                challenge.challId.toString()
+            )
+            findNavController().navigate(action)
         }
 
         challengeAdapter.onJoinButtonClickListener = { challenge ->
@@ -187,6 +293,11 @@ class ChallengeFragment : Fragment() {
         val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
         if (raw.isBlank()) return null
         return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
+    }
+        binding.rvChallenges.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = challengeAdapter
+        }
     }
 
     override fun onDestroyView() {
