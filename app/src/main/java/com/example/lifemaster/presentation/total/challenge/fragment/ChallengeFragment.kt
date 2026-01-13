@@ -95,21 +95,20 @@ class ChallengeFragment : Fragment() {
 
         challengeAdapter.onJoinButtonClickListener = { challenge ->
             val token = readAuthToken()
-            if (token == null) {
+            if (token != null) {
+                viewModel.joinChallenge(
+                    token = token,
+                    challId = challenge.challId,
+                    onSuccess = { message ->
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    },
+                    onError = { errorMessage ->
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                    }
+                )
+            } else {
                 Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
-                return@onJoinButtonClickListener
             }
-            
-            viewModel.joinChallenge(
-                token = token,
-                challId = challenge.challId,
-                onSuccess = { message ->
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                },
-                onError = { errorMessage ->
-                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                }
-            )
         }
     }
 
