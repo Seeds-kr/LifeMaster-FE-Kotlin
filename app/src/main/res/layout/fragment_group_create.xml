@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_group_create"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:paddingHorizontal="16dp"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btn_done"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/content_root"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/new_group"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_segment"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="34dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/black_10"
+                app:cardBackgroundColor="@android:color/white">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/segment_root"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <View
+                        android:id="@+id/view_selected_pill"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:background="@drawable/bg_segment_pill_purple"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/guideline_half"
+                        app:layout_constraintWidth_percent="0.5" />
+
+                    <androidx.constraintlayout.widget.Guideline
+                        android:id="@+id/guideline_half"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <!-- 공개 그룹 -->
+                    <TextView
+                        android:id="@+id/btn_public"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:gravity="center"
+                        android:text="@string/open_group"
+                        android:textSize="12sp"
+                        android:textColor="@color/white"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="12dp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/guideline_half"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent" />
+
+                    <!-- 비공개 그룹 -->
+                    <TextView
+                        android:id="@+id/btn_private"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:gravity="center"
+                        android:text="@string/private_group"
+                        android:textSize="12sp"
+                        android:textColor="@color/black_30"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="12dp"
+                        app:layout_constraintStart_toStartOf="@id/guideline_half"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:id="@+id/layout_group_name"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- 그룹 아이콘 -->
+                <FrameLayout
+                    android:id="@+id/box_icon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_round_input">
+
+                    <ImageView
+                        android:id="@+id/iv_group_icon"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_clock"
+                        app:tint="@color/black"
+                        android:contentDescription="@null" />
+                </FrameLayout>
+
+                <!-- 그룹명 -->
+                <LinearLayout
+                    android:id="@+id/box_group_name_input"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_round_input"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <EditText
+                        android:id="@+id/et_group_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:hint="@string/group_name"
+                        android:singleLine="true"
+                        android:textColor="@color/black"
+                        android:textSize="12sp"
+                        android:padding="0dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 그룹 설명 -->
+            <EditText
+                android:id="@+id/et_group_desc"
+                android:layout_width="match_parent"
+                android:layout_height="104dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_round_input"
+                android:gravity="top|start"
+                android:hint="@string/group_explain"
+                android:inputType="textMultiLine"
+                android:padding="16dp"
+                android:textColor="@color/black"
+                android:textSize="12sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="20dp"
+                android:background="@color/black_30" />
+
+            <!-- 최소 목표 설정 -->
+            <LinearLayout
+                android:id="@+id/layout_goal_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_goal_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/min_goal"
+                    android:textColor="@color/black"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btn_goal_add"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/add"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <!-- 목표 리스트 -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_goal_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/dialog_group_goal_setting"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- 완료 버튼 -->
+    <TextView
+        android:id="@+id/btn_done"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:text="@string/done"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:background="@drawable/bg_round_input"
+        android:backgroundTint="@color/purple_100"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

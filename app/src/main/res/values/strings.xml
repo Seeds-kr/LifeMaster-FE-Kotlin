@@ -72,6 +72,21 @@
     <string name="pomodoro_stats">뽀모도로 통계</string>
     <string name="prev_page_num">1</string>
     <string name="next_page_num">11</string>
+    <string name="create_new_group">새로운 그룹이 생성되었어요</string>
+    <string name="group_type">비공개그룹</string>
+    <string name="group_desc">이 그룹은 무작위로 참가할 수 있는 그룹이에요</string>
+    <string name="invite">친구 초대하기</string>
+    <string name="done">완료하기</string>
+    <string name="group_name">그룹명</string>
+    <string name="group_explain">그룹을 설명해주세요</string>
+    <string name="open_group">공개 그룹</string>
+    <string name="private_group">비공개 그룹</string>
+    <string name="min_goal">최소 목표 설정</string>
+    <string name="add">추가</string>
+    <string name="goal_type">뽀모도로</string>
+    <string name="group_goal_setting">3회 이상</string>
+    <string name="new_group">새 그룹 생성</string>
+    <string name="back_to_group">그룹 페이지로 돌아가기</string>
 
     <!-- 미리보기 -->
     <string name="alarm_preview_date">7월 20일</string>
