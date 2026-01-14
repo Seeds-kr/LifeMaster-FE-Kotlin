@@ -49,7 +49,7 @@ class ToDoAdapter (
             flTodoDelete.setOnClickListener {
                 onDeleteClicked(item.id)
             }
-            root.setOnClickListener {
+            ivGoToPomodoro.setOnClickListener {
                 onViewClicked(item)
             }
         }

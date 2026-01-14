@@ -38,4 +38,15 @@ class PomodoroRepository @Inject constructor(private val networkService: Network
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    suspend fun deletePomodoroItemsByTodo(todoId: Int): Result<Int> = try {
+        val response = networkService.deletePomodoroItemsByTodo(todoId = todoId)
+        if(response.isSuccessful) {
+            Result.success(todoId)
+        } else {
+            Result.failure(Exception("Error Code: ${response.code()}"))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

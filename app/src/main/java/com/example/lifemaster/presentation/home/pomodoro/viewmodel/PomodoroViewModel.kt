@@ -68,6 +68,22 @@ class PomodoroViewModel @Inject constructor(private val repository: PomodoroRepo
         }
     }
 
+    private val _deletePomodoroItemsResult = MutableSharedFlow<DataResource<Int>>()
+    val deletePomodoroItemsResult = _deletePomodoroItemsResult
+
+    fun deletePomodoroItemsByTodo(todoId: Int) {
+        viewModelScope.launch {
+            _deletePomodoroItemsResult.emit(DataResource.Loading)
+            val result = repository.deletePomodoroItemsByTodo(todoId = todoId)
+            result.onSuccess { todoId ->
+                _deletePomodoroItemsResult.emit(DataResource.Success(todoId))
+            }.onFailure { error ->
+                _deletePomodoroItemsResult.emit(DataResource.Error(error))
+            }
+        }
+    }
+
+
     private val _selectedPosition = MutableLiveData<Int>() // 직접 세팅할 때 쓰는 값 → 외부에서는 함수로 접근
     val selectedPosition: LiveData<Int> = _selectedPosition // observing 할 때 쓰는 값
 

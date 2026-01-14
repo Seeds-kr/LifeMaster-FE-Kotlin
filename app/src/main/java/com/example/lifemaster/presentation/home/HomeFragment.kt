@@ -156,8 +156,8 @@ class HomeFragment : Fragment() {
         }, onEditClicked = { item ->
             todoEditDialog = ToDoDialog(origin = TODO.EDIT, item = item)
             todoEditDialog.show(childFragmentManager, ToDoDialog.TAG)
-        }, onDeleteClicked = { alarmId ->
-            toDoViewModel.deleteTodoItem(deleteId = alarmId)
+        }, onDeleteClicked = { todoId ->
+            pomodoroViewModel.deletePomodoroItemsByTodo(todoId = todoId) // 할일에 포함된 포모도로 아이템 먼저 지우기
         }, onViewClicked = { item ->
             val action = HomeFragmentDirections.actionHomeFragmentToPomodoroFragment(todoItem = item)
             findNavController().navigate(action)
@@ -300,6 +300,19 @@ class HomeFragment : Fragment() {
                                     pomodoroTodoItems.add(todoItem.copy(timer50Number = timer50Number, timer25Number = timer25Number))
                                 }
                                 (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(pomodoroTodoItems)
+                            }
+                        }
+                    }
+                }
+                launch {
+                    pomodoroViewModel.deletePomodoroItemsResult.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {}
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<Int> -> {
+                                val deleteTodoId = resource.data
+                                toDoViewModel.deleteTodoItem(deleteId = deleteTodoId) // 포모도로 아이템 지운 이후에 해당 할일 지우기
                             }
                         }
                     }

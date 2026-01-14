@@ -130,6 +130,12 @@ interface NetworkService {
         @Path("todoId") todoId: Int
     ): Response<List<PomodoroResponse>>
 
+    // 특정 할일에 대한 포모도로 타이머 전체 삭제
+    @DELETE("time/pomodoro/todo/{todoId}")
+    suspend fun deletePomodoroItemsByTodo(
+        @Path("todoId") todoId: Int
+    ): Response<Unit>
+
     // 비상 탈출 문장 생성
     @GET("/time/pomodoro/escape/generate")
     fun getEscapeSentence(
