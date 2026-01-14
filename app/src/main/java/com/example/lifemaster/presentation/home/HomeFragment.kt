@@ -32,6 +32,7 @@ import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -43,7 +44,6 @@ class HomeFragment : Fragment() {
     private val toDoViewModel: ToDoViewModel by activityViewModels()
     private val todoAddDialog = ToDoDialog(origin = TODO.ADD)
     private lateinit var todoEditDialog: ToDoDialog
-    private lateinit var todoItems: List<TodoModel>
 
     // 포모도로 관련 변수
     private val pomodoroViewModel: PomodoroViewModel by activityViewModels()
@@ -108,6 +108,7 @@ class HomeFragment : Fragment() {
 
     private fun fetchRemoteData() {
         toDoViewModel.getTodoItems()
+        pomodoroViewModel.getPomodoroAllItems()
     }
 
     private fun loadHomeConfiguration(): Pair<Set<String>, List<String>> {
@@ -211,17 +212,19 @@ class HomeFragment : Fragment() {
                     }
                 }
                 launch {
-                    toDoViewModel.currentItems.collect { resource ->
-                        when(resource) {
-                            is DataResource.Error -> {
-                                Toast.makeText(context, "할일 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    toDoViewModel.currentItems.combine(pomodoroViewModel.allPomodoroItems) { todoRes, pomoRes -> todoRes to pomoRes }.collect { (todoRes, pomoRes) ->
+                        if(todoRes is DataResource.Success && pomoRes is DataResource.Success) {
+                            val todoItems = todoRes.data
+                            val allPomodoroItems = pomoRes.data
+                            val pomodoroTodoItems = todoItems.map { todoItem ->
+                                val pomodoroItems = allPomodoroItems.filter { it.todo.id == todoItem.id }
+                                val timer25Number = pomodoroItems.count { it.focusTime == 25 }
+                                val timer50Number = pomodoroItems.count { it.focusTime == 50 }
+                                todoItem.copy(timer25Number = timer25Number, timer50Number = timer50Number)
                             }
-                            DataResource.Idle -> {}
-                            DataResource.Loading -> {}
-                            is DataResource.Success<List<TodoModel>> -> {
-                                todoItems = resource.data
-                                pomodoroViewModel.getPomodoroAllItems()
-                            }
+                            (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(pomodoroTodoItems)
+                        } else if(todoRes is DataResource.Error) {
+                            Toast.makeText(context, "할일 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -280,26 +283,6 @@ class HomeFragment : Fragment() {
                                 } else {
                                     Toast.makeText(context, "할일이 해제되었습니다.", Toast.LENGTH_SHORT).show()
                                 }
-                            }
-                        }
-                    }
-                }
-                launch {
-                    pomodoroViewModel.allPomodoroItems.collect { resource ->
-                        when(resource) {
-                            is DataResource.Error -> {}
-                            DataResource.Idle -> {}
-                            DataResource.Loading -> {}
-                            is DataResource.Success<List<PomodoroModel>> -> {
-                                val allPomodoroItems = resource.data
-                                val pomodoroTodoItems = mutableListOf<TodoModel>()
-                                todoItems.forEach { todoItem ->
-                                    val pomodoroItems = allPomodoroItems.filter { it.todo.id == todoItem.id }
-                                    val timer50Number = pomodoroItems.filter { it.focusTime == 50 }.size
-                                    val timer25Number = pomodoroItems.filter { it.focusTime == 25 }.size
-                                    pomodoroTodoItems.add(todoItem.copy(timer50Number = timer50Number, timer25Number = timer25Number))
-                                }
-                                (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(pomodoroTodoItems)
                             }
                         }
                     }
