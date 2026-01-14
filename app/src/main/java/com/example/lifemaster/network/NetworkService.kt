@@ -120,15 +120,15 @@ interface NetworkService {
         @Body pomodoroRequest: PomodoroRequest
     ): Response<PomodoroResponse>
 
-    // 모든 포모도로 타이머 조회
-    @GET("/time/pomodoro")
-    fun getPomodoroItems(
-        @Header("Authorization") token: String
-    ):Call<List<PomodoroRequest>>
-
     // 회원 전체 포모도로 타이머 조회
     @GET("/time/pomodoro/member/{memberId}")
-    suspend fun getPomodoroItemsByMember(): Response<List<PomodoroResponse>>
+    suspend fun getAllPomodoroItems(): Response<List<PomodoroResponse>>
+
+    // 특정 할일에 대한 포모도로 타이머 조회
+    @GET("time/pomodoro/member/{memberId}/{todoId}")
+    suspend fun getPomodoroItemsByTodo(
+        @Path("todoId") todoId: Int
+    ): Response<List<PomodoroResponse>>
 
     // 비상 탈출 문장 생성
     @GET("/time/pomodoro/escape/generate")

@@ -72,16 +72,16 @@
         android:text="해야할 일을 시작하세요"
         android:textColor="@color/black" />
 
-        <TextView
-            android:id="@+id/tv_minutes_and_seconds"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:text="@string/tv_pomodoro_timer_not_set"
-            android:textColor="@color/black"
-            android:textSize="60sp"
-            android:textStyle="bold"
-            android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:id="@+id/tv_minutes_and_seconds"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:text="@string/tv_pomodoro_timer_not_set"
+        android:textColor="@color/black"
+        android:textSize="60sp"
+        android:textStyle="bold" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardview_todo"
@@ -92,21 +92,54 @@
         app:cardElevation="0dp"
         app:contentPadding="16dp"
         app:strokeColor="@color/blue_30"
-        app:strokeWidth="1dp"> <!-- [!] CardView 에서 padding 을 사용하려면 contentPadding 을 써야한다. (stack overflow) -->
-        <TextView
-            android:id="@+id/tv_todo_item_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:text="@string/item_is_not_selected"
-            android:textColor="@color/blue_100" />
+        app:strokeWidth="1dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/tv_todo_item_title"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/item_is_not_selected"
+                android:textColor="@color/blue_100" />
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|end"
-            android:src="@drawable/ic_calendar_right"
-            app:tint="@color/todo_primary"/>
+            <ImageView
+                android:id="@+id/iv_pomodoro_todo_timer_25"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_timer_25" />
+
+            <TextView
+                android:id="@+id/tv_item_pomodoro_timer_25_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                tools:text="2"/>
+
+            <ImageView
+                android:id="@+id/iv_pomodoro_todo_timer_50"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/ic_timer_50" />
+
+            <TextView
+                android:id="@+id/tv_item_pomodoro_timer_50_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                tools:text="5"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_calendar_right"
+                android:layout_marginStart="8dp"
+                app:tint="@color/todo_primary" />
+        </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
 
@@ -115,9 +148,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:background="@drawable/bg_round_radius_12dp"
+        android:backgroundTint="@color/todo_primary"
         android:padding="16dp"
         android:text="시작하기"
-        android:textColor="@color/white"
-        android:background="@drawable/bg_round_radius_12dp"
-        android:backgroundTint="@color/todo_primary"/>
+        android:textColor="@color/white" />
 </androidx.appcompat.widget.LinearLayoutCompat>

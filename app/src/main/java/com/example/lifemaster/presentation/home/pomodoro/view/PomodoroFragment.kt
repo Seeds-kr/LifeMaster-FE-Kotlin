@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -42,9 +43,14 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentPomodoroBinding.bind(view)
+        fetchData()
         initViews()
         initListeners()
         initObservers()
+    }
+
+    private fun fetchData() {
+        pomodoroViewModel.getPomodoroItemsByTodo(todoId = args.todoItem.id)
     }
 
     private fun initViews() = with(binding) {
@@ -67,6 +73,7 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
             val dialog = SelectTodoDialog(todoItems = todoItems, currentItem = currentTodoItem) { item ->
                 tvTodoItemTitle.text = item.title
                 currentTodoItem = item
+                pomodoroViewModel.getPomodoroItemsByTodo(todoId = item.id)
             }
             dialog.show(childFragmentManager, SelectTodoDialog.TAG)
         }
@@ -190,7 +197,7 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
                                 updateTimerText(TIMER_25)
                                 pomodoroTimeType = PomodoroTimeType.TIMER_25
                                 btnStartPomodoro.text = "시작하기"
-                                // TODO: 받아온 data 활용하기, 포모도로 타이머 UI 반영하기
+                                pomodoroViewModel.getPomodoroItemsByTodo(todoId = data.todo.id)
                             }
                             is DataResource.Error -> {
                                 Toast.makeText(context, getString(R.string.server_error_message), Toast.LENGTH_SHORT).show()
@@ -199,14 +206,34 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
                         }
                     }
                 }
+                launch {
+                    pomodoroViewModel.pomodoroItemsByTodo.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {}
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<List<PomodoroModel>> -> {
+                                val pomodoroItems = resource.data
+                                val timer25Num = pomodoroItems.filter { it.focusTime == 25 }.size
+                                val timer50Num = pomodoroItems.filter { it.focusTime == 50 }.size
+                                ivPomodoroTodoTimer25.isVisible = timer25Num != 0
+                                tvItemPomodoroTimer25Count.isVisible = timer25Num != 0
+                                tvItemPomodoroTimer25Count.text = timer25Num.toString()
+                                ivPomodoroTodoTimer50.isVisible = timer50Num != 0
+                                tvItemPomodoroTimer50Count.isVisible = timer50Num != 0
+                                tvItemPomodoroTimer50Count.text = timer50Num.toString()
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
     private companion object {
-        const val TIMER_25 = 5
-        const val TIMER_25_REST = 3
-        const val TIMER_50 = 50 * 60
-        const val TIMER_50_REST = 10 * 60
+        const val TIMER_25 = 3
+        const val TIMER_25_REST = 2
+        const val TIMER_50 = 4
+        const val TIMER_50_REST = 3
     }
 }

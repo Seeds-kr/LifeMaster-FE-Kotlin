@@ -53,6 +53,21 @@ class PomodoroViewModel @Inject constructor(private val repository: PomodoroRepo
         }
     }
 
+    private val _pomodoroItemsByTodo = MutableStateFlow<DataResource<List<PomodoroModel>>>(DataResource.Idle)
+    val pomodoroItemsByTodo = _pomodoroItemsByTodo.asStateFlow()
+
+    fun getPomodoroItemsByTodo(todoId: Int) {
+        viewModelScope.launch {
+            _pomodoroItemsByTodo.value = DataResource.Loading
+            val result = repository.getPomodoroItemsByTodo(todoId = todoId)
+            result.onSuccess { response ->
+                _pomodoroItemsByTodo.value = DataResource.Success(response.map { it.toPresentation() })
+            }.onFailure { error ->
+                _pomodoroItemsByTodo.value = DataResource.Error(error)
+            }
+        }
+    }
+
     private val _selectedPosition = MutableLiveData<Int>() // 직접 세팅할 때 쓰는 값 → 외부에서는 함수로 접근
     val selectedPosition: LiveData<Int> = _selectedPosition // observing 할 때 쓰는 값
 

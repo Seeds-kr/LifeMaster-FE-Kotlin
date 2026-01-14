@@ -2,6 +2,7 @@ package com.example.lifemaster.presentation.home.todo.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -31,6 +32,12 @@ class ToDoSelectAdapter(private val currentItem: TodoModel): ListAdapter<TodoMod
         fun bind(todoItem: TodoModel, position: Int) = with(binding) {
             tvTodoContent.text = todoItem.title
             root.isSelected = (position == selectedPosition)
+            ivItemSelectTodoTimer25.isVisible = todoItem.timer25Number != 0
+            tvItemSelectTodoTimer25Count.isVisible = todoItem.timer25Number != 0
+            tvItemSelectTodoTimer25Count.text = todoItem.timer25Number.toString()
+            ivItemSelectTodoTimer50.isVisible = todoItem.timer50Number != 0
+            tvItemSelectTodoTimer50Count.isVisible = todoItem.timer50Number != 0
+            tvItemSelectTodoTimer50Count.text = todoItem.timer50Number.toString()
             root.setOnClickListener {
                 val oldPosition = selectedPosition
                 selectedPosition = adapterPosition
