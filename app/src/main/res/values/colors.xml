@@ -26,6 +26,7 @@
     <color name="sleep_primary">#333333</color>
     <color name="sleep_mood_selected">#927448</color>
     <color name="todo_primary">#5C76C3</color>
+    <color name="todo_secondary">#EFF2F9</color>
     <color name="mint_60">#99A0E0CF</color>
     <color name="black_800">#131313</color>
     <color name="todo_edit">#FF9316</color>

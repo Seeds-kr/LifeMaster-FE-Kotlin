@@ -78,7 +78,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="20dp"
-        android:text="@string/tv_pomodoro_timer_not_set"
+        android:text="@string/tv_pomodoro_timer_release"
         android:textColor="@color/black"
         android:textSize="60sp"
         android:textStyle="bold" />

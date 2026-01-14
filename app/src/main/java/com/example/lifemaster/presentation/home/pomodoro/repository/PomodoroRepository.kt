@@ -49,4 +49,15 @@ class PomodoroRepository @Inject constructor(private val networkService: Network
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    suspend fun getPomodoroEscapeSentence(): Result<String> = try {
+        val response = networkService.getPomodoroEscapeSentence()
+        if(response.isSuccessful && response.body() != null) {
+            Result.success(response.body()!!)
+        } else {
+            Result.failure(Exception("Error Code: ${response.code()}"))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

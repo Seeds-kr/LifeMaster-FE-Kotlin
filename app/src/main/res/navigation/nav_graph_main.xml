@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph_main"
-    app:startDestination="@id/alarmRingsFragment">
+    app:startDestination="@id/homeFragment">
 
     <fragment
         android:id="@+id/alarmSettingFragment"
@@ -222,7 +222,7 @@
             app:argType="integer"/>
         <action
             android:id="@+id/action_alarmRandomMissionTypingFragment_self"
-            app:destination="@id/alarmRandomMissionTypingFragment" />
+            app:destination="@id/alarmRandomMissionTypingFragment"/>
     </fragment>
     <fragment
         android:id="@+id/pomodoroFragment"
@@ -233,5 +233,23 @@
             android:name="todoItem"
             app:argType="com.example.lifemaster.presentation.home.todo.model.TodoModel"
             app:nullable="false"/>
+        <action
+            android:id="@+id/action_pomodoroFragment_to_pomodoroEscapeFragment"
+            app:destination="@id/pomodoroEscapeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/pomodoroEscapeFragment"
+        android:name="com.example.lifemaster.presentation.home.pomodoro.view.PomodoroEscapeFragment"
+        android:label="fragment_pomodoro_escape"
+        tools:layout="@layout/fragment_pomodoro_escape">
+        <argument
+            android:name="currentPageNum"
+            android:defaultValue="1"
+            app:argType="integer"/>
+        <action
+            android:id="@+id/action_pomodoroEscapeFragment_self"
+            app:destination="@id/pomodoroEscapeFragment"
+            app:popUpTo="@id/pomodoroEscapeFragment"
+            app:popUpToInclusive="true"/>
     </fragment>
 </navigation>

@@ -138,9 +138,7 @@ interface NetworkService {
 
     // 비상 탈출 문장 생성
     @GET("/time/pomodoro/escape/generate")
-    fun getEscapeSentence(
-        @Header("Authorization") token: String
-    ):Call<String>
+    suspend fun getPomodoroEscapeSentence(): Response<String>
 
     // 챌린지 목록 조회
     @GET("/challenge")
