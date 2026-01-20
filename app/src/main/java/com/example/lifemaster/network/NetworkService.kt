@@ -6,9 +6,13 @@ import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
-import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
+import com.example.lifemaster.data.remote.dto.ChallengeListResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
+import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
+import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
@@ -123,23 +127,53 @@ interface NetworkService {
 
     // 챌린지 목록 조회
     @GET("/challenge")
-    fun getChallenges(
-        @Query("page") page: Int
-    ): Call<ChallengeResponse>
+    suspend fun getChallenges(
+        @Query("page") page: Int,
+        @Query("size") size: Int
+    ): Response<ChallengeListResponse>
+
+    // 챌린지 참여
+    @POST("/challenge/{challId}/join")
+    suspend fun joinChallenge(
+        @Header("Authorization") token: String,
+        @Path("challId") challId: Long
+    ): Response<String>
+
+    // 챌린지 참여 취소
+    @DELETE("/challenge/{challId}/leave")
+    suspend fun leaveChallenge(
+        @Header("Authorization") token: String,
+        @Path("challId") challId: Long
+    ): Response<String>
+
+    // 챌린지 상세 조회
+    @GET("/challenge/{challId}")
+    suspend fun getChallengeDetail(
+        @Header("Authorization") token: String,
+        @Path("challId") challId: Long
+    ): Response<com.example.lifemaster.data.remote.dto.ChallengeItemDto>
+
+    // 챌린지 검색
+    @GET("/challenge/search")
+    suspend fun searchChallenges(
+        @Header("Authorization") token: String,
+        @Query("name") name: String,
+        @Query("page") page: Int = 0
+    ): com.example.lifemaster.data.remote.dto.ChallengeListResponse
 
     // 감사일기 생성
     @POST("/schedule/self-reflection/thank")
     suspend fun createThank(
         @Header("Authorization") token: String,
         @Body request: ThankRequest
-    ): Response<Unit>
+    ): Response<ThankCreateResponse>
 
     //감사일기 수정
     @PUT("/schedule/self-reflection/thank/{thank-id}")
     suspend fun updateThank(
         @Header("Authorization") token: String,
         @Path("thank-id") thankId: Long,
-        @Body request: ThankRequest
+        @Body request: ThankUpdateRequest
     ): Response<Unit>
 
     // 감사일기 조회
@@ -155,6 +189,29 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Path("thank-id") thankId: Long
     ): Response<Unit>
+
+    // 다이어리 생성
+    @POST("/schedule/self-reflection/diary")
+    suspend fun createDiary(
+        @Header("Authorization") token: String,
+        @Body request: DiaryRequest
+    ): Response<DiaryResponse>
+
+    // 다이어리 수정
+    @PUT("/schedule/self-reflection/diary/{diary-id}")
+    suspend fun updateDiary(
+        @Header("Authorization") token: String,
+        @Path("diary-id") diaryId: Long,
+        @Body request: DiaryRequest
+    ): Response<DiaryResponse>
+
+    // 다이어리 삭제
+    @DELETE("/schedule/self-reflection/diary/{diary-id}")
+    suspend fun deleteDiary(
+        @Header("Authorization") token: String,
+        @Path("diary-id") diaryId: Long
+    ): Response<Unit>
+
 
     // 커뮤니티 게시글 전체 목록 조회
     @GET("posts")

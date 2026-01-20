@@ -40,6 +40,7 @@
         android:id="@+id/communityFragment"
         android:name="com.example.lifemaster.presentation.community.view.CommunityFragment"
         android:label="CommunityFragment"
+        tools:layout="@layout/fragment_community_free">
         tools:layout="@layout/fragment_community_free" >
         <action
             android:id="@+id/action_communityFragment_to_communityWriteFragment"
@@ -115,12 +116,13 @@
         tools:layout="@layout/fragment_introspection" />
     <fragment
         android:id="@+id/challengeFragment"
-        android:name="com.example.lifemaster.presentation.challenge.ChallengeFragment"
+        android:name="com.example.lifemaster.presentation.total.challenge.fragment.ChallengeFragment"
         android:label="fragment_challenge"
         tools:layout="@layout/fragment_challenge" >
         <action
             android:id="@+id/action_challengeFragment_to_challengeDetailFragment"
-            app:destination="@id/challengeDetailFragment" />
+            app:destination="@id/challengeDetailFragment" >
+        </action>
     </fragment>
 
     <fragment
@@ -128,10 +130,14 @@
         android:name="com.example.lifemaster.presentation.total.challenge.fragment.ChallengeDetailFragment"
         android:label="fragment_challenge_detail"
         tools:layout="@layout/fragment_challenge_detail">
+            <argument
+                android:name="challId"
+                app:argType="Long" />
+    </fragment>
+        tools:layout="@layout/fragment_challenge_detail">
         <argument
             android:name="challId"
             app:argType="string" />
-    </fragment>
 
 
     <fragment
