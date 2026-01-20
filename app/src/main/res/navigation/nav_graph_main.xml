@@ -6,16 +6,6 @@
     app:startDestination="@id/homeFragment">
 
     <fragment
-        android:id="@+id/alarmSettingFragment"
-        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmSettingFragment"
-        android:label="fragment_alarm_setting"
-        tools:layout="@layout/fragment_alarm_setting">
-        <argument
-            android:name="alarmId"
-            app:argType="integer"
-            android:defaultValue="-1"/>
-    </fragment>
-    <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.lifemaster.presentation.home.HomeFragment"
         android:label="HomeFragment"
@@ -88,8 +78,11 @@
         android:label="fragment_alarm_list_copy"
         tools:layout="@layout/fragment_alarm_list">
         <action
-            android:id="@+id/action_alarmListFragment_to_alarmSettingFragment"
-            app:destination="@id/alarmSettingFragment" />
+            android:id="@+id/action_alarmListFragment_to_alarmCreateFragment"
+            app:destination="@id/alarmCreateFragment" />
+        <action
+            android:id="@+id/action_alarmListFragment_to_alarmEditFragment"
+            app:destination="@id/alarmEditFragment" />
     </fragment>
     <fragment
         android:id="@+id/alarmRingsFragment"
@@ -251,5 +244,19 @@
             app:destination="@id/pomodoroEscapeFragment"
             app:popUpTo="@id/pomodoroEscapeFragment"
             app:popUpToInclusive="true"/>
+    </fragment>
+    <fragment
+        android:id="@+id/alarmCreateFragment"
+        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmCreateFragment"
+        android:label="AlarmCreateFragment"
+        tools:layout="@layout/fragment_alarm_setting"/>
+    <fragment
+        android:id="@+id/alarmEditFragment"
+        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmEditFragment"
+        android:label="AlarmEditFragment"
+        tools:layout="@layout/fragment_alarm_setting">
+        <argument
+            android:name="alarmId"
+            app:argType="integer"/>
     </fragment>
 </navigation>

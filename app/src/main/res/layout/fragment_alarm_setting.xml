@@ -35,19 +35,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:background="@drawable/bg_round_radius_8dp"
-            android:backgroundTint="#F0F4F5"
-            android:paddingBottom="12dp">
+            android:backgroundTint="#F0F4F5">
             <TimePicker
                 android:id="@+id/alarmSettingTimePicker"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:timePickerMode="spinner" />
-            <TextView
-                android:id="@+id/tv_alarm_setting_remaining_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal|bottom"
-                tools:text="2일 8시간 15분 뒤에 울려요"/>
         </FrameLayout>
 
         <LinearLayout
@@ -56,26 +49,6 @@
             android:layout_marginTop="24dp"
             android:layout_weight="1"
             android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-                <TextView
-                    android:id="@+id/tv_alarm_setting_repeat_days"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="매주 월, 화, 수, 목, 금"
-                    android:textSize="13sp"/>
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_calendar"
-                    android:visibility="invisible"
-                    app:tint="@color/gray_100"/>
-            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -92,34 +65,62 @@
                     android:textColor="@color/alarm_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
-
-                <include
-                    android:id="@+id/alarmSettingLayoutMonday"
-                    layout="@layout/layout_alarm_repeat_day" />
-
-                <include
-                    android:id="@+id/alarmSettingLayoutTuesday"
-                    layout="@layout/layout_alarm_repeat_day" />
-
-                <include
-                    android:id="@+id/alarmSettingLayoutWednesday"
-                    layout="@layout/layout_alarm_repeat_day" />
-
-                <include
-                    android:id="@+id/alarmSettingLayoutThursday"
-                    layout="@layout/layout_alarm_repeat_day" />
-
-                <include
-                    android:id="@+id/alarmSettingLayoutFriday"
-                    layout="@layout/layout_alarm_repeat_day" />
-
-                <include
-                    android:id="@+id/alarmSettingLayoutSaturday"
-                    layout="@layout/layout_alarm_repeat_day" />
-
-                <include
-                    android:id="@+id/alarmSettingLayoutSunday"
-                    layout="@layout/layout_alarm_repeat_day" />
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cv_alarm_repeat_day_mon"
+                    style="@style/alarm_repeat_day"
+                    android:tag="1">
+                    <TextView
+                        style="@style/alarm_repeat_day_text"
+                        android:text="월"/>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cv_alarm_repeat_day_tue"
+                    style="@style/alarm_repeat_day"
+                    android:tag="2">
+                    <TextView
+                        style="@style/alarm_repeat_day_text"
+                        android:text="화"/>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cv_alarm_repeat_day_wed"
+                    style="@style/alarm_repeat_day"
+                    android:tag="3">
+                    <TextView
+                        style="@style/alarm_repeat_day_text"
+                        android:text="수"/>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cv_alarm_repeat_day_thu"
+                    style="@style/alarm_repeat_day"
+                    android:tag="4">
+                    <TextView
+                        style="@style/alarm_repeat_day_text"
+                        android:text="목"/>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cv_alarm_repeat_day_fri"
+                    style="@style/alarm_repeat_day"
+                    android:tag="5">
+                    <TextView
+                        style="@style/alarm_repeat_day_text"
+                        android:text="금"/>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cv_alarm_repeat_day_sat"
+                    style="@style/alarm_repeat_day"
+                    android:tag="6">
+                    <TextView
+                        style="@style/alarm_repeat_day_text"
+                        android:text="토"/>
+                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cv_alarm_repeat_day_sun"
+                    style="@style/alarm_repeat_day"
+                    android:tag="7">
+                    <TextView
+                        style="@style/alarm_repeat_day_text"
+                        android:text="일"/>
+                </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
             <LinearLayout
                 android:id="@+id/llAlarmSettingRandomMission"

@@ -293,7 +293,7 @@ interface NetworkService {
     )
 
     // 모든 알람 조회
-    @GET("/time/alarm")
+    @GET("/time/alarm/me")
     suspend fun fetchAlarmList(): List<AlarmResponse>
 
     // 특정 알람 조회

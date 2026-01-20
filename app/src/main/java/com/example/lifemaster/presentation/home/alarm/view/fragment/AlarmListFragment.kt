@@ -48,7 +48,6 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
     private var alarmStatus: Boolean? = null
 
     private val alarmAdapter = AlarmAdapter(this)
-    private lateinit var alarmList: MutableList<AlarmModel>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -103,8 +102,7 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
 
     private fun initListeners() = with(binding) {
         ivAlarmItemAdd.setOnClickListener {
-            val action = AlarmListFragmentDirections.actionAlarmListFragmentToAlarmSettingFragment()
-            findNavController().navigate(action)
+            findNavController().navigate(R.id.action_alarmListFragment_to_alarmCreateFragment)
         }
         ivAlarmItemOption.setOnClickListener {
             val popup = PopupMenu(requireContext(), ivAlarmItemOption)
@@ -135,17 +133,16 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                             is DataResource.Loading -> { }
                             is DataResource.Idle -> { }
                             is DataResource.Success -> {
-                                val alarmResponse: List<AlarmResponse> = resource.data
-                                alarmList = alarmResponse.map { it.toPresentation() }.toMutableList()
-                                if (alarmResponse.isNotEmpty()) {
+                                val alarmList = resource.data
+                                Log.e(ALARM, ""+alarmList)
+                                if (alarmList.isNotEmpty()) {
                                     llNoAlarmItem.isVisible = false
                                     alarmRecyclerview.isVisible = true
-                                    alarmAdapter.submitList(alarmList)
+                                    alarmAdapter.submitList(alarmList.toMutableList())
                                 }
                             }
                             is DataResource.Error -> {
                                 Toast.makeText(context, "알람 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
-                                Log.e(ALARM, "alarmList fetch error", resource.throwable)
                             }
                         }
                     }
@@ -181,14 +178,14 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                         when(resource) {
                             is DataResource.Error -> {
                                 Toast.makeText(context, "알람을 삭제하지 못했습니다.", Toast.LENGTH_SHORT).show()
+                                Log.e("TEST", "alarm delete error", resource.throwable)
                             }
                             DataResource.Idle -> {}
                             DataResource.Loading -> {}
                             is DataResource.Success -> {
                                 val deleteAlarmId = resource.data
-                                val removeAlarm = alarmList.find { it.id == deleteAlarmId }
-                                alarmList.remove(removeAlarm)
-                                alarmAdapter.submitList(alarmList)
+                                val updatedList = alarmAdapter.currentList.filter { it.id != deleteAlarmId }
+                                alarmAdapter.submitList(updatedList.toList())
                                 Toast.makeText(context, "알람을 삭제했습니다.", Toast.LENGTH_SHORT).show()
                             }
                         }
@@ -227,14 +224,14 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
     }
 
     override fun onItemClick(alarmId: Int) {
-        val action = AlarmListFragmentDirections.actionAlarmListFragmentToAlarmSettingFragment(alarmId = alarmId)
+        val action = AlarmListFragmentDirections.actionAlarmListFragmentToAlarmEditFragment(alarmId = alarmId)
         findNavController().navigate(action)
     }
 
     override fun onItemLongClick(alarmId: Int) {
-        AlertDialog.Builder(requireContext()).setTitle("알람 삭제").setMessage("알람을 삭제하시겠습니까?").setPositiveButton("확인") { dialog, which ->
+        AlertDialog.Builder(requireContext()).setTitle("알람 삭제").setMessage("알람을 삭제하시겠습니까?").setPositiveButton("확인") { _, _ ->
             alarmGenerateViewModel.deleteAlarm(alarmId = alarmId)
-        }.setNegativeButton("취소") { dialog, which ->
+        }.setNegativeButton("취소") { dialog, _ ->
             dialog.dismiss()
         }.show()
     }
