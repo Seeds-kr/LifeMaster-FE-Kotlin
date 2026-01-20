@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -14,21 +15,22 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.network.RetrofitInstance
-import com.example.lifemaster.presentation.home.todo.model.TODO
+import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
+import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
+import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
+import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
+import com.example.lifemaster.presentation.home.todo.model.TODO
+import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
-import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
-import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
-import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import java.time.LocalDate
+import java.time.format.DateTimeFormatterBuilder
 
 class HomeFragment : Fragment() {
 
@@ -37,6 +39,10 @@ class HomeFragment : Fragment() {
     private val toDoViewModel: ToDoViewModel by activityViewModels()
     private var userToken: String? = null
     private val calendarVM: CalendarViewModel by activityViewModels()
+
+    private var tvAlarmDate: TextView? = null
+    private var tvAlarmTime: TextView? = null
+    private var btnAlarmSetting: View? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,6 +56,8 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initViews()
+
         binding.containerCalendar.post {
             if (childFragmentManager.findFragmentById(R.id.container_calendar) == null) {
                 childFragmentManager.beginTransaction()
@@ -61,16 +69,48 @@ class HomeFragment : Fragment() {
         val (visible, ordered) = loadHomeConfiguration()
         applyHomeLayout(visible, ordered)
 
+        bindAlarmPreviewViews()
+
         setupCalendarHeader()
         observeCalendarState()
-        initViews()
         initListeners()
         initObservers()
 
+        setupHomeCardNavigation()
+
+        setupIntrospectionPreviewClicks()
+
+        val today = calendarVM.selectedDate.value ?: LocalDate.now()
+        loadAlarmPreviewForDate(today)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val (visible, ordered) = loadHomeConfiguration()
+        applyHomeLayout(visible, ordered)
+        rebindCalendarHeaderUI()
+
+        bindAlarmPreviewViews()
+        setupIntrospectionPreviewClicks()
+
+        setupHomeCardNavigation()
+
+        val currentDate = calendarVM.selectedDate.value ?: LocalDate.now()
+        loadAlarmPreviewForDate(currentDate)
+    }
+
+    private fun setupHomeCardNavigation() {
         // 알람 화면 이동
         binding.cvGoToAlarm.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
         }
+
+        // 수면 화면 이동
+        binding.cardSleep.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment)
+        }
+
         // 디톡스 화면 이동
         binding.cardDetox.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
@@ -80,13 +120,34 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.action_homeFragment_to_groupFragment)
         }
 
+        // 챌린지
+        binding.cardChallenge.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_challengeFragment)
+        }
     }
 
-    override fun onResume() {
-        super.onResume()
-        val (visible, ordered) = loadHomeConfiguration()
-        applyHomeLayout(visible, ordered)
-        rebindCalendarHeaderUI()
+    private fun bindAlarmPreviewViews() {
+        tvAlarmDate = binding.root.findViewById(R.id.tv_alarm_date)
+        tvAlarmTime = binding.root.findViewById(R.id.tv_alarm_time)
+        btnAlarmSetting = binding.root.findViewById(R.id.btn_alarm_setting)
+        btnAlarmSetting?.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_alarmSettingFragment)
+        }
+    }
+
+    private fun setupIntrospectionPreviewClicks() {
+        binding.cardIntrospection.setOnClickListener { goIntrospection("TODAY") }
+
+        val todayCard = binding.cardIntrospection.findViewById<View?>(R.id.card_go_today_diary)
+        val thanksCard = binding.cardIntrospection.findViewById<View?>(R.id.card_go_thanks)
+
+        todayCard?.setOnClickListener { goIntrospection("TODAY") }
+        thanksCard?.setOnClickListener { goIntrospection("THANKS") }
+    }
+
+    private fun goIntrospection(startTab: String) {
+        val args = Bundle().apply { putString("startTab", startTab) }
+        findNavController().navigate(R.id.action_homeFragment_to_introspectionFragment, args)
     }
 
     private fun loadHomeConfiguration(): Pair<Set<String>, List<String>> {
@@ -237,6 +298,7 @@ class HomeFragment : Fragment() {
         calendarVM.selectedDate.observe(viewLifecycleOwner) { date ->
             val mode = calendarVM.mode.value ?: CalendarMode.MONTH
             updateSelectedDateText(mode, date)
+            loadAlarmPreviewForDate(date)
         }
 
         calendarVM.mode.observe(viewLifecycleOwner) { mode ->
@@ -278,7 +340,15 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun weekOfMonth(date: LocalDate): Int {
-        return ((date.dayOfMonth - 1) / 7) + 1
+    private fun weekOfMonth(date: LocalDate): Int = ((date.dayOfMonth - 1) / 7) + 1
+
+    private fun loadAlarmPreviewForDate(date: LocalDate) {
+        tvAlarmDate?.text = "${date.monthValue}월 ${date.dayOfMonth}일"
+        showNoAlarmForDate(date)
+    }
+
+    private fun showNoAlarmForDate(date: LocalDate) {
+        val isToday = date == LocalDate.now()
+        tvAlarmTime?.text = if (isToday) "오늘 알람 없음" else "알람 없음"
     }
 }
