@@ -15,12 +15,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flowOf
 import com.example.lifemaster.network.RetrofitInstance
-import retrofit2.Call
-import retrofit2.Callback
 import retrofit2.Response
-import java.time.LocalDateTime
 
 // DI(의존성 주입) 패턴을 사용하여 의존성을 생성자로 주입받음
 class ChallengeViewModel(
