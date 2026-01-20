@@ -187,7 +187,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="초대코드"
+                    android:text="@string/invite_code"
                     android:textColor="@color/black"
                     android:textSize="12sp" />
 
@@ -255,12 +255,6 @@
                     android:src="@drawable/ic_etc"
                     android:contentDescription="@null" />
             </LinearLayout>
-
-            <!-- 버튼에 가리지 않게 여백 -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="24dp" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

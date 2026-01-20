@@ -89,6 +89,8 @@
     <string name="back_to_group">그룹 페이지로 돌아가기</string>
     <string name="group_chat_date">7월 18일 목요일</string>
     <string name="input_chat">메시지 작성</string>
+    <string name="invite_code">초대코드</string>
+    <string name="date">7월 18일 목요일</string>
 
     <!-- 미리보기 -->
     <string name="alarm_preview_date">7월 20일</string>
@@ -100,5 +102,4 @@
     <!-- 커뮤니티 -->
     <string name="today_poll">오늘의 투표</string>
     <string name="poll_participants">명이 참여했어요</string>
-
 </resources>
