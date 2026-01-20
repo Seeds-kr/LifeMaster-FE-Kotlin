@@ -63,7 +63,9 @@ class ChallengeFragment : Fragment() {
         setupRecyclerView()
         observeViewModel()
         setupSortListener()
-        viewModel.loadChallenges()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.loadChallenges()
+        }
     }
 
     private fun observeViewModel() {
