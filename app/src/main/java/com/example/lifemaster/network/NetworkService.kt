@@ -17,7 +17,6 @@ import com.example.lifemaster.presentation.login.model.EmailRequest
 import com.example.lifemaster.presentation.login.model.PasswordResetDto
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
 import com.example.lifemaster.presentation.community.model.*
-import com.example.lifemaster.presentation.home.preview.model.AlarmRemote
 import com.example.lifemaster.presentation.login.model.RegNickResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -381,10 +380,4 @@ interface NetworkService {
     suspend fun generateMathProblem(
         @Query("level") level: String
     ): MathProblemResponse
-
-    // 알람 미리 보기
-    @GET("/time/alarm")
-    suspend fun getAlarms(
-        @Header("Authorization") auth: String
-    ): List<AlarmRemote>
 }
