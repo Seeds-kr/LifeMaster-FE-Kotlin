@@ -4,7 +4,6 @@ data class CalendarDay(
     val day: Int,
     val isCurrentMonth: Boolean,
     val isToday: Boolean = false,
-    val features: List<StarType> = emptyList()
 )
 
 enum class StarType(val colorHex: String) {

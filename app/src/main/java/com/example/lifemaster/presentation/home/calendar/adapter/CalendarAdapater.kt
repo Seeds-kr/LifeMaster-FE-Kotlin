@@ -1,5 +1,6 @@
 package com.example.lifemaster.presentation.home.calendar.adapter
 
+import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater
@@ -11,19 +12,28 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
 import com.example.lifemaster.presentation.home.calendar.model.CalendarDay
 import com.example.lifemaster.presentation.home.calendar.model.StarType
+import androidx.core.graphics.toColorInt
 
 class CalendarAdapter(
     private val days: List<CalendarDay>,
     private val onClick: (CalendarDay) -> Unit
 ) : RecyclerView.Adapter<CalendarAdapter.CalendarViewHolder>() {
 
+    // 해당 날짜에 존재하는 이벤트 타입(별 색상용)
     private var dayFeatures: Map<Int, List<StarType>> = emptyMap()
+
+    // 서버에서 이벤트 데이터가 갱신되었을 때 호출(전체 갱신)
+    @SuppressLint("NotifyDataSetChanged")
     fun setDayFeatures(map: Map<Int, List<StarType>>) {
         dayFeatures = map
         notifyDataSetChanged()
     }
 
+    // 현재 선택된 날짜
     private var selectedDay: Int? = null
+
+    // 사용자가 다른 날짜를 선택했을 때 호출(전체 갱신)
+    @SuppressLint("NotifyDataSetChanged")
     fun setSelectedDay(day: Int?) {
         selectedDay = day
         notifyDataSetChanged()
@@ -34,6 +44,7 @@ class CalendarAdapter(
         val bgSelected: View = view.findViewById(R.id.bg_selected)
         val bgToday: View = view.findViewById(R.id.bg_today)
 
+        // 별 위치 고정
         val stars: Map<Int, ImageView> = mapOf(
             1 to view.findViewById(R.id.star1),
             2 to view.findViewById(R.id.star2),
@@ -50,6 +61,7 @@ class CalendarAdapter(
         )
     }
 
+    // 이벤트 개수에 따라 별을 배치할 위치 패턴
     private val patternByCount: Map<Int, List<Int>> = mapOf(
         1 to listOf(7),
         2 to listOf(3, 11),
@@ -59,6 +71,7 @@ class CalendarAdapter(
         6 to listOf(1, 2, 4, 7, 10, 12)
     )
 
+    // 동일 날짜에 여러 타입이 있을 경우 표시 우선순위
     private val typePriority = listOf(
         StarType.ALARM,
         StarType.INTROSPECTION,
@@ -77,14 +90,8 @@ class CalendarAdapter(
 
     override fun onBindViewHolder(holder: CalendarViewHolder, position: Int) {
         val item = days[position]
-        holder.itemView.isClickable = true
         holder.tvDay.text = item.day.toString()
-
-        holder.tvDay.setTextColor(
-            Color.parseColor(
-                if (item.isCurrentMonth) "#000000" else "#CCCCCC"
-            )
-        )
+        holder.tvDay.setTextColor(if (item.isCurrentMonth) Color.BLACK else Color.LTGRAY)
 
         holder.bgSelected.visibility = View.GONE
         holder.bgToday.visibility = View.GONE
@@ -93,11 +100,13 @@ class CalendarAdapter(
             if (item.isToday) holder.bgToday.visibility = View.VISIBLE
         }
 
+        // 별 초기화
         holder.stars.values.forEach {
             it.visibility = View.GONE
             it.imageTintList = null
         }
 
+        // 현재 달에 대해서만 별 표시
         if (item.isCurrentMonth) {
             val rawTypes = dayFeatures[item.day].orEmpty()
                 .distinct()
@@ -112,7 +121,8 @@ class CalendarAdapter(
                     val pos = positions[i]
                     val star = holder.stars[pos] ?: continue
                     star.visibility = View.VISIBLE
-                    star.imageTintList = ColorStateList.valueOf(Color.parseColor(types[i].colorHex))
+                    star.imageTintList =
+                        ColorStateList.valueOf(types[i].colorHex.toColorInt())
                 }
             }
         }

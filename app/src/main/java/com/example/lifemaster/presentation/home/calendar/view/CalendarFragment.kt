@@ -75,6 +75,7 @@ class CalendarFragment : Fragment() {
             current.set(Calendar.MONTH, it.getInt("m", current.get(Calendar.MONTH)))
         }
 
+        // 월, 주, 일에 따라 화면 재구성
         vm.mode.observe(viewLifecycleOwner) { mode ->
             when (mode) {
                 CalendarMode.MONTH -> showMonthView()
@@ -172,7 +173,7 @@ class CalendarFragment : Fragment() {
         layoutWeekHeader.visibility = View.VISIBLE
 
         val anchor: LocalDate = vm.selectedDate.value ?: LocalDate.now()
-        val days = generateWeekDays(anchor, current, startOfWeek = Calendar.SUNDAY)
+        val days = generateWeekDays(anchor, current)
 
         weekRecyclerView.layoutManager = GridLayoutManager(requireContext(), 7)
         weekAdapter = CalendarAdapter(days) { day ->
@@ -204,6 +205,7 @@ class CalendarFragment : Fragment() {
         layoutWeekHeader.visibility = View.GONE
     }
 
+    // 월 단위 달력 셀 생성 (이전/다음 달 포함)
     private fun generateMonthDays(base: Calendar): List<CalendarDay> {
         val cal = (base.clone() as Calendar).apply { set(Calendar.DAY_OF_MONTH, 1) }
         val firstDayOfWeekIdx = (cal.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY + 7) % 7
@@ -218,11 +220,13 @@ class CalendarFragment : Fragment() {
         val prevMonthDays = prevCal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
         val result = mutableListOf<CalendarDay>()
+
         for (i in (prevMonthDays - firstDayOfWeekIdx + 1)..prevMonthDays) {
             if (firstDayOfWeekIdx > 0) {
                 result.add(CalendarDay(i, isCurrentMonth = false, isToday = false))
             }
         }
+
         for (day in 1..daysInMonth) {
             val isToday = isTodayInThisMonth && (day == todayCal.get(Calendar.DAY_OF_MONTH))
             result.add(CalendarDay(day, isCurrentMonth = true, isToday = isToday))
@@ -235,11 +239,12 @@ class CalendarFragment : Fragment() {
         return result
     }
 
+    // 선택 날짜 기준 주간 셀 생성 + 실제 날짜 매핑
     private fun generateWeekDays(
         anchorDate: LocalDate,
-        baseMonth: Calendar,
-        startOfWeek: Int = Calendar.SUNDAY
+        baseMonth: Calendar
     ): List<CalendarDay> {
+        val startOfWeek = Calendar.SUNDAY
         val cal = GregorianCalendar().apply {
             set(Calendar.YEAR, anchorDate.year)
             set(Calendar.MONTH, anchorDate.monthValue - 1)

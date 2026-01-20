@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lifemaster.presentation.home.calendar.model.CalendarRepository
 import kotlinx.coroutines.launch
-import java.time.format.DateTimeFormatter
 
 class CalendarDataViewModel(
     private val repo: CalendarRepository
@@ -15,12 +14,8 @@ class CalendarDataViewModel(
     private val _monthEvents = MutableLiveData<Map<String, List<String>>>()
     val monthEvents: LiveData<Map<String, List<String>>> = _monthEvents
 
-    private val _loading = MutableLiveData(false)
-
     fun loadMonth(year: Int, month1: Int, memberId: Long? = null) {
         viewModelScope.launch {
-            _loading.value = true
-
             runCatching {
                 if (memberId != null && memberId > 0L) {
                     repo.getMemberMonth(memberId, year, month1)
@@ -32,15 +27,11 @@ class CalendarDataViewModel(
             }.onFailure {
                 _monthEvents.value = emptyMap()
             }
-
-            _loading.value = false
         }
     }
 
     fun loadMonths(months: List<Pair<Int, Int>>, memberId: Long? = null) {
         viewModelScope.launch {
-            _loading.value = true
-
             val acc = linkedMapOf<String, List<String>>()
             for ((y, m) in months.distinct()) {
                 runCatching {
@@ -55,7 +46,6 @@ class CalendarDataViewModel(
             }
 
             _monthEvents.value = acc
-            _loading.value = false
         }
     }
 }
