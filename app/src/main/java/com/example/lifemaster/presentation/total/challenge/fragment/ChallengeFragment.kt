@@ -1,20 +1,19 @@
 package com.example.lifemaster.presentation.total.challenge.fragment
 
 import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster.R
@@ -63,6 +62,10 @@ class ChallengeFragment : Fragment() {
         setupRecyclerView()
         observeViewModel()
         setupSortListener()
+        setupClickListeners()
+        setupSearchView()
+        observeChallengeData()
+        observeSearchResults()
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.loadChallenges()
         }
@@ -71,7 +74,9 @@ class ChallengeFragment : Fragment() {
     private fun observeViewModel() {
         viewModel.sortedChallengeList.observe(viewLifecycleOwner) { sortedList ->
             if (sortedList != null) {
-                challengeAdapter.submitData(PagingData.from(sortedList))
+                viewLifecycleOwner.lifecycleScope.launch {
+                    challengeAdapter.submitData(PagingData.from(sortedList))
+                }
                 Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${sortedList.size}개")
             } else {
                 Log.e("ChallengeFragment", "ViewModel에서 정렬된 리스트가 null입니다.")
@@ -101,15 +106,16 @@ class ChallengeFragment : Fragment() {
 
         imageView.setImageResource(challengeData.imageRes)
 
-        setupRecyclerView()
-        setupClickListeners()
-        setupSearchView()
-
-        observeChallengeData()
-        observeSearchResults()
-    }
-
-    private fun setupRecyclerView()=with(binding) {
+        // 완료된 챌린지에 블러 효과 적용 및 완료 시간 표시
+        if (challengeData.isCompleted) {
+            // 완료 시간 표시
+            challengeData.completionTime?.let {
+                timeTextView.text = it
+                timeTextView.visibility = View.VISIBLE
+            }
+            checkmark.visibility = View.VISIBLE
+            
+            // 블러 효과 적용
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val blurEffect = RenderEffect.createBlurEffect(20f, 20f, Shader.TileMode.CLAMP)
                 imageView.setRenderEffect(blurEffect)
@@ -192,12 +198,8 @@ class ChallengeFragment : Fragment() {
 
     private fun setupClickListeners() {
         challengeAdapter.onItemClickListener = { challenge ->
-            val bundle = Bundle().apply {
-                putLong("challId", challenge.challId)
-            }
-            findNavController().navigate(R.id.action_challengeFragment_to_challengeDetailFragment, bundle)
             val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(
-                challenge.challId.toString()
+                challenge.challId
             )
             findNavController().navigate(action)
         }
@@ -231,12 +233,6 @@ class ChallengeFragment : Fragment() {
                     } else {
                         // 검색어가 비어있으면 검색 모드 해제
                         viewModel.clearSearch()
-                        // 일반 목록으로 복귀
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            viewModel.challenges.collectLatest { pagingData ->
-                                challengeAdapter.submitData(pagingData)
-                            }
-                        }
                     }
                 }
                 return true
@@ -248,11 +244,6 @@ class ChallengeFragment : Fragment() {
                 if (newText.isNullOrBlank()) {
                     // 검색어가 비어있으면 검색 모드 해제
                     viewModel.clearSearch()
-                    viewLifecycleOwner.lifecycleScope.launch {
-                        viewModel.challenges.collectLatest { pagingData ->
-                            challengeAdapter.submitData(pagingData)
-                        }
-                    }
                 }
                 return false
             }
@@ -261,11 +252,6 @@ class ChallengeFragment : Fragment() {
         // SearchView 닫기 버튼 클릭 시 검색 모드 해제
         binding.svSearch.setOnCloseListener {
             viewModel.clearSearch()
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.challenges.collectLatest { pagingData ->
-                    challengeAdapter.submitData(pagingData)
-                }
-            }
             false
         }
     }
@@ -290,17 +276,12 @@ class ChallengeFragment : Fragment() {
         )
     }
 
-    // SharedPreferences에서 인증 토큰을 읽어옴옴
+    // SharedPreferences에서 인증 토큰을 읽어옴
     // @return Bearer 토큰 문자열 또는 null (로그인하지 않은 경우)
     private fun readAuthToken(): String? {
         val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
         if (raw.isBlank()) return null
         return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
-    }
-        binding.rvChallenges.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = challengeAdapter
-        }
     }
 
     override fun onDestroyView() {
