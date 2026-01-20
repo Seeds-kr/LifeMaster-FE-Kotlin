@@ -1,5 +1,8 @@
 package com.example.lifemaster.presentation.total.challenge.viewmodel
 
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -13,19 +16,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
+import com.example.lifemaster.network.RetrofitInstance
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.time.LocalDateTime
 
 // DI(의존성 주입) 패턴을 사용하여 의존성을 생성자로 주입받음
 class ChallengeViewModel(
     private val repository: ChallengeRepository,
     private val apiService: NetworkService
 ) : ViewModel() {
-import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
-import com.example.lifemaster.presentation.total.challenge.model.ChallengeResponse
-import com.example.lifemaster.network.RetrofitInstance
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.time.LocalDateTime
+
 
     /**
      * UI(Fragment 또는 Activity)에서 관찰할 챌린지 목록 PagingData Flow
@@ -80,37 +82,40 @@ import java.time.LocalDateTime
      * @param onSuccess 성공 시 호출될 콜백
      * @param onError 실패 시 호출될 콜백 (에러 메시지 전달)
      */
-    fun leaveChallenge(
-        token: String,
-        challId: Long,
-        onSuccess: (String) -> Unit = {},
-        onError: (String) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            try {
-                val response = apiService.leaveChallenge(token, challId)
-    fun loadChallenges() {
-        Log.d("API_CALL", "챌린지 API 호출 시작")
 
-        RetrofitInstance.networkService.getChallenges(page = 0).enqueue(object : Callback<ChallengeResponse> {
-            override fun onResponse(call: Call<ChallengeResponse>, response: Response<ChallengeResponse>) {
-                if (response.isSuccessful) {
-                    val message = response.body() ?: "챌린지 참여 취소 완료!"
-                    onSuccess(message)
-                    response.body()?.content?.let { list ->
-                        _originalChallengeData.value = list
-                        sortChallenges("latest")
-                        Log.d("ViewModel", "챌린지 로딩 성공: ${list.size}개")
+    suspend fun loadChallenges() {
+        Log.d("API_CALL", "챌린지 API 호출 시작")
+        try {
+            val response = RetrofitInstance.networkService.getChallenges(page = 0, size = 10)
+
+            if (response.isSuccessful) {
+                response.body()?.content?.let { dtoList ->
+                    // DTO를 ChallengeItem으로 변환
+                    val challengeList: List<ChallengeItem> = dtoList.map { dto ->
+                        ChallengeItem(
+                            challId = dto.challId,
+                            challName = dto.challName,
+                            challTitle = dto.challDesc,
+                            challImg = dto.challImg,
+                            challJoinCnt = dto.challCnt,
+                            createdAt = dto.createdAt
+                        )
                     }
-                } else {
-                    onError("챌린지 참여 취소 실패 (${response.code()})")
-                    Log.e("ViewModel", "서버 응답 에러: ${response.code()} - ${response.message()}")
+                    _originalChallengeData.value = challengeList
+                    sortChallenges("latest")
+                    Log.d("ViewModel", "챌린지 로딩 성공: ${challengeList.size}개")
                 }
-            } catch (e: Exception) {
-                onError("네트워크 오류: ${e.localizedMessage}")
+            } else {
+                Log.e("ViewModel", "서버 응답 에러: ${response.code()}")
             }
+        } catch (e: Exception) {
+            Log.e("ViewModel", "통신 실패: ${e.message}")
         }
     }
+
+
+
+
 
     /**
      * 챌린지 상세 정보 조회 API를 호출하는 함수
@@ -169,7 +174,8 @@ import java.time.LocalDateTime
                         challName = dto.challName,
                         challTitle = dto.challDesc,
                         challImg = dto.challImg,
-                        challJoinCnt = dto.challCnt
+                        challJoinCnt = dto.challCnt,
+                        createdAt = dto.createdAt
                     )
                 }
                 // 검색 결과를 PagingData로 변환
@@ -191,7 +197,7 @@ import java.time.LocalDateTime
     }
 }
 
-            override fun onFailure(call: Call<ChallengeResponse>, t: Throwable) {
+override fun onFailure(call: Call<ChallengeResponse>, t: Throwable) {
                 Log.e("ViewModel", "통신 실패: ${t.message}")
             }
         })
@@ -201,9 +207,9 @@ import java.time.LocalDateTime
         val currentList = _originalChallengeData.value ?: return
 
         val sortedList = when (criteria) {
-            "latest" -> currentList.sortedWith(compareByDescending { it.createdAt })
-            "oldest" -> currentList.sortedWith(compareBy { it.createdAt })
-            "popularity" -> currentList.sortedWith(compareByDescending { it.challCnt })
+            "latest" -> currentList.sortedWith(compareByDescending { it.createdAt ?: "" })
+            "oldest" -> currentList.sortedWith(compareBy { it.createdAt ?: "" })
+            "popularity" -> currentList.sortedWith(compareByDescending { it.challJoinCnt })
             "name" -> currentList.sortedWith(compareBy { it.challName })
             else -> currentList
         }

@@ -27,6 +27,7 @@ import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeVi
 import kotlinx.coroutines.flow.collectLatest // Flow의 데이터를 수집
 import kotlinx.coroutines.launch
 import android.widget.PopupMenu
+import androidx.paging.PagingData
 
 data class MyChallenge(
     val imageRes: Int,
@@ -68,7 +69,7 @@ class ChallengeFragment : Fragment() {
     private fun observeViewModel() {
         viewModel.sortedChallengeList.observe(viewLifecycleOwner) { sortedList ->
             if (sortedList != null) {
-                challengeAdapter.submitList(sortedList)
+                challengeAdapter.submitData(PagingData.from(sortedList))
                 Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${sortedList.size}개")
             } else {
                 Log.e("ChallengeFragment", "ViewModel에서 정렬된 리스트가 null입니다.")

@@ -130,7 +130,7 @@ interface NetworkService {
     suspend fun getChallenges(
         @Query("page") page: Int,
         @Query("size") size: Int
-    ): ChallengeListResponse
+    ): Response<ChallengeListResponse>
 
     // 챌린지 참여
     @POST("/challenge/{challId}/join")
