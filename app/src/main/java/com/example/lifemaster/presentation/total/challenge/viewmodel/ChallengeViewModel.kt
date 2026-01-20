@@ -195,13 +195,6 @@ class ChallengeViewModel(
         _isSearchMode.value = false
         _searchResults.value = PagingData.empty()
     }
-}
-
-override fun onFailure(call: Call<ChallengeResponse>, t: Throwable) {
-                Log.e("ViewModel", "통신 실패: ${t.message}")
-            }
-        })
-    }
 
     fun sortChallenges(criteria: String) {
         val currentList = _originalChallengeData.value ?: return
