@@ -1,4 +1,4 @@
-package com.example.lifemaster.presentation.group
+package com.example.lifemaster.presentation.group.view
 
 import android.os.Bundle
 import android.view.View
@@ -17,6 +17,11 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
         // 전체 그룹 보기로 이동
         allGroupsBtn?.setOnClickListener {
             findNavController().navigate(R.id.action_groupFragment_to_groupListFragment)
+        }
+
+        // 그룹 생성하기
+        view.findViewById<View>(R.id.create_group)?.setOnClickListener {
+            findNavController().navigate(R.id.action_groupFragment_to_groupCreateFragment)
         }
     }
 }

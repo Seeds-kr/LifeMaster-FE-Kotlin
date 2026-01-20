@@ -1,4 +1,4 @@
-package com.example.lifemaster.presentation.group
+package com.example.lifemaster.presentation.group.view
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

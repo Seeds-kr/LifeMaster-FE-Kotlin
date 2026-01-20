@@ -114,18 +114,26 @@
     </fragment>
     <fragment
         android:id="@+id/groupFragment"
-        android:name="com.example.lifemaster.presentation.group.GroupFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupFragment"
         android:label="fragment_group"
         tools:layout="@layout/fragment_group" >
         <action
             android:id="@+id/action_groupFragment_to_groupListFragment"
             app:destination="@id/groupListFragment" />
+        <action
+            android:id="@+id/action_groupFragment_to_groupCreateFragment"
+            app:destination="@id/groupCreateFragment" />
     </fragment>
     <fragment
         android:id="@+id/groupListFragment"
-        android:name="com.example.lifemaster.presentation.group.GroupListFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupListFragment"
         android:label="fragment_group_list"
         tools:layout="@layout/fragment_group_list" />
+    <fragment
+        android:id="@+id/groupCreateFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupCreateFragment"
+        android:label="GroupCreateFragment"
+        tools:layout="@layout/fragment_group_create" />
     <fragment
         android:id="@+id/introspectionFragment"
         android:name="com.example.lifemaster.presentation.total.introspection.IntrospectionFragment"
