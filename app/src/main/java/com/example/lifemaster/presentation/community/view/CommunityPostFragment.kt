@@ -83,8 +83,6 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
 
     private fun setupCommentList() {
         commentAdapter = CommunityCommentAdapter(
-            myMemberId = null,
-            myNickname = null,
             listener = object : CommunityCommentAdapter.CommentActionListener {
                 override fun onEditRequest(comment: Comment, position: Int) {
                     enterEditModeUi(comment)
@@ -98,19 +96,20 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
                             vm.deleteComment(
                                 authToken,
                                 postId,
-                                comment.id,
-                                onDone = { toast("삭제했어요") },
-                                onError = ::toast
+                                comment.id
                             )
                         }
                         .show()
                 }
 
                 override fun onToggleLike(comment: Comment, position: Int) {
-                    vm.toggleCommentLike(authToken, postId, comment.id, onError = ::toast)
+                    vm.toggleCommentLike(
+                        authToken,
+                        postId,
+                        comment.id
+                    )
                 }
-            },
-            allowAllActions = false
+            }
         )
         binding.recyclerviewComment.adapter = commentAdapter
         binding.recyclerviewComment.isNestedScrollingEnabled = false
