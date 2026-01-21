@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.lifemaster.data.repository.challenge.ChallengeRepository
-import com.example.lifemaster.data.remote.dto.ChallengeItemDto
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto
 import com.example.lifemaster.domain.model.ChallengeItem
 import com.example.lifemaster.network.NetworkService
 import kotlinx.coroutines.flow.Flow
