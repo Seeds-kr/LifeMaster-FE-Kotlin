@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import androidx.navigation.fragment.navArgs
 import com.example.lifemaster.R
-import com.example.lifemaster.data.repository.challenge.ChallengeRepository
 import com.example.lifemaster.databinding.FragmentChallengeDetailBinding
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
@@ -20,8 +19,7 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
 
     // DI를 사용하여 ViewModel 생성
     private val viewModel: ChallengeViewModel by lazy {
-        val repository = ChallengeRepository(RetrofitInstance.networkService)
-        val factory = ChallengeViewModelFactory(repository, RetrofitInstance.networkService)
+        val factory = ChallengeViewModelFactory(RetrofitInstance.networkService)
         ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
     }
 
