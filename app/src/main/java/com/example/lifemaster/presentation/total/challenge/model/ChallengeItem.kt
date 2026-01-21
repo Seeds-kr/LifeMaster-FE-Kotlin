@@ -1,4 +1,4 @@
-package com.example.lifemaster.domain.model
+package com.example.lifemaster.presentation.total.challenge.model
 
 /**
  * 앱의 비즈니스 로직(Domain) 또는 UI(Presentation)에서 사용할
