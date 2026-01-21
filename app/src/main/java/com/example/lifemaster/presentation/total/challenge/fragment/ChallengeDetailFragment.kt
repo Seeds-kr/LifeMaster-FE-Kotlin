@@ -74,7 +74,7 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
     }
 
     // 챌린지 상세 정보로 UI를 업데이트
-    private fun updateUI(challengeDetail: com.example.lifemaster.data.remote.dto.ChallengeItemDto) {
+    private fun updateUI(challengeDetail: com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto) {
         // 챌린지 제목 설정
         binding.tvChallengeTitle.text = challengeDetail.challName
 

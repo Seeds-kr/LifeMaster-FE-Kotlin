@@ -1,4 +1,4 @@
-package com.example.lifemaster.data.remote.dto
+package com.example.lifemaster.presentation.total.challenge.model
 
 import com.google.gson.annotations.SerializedName
 
