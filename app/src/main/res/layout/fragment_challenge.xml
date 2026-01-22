@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F0F4F5"
-    tools:context=".presentation.challenge.ChallengeFragment">
+    tools:context=".presentation.total.challenge.fragment.ChallengeFragment">
 
     <LinearLayout
         android:layout_width="match_parent"

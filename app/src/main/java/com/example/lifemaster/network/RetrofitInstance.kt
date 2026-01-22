@@ -20,3 +20,4 @@ object RetrofitInstance {
         retrofit.create(NetworkService::class.java)
     }
 }
+
