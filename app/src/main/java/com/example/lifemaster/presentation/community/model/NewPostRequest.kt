@@ -4,5 +4,6 @@ data class NewPostRequest(
     val title: String,
     val content: String,
     val file: String?,
-    val type: String
+    val type: String,
+    val calendarShared:Boolean = false
 )

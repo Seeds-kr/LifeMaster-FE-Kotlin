@@ -1,12 +1,14 @@
 package com.example.lifemaster.presentation.community.view
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
@@ -23,32 +25,34 @@ import com.example.lifemaster.presentation.community.model.Comment
 import com.example.lifemaster.presentation.community.model.CommentDto
 import com.example.lifemaster.presentation.community.model.PostDetailDto
 import com.example.lifemaster.presentation.community.viewmodel.CommunityViewModel
+import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 import kotlin.math.roundToInt
-import android.graphics.Color
 
 class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
 
-    companion object { const val ARG_ITEM_ID = "arg_item_id" }
-
-    // 지금은 “누구나 수정/삭제 허용”
-    private val ALLOW_ALL_POST_ACTIONS = true
+    companion object {
+        const val ARG_ITEM_ID = "arg_item_id"
+        private const val TAG_SHARED_CALENDAR = "tag_shared_calendar"
+    }
 
     private var _binding: FragmentCommunityPostBinding? = null
     private val binding get() = _binding!!
 
     private val vm: CommunityViewModel by activityViewModels()
-    private var didIncreaseView = false
-
-    private lateinit var commentAdapter: CommunityCommentAdapter
 
     private lateinit var postId: String
     private lateinit var authToken: String
+
     private var editingCommentId: Long? = null
+    private lateinit var commentAdapter: CommunityCommentAdapter
+    private var attachedCalendarOwnerId: Long? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCommunityPostBinding.inflate(inflater, container, false)
         return binding.root
@@ -65,42 +69,53 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
         val token = readAuthToken(requireContext())
         if (idArg.isNullOrBlank() || token.isNullOrBlank()) {
             toast("잘못된 접근입니다.")
-            findNavController().popBackStack(); return
+            findNavController().popBackStack()
+            return
         }
         postId = idArg
         authToken = token
 
-        // 댓글(수정/삭제)
+        setupCommentList()
+        observeViewModel()
+        setupActions()
+        setupSharedCalendarHeaderControls()
+    }
+
+    private fun setupCommentList() {
         commentAdapter = CommunityCommentAdapter(
-            myMemberId = null,
-            myNickname = null,
             listener = object : CommunityCommentAdapter.CommentActionListener {
                 override fun onEditRequest(comment: Comment, position: Int) {
                     enterEditModeUi(comment)
                 }
+
                 override fun onDeleteRequest(comment: Comment, position: Int) {
                     AlertDialog.Builder(requireContext())
                         .setMessage("댓글을 삭제할까요?")
                         .setNegativeButton("취소", null)
                         .setPositiveButton("삭제") { _, _ ->
                             vm.deleteComment(
-                                token = authToken,
-                                postId = postId,
-                                commentId = comment.id,
-                                onDone = { toast("삭제했어요") },
-                                onError = ::toast
+                                authToken,
+                                postId,
+                                comment.id
                             )
                         }
                         .show()
                 }
-            },
-            allowAllActions = true
-        )
-        binding.recyclerviewComment.apply {
-            adapter = commentAdapter
-            isNestedScrollingEnabled = false
-        }
 
+                override fun onToggleLike(comment: Comment, position: Int) {
+                    vm.toggleCommentLike(
+                        authToken,
+                        postId,
+                        comment.id
+                    )
+                }
+            }
+        )
+        binding.recyclerviewComment.adapter = commentAdapter
+        binding.recyclerviewComment.isNestedScrollingEnabled = false
+    }
+
+    private fun observeViewModel() {
         vm.comments.observe(viewLifecycleOwner) { list ->
             val mapped = (list ?: emptyList()).map { it.toUi() }
             commentAdapter.submitAll(mapped)
@@ -112,14 +127,38 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
             binding.btnRegister.isEnabled = !syncing
         }
 
+        vm.postDetail.observe(viewLifecycleOwner) { detail ->
+            detail?.let { bindDetail(it) }
+        }
+        vm.fetchPostDetail(authToken, postId, onDone = {}, onError = ::toast)
+
+        vm.items.observe(viewLifecycleOwner) {
+            vm.getById(postId)?.let { item ->
+                if (binding.tvTitle.text.isNullOrBlank()) binding.tvTitle.text = item.title
+                if (binding.tvContent.text.isNullOrBlank()) binding.tvContent.text = item.content
+                if (binding.tvViews.text.isNullOrBlank()) binding.tvViews.text = item.views.toString()
+                if (binding.tvLikeCount.text.isNullOrBlank()) {
+                    binding.tvLikeCount.text = vm.getLikeCount(postId).toString()
+                }
+                applyHeart(vm.isPostLiked(postId.toLongOrNull() ?: -1))
+            }
+        }
+    }
+
+    private fun setupActions() {
         binding.btnRegister.setOnClickListener {
             val text = binding.editComment.text?.toString()?.trim().orEmpty()
-            if (text.isBlank()) { toast("댓글을 입력해 주세요."); return@setOnClickListener }
+            if (text.isBlank()) {
+                toast("댓글을 입력해 주세요.")
+                return@setOnClickListener
+            }
 
             val editingId = editingCommentId
             if (editingId == null) {
                 vm.addComment(
-                    token = authToken, postId = postId, text = text,
+                    authToken,
+                    postId,
+                    text,
                     onDone = {
                         binding.editComment.setText("")
                         hideKeyboard(binding.editComment)
@@ -128,7 +167,10 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
                 )
             } else {
                 vm.updateComment(
-                    token = authToken, postId = postId, commentId = editingId, text = text,
+                    authToken,
+                    postId,
+                    editingId,
+                    text,
                     onDone = {
                         exitEditMode()
                         toast("수정 완료")
@@ -138,37 +180,17 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
             }
         }
 
-        vm.postDetail.observe(viewLifecycleOwner) { detail ->
-            detail?.let { bindDetail(it) }
-        }
-        vm.fetchPostDetail(token = authToken, id = postId, onDone = {}, onError = ::toast)
-
-        vm.items.observe(viewLifecycleOwner) {
-            vm.getById(postId)?.let { item ->
-                if (binding.tvTitle.text.isNullOrBlank())
-                    binding.tvTitle.text = item.title
-                if (binding.tvContent.text.isNullOrBlank())
-                    binding.tvContent.text = item.content
-                if (binding.tvViews.text.isNullOrBlank())
-                    binding.tvViews.text = (item.views ?: 0).toString()
-                if (binding.tvLikeCount.text.isNullOrBlank())
-                    binding.tvLikeCount.text = vm.getLikeCount(postId).toString()
-                applyHeart(vm.isPostLiked(postId.toLongOrNull() ?: -1))
-            }
-        }
-
-        if (!didIncreaseView) {
-            binding.tvViews.text = vm.increaseViewCount(postId).toString()
-            didIncreaseView = true
-        }
-
-        // 좋아요
         binding.btnLike.setOnClickListener {
-            val pid = postId.toLongOrNull() ?: return@setOnClickListener toast("잘못된 게시글 ID")
+            val pid = postId.toLongOrNull()
+            if (pid == null) {
+                toast("잘못된 게시글 ID")
+                return@setOnClickListener
+            }
+
             binding.btnLike.isEnabled = false
             vm.togglePostLikeRemote(
-                token = authToken,
-                id = pid,
+                authToken,
+                pid,
                 onDone = { newCount ->
                     binding.tvLikeCount.text = newCount.toString()
                     applyHeart(vm.isPostLiked(pid))
@@ -181,10 +203,10 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
             )
         }
 
-        // 게시글(수정/삭제)
         binding.btnMore.isVisible = true
         binding.btnMore.setOnClickListener {
             showPostMenu(
+                isMine = false,
                 onEdit = {
                     val b = Bundle().apply {
                         putString(CommunityWriteFragment.ARG_MODE, CommunityWriteFragment.MODE_EDIT)
@@ -194,33 +216,33 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
                 },
                 onDelete = {
                     vm.deletePost(
-                        token = authToken,
-                        id = postId,
+                        authToken,
+                        postId,
                         onSuccess = { findNavController().popBackStack() },
-                        onError   = ::toast
+                        onError = ::toast
                     )
-                }
+                },
+                onReport = { showReportDialogInline() }
             )
+        }
+
+        binding.btnReport.isVisible = false
+        binding.btnReport.setOnClickListener {
+            showReportDialogInline()
         }
     }
 
-    private fun applyHeart(liked: Boolean) {
-        binding.ivLikeIcon.setImageResource(
-            if (liked) R.drawable.ic_fill_heart else R.drawable.ic_heart
-        )
-    }
-
     private fun bindDetail(detail: PostDetailDto) {
-        binding.tvTitle.text   = detail.title.orEmpty()
+        binding.tvTitle.text = detail.title.orEmpty()
         binding.tvContent.text = detail.content.orEmpty()
 
         val author = detail.nickname?.trim().orEmpty()
-        val date   = detail.createdAt?.trim().orEmpty()
+        val date = detail.createdAt?.trim().orEmpty()
         binding.tvDate.text = when {
             author.isNotBlank() && date.isNotBlank() -> "$author   $date"
-            date.isNotBlank()                        -> date
-            author.isNotBlank()                      -> author
-            else                                     -> ""
+            date.isNotBlank() -> date
+            author.isNotBlank() -> author
+            else -> ""
         }
 
         val file = detail.file?.trim()
@@ -231,12 +253,194 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
             binding.layoutFile.visibility = View.GONE
         }
 
-        val likeCount = detail.likeCount ?: 0
-        val liked     = detail.liked == true
-        binding.tvLikeCount.text = likeCount.toString()
-        applyHeart(liked)
+        binding.tvLikeCount.text = (detail.likeCount ?: 0).toString()
+        applyHeart(detail.liked == true)
+        binding.tvViews.text = (detail.viewCount ?: 0).toString()
 
-        if (ALLOW_ALL_POST_ACTIONS) binding.btnMore.isVisible = true
+        val isMyPost = detail.isMine == true
+        binding.btnReport.isVisible = !isMyPost
+        binding.btnMore.isVisible = true
+
+        // 달력 공유 표시
+        val shared = (detail.calendarShared == true)
+        val ownerId = detail.memberId ?: -1L
+
+        if (shared && ownerId > 0L) {
+            binding.calendarShare.isVisible = true
+            attachSharedCalendar(ownerMemberId = ownerId)
+        } else {
+            binding.calendarShare.isVisible = false
+            detachSharedCalendarIfAny()
+        }
+    }
+
+    private fun attachSharedCalendar(ownerMemberId: Long) {
+        if (!isAdded) return
+
+        if (attachedCalendarOwnerId == ownerMemberId &&
+            childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR) != null
+        ) {
+            // 초기값(7월/2024)으로 남아있을 수 있으니 다시 갱신
+            updateSharedCalendarHeaderTitle()
+            return
+        }
+
+        attachedCalendarOwnerId = ownerMemberId
+
+        // 기존 달력이 있으면 제거 후 교체
+        childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR)?.let { prev ->
+            childFragmentManager.beginTransaction().remove(prev).commitAllowingStateLoss()
+        }
+
+        val fragment = CalendarFragment().apply {
+            arguments = Bundle().apply {
+                putLong(CalendarFragment.ARG_TARGET_MEMBER_ID, ownerMemberId)
+                putBoolean(CalendarFragment.ARG_CALENDAR_READ_ONLY, true)
+            }
+        }
+
+        childFragmentManager.beginTransaction()
+            .replace(R.id.container_calendar, fragment, TAG_SHARED_CALENDAR)
+            .commitAllowingStateLoss()
+
+        childFragmentManager.executePendingTransactions()
+        updateSharedCalendarHeaderTitle()
+    }
+
+    private fun detachSharedCalendarIfAny() {
+        attachedCalendarOwnerId = null
+        childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR)?.let { f ->
+            childFragmentManager.beginTransaction()
+                .remove(f)
+                .commitAllowingStateLoss()
+        }
+    }
+
+    private fun setupSharedCalendarHeaderControls() {
+        binding.btnPrevMonth.setOnClickListener {
+            val cal = childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR) as? CalendarFragment
+            if (cal == null) return@setOnClickListener
+            cal.moveMonth(-1)
+            updateSharedCalendarHeaderTitle()
+        }
+
+        binding.btnNextMonth.setOnClickListener {
+            val cal = childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR) as? CalendarFragment
+            if (cal == null) return@setOnClickListener
+            cal.moveMonth(+1)
+            updateSharedCalendarHeaderTitle()
+        }
+    }
+
+    private fun updateSharedCalendarHeaderTitle() {
+        val cal = childFragmentManager.findFragmentByTag(TAG_SHARED_CALENDAR) as? CalendarFragment ?: return
+        val y = cal.getCurrentYear()
+        val m = cal.getCurrentMonth1()
+
+        binding.tvMonth.text = "${m}월"
+        binding.tvYear.text = y.toString()
+    }
+
+    private fun showPostMenu(
+        isMine: Boolean,
+        onEdit: () -> Unit,
+        onDelete: () -> Unit,
+        onReport: () -> Unit
+    ) {
+        val ctx = requireContext()
+        val anchor = binding.btnMore
+
+        val content = LayoutInflater.from(ctx).inflate(R.layout.dialog_community_menu, null)
+        val btnReport = content.findViewById<TextView>(R.id.btn_report)
+        val btnEdit = content.findViewById<TextView>(R.id.btn_edit)
+        val btnDelete = content.findViewById<TextView>(R.id.btn_delete)
+
+        val realIsMine = (vm.postDetail.value?.isMine == true) || isMine
+
+        if (realIsMine) {
+            btnReport.visibility = View.GONE
+            btnEdit.visibility = View.VISIBLE
+            btnDelete.visibility = View.VISIBLE
+        } else {
+            btnReport.visibility = View.VISIBLE
+            btnEdit.visibility = View.GONE
+            btnDelete.visibility = View.GONE
+        }
+
+        val popup = PopupWindow(content, WRAP_CONTENT, WRAP_CONTENT, true).apply {
+            isOutsideTouchable = true
+            setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+            elevation = dp(8).toFloat()
+        }
+
+        btnReport.setOnClickListener {
+            popup.dismiss()
+            onReport()
+        }
+        btnEdit.setOnClickListener {
+            popup.dismiss()
+            onEdit()
+        }
+        btnDelete.setOnClickListener {
+            popup.dismiss()
+            AlertDialog.Builder(ctx)
+                .setMessage("게시글을 삭제할까요?")
+                .setNegativeButton("취소", null)
+                .setPositiveButton("삭제") { _, _ -> onDelete() }
+                .show()
+        }
+
+        content.measure(
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        val popupW = content.measuredWidth
+        val xOff = anchor.width - popupW - dp(6)
+        val yOff = dp(6)
+        popup.showAsDropDown(anchor, xOff, yOff)
+    }
+
+    private fun showReportDialogInline() {
+        val ctx = requireContext()
+        val input = EditText(ctx).apply {
+            hint = "신고 사유(선택)"
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+        }
+
+        AlertDialog.Builder(ctx)
+            .setTitle("게시글 신고")
+            .setView(input)
+            .setNegativeButton("취소", null)
+            .setPositiveButton("신고") { _, _ ->
+                val pid = postId.toLongOrNull()
+                if (pid == null) {
+                    toast("잘못된 게시글 ID")
+                    return@setPositiveButton
+                }
+
+                binding.btnReport.isEnabled = false
+
+                vm.reportPost(
+                    token = authToken,
+                    postId = pid,
+                    reason = input.text?.toString().orEmpty(),
+                    onSuccess = {
+                        toast("신고가 접수되었습니다.")
+                        binding.btnReport.isEnabled = true
+                    },
+                    onError = {
+                        toast(it)
+                        binding.btnReport.isEnabled = true
+                    }
+                )
+            }
+            .show()
+    }
+
+    private fun applyHeart(liked: Boolean) {
+        binding.ivLikeIcon.setImageResource(
+            if (liked) R.drawable.ic_fill_heart else R.drawable.ic_heart
+        )
     }
 
     private fun enterEditModeUi(c: Comment) {
@@ -258,58 +462,29 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
         hideKeyboard(binding.editComment)
     }
 
-    private fun showPostMenu(onEdit: () -> Unit, onDelete: () -> Unit) {
-        val ctx = requireContext()
-        val anchor = binding.btnMore
-
-        val content = LayoutInflater.from(ctx).inflate(R.layout.dialog_community_menu, null)
-        val btnReport = content.findViewById<TextView>(R.id.btn_report)
-        val btnEdit   = content.findViewById<TextView>(R.id.btn_edit)
-        val btnDelete = content.findViewById<TextView>(R.id.btn_delete)
-
-        val popup = PopupWindow(content, WRAP_CONTENT, WRAP_CONTENT, true).apply {
-            isOutsideTouchable = true
-            setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-            elevation = dp(8).toFloat()
-        }
-
-        btnReport.setOnClickListener { popup.dismiss(); toast("신고하기는 준비 중이에요.") }
-        btnEdit.setOnClickListener   { popup.dismiss(); onEdit() }
-        btnDelete.setOnClickListener {
-            popup.dismiss()
-            AlertDialog.Builder(ctx)
-                .setMessage("게시글을 삭제할까요?")
-                .setNegativeButton("취소", null)
-                .setPositiveButton("삭제") { _, _ -> onDelete() }
-                .show()
-        }
-
-        content.measure(
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-        )
-        val popupW = content.measuredWidth
-        val xOff = anchor.width - popupW - dp(6)
-        val yOff = dp(6)
-        popup.showAsDropDown(anchor, xOff, yOff)
-    }
-
     private fun readAuthToken(ctx: Context): String? {
-        val raw = ctx.getSharedPreferences("auth", 0).getString("token", null).orEmpty()
+        val raw = ctx.getSharedPreferences("auth", 0)
+            .getString("token", null)
+            .orEmpty()
         if (raw.isBlank()) return null
         return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
     }
 
     private fun toast(msg: String?) {
-        if (!msg.isNullOrBlank()) Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+        if (!msg.isNullOrBlank()) {
+            Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun showKeyboard(v: View) {
-        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm = requireContext()
+            .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         v.post { imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT) }
     }
+
     private fun hideKeyboard(v: View) {
-        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm = requireContext()
+            .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(v.windowToken, 0)
     }
 
@@ -318,20 +493,21 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        detachSharedCalendarIfAny()
         _binding = null
     }
 
     private fun CommentDto.toUi(): Comment =
         Comment(
-            id        = this.commentId ?: -1L,
-            memberId  = this.memberId,
-            nickname  = this.nickname?.ifBlank { "익명" } ?: "익명",
-            content   = this.comment.orEmpty(),
-            createdAt = parseIsoToMillisFlexible(this.commentDate)
-                ?: System.currentTimeMillis(),
-            likeCount = 0,
-            isLiked   = this.liked == true,
-            isEdited  = false
+            id = this.commentId ?: -1L,
+            memberId = this.memberId,
+            nickname = this.nickname?.ifBlank { "익명" } ?: "익명",
+            content = this.comment.orEmpty(),
+            createdAt = parseIsoToMillisFlexible(this.commentDate) ?: System.currentTimeMillis(),
+            likeCount = this.likeCount ?: 0,
+            isLiked = this.liked == true,
+            isEdited = false,
+            isMine = this.isMine == true
         )
 
     private fun parseIsoToMillisFlexible(iso: String?): Long? {
@@ -346,7 +522,7 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
         for (p in patterns) {
             try {
                 val sdf = SimpleDateFormat(p, Locale.US)
-                sdf.timeZone = TimeZone.getTimeZone("UTC")
+                sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
                 return sdf.parse(iso)?.time
             } catch (_: Throwable) {}
         }

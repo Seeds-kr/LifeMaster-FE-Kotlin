@@ -8,5 +8,6 @@ data class Comment(
     val createdAt: Long,
     val likeCount: Int = 0,
     val isLiked: Boolean = false,
-    val isEdited: Boolean = false
+    val isEdited: Boolean = false,
+    val isMine: Boolean = false
 )

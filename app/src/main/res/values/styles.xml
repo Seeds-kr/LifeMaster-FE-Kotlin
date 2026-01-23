@@ -12,8 +12,8 @@
     </style>
     <!-- 챌린지 검색창 스타일 -->
     <style name="CustomSearchViewStyle" parent="Widget.AppCompat.SearchView">
-        <item name="android:textSize">20sp</item></style>
-
+        <item name="android:textSize">20sp</item>
+    </style>
     <style name="CalendarWeekHeader">
         <item name="android:layout_width">32dp</item>
         <item name="android:layout_height">22dp</item>

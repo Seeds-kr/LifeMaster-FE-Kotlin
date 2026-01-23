@@ -72,10 +72,14 @@ class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
                         return
                     }
                     val tokenOrId = res.body().orEmpty()
-                    saveToken(tokenOrId)
+                    // JWT 또는 숫자 ID 에서 userId 추출 (있으면 memberId 용으로 저장)
+                    val extractedUserId = extractUserId(tokenOrId)
 
-                    val userId = extractUserId(tokenOrId)
-                    if (userId == null || userId <= 0L) {
+                    // 토큰 + 이메일 + (있다면) memberId 를 한 번에 저장
+                    saveToken(tokenOrId, email, extractedUserId)
+
+                    if (extractedUserId == null || extractedUserId <= 0L) {
+                        // 토큰에서 ID 추출이 안 돼도, 로그인/토큰/이메일은 이미 저장된 상태
                         toast("로그인 성공했지만 사용자 ID를 확인할 수 없어요.")
                     }
 
@@ -110,10 +114,16 @@ class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
             ?: "로그인에 실패했어요 (${res.code()})"
     }
 
-    private fun saveToken(token: String) {
+    private fun saveToken(token: String, email: String, userId: Long?) {
         requireContext()
             .getSharedPreferences("auth", Context.MODE_PRIVATE)
-            .edit { putString("token", token) }
+            .edit {
+                putString("token", token)
+                putString("userId", email)
+                if (userId != null && userId > 0L) {
+                    putLong("memberId", userId)
+                }
+            }
     }
 
     private fun extractUserId(tokenOrId: String): Long? {

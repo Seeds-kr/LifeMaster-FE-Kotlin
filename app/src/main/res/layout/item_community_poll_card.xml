@@ -26,7 +26,7 @@
                 android:id="@+id/pollLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="오늘의 투표"
+                android:text="@string/today_poll"
                 android:textSize="12sp"
                 android:textColor="#EA9F95" />
 
@@ -47,9 +47,9 @@
                 android:id="@+id/pollParticipants"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="이 참여했어요"
+                android:text="@string/poll_participants"
                 android:textSize="12sp"
-                android:textColor="#9AA1A9"/>
+                android:textColor="#C5C6C6"/>
         </LinearLayout>
 
         <TextView
@@ -58,7 +58,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             tools:text="다음 업데이트에 추가되었으면 하는 기능은?"
-            android:textColor="#1C1E21"
+            android:textColor="#131313"
             android:textSize="14sp"
             android:textStyle="bold"/>
 
@@ -174,7 +174,7 @@
                         android:layout_height="wrap_content"
                         tools:text="자유게시판 투표 기능"
                         android:textSize="12sp"
-                        android:textColor="#131313"
+                        android:textColor="#99131313"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"/>
@@ -185,7 +185,7 @@
                         android:layout_height="wrap_content"
                         tools:text="61%"
                         android:textSize="12sp"
-                        android:textColor="#9AA1A9"
+                        android:textColor="#99131313"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"/>
@@ -230,7 +230,7 @@
                         android:layout_height="wrap_content"
                         tools:text="뽀모도로 비상탈출 신기능"
                         android:textSize="12sp"
-                        android:textColor="#131313"
+                        android:textColor="#99131313"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"/>
@@ -241,7 +241,7 @@
                         android:layout_height="wrap_content"
                         tools:text="28%"
                         android:textSize="12sp"
-                        android:textColor="#9AA1A9"
+                        android:textColor="#99131313"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"/>
@@ -286,7 +286,7 @@
                         android:layout_height="wrap_content"
                         tools:text="커스텀 챌린지 추가 기능"
                         android:textSize="12sp"
-                        android:textColor="#131313"
+                        android:textColor="#99131313"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"/>
@@ -297,7 +297,7 @@
                         android:layout_height="wrap_content"
                         tools:text="9%"
                         android:textSize="12sp"
-                        android:textColor="#9AA1A9"
+                        android:textColor="#99131313"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"/>

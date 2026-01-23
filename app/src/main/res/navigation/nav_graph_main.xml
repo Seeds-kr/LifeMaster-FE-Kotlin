@@ -27,6 +27,9 @@
             android:id="@+id/action_homeFragment_to_alarmListFragment"
             app:destination="@id/alarmListFragment" />
         <action
+            android:id="@+id/action_homeFragment_to_alarmSettingFragment"
+            app:destination="@id/alarmSettingFragment" />
+        <action
             android:id="@+id/action_homeFragment_to_sleepReportFragment"
             app:destination="@id/sleepReportFragment" />
         <action
@@ -35,6 +38,12 @@
         <action
             android:id="@+id/action_homeFragment_to_groupFragment"
             app:destination="@id/groupFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_introspectionFragment"
+            app:destination="@id/introspectionFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_challengeFragment"
+            app:destination="@id/challengeFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
@@ -105,14 +114,37 @@
     </fragment>
     <fragment
         android:id="@+id/groupFragment"
-        android:name="com.example.lifemaster.presentation.group.GroupFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupFragment"
         android:label="fragment_group"
-        tools:layout="@layout/fragment_group" />
+        tools:layout="@layout/fragment_group" >
+        <action
+            android:id="@+id/action_groupFragment_to_groupListFragment"
+            app:destination="@id/groupListFragment" />
+        <action
+            android:id="@+id/action_groupFragment_to_groupCreateFragment"
+            app:destination="@id/groupCreateFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/groupListFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupListFragment"
+        android:label="fragment_group_list"
+        tools:layout="@layout/fragment_group_list" />
+    <fragment
+        android:id="@+id/groupCreateFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupCreateFragment"
+        android:label="GroupCreateFragment"
+        tools:layout="@layout/fragment_group_create" />
     <fragment
         android:id="@+id/introspectionFragment"
         android:name="com.example.lifemaster.presentation.total.introspection.IntrospectionFragment"
         android:label="fragment_introspection"
-        tools:layout="@layout/fragment_introspection" />
+        tools:layout="@layout/fragment_introspection">
+
+        <argument
+            android:name="startTab"
+            android:defaultValue="TODAY"
+            app:argType="string" />
+    </fragment>
     <fragment
         android:id="@+id/challengeFragment"
         android:name="com.example.lifemaster.presentation.total.challenge.fragment.ChallengeFragment"
@@ -131,13 +163,8 @@
         tools:layout="@layout/fragment_challenge_detail">
             <argument
                 android:name="challId"
-                app:argType="Long" />
+                app:argType="long"/>
     </fragment>
-        tools:layout="@layout/fragment_challenge_detail">
-        <argument
-            android:name="challId"
-            app:argType="string" />
-
 
     <fragment
         android:id="@+id/totalFragment"

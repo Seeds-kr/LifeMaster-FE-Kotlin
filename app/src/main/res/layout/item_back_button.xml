@@ -12,6 +12,6 @@
         android:layout_height="24dp"
         android:clickable="true"
         android:focusable="true"
-        android:contentDescription="back-button"
+        android:contentDescription="@string/back_button"
         android:src="@drawable/ic_back" />
 </FrameLayout>

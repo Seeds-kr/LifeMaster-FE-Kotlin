@@ -231,6 +231,7 @@
                 </LinearLayout>
 
                 <include
+                    android:id="@+id/layout_alarm_preview"
                     layout="@layout/item_alarm_preview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
