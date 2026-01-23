@@ -66,7 +66,8 @@
                         android:id="@+id/guideline_half"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical" />
+                        android:orientation="vertical"
+                        app:layout_constraintGuide_percent="0.5" />
 
                     <!-- 공개 그룹 -->
                     <TextView

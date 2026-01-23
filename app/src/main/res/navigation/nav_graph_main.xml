@@ -163,13 +163,8 @@
         tools:layout="@layout/fragment_challenge_detail">
             <argument
                 android:name="challId"
-                app:argType="Long" />
+                app:argType="long"/>
     </fragment>
-        tools:layout="@layout/fragment_challenge_detail">
-        <argument
-            android:name="challId"
-            app:argType="string" />
-
 
     <fragment
         android:id="@+id/totalFragment"

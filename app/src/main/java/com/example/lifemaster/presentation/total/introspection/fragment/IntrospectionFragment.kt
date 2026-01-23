@@ -1,6 +1,6 @@
 package com.example.lifemaster.presentation.total.introspection
 
-import ThankViewModel
+import com.example.lifemaster.presentation.total.introspection.viewmodel.ThankViewModel
 import android.os.Bundle
 import android.transition.TransitionManager
 import android.view.LayoutInflater
@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentIntrospectionBinding
 import androidx.fragment.app.viewModels
+import com.example.lifemaster.presentation.total.introspection.viewmodel.UiState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -40,11 +41,6 @@ class IntrospectionFragment : Fragment() {
             if (diaryIdArg != 0L) {
                 isEditMode = true
                 diaryId = diaryIdArg
-            }
-            // 메인화면에서 자아성찰 들어올때 오늘의 일기, 5감사 구분시 사용
-            if (!isEditMode) {
-                val startTab = arguments?.getString(ARG_START_TAB, "TODAY") ?: "TODAY"
-                currentMode = if (startTab == "THANKS") Mode.THANKS else Mode.TODAY
             }
         }
     }
@@ -381,8 +377,6 @@ class IntrospectionFragment : Fragment() {
 
     companion object {
         private const val ARG_THANK_ID = "thank_id"
-        // 메인화면에서 자아성찰로 이동 시 사용
-        private const val ARG_START_TAB = "startTab"
         private const val ARG_DIARY_ID = "diary_id"
 
         // '새로 작성' 모드로 Fragment를 열 때 사용
