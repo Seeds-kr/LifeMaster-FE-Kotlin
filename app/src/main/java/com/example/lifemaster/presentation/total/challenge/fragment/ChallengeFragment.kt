@@ -17,7 +17,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster.R
-import com.example.lifemaster.data.repository.challenge.ChallengeRepository
 import com.example.lifemaster.databinding.FragmentChallengeBinding
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
@@ -41,8 +40,7 @@ class ChallengeFragment : Fragment() {
 
     // DI를 사용하여 ViewModel 생성
     private val viewModel: ChallengeViewModel by lazy {
-        val repository = ChallengeRepository(RetrofitInstance.networkService)
-        val factory = ChallengeViewModelFactory(repository, RetrofitInstance.networkService)
+        val factory = ChallengeViewModelFactory(RetrofitInstance.networkService)
         ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
     }
 

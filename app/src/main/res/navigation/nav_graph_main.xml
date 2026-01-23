@@ -50,7 +50,6 @@
         android:name="com.example.lifemaster.presentation.community.view.CommunityFragment"
         android:label="CommunityFragment"
         tools:layout="@layout/fragment_community_free">
-        tools:layout="@layout/fragment_community_free" >
         <action
             android:id="@+id/action_communityFragment_to_communityWriteFragment"
             app:destination="@id/communityWriteFragment"/>

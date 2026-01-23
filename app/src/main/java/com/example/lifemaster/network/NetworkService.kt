@@ -8,7 +8,7 @@ import com.example.lifemaster.presentation.home.calendar.model.CalendarEntry
 import com.example.lifemaster.presentation.home.calendar.model.EventBody
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
-import com.example.lifemaster.data.remote.dto.ChallengeListResponse
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
@@ -177,7 +177,7 @@ interface NetworkService {
     suspend fun getChallengeDetail(
         @Header("Authorization") token: String,
         @Path("challId") challId: Long
-    ): Response<com.example.lifemaster.data.remote.dto.ChallengeItemDto>
+    ): Response<com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto>
 
     // 챌린지 검색
     @GET("/challenge/search")
@@ -185,7 +185,7 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Query("name") name: String,
         @Query("page") page: Int = 0
-    ): com.example.lifemaster.data.remote.dto.ChallengeListResponse
+    ): com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
 
     // 감사일기 생성
     @POST("/schedule/self-reflection/thank")
