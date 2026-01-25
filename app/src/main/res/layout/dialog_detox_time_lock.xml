@@ -84,7 +84,7 @@
             android:layout_height="40dp"
             android:text="10"
             android:textSize="16sp"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#F0F4F5"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
@@ -103,7 +103,7 @@
             android:layout_height="40dp"
             android:text="20"
             android:textSize="16sp"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#F0F4F5"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
@@ -117,7 +117,7 @@
             android:layout_height="40dp"
             android:text="AM"
             android:textColor="@color/white"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#AFDA78"
             android:layout_marginLeft="12dp"/>
     </LinearLayout>
@@ -139,7 +139,7 @@
             android:id="@+id/btn_end_hour"
             android:layout_width="60dp"
             android:layout_height="40dp"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#F0F4F5"
             android:paddingStart="20dp"
             android:paddingTop="8dp"
@@ -161,7 +161,7 @@
             android:layout_height="40dp"
             android:text="20"
             android:textSize="16sp"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#F0F4F5"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
@@ -175,7 +175,7 @@
             android:layout_height="40dp"
             android:text="PM"
             android:textColor="@color/white"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#AFDA78"
             android:layout_marginLeft="12dp"/>
     </LinearLayout>
@@ -191,7 +191,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="취소하기"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#F0F4F5"
             android:layout_marginEnd="8dp"/>
         <androidx.appcompat.widget.AppCompatButton
@@ -201,7 +201,7 @@
             android:layout_height="wrap_content"
             android:text="추가하기"
             android:textColor="@color/white"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#B4D775"/>
     </LinearLayout>
 

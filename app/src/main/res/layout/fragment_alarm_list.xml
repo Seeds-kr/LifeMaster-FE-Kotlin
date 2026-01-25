@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".presentation.group.view.fragment.AlarmListFragment">
+    tools:context=".presentation.home.alarm.view.fragment.AlarmListFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -31,13 +31,18 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tv_add_alarm_item"
-            android:layout_width="48dp"
-            android:layout_height="match_parent"
-            android:gravity="right|center_vertical"
-            android:text="추가"
-            android:textColor="@color/black" />
+        <ImageView
+            android:id="@+id/iv_alarm_item_add"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_plus"/>
+
+        <ImageView
+            android:id="@+id/iv_alarm_item_option"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_option"/>
     </LinearLayout>
 
     <View
@@ -69,7 +74,7 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerview"
+        android:id="@+id/alarmRecyclerview"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
