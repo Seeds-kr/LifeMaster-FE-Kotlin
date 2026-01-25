@@ -1,5 +1,6 @@
 package com.example.lifemaster.network
 
+import com.example.lifemaster.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,8 +21,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = ""
-
     @Singleton
     @Provides
     fun provideNetworkService(retrofit: Retrofit): NetworkService {
@@ -32,7 +31,7 @@ object NetworkModule {
     @Provides
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(ScalarsConverterFactory.create()) // json 구조의 응답이 아닌 경우 처리
             .addConverterFactory(GsonConverterFactory.create()) // json 구조 응답 처리
