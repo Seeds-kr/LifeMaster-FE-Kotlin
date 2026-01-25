@@ -147,7 +147,7 @@ class HomeFragment : Fragment() {
         tvAlarmTime = binding.root.findViewById(R.id.tv_alarm_time)
         btnAlarmSetting = binding.root.findViewById(R.id.btn_alarm_setting)
         btnAlarmSetting?.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_alarmSettingFragment)
+            findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
         }
     }
 

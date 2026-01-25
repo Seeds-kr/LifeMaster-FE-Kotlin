@@ -9,6 +9,25 @@ import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
 import com.example.lifemaster.presentation.community.model.*
+import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
+import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
+import com.example.lifemaster.presentation.home.calendar.model.CalendarEntry
+import com.example.lifemaster.presentation.home.calendar.model.EventBody
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroResponse
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
+import com.example.lifemaster.presentation.home.todo.model.TodoRequest
+import com.example.lifemaster.presentation.home.todo.model.TodoResponse
+import com.example.lifemaster.presentation.login.model.EmailRequest
+import com.example.lifemaster.presentation.login.model.PasswordResetDto
+import com.example.lifemaster.presentation.login.model.PasswordResponseDto
+import com.example.lifemaster.presentation.login.model.RegNickResponse
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
+import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
+import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -57,9 +76,6 @@ interface NetworkService {
         @Body loginInfo: LoginInfo
     ): Call<String>
 
-    /**
-     * To-Do List API
-     */
     // 비밀번호 재설정
     @Headers("Content-Type: application/json")
     @POST("auth/password/reset/confirm-email")
@@ -78,12 +94,9 @@ interface NetworkService {
         @Body body: PasswordResetDto
     ): Call<PasswordResponseDto>
 
-    // 모든 To-Do 항목 조회
-    @GET("/schedule/todo")
-    fun getTodoItems(
-        @Header("Authorization") token: String
-    ): Call<List<TodoItem>>
-
+    /**
+     * To-Do List API
+     */
     // 새 To-Do 생성
     @POST("/schedule/todo/create")
     suspend fun addTodoItem(
@@ -183,7 +196,7 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Query("name") name: String,
         @Query("page") page: Int = 0
-    ): com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
+    ): ChallengeListResponse
 
     // 감사일기 생성
     @POST("/schedule/self-reflection/thank")
