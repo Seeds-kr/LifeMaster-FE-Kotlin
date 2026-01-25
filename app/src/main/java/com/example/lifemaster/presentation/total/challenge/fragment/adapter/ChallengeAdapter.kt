@@ -2,15 +2,14 @@ package com.example.lifemaster.presentation.total.challenge.fragment.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ItemChallengeBinding
-import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem // 네트워크 모델 import
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 
-class ChallengeAdapter : ListAdapter<ChallengeItem, ChallengeAdapter.ChallengeViewHolder>(ChallengeDiffCallback()) {
+class ChallengeAdapter : PagingDataAdapter<ChallengeItem, ChallengeAdapter.ChallengeViewHolder>(ChallengeDiffCallback()) {
 
     var onItemClickListener: ((ChallengeItem) -> Unit)? = null
     var onJoinButtonClickListener: ((ChallengeItem) -> Unit)? = null
@@ -21,37 +20,49 @@ class ChallengeAdapter : ListAdapter<ChallengeItem, ChallengeAdapter.ChallengeVi
     }
 
     override fun onBindViewHolder(holder: ChallengeViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val challenge = getItem(position)
+        if (challenge != null) {
+            holder.bind(challenge)
+        }
     }
 
     inner class ChallengeViewHolder(private val binding: ItemChallengeBinding) : RecyclerView.ViewHolder(binding.root) {
 
+        init {
+            itemView.setOnClickListener {
+                getItem(bindingAdapterPosition)?.let { challenge ->
+                    onItemClickListener?.invoke(challenge)
+                }
+            }
+
+            binding.btnJoinChallenge.setOnClickListener {
+                getItem(bindingAdapterPosition)?.let { challenge ->
+                    onJoinButtonClickListener?.invoke(challenge)
+                }
+            }
+        }
+
         fun bind(challenge: ChallengeItem) {
             binding.tvChallengeTitle.text = challenge.challName
-            binding.tvChallengeDescription.text = challenge.challDesc
+            binding.tvParticipantCount.text = "${challenge.challJoinCnt}명 참여중"
 
-            Glide.with(itemView.context)
-                .load(challenge.challImg)
-                .placeholder(R.drawable.ic_loading) // 임시 이미지
-                .error(R.drawable.ic_alert) // 임시 이미지
-                .into(binding.ivChallengeBanner)
-
-            // 아이템 전체 클릭 리스너 설정
-            itemView.setOnClickListener {
-                onItemClickListener?.invoke(getItem(adapterPosition))
-            }
-
-            // 참여하기 버튼 클릭 리스너 설정
-            binding.btnJoinChallenge.setOnClickListener {
-                onJoinButtonClickListener?.invoke(getItem(adapterPosition))
-            }
+            Glide.with(binding.ivChallengeBanner.context)
+                .load(challenge.challImg) // 이미지 URL
+                //.placeholder(R.drawable.loading_placeholder) // 로딩 중에 보여줄 이미지
+                //.error(R.drawable.error_placeholder)         // 에러 시 보여줄 이미지
+                .into(binding.ivChallengeBanner) // 이미지를 표시할 ImageView
         }
     }
 
-    class ChallengeDiffCallback : DiffUtil.ItemCallback<ChallengeItem>() {
+    // DiffUtil: RecyclerView의 성능을 최적화하기 위해 사용됨
+    // PagingDataAdapter: 내부적으로 DiffUtil을 사용하여 아이템 변경을 효율적으로 처리
+    private class ChallengeDiffCallback : DiffUtil.ItemCallback<ChallengeItem>() {
+        // 두 아이템이 동일한 객체인지 ID로 비교
         override fun areItemsTheSame(oldItem: ChallengeItem, newItem: ChallengeItem): Boolean {
             return oldItem.challId == newItem.challId
         }
+
+        // 두 아이템의 내용이 동일한지 모든 속성 비교
         override fun areContentsTheSame(oldItem: ChallengeItem, newItem: ChallengeItem): Boolean {
             return oldItem == newItem
         }

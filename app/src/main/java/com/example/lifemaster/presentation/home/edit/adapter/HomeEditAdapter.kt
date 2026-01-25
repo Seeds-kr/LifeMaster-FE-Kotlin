@@ -1,22 +1,24 @@
 package com.example.lifemaster.presentation.home.edit.adapter
 
-import android.graphics.Color
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
-import java.util.*
+import java.util.Collections
 
 class HomeEditAdapter(
     private val itemList: MutableList<String>,
     private val isServiceList: Boolean,
     private val onToggleClick: (String, Boolean) -> Unit,
-    private val startDragListener: OnStartDragListener? = null
-) : RecyclerView.Adapter<HomeEditAdapter.ServiceViewHolder>(), HomeEditTouchHelperAdapter {
+    private val startDragListener: HomeEditOnStartDragListener? = null
+) : RecyclerView.Adapter<HomeEditAdapter.ServiceViewHolder>(),
+    HomeEditTouchHelperAdapter {
 
     private val iconTintMap = mapOf(
         "수면" to "#333333",
@@ -40,33 +42,45 @@ class HomeEditAdapter(
         return ServiceViewHolder(view)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: ServiceViewHolder, position: Int) {
         val item = itemList[position]
+
         holder.tvServiceName.text = item
-
-        val tintColor = Color.parseColor(iconTintMap[item] ?: "#333333")
-        holder.ivServiceIcon.setColorFilter(tintColor)
-
+        holder.ivServiceIcon.setColorFilter((iconTintMap[item] ?: "#333333").toColorInt())
         holder.ivToggle.setImageResource(
             if (isServiceList) R.drawable.ic_toggle_delete else R.drawable.ic_toggle_add
         )
-        holder.ivToggle.setOnClickListener {
-            onToggleClick(item, isServiceList)
-        }
+        holder.ivToggle.setOnClickListener { onToggleClick(item, isServiceList) }
 
-        holder.ivDragHandle.visibility = View.VISIBLE
-        holder.ivDragHandle.setOnTouchListener { _, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                startDragListener?.onStartDrag(holder)
+        holder.ivDragHandle.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                v.findParentRecyclerView()?.let { rv ->
+                    startDragListener?.onStartDrag(rv, holder)
+                }
             }
             false
         }
     }
 
     override fun getItemCount(): Int = itemList.size
+
+    override fun getItemId(position: Int): Long =
+        itemList[position].hashCode().toLong()
+
     override fun onItemMove(fromPosition: Int, toPosition: Int): Boolean {
+        if (fromPosition == toPosition) return false
         Collections.swap(itemList, fromPosition, toPosition)
         notifyItemMoved(fromPosition, toPosition)
         return true
+    }
+
+    private fun View.findParentRecyclerView(): RecyclerView? {
+        var p = parent
+        while (p is ViewGroup) {
+            if (p is RecyclerView) return p
+            p = p.parent
+        }
+        return null
     }
 }

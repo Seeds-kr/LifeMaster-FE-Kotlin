@@ -5,12 +5,11 @@ data class CommunityItem(
     val title: String,
     val content: String,
     val author: String,
-    val authorImage: String? = null,
-    val likes: Int = 0,
-    val views: Int = 0,
-    val createdAt: Long = 0L,
-    val fileUri: String? = null,
-    val type: String = "FREE",
-    val commentCount: Int = 0,
-    val comments: List<Comment> = emptyList()
+    val likes: Int,
+    val liked: Boolean,
+    val views: Int,
+    val createdAt: String?,
+    val fileUri: String?,
+    val type: String?,
+    val commentCount: Int
 )

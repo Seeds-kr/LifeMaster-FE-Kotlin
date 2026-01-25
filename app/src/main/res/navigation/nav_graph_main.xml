@@ -25,6 +25,12 @@
         <action
             android:id="@+id/action_homeFragment_to_pomodoroFragment"
             app:destination="@id/pomodoroFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_introspectionFragment"
+            app:destination="@id/introspectionFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_challengeFragment"
+            app:destination="@id/challengeFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
@@ -40,7 +46,7 @@
         <action
             android:id="@+id/action_communityFragment_to_communityImproveFragment"
             app:destination="@+id/communityImproveFragment"/>
-</fragment>
+    </fragment>
     <fragment
         android:id="@+id/communityImproveFragment"
         android:name="com.example.lifemaster.presentation.community.view.CommunityImproveFragment"
@@ -101,29 +107,57 @@
     </fragment>
     <fragment
         android:id="@+id/groupFragment"
-        android:name="com.example.lifemaster.presentation.group.GroupFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupFragment"
         android:label="fragment_group"
-        tools:layout="@layout/fragment_group" />
+        tools:layout="@layout/fragment_group" >
+        <action
+            android:id="@+id/action_groupFragment_to_groupListFragment"
+            app:destination="@id/groupListFragment" />
+        <action
+            android:id="@+id/action_groupFragment_to_groupCreateFragment"
+            app:destination="@id/groupCreateFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/groupListFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupListFragment"
+        android:label="fragment_group_list"
+        tools:layout="@layout/fragment_group_list" />
+    <fragment
+        android:id="@+id/groupCreateFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupCreateFragment"
+        android:label="GroupCreateFragment"
+        tools:layout="@layout/fragment_group_create" />
     <fragment
         android:id="@+id/introspectionFragment"
         android:name="com.example.lifemaster.presentation.total.introspection.IntrospectionFragment"
         android:label="fragment_introspection"
-        tools:layout="@layout/fragment_introspection" />
+        tools:layout="@layout/fragment_introspection">
+
+        <argument
+            android:name="startTab"
+            android:defaultValue="TODAY"
+            app:argType="string" />
+    </fragment>
     <fragment
         android:id="@+id/challengeFragment"
-        android:name="com.example.lifemaster.presentation.challenge.ChallengeFragment"
+        android:name="com.example.lifemaster.presentation.total.challenge.fragment.ChallengeFragment"
         android:label="fragment_challenge"
         tools:layout="@layout/fragment_challenge" >
         <action
             android:id="@+id/action_challengeFragment_to_challengeDetailFragment"
-            app:destination="@id/challengeDetailFragment" />
+            app:destination="@id/challengeDetailFragment" >
+        </action>
     </fragment>
 
     <fragment
         android:id="@+id/challengeDetailFragment"
         android:name="com.example.lifemaster.presentation.total.challenge.fragment.ChallengeDetailFragment"
         android:label="fragment_challenge_detail"
-        tools:layout="@layout/fragment_challenge_detail" />
+        tools:layout="@layout/fragment_challenge_detail">
+            <argument
+                android:name="challId"
+                app:argType="long"/>
+    </fragment>
 
     <fragment
         android:id="@+id/totalFragment"
@@ -178,7 +212,7 @@
         <argument
             android:name="currentPageNum"
             android:defaultValue="1"
-            app:argType="integer"/>
+            app:argType="integer" />
         <action
             android:id="@+id/action_alarmRandomMissionTapFragment_to_alarmListFragment"
             app:destination="@id/alarmListFragment"

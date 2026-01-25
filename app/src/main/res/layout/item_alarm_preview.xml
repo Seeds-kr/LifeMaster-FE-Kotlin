@@ -19,32 +19,30 @@
             android:id="@+id/tv_alarm_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="7월 20일"
+            android:text="@string/alarm_preview_date"
             android:textColor="#333333"
             android:textSize="12sp" />
 
         <TextView
             android:id="@+id/tv_alarm_time"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:text="오전 8:50"
+            android:text="@string/alarm_preview_time"
             android:textColor="#333333"
             android:textSize="14sp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_sleep_report"
+            android:id="@+id/btn_alarm_setting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="47dp"
-            android:text="설정"
+            android:text="@string/alarm_preview_setting"
             android:textSize="12sp"
             android:textColor="@android:color/white"
             app:cornerRadius="8dp"
             app:backgroundTint="#BBAB94"
             app:cardElevation="0dp"/>
-
-
     </LinearLayout>
 </androidx.cardview.widget.CardView>

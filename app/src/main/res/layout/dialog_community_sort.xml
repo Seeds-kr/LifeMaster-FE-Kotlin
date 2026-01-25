@@ -18,9 +18,9 @@
 
         <TextView
             android:id="@+id/btn_sort_latest"
-            android:layout_width="0dp"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
             android:text="최신 순"
             android:textColor="#565656"
             android:textSize="12sp" />
@@ -30,7 +30,7 @@
             android:layout_width="12dp"
             android:layout_height="12dp"
             android:src="@drawable/ic_check"
-            android:visibility="gone" />
+            android:visibility="invisible" />
     </LinearLayout>
 
     <LinearLayout
@@ -45,9 +45,9 @@
 
         <TextView
             android:id="@+id/btn_sort_like"
-            android:layout_width="0dp"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
             android:text="좋아요 순"
             android:textColor="#565656"
             android:textSize="12sp" />
@@ -57,7 +57,7 @@
             android:layout_width="12dp"
             android:layout_height="12dp"
             android:src="@drawable/ic_check"
-            android:visibility="gone" />
+            android:visibility="invisible" />
     </LinearLayout>
 
 </LinearLayout>

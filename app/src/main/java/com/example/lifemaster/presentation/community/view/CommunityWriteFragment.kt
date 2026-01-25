@@ -30,6 +30,7 @@ class CommunityWriteFragment : Fragment() {
         const val MODE_CREATE = "create"
         const val MODE_EDIT = "edit"
         private const val STATE_CALENDAR_SHARE = "state_calendar_share"
+        const val ARG_POST_TYPE = "arg_post_type"
     }
 
     private val vm: CommunityViewModel by activityViewModels()
@@ -49,23 +50,19 @@ class CommunityWriteFragment : Fragment() {
             applyFileUi()
         }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View =
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         inflater.inflate(R.layout.fragment_community_write, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val rowCalendar = view.findViewById<LinearLayout>(R.id.row_calendar_share)
-        val ivCalendar = view.findViewById<ImageView>(R.id.iv_calendar_share)
+        val ivCalendar  = view.findViewById<ImageView>(R.id.iv_calendar_share)
 
-        val btnReg = view.findViewById<LinearLayout>(R.id.btn_register)
-        val tvReg = btnReg.findViewById<TextView>(R.id.tv_register_label)
+        val btnReg    = view.findViewById<LinearLayout>(R.id.btn_register)
+        val tvReg     = btnReg.findViewById<TextView>(R.id.tv_register_label)
             ?: btnReg.getChildAt(0) as TextView
         val etTitle   = view.findViewById<EditText>(R.id.et_title)
         val etContent = view.findViewById<EditText>(R.id.et_content)
-        val btnFile = view.findViewById<LinearLayout>(R.id.btn_file_upload)
+        val btnFile   = view.findViewById<LinearLayout>(R.id.btn_file_upload)
         val ivFileClr = view.findViewById<ImageView>(R.id.iv_file_clear)
 
         isCalendarShareChecked = savedInstanceState?.getBoolean(STATE_CALENDAR_SHARE) ?: false
@@ -74,6 +71,8 @@ class CommunityWriteFragment : Fragment() {
 
         val mode = arguments?.getString(ARG_MODE) ?: MODE_CREATE
         val editId = arguments?.getString(ARG_ITEM_ID)
+        val postType = arguments?.getString(ARG_POST_TYPE) ?: "FREE"
+
         tvReg.text = if (mode == MODE_EDIT) "수정하기" else "등록하기"
 
         if (mode == MODE_EDIT && !editId.isNullOrBlank()) {
@@ -86,16 +85,24 @@ class CommunityWriteFragment : Fragment() {
                     applyFileUi()
                 }
             }
+
             readAuthToken()?.let { auth ->
                 vm.fetchPostDetail(
-                    token = auth, id = editId,
-                    onDone = { detail -> bindForEdit(detail, etTitle, etContent) },
+                    token = auth,
+                    id = editId,
+                    onDone = { detail ->
+                        bindForEdit(detail, etTitle, etContent)
+                        isCalendarShareChecked = detail.calendarShared ?: false
+                        applyCalendarShareUi(ivCalendar)
+                    },
                     onError = ::toast
                 )
             }
         }
 
-        btnFile.setOnClickListener { if (selectedFileUri == null) pickOneDocument.launch(arrayOf("*/*")) }
+        btnFile.setOnClickListener {
+            if (selectedFileUri == null) pickOneDocument.launch(arrayOf("*/*"))
+        }
         ivFileClr.setOnClickListener { clearFile() }
 
         val toggle: (View) -> Unit = {
@@ -110,17 +117,9 @@ class CommunityWriteFragment : Fragment() {
             val content = etContent.text?.toString()?.trim().orEmpty()
 
             when {
-                title.isEmpty() && content.isEmpty() -> {
-                    toast("제목과 내용을 모두 입력해주세요."); return@setOnClickListener
-                }
-
-                title.isEmpty() -> {
-                    toast("제목을 입력해주세요."); return@setOnClickListener
-                }
-
-                content.isEmpty() -> {
-                    toast("내용을 입력해주세요."); return@setOnClickListener
-                }
+                title.isEmpty() && content.isEmpty() -> { toast("제목과 내용을 모두 입력해주세요."); return@setOnClickListener }
+                title.isEmpty() -> { toast("제목을 입력해주세요."); return@setOnClickListener }
+                content.isEmpty() -> { toast("내용을 입력해주세요."); return@setOnClickListener }
             }
 
             val auth = readAuthToken() ?: return@setOnClickListener
@@ -132,11 +131,10 @@ class CommunityWriteFragment : Fragment() {
                     title = title,
                     content = content,
                     file = selectedFileUri?.toString(),
+                    type = postType,
+                    calendarShared = isCalendarShareChecked,
                     onSuccess = {
-                        findNavController().previousBackStackEntry?.savedStateHandle?.set(
-                            "refresh_post",
-                            editId
-                        )
+                        findNavController().previousBackStackEntry?.savedStateHandle?.set("refresh_post", editId)
                         findNavController().popBackStack()
                     },
                     onError = ::toast
@@ -147,11 +145,10 @@ class CommunityWriteFragment : Fragment() {
                     title = title,
                     content = content,
                     file = selectedFileUri?.toString(),
+                    type = postType,
+                    calendarShared = isCalendarShareChecked,
                     onSuccess = {
-                        findNavController().previousBackStackEntry?.savedStateHandle?.set(
-                            "refresh_posts",
-                            true
-                        )
+                        findNavController().previousBackStackEntry?.savedStateHandle?.set("refresh_posts", true)
                         findNavController().popBackStack()
                     },
                     onError = ::toast
@@ -207,17 +204,12 @@ class CommunityWriteFragment : Fragment() {
             cursor = requireContext().contentResolver.query(uri, null, null, null, null)
             val idx = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME) ?: -1
             if (cursor != null && cursor.moveToFirst() && idx >= 0) cursor.getString(idx) else null
-        } finally {
-            cursor?.close()
-        }
+        } finally { cursor?.close() }
     }
 
     private fun readAuthToken(): String? {
-        val raw =
-            requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
-        if (raw.isBlank()) {
-            toast("로그인 후 작성할 수 있어요."); return null
-        }
+        val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
+        if (raw.isBlank()) { toast("로그인 후 작성할 수 있어요."); return null }
         return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
     }
 

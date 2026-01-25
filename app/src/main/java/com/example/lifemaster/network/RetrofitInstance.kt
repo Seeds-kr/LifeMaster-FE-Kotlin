@@ -6,14 +6,18 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object RetrofitInstance {
 
-    private const val BASE_URL = ""
+    private const val BASE_URL = "https://api.lifemaster.harvester.kr/"
 
-    val networkService: NetworkService by lazy {
+    private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(NetworkService::class.java)
+    }
+
+    val networkService: NetworkService by lazy {
+        retrofit.create(NetworkService::class.java)
     }
 }
+

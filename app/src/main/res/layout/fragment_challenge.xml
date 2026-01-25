@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F0F4F5"
-    tools:context=".presentation.challenge.ChallengeFragment">
+    tools:context=".presentation.total.challenge.fragment.ChallengeFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -73,6 +73,7 @@
             android:paddingHorizontal="16dp">
 
             <androidx.appcompat.widget.SearchView
+                android:id="@+id/sv_search"
                 style="@style/CustomSearchViewStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
