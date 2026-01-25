@@ -134,7 +134,6 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                             is DataResource.Idle -> { }
                             is DataResource.Success -> {
                                 val alarmList = resource.data
-                                Log.e(ALARM, ""+alarmList)
                                 if (alarmList.isNotEmpty()) {
                                     llNoAlarmItem.isVisible = false
                                     alarmRecyclerview.isVisible = true
@@ -158,16 +157,7 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                                     Toast.makeText(context, "알람이 꺼졌습니다.", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                            is DataResource.Error -> {
-                                // TODO: 테스트 확인 필요 → 네트워크 끈 상태에서 알람 스위치 바꿔보기 (예상 동작: 토스트 메세지 뜨면서 스위치 안바뀌어야함)
-                                Toast.makeText(context, "네트워크가 불안정합니다.", Toast.LENGTH_SHORT).show()
-                                val currentList = alarmAdapter.currentList.toMutableList()
-                                val index = currentList.indexOfFirst { it.id == alarmId }
-                                val oldItem = currentList[index]
-                                val rollbackItem = oldItem.copy(switchOnOff = !alarmStatus!!)
-                                currentList[index] = rollbackItem
-                                alarmAdapter.submitList(currentList.toList())
-                            }
+                            is DataResource.Error -> { }
                             DataResource.Idle -> { }
                             DataResource.Loading -> { }
                         }

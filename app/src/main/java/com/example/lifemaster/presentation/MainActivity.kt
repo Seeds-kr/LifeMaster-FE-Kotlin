@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        networkService.enterUserLogin(loginInfo = LoginInfo(email = "1111", password = "1111")).enqueue(object: Callback<String> {
+        networkService.enterUserLogin(loginInfo = LoginInfo(email = "aaaaa@naver.com", password = "aaaaa")).enqueue(object: Callback<String> {
             override fun onResponse(
                 call: Call<String?>,
                 response: Response<String?>

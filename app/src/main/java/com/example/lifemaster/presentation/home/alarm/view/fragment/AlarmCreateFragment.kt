@@ -106,7 +106,8 @@ class AlarmCreateFragment : Fragment(R.layout.fragment_alarm_setting) {
     }
 
     private fun initViews() = with(binding) {
-        requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible = false
+        requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible =
+            false
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -222,8 +223,8 @@ class AlarmCreateFragment : Fragment(R.layout.fragment_alarm_setting) {
                     antiSnoozeMinute = if (alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked) {
                         tvAlarmSettingSnoozeLockMinutes.text.toString().toInt()
                     } else null,
-                    randomMissionType = randomMissionType,
-                    randomMissionLevel = randomMissionLevel,
+                    randomMissionType = randomMissionType?.value,
+                    randomMissionLevel = randomMissionLevel?.value,
                     alarmStatus = true
                 )
             )
@@ -235,13 +236,15 @@ class AlarmCreateFragment : Fragment(R.layout.fragment_alarm_setting) {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     alarmGenerateViewModel.randomMission.collect { mission ->
-                        if(mission != null) {
+                        if (mission != null) {
                             val missionType = mission.entries.first().key
                             val missionLevel = mission.entries.first().value
                             if (missionType == RandomMissionType.MATH_PROBLEM || missionType == RandomMissionType.FOLLOW_CLICK) {
-                                tvAlarmSettingSelectedRandomMission.text = "${randomMissionTypeMapper[missionType]}-${randomMissionLevelMapper[missionLevel]}"
-                            } else if(missionType == RandomMissionType.TYPING_SENTENCE) {
-                                tvAlarmSettingSelectedRandomMission.text = "${randomMissionTypeMapper[missionType]}"
+                                tvAlarmSettingSelectedRandomMission.text =
+                                    "${randomMissionTypeMapper[missionType]}-${randomMissionLevelMapper[missionLevel]}"
+                            } else if (missionType == RandomMissionType.TYPING_SENTENCE) {
+                                tvAlarmSettingSelectedRandomMission.text =
+                                    "${randomMissionTypeMapper[missionType]}"
                             }
                             randomMissionType = missionType
                             randomMissionLevel = missionLevel
@@ -261,24 +264,25 @@ class AlarmCreateFragment : Fragment(R.layout.fragment_alarm_setting) {
                 }
                 launch {
                     alarmGenerateViewModel.alarmCreationState.collect { resource ->
-                        Log.e("TEST", "collect")
                         when (resource) {
                             is DataResource.Idle -> {}
                             is DataResource.Loading -> {}
                             is DataResource.Success -> {
-                                Log.e("TEST", "success")
                                 val alarmTime = resource.data
-                                val targetDateTime = Instant.parse(alarmTime).atZone(ZoneId.systemDefault()).toLocalDateTime()
-                                val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
-                                val toastMessage = formatRemainingTime(start = currentDateTime, end = targetDateTime)
+                                val targetDateTime =
+                                    Instant.parse(alarmTime).atZone(ZoneId.systemDefault())
+                                        .toLocalDateTime()
+                                val currentDateTime =
+                                    LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
+                                val toastMessage = formatRemainingTime(
+                                    start = currentDateTime,
+                                    end = targetDateTime
+                                )
                                 Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
                                 findNavController().popBackStack()
                             }
-                            is DataResource.Error -> {
-                                Log.e("TEST", "" + resource.throwable.message)
-                                Log.e("TEST", "" + resource.throwable.localizedMessage)
-                                Log.e("TEST", "" + resource.throwable.cause)
-                            }
+
+                            is DataResource.Error -> { }
                         }
                     }
                 }
@@ -288,6 +292,6 @@ class AlarmCreateFragment : Fragment(R.layout.fragment_alarm_setting) {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible = true // 하단 바 상태 변경
+        requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation).isVisible = true
     }
 }

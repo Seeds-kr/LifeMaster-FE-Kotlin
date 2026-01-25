@@ -224,8 +224,8 @@ class AlarmEditFragment : Fragment(R.layout.fragment_alarm_setting) {
                 antiSnoozeMinute = if (alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked) {
                     tvAlarmSettingSnoozeLockMinutes.text.toString().toInt()
                 } else null,
-                randomMissionType = randomMissionType,
-                randomMissionLevel = randomMissionLevel,
+                randomMissionType = randomMissionType?.value,
+                randomMissionLevel = randomMissionLevel?.value,
                 alarmStatus = true
             ))
         }

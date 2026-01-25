@@ -1,7 +1,6 @@
 package com.example.lifemaster.presentation.home.alarm.adapter
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -27,10 +26,16 @@ class AlarmAdapter(private val itemClickListener: ItemClickListener) : ListAdapt
             tvSaturday.isSelected = item.alarmSat
             tvSunday.isSelected = item.alarmSun
             when(item.randomMissionType) {
-                RandomMissionType.MATH_PROBLEM -> ivRandomMissionMath.isSelected = true
-                RandomMissionType.FOLLOW_CLICK -> ivRandomMissionTouch.isSelected = true
-                RandomMissionType.TYPING_SENTENCE -> ivRandomMissionWrite.isSelected = true
-                null -> Unit
+                RandomMissionType.MATH_PROBLEM -> {
+                    ivRandomMissionMath.isSelected = true
+                }
+                RandomMissionType.FOLLOW_CLICK -> {
+                    ivRandomMissionTouch.isSelected = true
+                }
+                RandomMissionType.TYPING_SENTENCE -> {
+                    ivRandomMissionWrite.isSelected = true
+                }
+                null -> {}
             }
             includeSwitch.alarmSwitch.isChecked = item.switchOnOff
             includeSwitch.alarmSwitch.setOnCheckedChangeListener { view, isChecked ->

@@ -23,7 +23,7 @@ data class AlarmRequest(
     val antiSnoozed: Boolean,
     @SerializedName("reSleptPreventionTime")
     val antiSnoozeMinute: Int? = null,
-    val randomMissionType: RandomMissionType? = null,
+    val randomMissionType: String? = null,
     @SerializedName("missionLevel")
-    val randomMissionLevel: RandomMissionLevel? = null
+    val randomMissionLevel: String? = null
 )
