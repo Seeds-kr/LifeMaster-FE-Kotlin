@@ -22,6 +22,9 @@ import com.example.lifemaster.presentation.login.model.EmailRequest
 import com.example.lifemaster.presentation.login.model.PasswordResetDto
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
 import com.example.lifemaster.presentation.community.model.*
+import com.example.lifemaster.presentation.group.model.GroupCreateResponse
+import com.example.lifemaster.presentation.group.model.GroupGoalCreateRequest
+import com.example.lifemaster.presentation.group.model.GroupGoalResponse
 import com.example.lifemaster.presentation.login.model.RegNickResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -452,4 +455,23 @@ interface NetworkService {
     suspend fun generateMathProblem(
         @Query("level") level: String
     ): MathProblemResponse
+
+    // 그룹 생성
+    @POST("/group/create")
+    fun createGroup(
+        @Header("Authorization") token: String,
+        @Query("name") name: String,
+        @Query("description") description: String?,
+        @Query("icon") icon: String?,
+        @Query("statistics") statistics: List<Int>?,
+        @Query("password") password: String?
+    ): Call<GroupCreateResponse>
+
+    // 목표 추가
+    @POST("/group/{groupId}/goal")
+    suspend fun addGoalToGroup(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long,
+        @Body body: GroupGoalCreateRequest
+    ): Response<GroupGoalResponse>
 }

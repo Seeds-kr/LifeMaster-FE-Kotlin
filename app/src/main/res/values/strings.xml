@@ -98,6 +98,22 @@
     <string name="check_password">비밀번호 확인</string>
     <string name="cancel">취소하기</string>
     <string name="create">생성하기</string>
+    <string name="one">1회 이상</string>
+    <string name="two">2회 이상</string>
+    <string name="three">3회 이상</string>
+    <string name="four">4회 이상</string>
+    <string name="five">5회 이상</string>
+    <string name="six">6회 이상</string>
+    <string name="seven">7회 이상</string>
+    <string name="eight">8회 이상</string>
+    <string name="nine">9회 이상</string>
+    <string name="ten">10회 이상</string>
+    <string name="pomodoro">뽀모도로</string>
+    <string name="detox">디톡스</string>
+    <string name="challenge">챌린지</string>
+    <string name="thank_diary">감사일기</string>
+    <string name="introspection">자아성찰</string>
+    <string name="sleep">수면</string>
 
     <!-- 미리보기 -->
     <string name="alarm_preview_date">7월 20일</string>
