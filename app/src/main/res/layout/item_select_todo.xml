@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:padding="12dp"
+    android:background = "@drawable/selector_pomodoro_dialog_background"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp">
+
+    <TextView
+        android:id="@+id/tv_todo_content"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:textColor="@drawable/selector_pomodoro_dialog_text"
+        tools:text="첫번째 할일" />
+
+    <ImageView
+        android:id="@+id/iv_item_select_todo_timer_25"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_timer_25" />
+
+    <TextView
+        android:id="@+id/tv_item_select_todo_timer_25_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        tools:text="2"/>
+
+    <ImageView
+        android:id="@+id/iv_item_select_todo_timer_50"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:src="@drawable/ic_timer_50" />
+
+    <TextView
+        android:id="@+id/tv_item_select_todo_timer_50_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        tools:text="5"/>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

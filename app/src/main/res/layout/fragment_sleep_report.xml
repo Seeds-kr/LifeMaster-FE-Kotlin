@@ -269,7 +269,7 @@
                                 android:id="@+id/tv_sleep_report_analysis_sleep_score_gap_value"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="8"
+                                tools:text="8"
                                 android:textColor="@color/white"
                                 android:textSize="12sp"/>
                             <ImageView

@@ -1,6 +1,7 @@
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardCornerRadius="8dp"
@@ -19,7 +20,7 @@
             android:id="@+id/tv_alarm_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="7월 20일"
+            tools:text="7월 20일"
             android:textColor="#333333"
             android:textSize="12sp" />
 
@@ -29,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:text="8시간 12분 수면"
+            tools:text="8시간 12분 수면"
             android:textColor="#333333"
             android:textSize="14sp" />
 

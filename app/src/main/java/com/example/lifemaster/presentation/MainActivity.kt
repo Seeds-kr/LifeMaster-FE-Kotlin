@@ -16,6 +16,7 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -25,16 +26,20 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityMainBinding
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
+import com.example.lifemaster.network.NetworkService
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
 import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
+import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -45,8 +50,10 @@ import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 import kotlin.getValue
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     // View 관련 변수
@@ -73,6 +80,9 @@ class MainActivity : AppCompatActivity() {
         SleepViewModelFactory(RetrofitInstance.networkService)
     }
 
+    @Inject lateinit var tokenManager: TokenManager
+    @Inject lateinit var networkService: NetworkService
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,6 +90,24 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        networkService.enterUserLogin(loginInfo = LoginInfo(email = "aaaaa@naver.com", password = "aaaaa")).enqueue(object: Callback<String> {
+            override fun onResponse(
+                call: Call<String?>,
+                response: Response<String?>
+            ) {
+                if(response.isSuccessful) {
+                    val userToken = response.body()
+                    Log.e("login", userToken!!)
+                    tokenManager.accessToken = userToken
+                }
+            }
+
+            override fun onFailure(call: Call<String?>, t: Throwable) {
+                Toast.makeText(this@MainActivity, "로그인에 실패했습니다.", Toast.LENGTH_SHORT).show()
+            }
+
+        })
 
         val targetFragment = intent.getStringExtra("destination")
         if (targetFragment == "alarm") {
@@ -232,47 +260,6 @@ class MainActivity : AppCompatActivity() {
         foregroundStartTime = SystemClock.elapsedRealtime() // 앱이 포그라운드로 전환된 시간 기록
         updateUsageStats()
         handler.post(updateRunnable)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        // 포모도로 → 할일 업데이트
-        val updateItem = intent.getParcelableExtra("pomodoro", TodoItem::class.java)
-        val todoItemTitle = intent.getStringExtra("todoItemTitle")
-        if (todoItemTitle != null) {
-            RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
-                .enqueue(object : Callback<List<PomodoroItem>> {
-                    override fun onResponse(
-                        call: Call<List<PomodoroItem>?>,
-                        response: Response<List<PomodoroItem>?>
-                    ) {
-                        if (response.isSuccessful) {
-                            response.body()?.let { pomodoroList ->
-                                val pomodoro = pomodoroList.filter { it.taskName == todoItemTitle }
-                                val pomodoro25Count = pomodoro.count { it.focusTime == 20 }
-                                val pomodoro50Count = pomodoro.count { it.focusTime == 40 }
-                                val todoItem =
-                                    toDoViewModel.todoItems.value?.find { it.title == todoItemTitle }
-                                todoItem?.let {
-                                    it.timer25Number = pomodoro25Count
-                                    it.timer50Number = pomodoro50Count
-                                    toDoViewModel.changeTodoItems(it)
-                                }
-                            }
-                        }
-                    }
-
-                    override fun onFailure(
-                        call: Call<List<PomodoroItem>?>,
-                        t: Throwable
-                    ) {
-                        TODO("Not yet implemented")
-                    }
-
-                })
-        }
-        updateItem?.let { toDoViewModel.changeTodoItems(it) }
     }
 
     override fun onPause() {

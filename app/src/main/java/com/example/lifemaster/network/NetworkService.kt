@@ -18,6 +18,16 @@ import com.example.lifemaster.presentation.total.introspection.model.DiaryRespon
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
+import com.example.lifemaster.presentation.community.model.*
+import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
+import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
+import com.example.lifemaster.presentation.home.calendar.model.CalendarEntry
+import com.example.lifemaster.presentation.home.calendar.model.EventBody
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroResponse
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
+import com.example.lifemaster.presentation.home.todo.model.TodoRequest
+import com.example.lifemaster.presentation.home.todo.model.TodoResponse
 import com.example.lifemaster.presentation.login.model.EmailRequest
 import com.example.lifemaster.presentation.login.model.PasswordResetDto
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
@@ -26,6 +36,12 @@ import com.example.lifemaster.presentation.group.model.GroupCreateResponse
 import com.example.lifemaster.presentation.group.model.GroupGoalCreateRequest
 import com.example.lifemaster.presentation.group.model.GroupGoalResponse
 import com.example.lifemaster.presentation.login.model.RegNickResponse
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
+import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
+import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -92,67 +108,73 @@ interface NetworkService {
         @Body body: PasswordResetDto
     ): Call<PasswordResponseDto>
 
-    // 모든 To-Do 항목 조회
-    @GET("/schedule/todo")
-    fun getTodoItems(
-        @Header("Authorization") token: String
-    ): Call<List<TodoItem>>
-
+    /**
+     * To-Do List API
+     */
     // 새 To-Do 생성
     @POST("/schedule/todo/create")
-    fun registerTodoItem(
-        @Header("Authorization") token: String,
-        @Body todoItem: TodoItem
-    ): Call<TodoItem>
+    suspend fun addTodoItem(
+        @Body request: TodoRequest
+    ): TodoResponse
+
+    // 현재 유저의 To-Do 항목 조회
+    @GET("/schedule/todo/member/{memberId}")
+    suspend fun getTodoItems(): List<TodoResponse>
 
     // To-Do 삭제
     @DELETE("/schedule/todo/{id}")
-    fun deleteTodoItem(
-        @Header("Authorization") token: String,
+    suspend fun deleteTodoItem(
         @Path("id") id: Int
-    ):Call<Any>
+    ): Response<Unit>
+
+    // To-Do 업데이트
+    @PUT("/schedule/todo/{id}")
+    suspend fun updateTodoItem(
+        @Path("id") id: Int,
+        @Query("date") date: String,
+        @Query("title") title: String
+    ): TodoResponse
+
+    // To-Do 완료 상태 토글
+    @PATCH("/schedule/todo/{id}/toggle-completed")
+    suspend fun toggleTodoItem(
+        @Path("id") id: Int
+    ): TodoResponse
 
     // 특정 To-Do 조회
     @GET("/schedule/todo/{id}")
     fun getTodoItem(
-        @Header("Authorization") token: String,
         @Path("id") id: Int
-    ):Call<TodoItem>
+    ):Call<TodoModel>
 
-    // To-Do 업데이트
-    @PUT("/schedule/todo/{id}")
-    fun updateTodoItem(
-        @Header("Authorization") token: String,
-        @Path("id") id: Int,
-        @Query("date") date: String,
-        @Query("title") title: String
-    ):Call<TodoItem>
-
-    // To-Do 완료 상태 토글
-    @PATCH("/schedule/todo/{id}/toggle-completed")
-    fun toggleTodoItem(
-        @Header("Authorization") token: String,
-        @Path("id") id: Int
-    ):Call<TodoItem>
-
+    /**
+     * Pomodoro Timer API
+     */
     // 새로운 포모도로 타이머 생성
     @POST("/time/pomodoro/create")
-    fun registerPomodoroTimer(
-        @Header("Authorization") token: String,
-        @Body pomodoroItem: PomodoroItem
-    ):Call<Any>
+    suspend fun registerPomodoroItem(
+        @Body pomodoroRequest: PomodoroRequest
+    ): Response<PomodoroResponse>
 
-    // 모든 포모도로 타이머 조회
-    @GET("/time/pomodoro")
-    fun getPomodoroItems(
-        @Header("Authorization") token: String
-    ):Call<List<PomodoroItem>>
+    // 회원 전체 포모도로 타이머 조회
+    @GET("/time/pomodoro/member/{memberId}")
+    suspend fun getAllPomodoroItems(): Response<List<PomodoroResponse>>
+
+    // 특정 할일에 대한 포모도로 타이머 조회
+    @GET("time/pomodoro/member/{memberId}/{todoId}")
+    suspend fun getPomodoroItemsByTodo(
+        @Path("todoId") todoId: Int
+    ): Response<List<PomodoroResponse>>
+
+    // 특정 할일에 대한 포모도로 타이머 전체 삭제
+    @DELETE("time/pomodoro/todo/{todoId}")
+    suspend fun deletePomodoroItemsByTodo(
+        @Path("todoId") todoId: Int
+    ): Response<Unit>
 
     // 비상 탈출 문장 생성
     @GET("/time/pomodoro/escape/generate")
-    fun getEscapeSentence(
-        @Header("Authorization") token: String
-    ):Call<String>
+    suspend fun getPomodoroEscapeSentence(): Response<String>
 
     // 챌린지 목록 조회
     @GET("/challenge")
@@ -188,7 +210,7 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Query("name") name: String,
         @Query("page") page: Int = 0
-    ): com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
+    ): ChallengeListResponse
 
     // 감사일기 생성
     @POST("/schedule/self-reflection/thank")
@@ -448,11 +470,58 @@ interface NetworkService {
     ): SleepResponse
 
     /**
+     * Alarm API
+     */
+    // 새 알람 생성
+    @POST("/time/alarm")
+    suspend fun createNewAlarm(
+        @Body alarmRequest: AlarmRequest
+    )
+
+    // 모든 알람 조회
+    @GET("/time/alarm/me")
+    suspend fun fetchAlarmList(): List<AlarmResponse>
+
+    // 특정 알람 조회
+    @GET("/time/alarm/{alarmId}")
+    suspend fun fetchAlarm(
+        @Path("alarmId") alarmId: Int
+    ): AlarmResponse
+
+    // 특정 알람 토글 상태 변경
+    @PATCH("/time/alarm/{alarmId}/toggle")
+    suspend fun toggleAlarm(
+        @Path("alarmId") alarmId: Int
+    ): Boolean
+
+    // 기존 알람 업데이트
+    @PUT("/time/alarm/{alarmId}")
+    suspend fun updateAlarm(
+        @Path("alarmId") alarmId: Int,
+        @Body request: AlarmRequest
+    )
+
+    // 특정 알람 삭제
+    @DELETE("/time/alarm/{alarmId}")
+    suspend fun deleteAlarm(
+        @Path("alarmId") alarmId: Int
+    )
+
+    // 전체 알람 활성화 (비활성화된 모든 알람을 활성화합니다)
+    @PATCH("/time/alarm/activate-all")
+    suspend fun activateAllAlarms()
+
+    // 전체 알람 비활성화 (활성화된 모든 알람을 비활성화합니다)
+    @PATCH("time/alarm/deactivate-all")
+    suspend fun deactivateAllAlarms()
+
+    /**
      * Alarm Mission API
      */
     // 수학 문제 생성 API
     @GET("/time/alarm/mission/math-problem")
     suspend fun generateMathProblem(
+        @Query("alarmId") alarmId: Int,
         @Query("level") level: String
     ): MathProblemResponse
 
@@ -474,4 +543,17 @@ interface NetworkService {
         @Path("groupId") groupId: Long,
         @Body body: GroupGoalCreateRequest
     ): Response<GroupGoalResponse>
+
+    // 5x5 클릭 그리드 생성 API
+    @GET("/time/alarm/mission/follow-click")
+    suspend fun generateFollowClickProblem(
+        @Query("alarmId") alarmId: Int,
+        @Query("level") level: String
+    ): List<List<Int>>
+
+    // 랜덤 문장 생성
+    @GET("time/alarm/mission/typing")
+    suspend fun generateTypingSentence(
+        @Query("alarmId") alarmId: Int
+    ): String
 }

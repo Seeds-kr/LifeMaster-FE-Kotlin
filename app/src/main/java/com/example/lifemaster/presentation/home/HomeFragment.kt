@@ -3,41 +3,55 @@ package com.example.lifemaster.presentation.home
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
 import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
 import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
+import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
 import com.example.lifemaster.presentation.home.todo.model.TODO
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.format.DateTimeFormatterBuilder
 
 class HomeFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding
-    lateinit var todoItems: ArrayList<TodoItem>
+
+    // 할일 관련 변수
     private val toDoViewModel: ToDoViewModel by activityViewModels()
-    private var userToken: String? = null
+    private val todoAddDialog = ToDoDialog(origin = TODO.ADD)
+    private lateinit var todoEditDialog: ToDoDialog
+
+    // 포모도로 관련 변수
+    private val pomodoroViewModel: PomodoroViewModel by activityViewModels()
+
+    // 수면 관련 변수
+    private val sleepViewModel: SleepViewModel by activityViewModels {
+        SleepViewModelFactory(RetrofitInstance.networkService)
+    }
     private val calendarVM: CalendarViewModel by activityViewModels()
 
     private var tvAlarmDate: TextView? = null
@@ -73,6 +87,8 @@ class HomeFragment : Fragment() {
 
         setupCalendarHeader()
         observeCalendarState()
+        fetchRemoteData()
+        initViews()
         initListeners()
         initObservers()
 
@@ -131,7 +147,7 @@ class HomeFragment : Fragment() {
         tvAlarmTime = binding.root.findViewById(R.id.tv_alarm_time)
         btnAlarmSetting = binding.root.findViewById(R.id.btn_alarm_setting)
         btnAlarmSetting?.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_alarmSettingFragment)
+            findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
         }
     }
 
@@ -148,6 +164,11 @@ class HomeFragment : Fragment() {
     private fun goIntrospection(startTab: String) {
         val args = Bundle().apply { putString("startTab", startTab) }
         findNavController().navigate(R.id.action_homeFragment_to_introspectionFragment, args)
+    }
+
+    private fun fetchRemoteData() {
+        toDoViewModel.getTodoItems()
+        pomodoroViewModel.getPomodoroAllItems()
     }
 
     private fun loadHomeConfiguration(): Pair<Set<String>, List<String>> {
@@ -191,83 +212,155 @@ class HomeFragment : Fragment() {
 
     private fun initViews() = with(binding) {
 
-        val sharedPreference =
-            requireContext().getSharedPreferences("USER_TABLE", Context.MODE_PRIVATE)
-        userToken = sharedPreference.getString("token", "null")
+        todoRecyclerview.adapter = ToDoAdapter(context = requireContext(), onToggleClicked = { id ->
+            toDoViewModel.toggleItem(id = id)
+        }, onEditClicked = { item ->
+            todoEditDialog = ToDoDialog(origin = TODO.EDIT, item = item)
+            todoEditDialog.show(childFragmentManager, ToDoDialog.TAG)
+        }, onDeleteClicked = { todoId ->
+            pomodoroViewModel.deletePomodoroItemsByTodo(todoId = todoId) // 할일에 포함된 포모도로 아이템 먼저 지우기
+        }, onViewClicked = { item ->
+            val action = HomeFragmentDirections.actionHomeFragmentToPomodoroFragment(todoItem = item)
+            findNavController().navigate(action)
+        })
 
-        recyclerview.adapter =
-            ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager, userToken)
-
-        RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
-            .enqueue(object : Callback<List<TodoItem>> {
-                override fun onResponse(
-                    call: Call<List<TodoItem>>,
-                    response: Response<List<TodoItem>>
-                ) {
-                    if (response.isSuccessful) {
-                        todoItems = response.body() as ArrayList<TodoItem>
-                        RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
-                            .enqueue(object : Callback<List<PomodoroItem>> {
-                                override fun onResponse(
-                                    call: Call<List<PomodoroItem>?>,
-                                    response: Response<List<PomodoroItem>?>
-                                ) {
-                                    if (response.isSuccessful) {
-                                        val response = response.body()
-                                        val filterData1 = response?.groupBy { it.taskName }
-                                        val filterData2 = filterData1?.mapValues { (_, list) ->
-                                            val pomodoro25 =
-                                                list.count { it.focusTime == 20 } // 25분
-                                            val pomodoro50 =
-                                                list.count { it.focusTime == 40 } // 50분
-                                            Pair(pomodoro25, pomodoro50)
-                                        }
-                                        todoItems.forEach { todoItem ->
-                                            val pair = filterData2?.get(todoItem.title)
-                                            if (pair != null) {
-                                                todoItem.timer25Number = pair.first
-                                                todoItem.timer50Number = pair.second
-                                            }
-                                        }
-                                        toDoViewModel.getTodoItems(todoItems)
-                                    }
-                                }
-
-                                override fun onFailure(
-                                    call: Call<List<PomodoroItem>?>,
-                                    t: Throwable
-                                ) {
-                                    TODO("Not yet implemented")
-                                }
-
-                            })
-                    } else {
-                        Log.d("server success", "else")
-                    }
-                }
-
-                override fun onFailure(call: Call<List<TodoItem>>, t: Throwable) {
-                    Log.d("server error", "" + t.message)
-                }
-            })
+        // 수면
+        itemSleepPreview.tvAlarmDate.text = "${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일"
+        itemSleepPreview.tvAlarmTime.text = if(sleepViewModel.isMeasured) "${sleepViewModel.sleepDurationHour}시간 ${sleepViewModel.sleepDurationMinutes}분 수면" else "금일 수면 미측정"
     }
 
-    private fun initListeners() {
-        binding.btnAddTodoItem.setOnClickListener {
-            val dialog = ToDoDialog(caller = TODO.ADD, userToken = userToken)
-            dialog.show(childFragmentManager, ToDoDialog.Companion.TAG)
+    private fun initListeners() = with(binding) {
+        btnAddTodoItem.setOnClickListener {
+            todoAddDialog.show(childFragmentManager, ToDoDialog.TAG)
         }
 
-        binding.tvHomeEdit.setOnClickListener {
+        tvHomeEdit.setOnClickListener {
             val intent = Intent(requireContext(), HomeEditActivity::class.java)
             startActivity(intent)
         }
+
+        itemSleepPreview.btnSleepReport.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment)
+        }
+
     }
 
-    private fun initObservers() {
-        toDoViewModel.todoItems.observe(viewLifecycleOwner) { updateItems ->
-            val newList = updateItems.map { it.copy() }
-            (binding.recyclerview.adapter as ToDoAdapter).submitList(newList)
+    private fun initObservers() = with(binding) {
+
+        // 할일
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    toDoViewModel.newItem.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<TodoModel> -> {
+                                Toast.makeText(context, "할일이 추가되었습니다.", Toast.LENGTH_SHORT).show()
+                                todoAddDialog.dismiss()
+                                val newItem = resource.data
+                                val oldList = (binding.todoRecyclerview.adapter as ToDoAdapter).currentList
+                                val newList = oldList.toMutableList().apply {
+                                    add(newItem)
+                                }
+                                (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(newList)
+                            }
+                        }
+                    }
+                }
+                launch {
+                    toDoViewModel.currentItems.combine(pomodoroViewModel.allPomodoroItems) { todoRes, pomoRes -> todoRes to pomoRes }.collect { (todoRes, pomoRes) ->
+                        if(todoRes is DataResource.Success && pomoRes is DataResource.Success) {
+                            val todoItems = todoRes.data
+                            val allPomodoroItems = pomoRes.data
+                            val pomodoroTodoItems = todoItems.map { todoItem ->
+                                val pomodoroItems = allPomodoroItems.filter { it.todo.id == todoItem.id }
+                                val timer25Number = pomodoroItems.count { it.focusTime == 25 }
+                                val timer50Number = pomodoroItems.count { it.focusTime == 50 }
+                                todoItem.copy(timer25Number = timer25Number, timer50Number = timer50Number)
+                            }
+                            (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(pomodoroTodoItems)
+                        } else if(todoRes is DataResource.Error) {
+                            Toast.makeText(context, "할일 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+                launch {
+                    toDoViewModel.deletionState.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<Int> -> {
+                                val deletedAlarmId = resource.data
+                                val oldList = (todoRecyclerview.adapter as ToDoAdapter).currentList
+                                val updatedList = oldList.toMutableList().filterNot { it.id == deletedAlarmId }
+                                (todoRecyclerview.adapter as ToDoAdapter).submitList(updatedList)
+                                Toast.makeText(context, "할일이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+                launch {
+                    toDoViewModel.updateItem.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<TodoModel> -> {
+                                val updateItem = resource.data
+                                val oldList = (todoRecyclerview.adapter as ToDoAdapter).currentList
+                                val updatedList = oldList.map { if(it.id == updateItem.id) updateItem else it }
+                                (todoRecyclerview.adapter as ToDoAdapter).submitList(updatedList)
+                                todoEditDialog.dismiss()
+                                Toast.makeText(context, "할일이 수정되었습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+                launch {
+                    toDoViewModel.toggleItem.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, resources.getString(R.string.server_error_message), Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<TodoModel> -> {
+                                val data = resource.data
+                                val oldList = (todoRecyclerview.adapter as ToDoAdapter).currentList
+                                val newList = oldList.map { if(it.id == data.id) data else it }
+                                (todoRecyclerview.adapter as ToDoAdapter).submitList(newList)
+                                if(data.isCompleted) {
+                                    Toast.makeText(context, "할일이 체크되었습니다.", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "할일이 해제되었습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }
+                }
+                launch {
+                    pomodoroViewModel.deletePomodoroItemsResult.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {}
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<Int> -> {
+                                val deleteTodoId = resource.data
+                                toDoViewModel.deleteTodoItem(deleteId = deleteTodoId) // 포모도로 아이템 지운 이후에 해당 할일 지우기
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

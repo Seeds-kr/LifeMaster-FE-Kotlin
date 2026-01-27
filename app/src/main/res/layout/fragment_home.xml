@@ -91,7 +91,7 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/card_todo"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="208dp"
             android:layout_marginBottom="10dp"
             android:visibility="visible"
             app:cardCornerRadius="12dp"
@@ -113,29 +113,35 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginEnd="8dp"
-                        android:src="@drawable/ic_logo_star" />
+                        android:src="@drawable/ic_logo_star"
+                        app:tint="@color/todo_primary"/>
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="할일"
+                        android:textStyle="bold"
                         android:textColor="@color/black"
                         android:textSize="16sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btn_add_todo_item"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="52dp"
+                        android:layout_height="32dp"
+                        android:background="@drawable/bg_round_radius_12dp"
+                        android:backgroundTint="@color/todo_primary"
                         android:text="추가"
+                        android:textColor="@color/white"
                         android:textSize="14sp" />
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerview"
+                    android:id="@+id/todo_recyclerview"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
+                    android:layout_marginTop="8dp"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     tools:listitem="@layout/item_todo" />
             </androidx.appcompat.widget.LinearLayoutCompat>
@@ -182,6 +188,7 @@
                 </LinearLayout>
 
                 <include
+                    android:id="@+id/itemSleepPreview"
                     layout="@layout/item_sleep_preview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
