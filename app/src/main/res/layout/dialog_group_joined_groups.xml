@@ -41,7 +41,7 @@
                 android:id="@+id/tv_more"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/group_list_more"
+                android:text="@string/more"
                 android:textColor="@color/black"
                 android:textSize="12sp"
                 android:textStyle="bold" />
