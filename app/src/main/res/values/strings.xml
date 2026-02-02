@@ -65,7 +65,7 @@
     <string name="joined_groups_count">14</string>
     <string name="group_list_title">하루에 뽀모도로 10회하기</string>
     <string name="group_list_participants_num">140명 참여 중</string>
-    <string name="group_list_more">더보기</string>
+    <string name="more">더보기</string>
     <string name="search_group">그룹 이름으로 검색하기</string>
     <string name="my_stats">내 통계</string>
     <string name="create_group">새 그룹 생성</string>
@@ -82,7 +82,7 @@
     <string name="group_explain">그룹을 설명해주세요</string>
     <string name="open_group">공개 그룹</string>
     <string name="private_group">비공개 그룹</string>
-    <string name="min_goal">최소 목표 설정</string>
+    <string name="min_goal_setting">최소 목표 설정</string>
     <string name="add">추가</string>
     <string name="goal_type">뽀모도로</string>
     <string name="group_goal_setting">3회 이상</string>
@@ -115,6 +115,24 @@
     <string name="thank_diary">감사일기</string>
     <string name="introspection">자아성찰</string>
     <string name="sleep">수면</string>
+    <string name="group_join_title1">비공개 그룹 가입을 위해</string>
+    <string name="group_join_title2">비밀번호를 입력해주세요</string>
+    <string name="password_wrong">비밀번호가 일치하지 않습니다.</string>
+    <string name="group_join">가입하기</string>
+    <string name="min_goal">최소목표</string>
+    <string name="sleep_8">8시간 수면하기</string>
+    <string name="pomodoro_3">뽀모도로 3회 이상</string>
+    <string name="me">나</string>
+    <string name="leave_group">그룹 탈퇴하기</string>
+    <string name="all">전체</string>
+    <string name="weekly">주간</string>
+    <string name="my_rank">그룹 내 랭킹</string>
+    <string name="recent_30">최근 30일 달성 인원</string>
+    <string name="achieve_stats">달성 횟수 통계</string>
+    <string name="profile">프로필</string>
+    <string name="achieve_num">달성 횟수</string>
+    <string name="rank">순위</string>
+    <string name="sleep_stat_desc_sample">나는 평균보다 12분 덜 잤어요!</string>
 
     <!-- 미리보기 -->
     <string name="alarm_preview_date">7월 20일</string>
