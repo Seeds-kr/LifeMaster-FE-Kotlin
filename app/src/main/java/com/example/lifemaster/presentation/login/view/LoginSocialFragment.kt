@@ -11,8 +11,10 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentLoginSocialBinding
 import com.example.lifemaster.presentation.MainActivity
 import com.kakao.sdk.user.UserApiClient
+import dagger.hilt.android.AndroidEntryPoint
 import androidx.navigation.fragment.findNavController
 
+@AndroidEntryPoint
 class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
 
     lateinit var binding: FragmentLoginSocialBinding

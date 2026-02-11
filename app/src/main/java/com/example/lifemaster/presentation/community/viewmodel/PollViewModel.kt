@@ -3,15 +3,20 @@ package com.example.lifemaster.presentation.community.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.community.model.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import kotlin.math.roundToInt
+import javax.inject.Inject
 
-class PollViewModel : ViewModel() {
+@HiltViewModel
+class PollViewModel @Inject constructor(
+    private val networkService: NetworkService
+) : ViewModel() {
 
     data class PollUi(
         val pollId: Long,
@@ -26,7 +31,7 @@ class PollViewModel : ViewModel() {
     val ui: LiveData<PollUi?> = _ui
 
     fun fetchActivePoll(token: String? = null, onError: (String) -> Unit = {}) {
-        RetrofitInstance.networkService.getPollList()
+        networkService.getPollList()
             .enqueue(object : Callback<List<PollListItem>> {
                 override fun onResponse(
                     call: Call<List<PollListItem>>,
@@ -44,7 +49,7 @@ class PollViewModel : ViewModel() {
     }
 
     fun fetchPollDetails(pollId: Long, onError: (String) -> Unit = {}) {
-        RetrofitInstance.networkService.getPollDetails(pollId)
+        networkService.getPollDetails(pollId)
             .enqueue(object : Callback<PollDetailsDto> {
                 override fun onResponse(
                     call: Call<PollDetailsDto>,
@@ -76,7 +81,7 @@ class PollViewModel : ViewModel() {
         then: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        RetrofitInstance.networkService.getPollResults(pollId)
+        networkService.getPollResults(pollId)
             .enqueue(object : Callback<Map<String, PollResultDto>> {
                 override fun onResponse(
                     call: Call<Map<String, PollResultDto>>,
@@ -125,7 +130,7 @@ class PollViewModel : ViewModel() {
         val bearer = token?.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
 
         fun request(optionIdToSend: Int, retryZeroBase: Boolean) {
-            RetrofitInstance.networkService
+            networkService
                 .castVote(bearer, pollId, VoteRequest(optionId = optionIdToSend, userId = userId))
                 .enqueue(object : Callback<ResponseBody> {
                     override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {

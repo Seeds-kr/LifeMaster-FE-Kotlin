@@ -11,14 +11,20 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityEmergencyEscapeBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.pomodoro.viewmodel.EmergencyEscapeViewModel
 import com.google.android.material.internal.TextWatcherAdapter
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class EmergencyEscapeActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var networkService: NetworkService
 
     private var userToken: String? = null
     lateinit var binding: ActivityEmergencyEscapeBinding
@@ -48,7 +54,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         userToken = sharedPreference.getString("token", "null")
 
         questionList.forEach { question ->
-            RetrofitInstance.networkService.getEscapeSentence(token = "Bearer $userToken")
+            networkService.getEscapeSentence(token = "Bearer $userToken")
                 .enqueue(object : Callback<String> {
                     override fun onResponse(
                         call: Call<String?>,
@@ -80,7 +86,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
                 1, 2, 3, 4 -> {
                     // 2페이지, 3페이지, 4페이지, 5페이지
                     sentenceList.forEach { sentence ->
-                        RetrofitInstance.networkService.getEscapeSentence(token = "Bearer $userToken")
+                        networkService.getEscapeSentence(token = "Bearer $userToken")
                             .enqueue(object : Callback<String> {
                                 override fun onResponse(
                                     call: Call<String?>,

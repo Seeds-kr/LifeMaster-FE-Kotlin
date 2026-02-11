@@ -14,15 +14,21 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentLoginEmailBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.login.model.LoginInfo
+import dagger.hilt.android.AndroidEntryPoint
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
+
+    @Inject
+    lateinit var networkService: NetworkService
 
     private var _binding: FragmentLoginEmailBinding? = null
     private val binding get() = _binding!!
@@ -64,7 +70,7 @@ class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
     }
 
     private fun login(email: String, password: String) {
-        RetrofitInstance.networkService.enterUserLogin(LoginInfo(email, password))
+        networkService.enterUserLogin(LoginInfo(email, password))
             .enqueue(object : Callback<String> {
                 override fun onResponse(call: Call<String>, res: Response<String>) {
                     if (!res.isSuccessful) {

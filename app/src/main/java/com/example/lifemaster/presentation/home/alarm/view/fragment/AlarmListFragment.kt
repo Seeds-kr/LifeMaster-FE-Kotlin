@@ -14,23 +14,20 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmListBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.alarm.adapter.AlarmAdapter
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
-import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
 import java.time.ZoneId
 import java.time.LocalDate
 
+@AndroidEntryPoint
 class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 
     private lateinit var binding: FragmentAlarmListBinding
-    private val alarmViewModel: AlarmViewModel by activityViewModels(
-        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService)}
-    )
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
     private val alarmAdapter = AlarmAdapter()
 
     @RequiresApi(Build.VERSION_CODES.S)

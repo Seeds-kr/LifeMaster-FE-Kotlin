@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ItemTodoBinding
 import com.example.lifemaster.dp
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.pomodoro.view.PomodoroActivity
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.home.todo.view.ToDoLongClickDialog
@@ -29,7 +29,8 @@ class ToDoAdapter(
     private val context: Context,
     private val toDoViewModel: ToDoViewModel,
     private val fragmentManager: FragmentManager,
-    private val userToken: String?
+    private val userToken: String?,
+    private val networkService: NetworkService
 ) :
     ListAdapter<TodoItem, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
@@ -98,7 +99,7 @@ class ToDoAdapter(
         }
 
         private fun toggleTodoStatus(item: TodoItem) {
-            RetrofitInstance.networkService.toggleTodoItem(token = "Bearer $userToken", item.id)
+            networkService.toggleTodoItem(token = "Bearer $userToken", item.id)
                 .enqueue(object : Callback<TodoItem> {
                     override fun onResponse(
                         call: Call<TodoItem>,

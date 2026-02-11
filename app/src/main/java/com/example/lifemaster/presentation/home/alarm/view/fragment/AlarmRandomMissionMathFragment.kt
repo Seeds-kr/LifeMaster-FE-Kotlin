@@ -12,9 +12,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRandomMissionMathBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
-import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.google.android.material.card.MaterialCardView
 import java.time.LocalDate
 import java.time.LocalTime
@@ -26,18 +24,15 @@ import com.example.lifemaster.presentation.home.sleep.model.AlarmSettingInfo
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
 
+@AndroidEntryPoint
 class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_mission_math) {
 
     private lateinit var binding: FragmentAlarmRandomMissionMathBinding
-    private val alarmViewModel: AlarmViewModel by activityViewModels(
-        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
-    )
-    private val sleepViewModel: SleepViewModel by activityViewModels(
-        factoryProducer = {SleepViewModelFactory(RetrofitInstance.networkService)}
-    )
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
+    private val sleepViewModel: SleepViewModel by activityViewModels()
 
     private lateinit var numberPadList: List<MaterialCardView> // 1 ~ 9
 

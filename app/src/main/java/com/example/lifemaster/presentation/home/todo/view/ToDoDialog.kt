@@ -8,21 +8,27 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogTodoBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ToDoDialog(
     private val caller: TODO,
     private val todoItem: TodoItem? = null,
     private val userToken: String? = null
 ) : DialogFragment(R.layout.dialog_todo) {
+
+    @Inject
+    lateinit var networkService: NetworkService
 
     lateinit var binding: DialogTodoBinding
     private val toDoViewModel: ToDoViewModel by activityViewModels()
@@ -60,7 +66,7 @@ class ToDoDialog(
                         Toast.LENGTH_SHORT
                     ).show()
                     else {
-                        RetrofitInstance.networkService.registerTodoItem(
+                        networkService.registerTodoItem(
                             token = "Bearer $userToken",
                             todoItem = TodoItem(
                                 date = getTodayDate(),
@@ -95,7 +101,7 @@ class ToDoDialog(
                         Toast.LENGTH_SHORT
                     ).show()
                     else {
-                        RetrofitInstance.networkService.updateTodoItem(
+                        networkService.updateTodoItem(
                             token = "Bearer $userToken",
                             id = todoItem?.id ?: 0,
                             title = title,

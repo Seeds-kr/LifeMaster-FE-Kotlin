@@ -5,23 +5,20 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.bumptech.glide.Glide
 import androidx.navigation.fragment.navArgs
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeDetailBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
-import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
     private lateinit var binding: FragmentChallengeDetailBinding
 
-    // DI를 사용하여 ViewModel 생성
-    private val viewModel: ChallengeViewModel by lazy {
-        val factory = ChallengeViewModelFactory(RetrofitInstance.networkService)
-        ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
-    }
+    // Hilt를 사용하여 ViewModel 생성
+    private val viewModel: ChallengeViewModel by viewModels()
 
     private var challId: String = "0"
 

@@ -16,23 +16,21 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmSettingBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.alarm.model.AlarmItem
 import com.example.lifemaster.presentation.home.alarm.model.MathProblemLevel
 import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmRandomMissionDialog
 import com.example.lifemaster.presentation.home.alarm.view.receiver.AlarmReceiver
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
-import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.example.lifemaster.presentation.total.detox.dialog.SelectTimeDialog
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.Calendar
 
+@AndroidEntryPoint
 class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
 
     private lateinit var binding: FragmentAlarmSettingBinding
-    private val alarmViewModel: AlarmViewModel by activityViewModels(
-        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
-    )
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
     private var randomMissionList = arrayListOf<RandomMissionType>()
     private var randomMissionMathLevel = MathProblemLevel.NONE
 //    private var isDelaySet: Boolean = false

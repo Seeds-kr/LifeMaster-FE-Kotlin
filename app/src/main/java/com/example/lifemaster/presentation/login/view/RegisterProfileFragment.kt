@@ -16,10 +16,11 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentRegisterProfileBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
+import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -31,8 +32,13 @@ import retrofit2.Response
 import java.io.File
 import androidx.core.content.edit
 import androidx.core.graphics.toColorInt
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
+
+    @Inject
+    lateinit var networkService: NetworkService
 
     private var _binding: FragmentRegisterProfileBinding? = null
     private val binding get() = _binding!!
@@ -111,7 +117,7 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
     private fun requestNicknameCheck(nick: String) {
         showNickStatusChecking()
         lastCall?.cancel()
-        lastCall = RetrofitInstance.networkService.checkNickname(nick)
+        lastCall = networkService.checkNickname(nick)
         lastCall!!.enqueue(object : Callback<NicknameCheckResponse> {
             override fun onResponse(
                 call: Call<NicknameCheckResponse>,
@@ -187,7 +193,7 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
             )
         }
 
-        RetrofitInstance.networkService.registerNickname(regIdPart, nickPart, imagePart)
+        networkService.registerNickname(regIdPart, nickPart, imagePart)
             .enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, res: Response<Void>) {
                     if (!res.isSuccessful) {
@@ -207,7 +213,7 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
             toast("가입 완료! 로그인해 주세요.")
             return
         }
-        RetrofitInstance.networkService.enterUserLogin(LoginInfo(email, password))
+        networkService.enterUserLogin(LoginInfo(email, password))
             .enqueue(object : Callback<String> {
                 override fun onResponse(call: Call<String>, res: Response<String>) {
                     if (!res.isSuccessful) { toast("로그인 실패(${res.code()})"); return }

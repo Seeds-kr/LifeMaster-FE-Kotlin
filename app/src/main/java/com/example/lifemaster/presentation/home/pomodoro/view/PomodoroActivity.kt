@@ -21,9 +21,11 @@ import com.example.lifemaster.presentation.home.pomodoro.model.SharedData
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroStatus
 import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.Timer
 import kotlin.concurrent.timer
 
+@AndroidEntryPoint
 class PomodoroActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPomodoroBinding

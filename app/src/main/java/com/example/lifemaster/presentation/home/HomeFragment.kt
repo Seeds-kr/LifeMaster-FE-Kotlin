@@ -15,7 +15,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
@@ -23,14 +23,20 @@ import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
 import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import java.time.LocalDate
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class HomeFragment : Fragment() {
+
+    @Inject
+    lateinit var networkService: NetworkService
 
     lateinit var binding: FragmentHomeBinding
     lateinit var todoItems: ArrayList<TodoItem>
@@ -135,9 +141,9 @@ class HomeFragment : Fragment() {
         userToken = sharedPreference.getString("token", "null")
 
         recyclerview.adapter =
-            ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager, userToken)
+            ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager, userToken, networkService)
 
-        RetrofitInstance.networkService.getTodoItems(token = "Bearer $userToken")
+        networkService.getTodoItems(token = "Bearer $userToken")
             .enqueue(object : Callback<List<TodoItem>> {
                 override fun onResponse(
                     call: Call<List<TodoItem>>,
@@ -145,7 +151,7 @@ class HomeFragment : Fragment() {
                 ) {
                     if (response.isSuccessful) {
                         todoItems = response.body() as ArrayList<TodoItem>
-                        RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
+                        networkService.getPomodoroItems(token = "Bearer $userToken")
                             .enqueue(object : Callback<List<PomodoroItem>> {
                                 override fun onResponse(
                                     call: Call<List<PomodoroItem>?>,

@@ -7,19 +7,25 @@ import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogLongClickTodoBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ToDoLongClickDialog(
     private val todoItem: TodoItem,
     private val todoViewModel: ToDoViewModel,
     private val userToken: String?
 ): DialogFragment(R.layout.dialog_long_click_todo) {
+
+    @Inject
+    lateinit var networkService: NetworkService
 
     lateinit var binding: DialogLongClickTodoBinding
 
@@ -39,7 +45,7 @@ class ToDoLongClickDialog(
         btnDelete.setOnClickListener {
             // 삭제
             Log.d("ttest", ""+todoItem)
-            RetrofitInstance.networkService.deleteTodoItem(token = "Bearer $userToken", todoItem.id)
+            networkService.deleteTodoItem(token = "Bearer $userToken", todoItem.id)
                 .enqueue(object : Callback<Any> {
                     override fun onResponse(call: Call<Any>, response: Response<Any>) {
                         if (response.isSuccessful) {

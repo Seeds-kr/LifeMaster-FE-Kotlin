@@ -9,17 +9,15 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogAlarmRandomMissionBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
-import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 import com.google.android.material.card.MaterialCardView
 
+@AndroidEntryPoint
 class AlarmRandomMissionDialog: DialogFragment(R.layout.dialog_alarm_random_mission) {
 
     private lateinit var binding: DialogAlarmRandomMissionBinding
-    private val alarmViewModel: AlarmViewModel by activityViewModels(
-        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
-    )
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
     private val randomMissionType by lazy { listOf(binding.cvMath, binding.cvClick, binding.cvWrite) }
     private val randomMissionLevel by lazy {
         listOf(

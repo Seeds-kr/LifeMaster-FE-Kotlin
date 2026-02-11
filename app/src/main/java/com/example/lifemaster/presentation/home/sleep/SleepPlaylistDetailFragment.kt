@@ -11,16 +11,14 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentSleepPlaylistDetailBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_detail) {
 
     private lateinit var binding: FragmentSleepPlaylistDetailBinding
-    private val sleepViewModel: SleepViewModel by activityViewModels {
-        SleepViewModelFactory(RetrofitInstance.networkService)
-    }
+    private val sleepViewModel: SleepViewModel by activityViewModels()
     private lateinit var handler: Handler
     private lateinit var updateProgressBarTask: Runnable
     private var songAudioResource: Int = 0

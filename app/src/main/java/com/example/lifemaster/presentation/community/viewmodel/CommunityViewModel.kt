@@ -3,14 +3,19 @@ package com.example.lifemaster.presentation.community.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.community.model.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
-class CommunityViewModel : ViewModel() {
+@HiltViewModel
+class CommunityViewModel @Inject constructor(
+    private val networkService: NetworkService
+) : ViewModel() {
 
     private val _items = MutableLiveData<List<CommunityItem>>(emptyList())
     val items: LiveData<List<CommunityItem>> = _items
@@ -53,7 +58,7 @@ class CommunityViewModel : ViewModel() {
     }
 
     fun fetchPostsByType(token: String, type: String, onError: (String) -> Unit = {}) {
-        RetrofitInstance.networkService
+        networkService
             .getPostsByType(bear(token), type)
             .enqueue(object : Callback<List<PostSummaryDto>> {
                 override fun onResponse(call: Call<List<PostSummaryDto>>, res: Response<List<PostSummaryDto>>) {
@@ -73,7 +78,7 @@ class CommunityViewModel : ViewModel() {
         fetchPostsByType(token, "FREE", onError)
 
     fun fetchPopularPosts(token: String, onError: (String) -> Unit = {}) {
-        RetrofitInstance.networkService
+        networkService
             .getPopularPosts(bear(token))
             .enqueue(object : Callback<List<PostSummaryDto>> {
                 override fun onResponse(call: Call<List<PostSummaryDto>>, res: Response<List<PostSummaryDto>>) {
@@ -107,7 +112,7 @@ class CommunityViewModel : ViewModel() {
         onDone: (PostDetailDto) -> Unit,
         onError: (String) -> Unit = {}
     ) {
-        RetrofitInstance.networkService
+        networkService
             .getPostDetail(bear(token), id)
             .enqueue(object : Callback<PostDetailDto> {
                 override fun onResponse(call: Call<PostDetailDto>, res: Response<PostDetailDto>) {
@@ -143,7 +148,7 @@ class CommunityViewModel : ViewModel() {
         updateLikeStateEverywhere(key, nowLiked, nowCnt)
         onDone(nowCnt)
 
-        RetrofitInstance.networkService
+        networkService
             .togglePostLike(bear(token), key)
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
@@ -167,7 +172,7 @@ class CommunityViewModel : ViewModel() {
     val isCommentSyncing: LiveData<Boolean> = _isCommentSyncing
 
     fun fetchComments(token: String, postId: String, onError: (String) -> Unit = {}) {
-        RetrofitInstance.networkService
+        networkService
             .getComments(bear(token), postId)
             .enqueue(object : Callback<List<CommentDto>> {
                 override fun onResponse(call: Call<List<CommentDto>>, res: Response<List<CommentDto>>) {
@@ -182,7 +187,7 @@ class CommunityViewModel : ViewModel() {
 
     fun addComment(token: String, postId: String, text: String, onDone: () -> Unit = {}, onError: (String) -> Unit = {}) {
         _isCommentSyncing.postValue(true)
-        RetrofitInstance.networkService
+        networkService
             .createComment(bear(token), postId, NewCommentRequest(text))
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
@@ -199,7 +204,7 @@ class CommunityViewModel : ViewModel() {
 
     fun updateComment(token: String, postId: String, commentId: Long, text: String, onDone: () -> Unit = {}, onError: (String) -> Unit = {}) {
         _isCommentSyncing.postValue(true)
-        RetrofitInstance.networkService
+        networkService
             .updateComment(bear(token), postId, commentId.toString(), NewCommentRequest(text))
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
@@ -216,7 +221,7 @@ class CommunityViewModel : ViewModel() {
 
     fun deleteComment(token: String, postId: String, commentId: Long, onDone: () -> Unit = {}, onError: (String) -> Unit = {}) {
         _isCommentSyncing.postValue(true)
-        RetrofitInstance.networkService
+        networkService
             .deleteComment(bear(token), postId, commentId.toString())
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
@@ -233,14 +238,14 @@ class CommunityViewModel : ViewModel() {
 
     fun createPost(token: String, title: String, content: String, file: String?, type: String = "FREE", onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         val body = NewPostRequest(title = title, content = content, file = file, type = type)
-        RetrofitInstance.networkService
+        networkService
             .createPost(bear(token), body)
             .enqueue(simpleCallback("게시글 등록", onSuccess, onError))
     }
 
     fun updatePost(token: String, id: String, title: String, content: String, file: String?, type: String = "FREE", onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         val body = UpdatePostRequest(title = title, content = content, file = file, type = type)
-        RetrofitInstance.networkService
+        networkService
             .updatePost(bear(token), id, body)
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
@@ -266,7 +271,7 @@ class CommunityViewModel : ViewModel() {
     }
 
     fun deletePost(token: String, id: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
-        RetrofitInstance.networkService
+        networkService
             .deletePost(bear(token), id)
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {

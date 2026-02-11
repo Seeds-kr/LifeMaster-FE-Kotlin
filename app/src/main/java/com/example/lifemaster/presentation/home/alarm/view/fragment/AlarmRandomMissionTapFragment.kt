@@ -14,18 +14,16 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRandomMissionTapBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.Constants
 import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
-import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.example.lifemaster.presentation.home.sleep.model.AlarmInfo
 import com.example.lifemaster.presentation.home.sleep.model.AlarmSettingInfo
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.google.android.material.card.MaterialCardView
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -33,15 +31,12 @@ import java.time.LocalDate
 import kotlin.random.Random
 
 
+@AndroidEntryPoint
 class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mission_tap) {
 
     private lateinit var binding: FragmentAlarmRandomMissionTapBinding
-    private val alarmViewModel: AlarmViewModel by activityViewModels(
-        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
-    )
-    private val sleepViewModel: SleepViewModel by activityViewModels {
-        SleepViewModelFactory(RetrofitInstance.networkService)
-    }
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
+    private val sleepViewModel: SleepViewModel by activityViewModels()
 
     private lateinit var taps: List<MaterialCardView>
     private var answerTapPositions: MutableSet<Int> = hashSetOf()

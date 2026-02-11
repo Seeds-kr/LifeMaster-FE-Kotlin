@@ -26,15 +26,15 @@ import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -45,9 +45,14 @@ import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 import kotlin.getValue
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var networkService: NetworkService
 
     // View 관련 변수
     private lateinit var binding: ActivityMainBinding
@@ -69,9 +74,7 @@ class MainActivity : AppCompatActivity() {
     // 수면 관련 변수
     private var lastUsageTimeBeforeSleep: Long = 0L // 마지막 사용 시간 = 핸드폰 화면을 끈 시간
     private var firstUsageTimeAfterWake: Long? = null // 핸드폰을 처음 킨 시간 (잠금 해제x)
-    private val sleepViewModel: SleepViewModel by viewModels {
-        SleepViewModelFactory(RetrofitInstance.networkService)
-    }
+    private val sleepViewModel: SleepViewModel by viewModels()
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -241,7 +244,7 @@ class MainActivity : AppCompatActivity() {
         val updateItem = intent.getParcelableExtra("pomodoro", TodoItem::class.java)
         val todoItemTitle = intent.getStringExtra("todoItemTitle")
         if (todoItemTitle != null) {
-            RetrofitInstance.networkService.getPomodoroItems(token = "Bearer $userToken")
+            networkService.getPomodoroItems(token = "Bearer $userToken")
                 .enqueue(object : Callback<List<PomodoroItem>> {
                     override fun onResponse(
                         call: Call<List<PomodoroItem>?>,
