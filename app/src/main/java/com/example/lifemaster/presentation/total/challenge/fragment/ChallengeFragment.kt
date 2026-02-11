@@ -197,7 +197,7 @@ class ChallengeFragment : Fragment() {
     private fun setupClickListeners() {
         challengeAdapter.onItemClickListener = { challenge ->
             val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(
-                challenge.challId
+                challenge.challId.toString()
             )
             findNavController().navigate(action)
         }
