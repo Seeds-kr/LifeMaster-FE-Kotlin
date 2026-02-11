@@ -12,6 +12,14 @@
         android:background="@drawable/calendar_selected"
         android:visibility="gone" />
 
+    <View
+        android:id="@+id/bg_today"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center"
+        android:background="@drawable/calendar_today"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/tv_day"
         android:layout_width="match_parent"

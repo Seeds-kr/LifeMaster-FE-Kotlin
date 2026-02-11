@@ -6,19 +6,6 @@
     app:startDestination="@id/homeFragment">
 
     <fragment
-        android:id="@+id/alarmSettingFragment"
-        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmSettingFragment"
-        android:label="fragment_alarm_setting"
-        tools:layout="@layout/fragment_alarm_setting">
-        <action
-            android:id="@+id/action_alarmSettingFragment_to_alarmListFragment"
-            app:destination="@id/alarmListFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
-    <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.lifemaster.presentation.home.HomeFragment"
         android:label="HomeFragment"
@@ -35,6 +22,15 @@
         <action
             android:id="@+id/action_homeFragment_to_groupFragment"
             app:destination="@id/groupFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_pomodoroFragment"
+            app:destination="@id/pomodoroFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_introspectionFragment"
+            app:destination="@id/introspectionFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_challengeFragment"
+            app:destination="@id/challengeFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
@@ -88,8 +84,11 @@
         android:label="fragment_alarm_list_copy"
         tools:layout="@layout/fragment_alarm_list">
         <action
-            android:id="@+id/action_alarmListFragment_to_alarmSettingFragment"
-            app:destination="@id/alarmSettingFragment" />
+            android:id="@+id/action_alarmListFragment_to_alarmCreateFragment"
+            app:destination="@id/alarmCreateFragment" />
+        <action
+            android:id="@+id/action_alarmListFragment_to_alarmEditFragment"
+            app:destination="@id/alarmEditFragment" />
     </fragment>
     <fragment
         android:id="@+id/alarmRingsFragment"
@@ -102,17 +101,43 @@
         <action
             android:id="@+id/action_alarmRingsFragment_to_alarmRandomMissionMathFragment"
             app:destination="@id/alarmRandomMissionMathFragment" />
+        <action
+            android:id="@+id/action_alarmRingsFragment_to_alarmRandomMissionTypingFragment"
+            app:destination="@id/alarmRandomMissionTypingFragment" />
     </fragment>
     <fragment
         android:id="@+id/groupFragment"
-        android:name="com.example.lifemaster.presentation.group.GroupFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupFragment"
         android:label="fragment_group"
-        tools:layout="@layout/fragment_group" />
+        tools:layout="@layout/fragment_group" >
+        <action
+            android:id="@+id/action_groupFragment_to_groupListFragment"
+            app:destination="@id/groupListFragment" />
+        <action
+            android:id="@+id/action_groupFragment_to_groupCreateFragment"
+            app:destination="@id/groupCreateFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/groupListFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupListFragment"
+        android:label="fragment_group_list"
+        tools:layout="@layout/fragment_group_list" />
+    <fragment
+        android:id="@+id/groupCreateFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupCreateFragment"
+        android:label="GroupCreateFragment"
+        tools:layout="@layout/fragment_group_create" />
     <fragment
         android:id="@+id/introspectionFragment"
         android:name="com.example.lifemaster.presentation.total.introspection.IntrospectionFragment"
         android:label="fragment_introspection"
-        tools:layout="@layout/fragment_introspection" />
+        tools:layout="@layout/fragment_introspection">
+
+        <argument
+            android:name="startTab"
+            android:defaultValue="TODAY"
+            app:argType="string" />
+    </fragment>
     <fragment
         android:id="@+id/challengeFragment"
         android:name="com.example.lifemaster.presentation.total.challenge.fragment.ChallengeFragment"
@@ -131,13 +156,8 @@
         tools:layout="@layout/fragment_challenge_detail">
             <argument
                 android:name="challId"
-                app:argType="Long" />
+                app:argType="long"/>
     </fragment>
-        tools:layout="@layout/fragment_challenge_detail">
-        <argument
-            android:name="challId"
-            app:argType="string" />
-
 
     <fragment
         android:id="@+id/totalFragment"
@@ -198,6 +218,10 @@
             app:destination="@id/alarmListFragment"
             app:popUpTo="@id/nav_graph_main"
             app:popUpToInclusive="true"/>
+        <action
+            android:id="@+id/action_alarmRandomMissionTapFragment_self"
+            app:destination="@id/alarmRandomMissionTapFragment"
+            app:launchSingleTop="true"/>
     </fragment>
     <fragment
         android:id="@+id/alarmRandomMissionMathFragment"
@@ -213,5 +237,60 @@
             app:destination="@id/alarmListFragment"
             app:popUpTo="@id/nav_graph_main"
             app:popUpToInclusive="true"/>
+    </fragment>
+    <fragment
+        android:id="@+id/alarmRandomMissionTypingFragment"
+        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmRandomMissionTypingFragment"
+        android:label="fragment_alarm_random_mission_typing"
+        tools:layout="@layout/fragment_alarm_random_mission_typing" >
+        <argument
+            android:name="currentPageNum"
+            android:defaultValue="1"
+            app:argType="integer"/>
+        <action
+            android:id="@+id/action_alarmRandomMissionTypingFragment_self"
+            app:destination="@id/alarmRandomMissionTypingFragment"/>
+    </fragment>
+    <fragment
+        android:id="@+id/pomodoroFragment"
+        android:name="com.example.lifemaster.presentation.home.pomodoro.view.PomodoroFragment"
+        android:label="fragment_pomodoro"
+        tools:layout="@layout/fragment_pomodoro">
+        <argument
+            android:name="todoItem"
+            app:argType="com.example.lifemaster.presentation.home.todo.model.TodoModel"
+            app:nullable="false"/>
+        <action
+            android:id="@+id/action_pomodoroFragment_to_pomodoroEscapeFragment"
+            app:destination="@id/pomodoroEscapeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/pomodoroEscapeFragment"
+        android:name="com.example.lifemaster.presentation.home.pomodoro.view.PomodoroEscapeFragment"
+        android:label="fragment_pomodoro_escape"
+        tools:layout="@layout/fragment_pomodoro_escape">
+        <argument
+            android:name="currentPageNum"
+            android:defaultValue="1"
+            app:argType="integer"/>
+        <action
+            android:id="@+id/action_pomodoroEscapeFragment_self"
+            app:destination="@id/pomodoroEscapeFragment"
+            app:popUpTo="@id/pomodoroEscapeFragment"
+            app:popUpToInclusive="true"/>
+    </fragment>
+    <fragment
+        android:id="@+id/alarmCreateFragment"
+        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmCreateFragment"
+        android:label="AlarmCreateFragment"
+        tools:layout="@layout/fragment_alarm_setting"/>
+    <fragment
+        android:id="@+id/alarmEditFragment"
+        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmEditFragment"
+        android:label="AlarmEditFragment"
+        tools:layout="@layout/fragment_alarm_setting">
+        <argument
+            android:name="alarmId"
+            app:argType="integer"/>
     </fragment>
 </navigation>

@@ -40,7 +40,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="취소하기"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#F0F4F5"
             android:layout_marginEnd="8dp"/>
         <androidx.appcompat.widget.AppCompatButton
@@ -50,7 +50,7 @@
             android:layout_height="wrap_content"
             android:text="적용하기"
             android:textColor="@color/white"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#B4D775"/>
     </LinearLayout>
 

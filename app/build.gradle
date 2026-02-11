@@ -4,6 +4,8 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
     id 'kotlin-parcelize'
     id 'androidx.navigation.safeargs.kotlin'
+    id 'kotlin-kapt'
+    id 'com.google.dagger.hilt.android'
 }
 
 def localProperties = new Properties()
@@ -12,7 +14,6 @@ localProperties.load(new FileInputStream(rootProject.file("local.properties")))
 android {
     namespace 'com.example.lifemaster'
     compileSdk 34
-
 
     viewBinding {
         enabled = true
@@ -31,7 +32,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        //buildConfigField("String", "KAKAO_NATIVE_KEY", localProperties["KAKAO_NATIVE_KEY"])
+        buildConfigField("String", "BASE_URL", localProperties.getProperty("SERVER_BASE_URL"))
     }
 
     buildTypes {
@@ -46,9 +47,14 @@ android {
     }
     kotlinOptions {
         jvmTarget = '17'
+        freeCompilerArgs += ["-Xjvm-default=all"]
     }
     androidResources {
         noCompress 'mp3'
+    }
+
+    kapt {
+        correctErrorTypes = true
     }
 }
 
@@ -79,13 +85,9 @@ dependencies {
     implementation 'androidx.compose.material3:material3'
 
     implementation 'androidx.paging:paging-runtime-ktx:3.2.1'// Paging 3
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
     implementation 'javax.inject:javax.inject:1'
 
     // navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.8.6")
-    implementation("androidx.navigation:navigation-ui-ktx:2.8.6")
-    implementation("androidx.navigation:navigation-safe-args-ktx:2.8.6")
     implementation 'androidx.navigation:navigation-fragment-ktx:2.9.6'
     implementation 'androidx.navigation:navigation-ui-ktx:2.9.6'
     implementation 'com.google.ai.client.generativeai:generativeai:0.9.0'
@@ -102,4 +104,9 @@ dependencies {
     implementation "com.github.bumptech.glide:glide:4.16.0" //이미지 로딩을 위한 Glide
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
+    // hilt
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+
+    implementation("com.daimajia.swipelayout:library:1.2.0@aar") // Android Swipe Layout
 }

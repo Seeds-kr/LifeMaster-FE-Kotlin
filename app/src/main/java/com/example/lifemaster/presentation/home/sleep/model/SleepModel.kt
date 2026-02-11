@@ -34,6 +34,18 @@ data class SleepResponse(
             val minute = duration.toMinutes()%60
             return "${hour}시간 ${minute}분"
         }
+
+    val sleepDurationMinutes: Int
+        get() {
+            val sleepStartMillis = Instant.parse(sleepStart+"Z").toEpochMilli()
+            val sleepEndMillis = Instant.parse(sleepEnd+"Z").toEpochMilli()
+            val sleepDurationMillis = sleepEndMillis - sleepStartMillis
+
+            val duration = Duration.ofMillis(sleepDurationMillis)
+            val sleepDurationMinutes = duration.toMinutes().toInt()
+
+            return sleepDurationMinutes
+        }
 }
 
 data class AlarmInfo(

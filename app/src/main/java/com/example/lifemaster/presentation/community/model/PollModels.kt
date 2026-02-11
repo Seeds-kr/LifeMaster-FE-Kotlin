@@ -10,7 +10,9 @@ data class PollListItem(
 data class PollDetailsDto(
     val title: String,
     val isExpired: Boolean,
-    val options: List<PollOption>
+    val totalVotes: Int? = null,
+    val options: List<PollOption>,
+    val myVotedOptionId: Int? = null
 )
 
 data class PollOption(

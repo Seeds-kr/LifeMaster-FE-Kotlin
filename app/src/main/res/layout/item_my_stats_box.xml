@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_my_stats"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    app:cardBackgroundColor="@android:color/white"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- 수면 통계 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:id="@+id/icon_sleep"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_rectangle_and_gray"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_clock_sleep"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="@string/sleep_stats"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                app:layout_constraintStart_toEndOf="@id/icon_sleep"
+                app:layout_constraintTop_toTopOf="@id/icon_sleep"
+                app:layout_constraintBottom_toBottomOf="@id/icon_sleep" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- 뽀모도로 통계 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+
+            <FrameLayout
+                android:id="@+id/icon_pomodoro"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_rectangle_and_gray"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_clock"
+                    app:tint="@color/black"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="@string/pomodoro_stats"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                app:layout_constraintStart_toEndOf="@id/icon_pomodoro"
+                app:layout_constraintTop_toTopOf="@id/icon_pomodoro"
+                app:layout_constraintBottom_toBottomOf="@id/icon_pomodoro" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

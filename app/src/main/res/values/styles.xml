@@ -12,8 +12,8 @@
     </style>
     <!-- 챌린지 검색창 스타일 -->
     <style name="CustomSearchViewStyle" parent="Widget.AppCompat.SearchView">
-        <item name="android:textSize">20sp</item></style>
-
+        <item name="android:textSize">20sp</item>
+    </style>
     <style name="CalendarWeekHeader">
         <item name="android:layout_width">32dp</item>
         <item name="android:layout_height">22dp</item>
@@ -48,5 +48,25 @@
         <item name="android:textColor">@color/black</item>
         <item name="android:textSize">32sp</item>
         <item name="android:layout_gravity">center</item>
+    </style>
+
+    <style name="alarm_repeat_day">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="contentPaddingLeft">10dp</item>
+        <item name="contentPaddingRight">10dp</item>
+        <item name="contentPaddingTop">6dp</item>
+        <item name="contentPaddingBottom">6dp</item>
+        <item name="cardCornerRadius">6dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeColor">@color/selector_alarm_repeat_day</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:layout_marginStart">6dp</item>
+    </style>
+    <style name="alarm_repeat_day_text">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/selector_alarm_repeat_day</item>
     </style>
 </resources>
