@@ -1,13 +1,9 @@
 package com.example.lifemaster.network
 
 import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
-import com.example.lifemaster.presentation.home.calendar.model.CalendarEntry
-import com.example.lifemaster.presentation.home.calendar.model.EventBody
 import com.example.lifemaster.presentation.login.model.LoginInfo
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
@@ -31,17 +27,12 @@ import com.example.lifemaster.presentation.home.todo.model.TodoResponse
 import com.example.lifemaster.presentation.login.model.EmailRequest
 import com.example.lifemaster.presentation.login.model.PasswordResetDto
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
-import com.example.lifemaster.presentation.community.model.*
 import com.example.lifemaster.presentation.group.model.GroupCreateResponse
 import com.example.lifemaster.presentation.group.model.GroupGoalCreateRequest
 import com.example.lifemaster.presentation.group.model.GroupGoalResponse
+import com.example.lifemaster.presentation.group.model.GroupResponse
 import com.example.lifemaster.presentation.login.model.RegNickResponse
-import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
-import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
-import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
-import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
-import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
-import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
+import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -97,9 +88,10 @@ interface NetworkService {
         @Body body: EmailRequest
     ): Call<PasswordResponseDto>
 
-    @GET("auth/password/reset/verify")
-    fun verifyResetToken(
-        @Query("token") token: String
+    @Headers("Content-Type: application/json")
+    @POST("auth/password/reset/verify-code")
+    fun verifyResetCode(
+        @Body body: VerifyCodeRequest
     ): Call<PasswordResponseDto>
 
     @Headers("Content-Type: application/json")
@@ -525,6 +517,18 @@ interface NetworkService {
         @Query("level") level: String
     ): MathProblemResponse
 
+    // 그룹 전체 목록 조회
+    @GET("/group")
+    suspend fun getAllGroups(
+        @Header("Authorization") token: String
+    ): List<GroupResponse>
+
+    // 참여중인 그룹 조회
+    @GET("/group/user/me")
+    suspend fun getMyGroups(
+        @Header("Authorization") token: String
+    ): List<GroupResponse>
+
     // 그룹 생성
     @POST("/group/create")
     fun createGroup(
@@ -543,6 +547,36 @@ interface NetworkService {
         @Path("groupId") groupId: Long,
         @Body body: GroupGoalCreateRequest
     ): Response<GroupGoalResponse>
+
+    // 그룹 초대 코드
+    @GET("/group/{groupId}/invite")
+    suspend fun getGroupInviteCode(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long
+    ): Response<ResponseBody>
+
+    // 그룹 상세 조회
+    @GET("/group/{id}")
+    suspend fun getGroupById(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long
+    ): Response<ResponseBody>
+
+    // 그룹 가입
+    @POST("/group/{groupId}/addUser/{userId}")
+    suspend fun addUserToGroup(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long,
+        @Path("userId") userId: Long
+    ): Response<ResponseBody>
+
+    // 그룹 탈퇴
+    @DELETE("group/{groupId}/user/{userId}")
+    suspend fun removeUserFromGroup(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long,
+        @Path("userId") userId: Long
+    ): Response<ResponseBody>
 
     // 5x5 클릭 그리드 생성 API
     @GET("/time/alarm/mission/follow-click")

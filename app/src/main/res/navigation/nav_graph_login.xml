@@ -49,7 +49,23 @@
         tools:layout="@layout/fragment_find_password">
 
         <action
-            android:id="@+id/action_findPasswordFragment_to_resetPasswordFragment"
+            android:id="@+id/action_findPasswordFragment_to_findPasswordVerificationFragment"
+            app:destination="@id/findPasswordVerificationFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/findPasswordVerificationFragment"
+        android:name="com.example.lifemaster.presentation.login.view.FindPasswordVerificationFragment"
+        android:label="findPasswordVerification"
+        tools:layout="@layout/fragment_find_password_verification">
+
+        <argument
+            android:name="email"
+            app:argType="string"
+            app:nullable="false" />
+
+        <action
+            android:id="@+id/action_findPasswordVerificationFragment_to_resetPasswordFragment"
             app:destination="@id/resetPasswordFragment" />
     </fragment>
 
