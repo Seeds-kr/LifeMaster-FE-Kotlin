@@ -2,6 +2,7 @@ package com.example.lifemaster.presentation.login.view
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -9,10 +10,14 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentLoginSocialBinding
+import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.MainActivity
 import com.kakao.sdk.user.UserApiClient
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.navigation.fragment.findNavController
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @AndroidEntryPoint
 class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
@@ -76,6 +81,10 @@ class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
         btnEmailSignup.setOnClickListener {
             findNavController().navigate(R.id.signupEmailFragment)
         }
+
+        btnNaverLogin.setOnClickListener {
+            loginWithNaver()
+        }
     }
 
 
@@ -91,6 +100,32 @@ class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
                 onSuccess(token.accessToken)
             }
         }
+    }
+
+    private fun loginWithNaver() {
+        RetrofitInstance.networkService.getNaverAuthUrl().enqueue(object : Callback<String> {
+            override fun onResponse(call: Call<String>, response: Response<String>) {
+                if (response.isSuccessful) {
+                    val authUrl = response.body()
+                    if (!authUrl.isNullOrBlank()) {
+                        // 네이버 인증 URL을 브라우저로 열기
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(authUrl))
+                        startActivity(intent)
+                        Log.d("NaverLogin", "네이버 로그인 URL 열기: $authUrl")
+                    } else {
+                        Toast.makeText(requireContext(), "인증 URL을 받아오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Log.e("NaverLogin", "authUrl 요청 실패: ${response.code()}")
+                    Toast.makeText(requireContext(), "네이버 로그인 URL을 가져오는데 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<String>, t: Throwable) {
+                Log.e("NaverLogin", "authUrl 요청 에러", t)
+                Toast.makeText(requireContext(), "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
 }

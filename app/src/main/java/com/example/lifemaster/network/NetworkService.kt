@@ -63,6 +63,10 @@ interface NetworkService {
         @Body loginInfo: LoginInfo
     ): Call<String>
 
+    // 네이버 로그인: OAuth2 인증 URL 발급
+    @GET("/naverLogin/authUrl")
+    fun getNaverAuthUrl(): Call<String>
+
     // 모든 To-Do 항목 조회
     @GET("/schedule/todo")
     fun getTodoItems(
