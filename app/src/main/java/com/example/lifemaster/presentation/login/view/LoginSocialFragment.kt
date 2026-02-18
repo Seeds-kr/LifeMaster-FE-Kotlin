@@ -106,9 +106,9 @@ class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
         RetrofitInstance.networkService.getNaverAuthUrl().enqueue(object : Callback<String> {
             override fun onResponse(call: Call<String>, response: Response<String>) {
                 if (response.isSuccessful) {
-                    val authUrl = response.body()
+                    val authUrl = response.body()?.trim()
                     if (!authUrl.isNullOrBlank()) {
-                        // 네이버 인증 URL을 브라우저로 열기
+                        // 네이버 인증 URL을 브라우저로 열기 (nid.naver.com/oauth2.0/authorize?...)
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(authUrl))
                         startActivity(intent)
                         Log.d("NaverLogin", "네이버 로그인 URL 열기: $authUrl")

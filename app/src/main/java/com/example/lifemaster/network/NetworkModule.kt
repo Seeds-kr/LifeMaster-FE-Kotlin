@@ -14,13 +14,17 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "https://api.lifemaster.harvester.kr/"
+    private const val DEFAULT_BASE_URL = "https://api.lifemaster.harvester.kr/"
+
+    private val baseUrl: String
+        get() = BuildConfig.BASE_URL.takeIf { it.isNotBlank() } ?: DEFAULT_BASE_URL
+            .let { if (it.endsWith("/")) it else "$it/" }
 
     @Provides
     @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(baseUrl)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
