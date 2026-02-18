@@ -56,4 +56,6 @@
     <string name="sat_text">SAT</string>
     <string name="sun_text">SUN</string>
 
+    <!-- faq -->
+    <string name="expand_collapse_indicator">Expand/Collapse</string>
 </resources>
