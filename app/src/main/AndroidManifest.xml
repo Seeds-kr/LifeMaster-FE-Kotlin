@@ -63,6 +63,14 @@
             android:name=".presentation.home.edit.view.HomeEditActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".presentation.total.mypage.view.MyPageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.total.mypage.view.PremiumSubscribeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LifeMaster_XML" />
+
         <service
             android:name=".presentation.total.detox.service.DetoxBlockService"
             android:exported="true"

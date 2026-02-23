@@ -17,7 +17,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="마이페이지"
+        android:text="@string/mypage_title"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@android:color/black"
@@ -30,7 +30,7 @@
         android:id="@+id/tvEdit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="수정"
+        android:text="@string/mypage_edit"
         android:textSize="16sp"
         android:textColor="@android:color/black"
         android:layout_marginEnd="16dp"
@@ -47,13 +47,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        android:contentDescription="Profile Picture" />
+        android:contentDescription="@string/mypage_profile_image_description" />
 
     <TextView
         android:id="@+id/tvNicknameLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="닉네임"
+        android:text="@string/mypage_nickname_label"
         android:textColor="#A0A0A0"
         android:layout_marginTop="32dp"
         android:layout_marginStart="16dp"
@@ -64,7 +64,7 @@
         android:id="@+id/tvNickname"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="미라클이노베이팅하는사람"
+        android:text="@string/mypage_nickname_sample"
         android:textColor="@android:color/black"
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -87,7 +87,7 @@
         android:id="@+id/tvEmailLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="이메일 주소"
+        android:text="@string/mypage_email_label"
         android:textColor="#A0A0A0"
         android:layout_marginTop="8dp"
         android:layout_marginStart="16dp"
@@ -98,7 +98,7 @@
         android:id="@+id/tvEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="example@test.com"
+        android:text="@string/mypage_email_sample"
         android:textColor="@android:color/black"
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -121,7 +121,7 @@
         android:id="@+id/tvSubscriptionTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="구독 정보"
+        android:text="@string/mypage_subscription_title"
         android:textColor="@android:color/black"
         android:textStyle="bold"
         android:layout_marginTop="24dp"
@@ -151,7 +151,7 @@
                 android:id="@+id/tvSubscriptionType"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Premium"
+                android:text="@string/mypage_premium"
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:textColor="@android:color/black"
@@ -162,7 +162,7 @@
                 android:id="@+id/tvSubscriptionDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2024.07.12 갱신됨"
+                android:text="@string/mypage_subscription_date_sample"
                 android:textColor="#A0A0A0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvSubscriptionType" />
@@ -175,7 +175,7 @@
         android:id="@+id/tvPlanTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="요금제"
+        android:text="@string/mypage_plan_title"
         android:textColor="@android:color/black"
         android:textStyle="bold"
         android:layout_marginTop="24dp"
@@ -194,6 +194,7 @@
         app:cardElevation="0dp"
         app:contentPadding="16dp"
         app:contentPaddingBottom="24dp"
+        app:layout_constraintHorizontal_weight="1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/cvPremiumPlan"
         app:layout_constraintTop_toBottomOf="@id/tvPlanTitle"
@@ -207,7 +208,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Basic"
+                android:text="@string/mypage_basic_plan_title"
                 android:textStyle="bold"
                 android:textSize="18sp"
                 android:textColor="@android:color/black" />
@@ -215,7 +216,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="무료"
+                android:text="@string/mypage_free_price"
                 android:textSize="14sp"
                 android:textColor="#A0A0A0"
                 android:layout_marginTop="4dp" />
@@ -230,7 +231,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• 투두(할일)"
+                android:text="@string/mypage_basic_plan_feature_1"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -238,7 +239,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• 기본 알람"
+                android:text="@string/mypage_basic_plan_feature_2"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -246,7 +247,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• 기록 (일기/5감사 중 하나)"
+                android:text="@string/mypage_basic_plan_feature_3"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -254,7 +255,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• 과거 기록 조회 제한"
+                android:text="@string/mypage_basic_plan_feature_4"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -262,7 +263,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• 커뮤니티"
+                android:text="@string/mypage_basic_plan_feature_5"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -270,7 +271,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• 챌린지 (1개 제한)"
+                android:text="@string/mypage_basic_plan_feature_6"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -290,10 +291,10 @@
         app:cardElevation="0dp"
         app:contentPadding="16dp"
         app:contentPaddingBottom="24dp"
+        app:layout_constraintHorizontal_weight="1"
         app:layout_constraintStart_toEndOf="@id/cvBasicPlan"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvPlanTitle"
-        app:layout_constraintWidth_equalTo="@id/cvBasicPlan">
+        app:layout_constraintTop_toBottomOf="@id/tvPlanTitle">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -303,7 +304,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Premium"
+                android:text="@string/mypage_premium"
                 android:textStyle="bold"
                 android:textSize="18sp"
                 android:textColor="@android:color/black" />
@@ -311,7 +312,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="월 ₩4,900"
+                android:text="@string/mypage_premium_price"
                 android:textSize="14sp"
                 android:textColor="#A0A0A0"
                 android:layout_marginTop="4dp" />
@@ -326,7 +327,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• 디지털 디톡스"
+                android:text="@string/mypage_premium_plan_feature_1"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -334,7 +335,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• 챌린지 확장"
+                android:text="@string/mypage_premium_plan_feature_2"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -342,7 +343,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="  (여러 개 사용 가능)"
+                android:text="@string/mypage_premium_plan_feature_2_detail"
                 android:textSize="11sp"
                 android:textColor="#666666"
                 android:layout_marginTop="2dp" />
@@ -350,7 +351,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• 기록 데이터 확장"
+                android:text="@string/mypage_premium_plan_feature_3"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -358,7 +359,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="  (통계 - 수면 패턴, 연속 성공일)"
+                android:text="@string/mypage_premium_plan_feature_3_detail"
                 android:textSize="11sp"
                 android:textColor="#666666"
                 android:layout_marginTop="2dp" />
@@ -366,7 +367,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• 수면 관리"
+                android:text="@string/mypage_premium_plan_feature_4"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -374,7 +375,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• UI 커스터마이징"
+                android:text="@string/mypage_premium_plan_feature_5"
                 android:textSize="12sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="4dp" />
@@ -387,7 +388,7 @@
         android:id="@+id/btnSubscribePremium"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Premium 구독하기"
+        android:text="@string/mypage_subscribe_button_text"
         android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="#00796B"
@@ -406,7 +407,7 @@
         android:id="@+id/tvPaymentTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="결제 내역"
+        android:text="@string/mypage_payment_history_title"
         android:textColor="@android:color/black"
         android:textStyle="bold"
         android:layout_marginTop="24dp"
@@ -435,7 +436,7 @@
                 android:id="@+id/tvPaymentDate1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="7월 18일"
+                android:text="@string/mypage_payment_date_sample"
                 android:textColor="@android:color/black"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -444,7 +445,7 @@
                 android:id="@+id/tvPaymentDesc1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="포인트 충전"
+                android:text="@string/mypage_payment_description_sample"
                 android:textColor="@android:color/black"
                 android:layout_marginStart="16dp"
                 app:layout_constraintStart_toEndOf="@id/tvPaymentDate1"
@@ -454,7 +455,7 @@
                 android:id="@+id/tvPaymentAmount1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="50,000원"
+                android:text="@string/mypage_payment_amount_sample"
                 android:textColor="@android:color/black"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -470,7 +471,7 @@
                 android:id="@+id/tvPaymentDate2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="7월 18일"
+                android:text="@string/mypage_payment_date_sample"
                 android:textColor="@android:color/black"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -479,7 +480,7 @@
                 android:id="@+id/tvPaymentDesc2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="포인트 충전"
+                android:text="@string/mypage_payment_description_sample"
                 android:textColor="@android:color/black"
                 android:layout_marginStart="16dp"
                 app:layout_constraintStart_toEndOf="@id/tvPaymentDate2"
@@ -489,7 +490,7 @@
                 android:id="@+id/tvPaymentAmount2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="50,000원"
+                android:text="@string/mypage_payment_amount_sample"
                 android:textColor="@android:color/black"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -505,7 +506,7 @@
                 android:id="@+id/tvPaymentDate3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="7월 18일"
+                android:text="@string/mypage_payment_date_sample"
                 android:textColor="@android:color/black"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -514,7 +515,7 @@
                 android:id="@+id/tvPaymentDesc3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="포인트 충전"
+                android:text="@string/mypage_payment_description_sample"
                 android:textColor="@android:color/black"
                 android:layout_marginStart="16dp"
                 app:layout_constraintStart_toEndOf="@id/tvPaymentDate3"
@@ -524,7 +525,7 @@
                 android:id="@+id/tvPaymentAmount3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="50,000원"
+                android:text="@string/mypage_payment_amount_sample"
                 android:textColor="@android:color/black"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -537,7 +538,7 @@
         android:id="@+id/tvWithdrawal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="회원 탈퇴"
+        android:text="@string/mypage_withdrawal_button_text"
         android:textColor="#A0A0A0"
         android:layout_marginTop="32dp"
         app:layout_constraintStart_toStartOf="parent"
