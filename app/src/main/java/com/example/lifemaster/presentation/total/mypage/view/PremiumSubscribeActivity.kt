@@ -1,7 +1,10 @@
 package com.example.lifemaster.presentation.total.mypage.view
 
 import android.os.Bundle
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.lifemaster.R
 
 /**
@@ -9,12 +12,44 @@ import com.example.lifemaster.R
  */
 class PremiumSubscribeActivity : AppCompatActivity() {
 
+    private var isAnnualSelected = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_premium_subscribe)
 
-        findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnStartPremium).setOnClickListener {
-            // 결제 기능은 추후 구현
+        val cardAnnual = findViewById<ConstraintLayout>(R.id.cardAnnual)
+        val cardMonthly = findViewById<ConstraintLayout>(R.id.cardMonthly)
+        val iconAnnualCheck = findViewById<ImageView>(R.id.iconAnnualCheck)
+        val iconMonthlyCheck = findViewById<ImageView>(R.id.iconMonthlyCheck)
+
+        fun updateSelection() {
+            if (isAnnualSelected) {
+                cardAnnual.setBackgroundResource(R.drawable.bg_subscription_card_selected)
+                cardMonthly.setBackgroundResource(R.drawable.bg_subscription_card_unselected)
+                iconAnnualCheck.setImageResource(R.drawable.ic_subscription_check_selected)
+                iconMonthlyCheck.setImageResource(R.drawable.ic_subscription_check_unselected)
+            } else {
+                cardAnnual.setBackgroundResource(R.drawable.bg_subscription_card_unselected)
+                cardMonthly.setBackgroundResource(R.drawable.bg_subscription_card_selected)
+                iconAnnualCheck.setImageResource(R.drawable.ic_subscription_check_unselected)
+                iconMonthlyCheck.setImageResource(R.drawable.ic_subscription_check_selected)
+            }
+        }
+
+        cardAnnual.setOnClickListener {
+            isAnnualSelected = true
+            updateSelection()
+        }
+        cardMonthly.setOnClickListener {
+            isAnnualSelected = false
+            updateSelection()
+        }
+
+        updateSelection()
+
+        findViewById<TextView>(R.id.tvCouponEnter).setOnClickListener {
+            // 쿠폰 입력 기능 추후 구현
         }
     }
 }

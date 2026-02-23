@@ -99,4 +99,15 @@
     <string name="premium_subscribe_catchphrase">커피 한 잔 가격으로 삶에 활력을 불어넣으세요!</string>
     <string name="premium_subscribe_benefits_title">Premium 혜택</string>
     <string name="premium_subscribe_start_button">PREMIUM 시작하기</string>
+    <string name="subscription_plan_annual">연간</string>
+    <string name="subscription_plan_monthly">월간</string>
+    <string name="subscription_monthly_no_trial">무료체험 미포함</string>
+    <string name="subscription_badge_30_off">30% OFF</string>
+    <string name="subscription_price_annual_main">₩41,160 /년</string>
+    <string name="subscription_price_annual_sub">₩3,430 /월</string>
+    <string name="subscription_price_monthly_main">₩4,900 /월</string>
+    <string name="subscription_price_monthly_sub">₩58,800 /년</string>
+    <string name="premium_coupon_enter">쿠폰 입력하기</string>
+    <string name="premium_start_annual">30% 할인 받고 시작하기</string>
+    <string name="premium_start_monthly">Premium 시작하기</string>
 </resources>
