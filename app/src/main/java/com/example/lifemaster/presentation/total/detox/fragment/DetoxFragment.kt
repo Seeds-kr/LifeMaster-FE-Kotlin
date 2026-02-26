@@ -35,23 +35,8 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     private var totalAccumulatedAppUsageTimes: Long = 0L // 앱의 총 누적 사용 시간(lifemaster 앱의 현재 포그라운드 상태에서의 누적된 시간 제외)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d("DetoxFragment", "onCreate")
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        Log.d("DetoxFragment", "onCreateView")
-        return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d("DetoxFragment", "onViewCreated")
         binding = FragmentDetoxBinding.bind(view)
         initViews()
         initListeners()
@@ -131,8 +116,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
         // 시간 잠금 - 시간 잠금 설정
         binding.btnTimeLockSetting.setOnClickListener {
-            val dialog = DetoxTimeLockDialog()
-            dialog.isCancelable = false
+            val dialog = DetoxTimeLockDialog().apply { isCancelable = false }
             dialog.show(childFragmentManager, DetoxTimeLockDialog.TAG)
         }
     }
@@ -191,35 +175,5 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         val remainSeconds = totalSeconds % 60
 
         return String.format("%02d:%02d:%02d", hours, minutes, remainSeconds)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d("DetoxFragment", "onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("DetoxFragment", "onResume")
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Log.d("DetoxFragment", "onPause")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.d("DetoxFragment", "onStop")
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        Log.d("DetoxFragment", "onDestroyView")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d("DetoxFragment", "onDestroy")
     }
 }

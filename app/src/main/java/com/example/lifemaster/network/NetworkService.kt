@@ -23,6 +23,8 @@ import com.example.lifemaster.presentation.login.model.PasswordResetDto
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
 import com.example.lifemaster.presentation.login.model.RegNickResponse
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
+import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
+import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
@@ -523,4 +525,12 @@ interface NetworkService {
     suspend fun generateTypingSentence(
         @Query("alarmId") alarmId: Int
     ): String
+
+    /**
+     * 디톡스
+     */
+    @POST("/detox/time")
+    suspend fun generateTimeLock(
+        @Body request: DetoxTimeLockRequest
+    ): Response<DetoxTimeLockResponse>
 }

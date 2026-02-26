@@ -38,15 +38,15 @@ class DetoxRepeatLockSettingDialog : DialogFragment(R.layout.dialog_detox_repeat
 
         binding.tvSelectTargetApp.setOnClickListener {
             dismiss()
-            val dialog = DetoxRepeatLockSettingTargetDialog()
+            val dialog = DetoxRepeatLockTargetDialog()
             dialog.isCancelable = false
-            dialog.show(parentFragmentManager, DetoxRepeatLockSettingTargetDialog.TAG)
+            dialog.show(parentFragmentManager, DetoxRepeatLockTargetDialog.TAG)
         }
         binding.ivSelectTargetApp.setOnClickListener {
             dismiss()
-            val dialog = DetoxRepeatLockSettingTargetDialog()
+            val dialog = DetoxRepeatLockTargetDialog()
             dialog.isCancelable = false
-            dialog.show(parentFragmentManager, DetoxRepeatLockSettingTargetDialog.TAG)
+            dialog.show(parentFragmentManager, DetoxRepeatLockTargetDialog.TAG)
         }
 
 //        binding.btnUseTimeHour.setOnClickListener {

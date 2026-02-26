@@ -25,6 +25,7 @@ import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
+import com.example.lifemaster.Utils.getDailyUsageStats
 import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
@@ -58,7 +59,6 @@ class MainActivity : AppCompatActivity() {
 
     // View 관련 변수
     private lateinit var binding: ActivityMainBinding
-    private lateinit var totalApps: MutableList<ApplicationInfo>
     private lateinit var requiredApps: List<ApplicationInfo>
     private var foregroundStartTime: Long = 0L
     private var userToken: String? = ""
@@ -121,12 +121,6 @@ class MainActivity : AppCompatActivity() {
             binding.bottomNavigation.isVisible = false
         }
 
-//        userToken = intent.getStringExtra("user_token")
-//        val sharedPreferences = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
-//        val editor = sharedPreferences.edit()
-//        editor.putString("token", userToken)
-//        editor.commit()
-
         updateRunnable = object : Runnable {
             override fun run() {
                 val elapsedForegroundTime =
@@ -136,7 +130,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        totalApps = packageManager.getInstalledApplications(0)
+        val totalApps = packageManager.getInstalledApplications(0)
         requiredApps = totalApps.filter { app ->
             val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
             val isUpdatedSystemApp = (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
@@ -144,8 +138,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) binding.bottomNavigation.selectedItemId = R.id.action_home
-
-        fetchApplications()
 
         setupListeners()
 
@@ -267,26 +259,6 @@ class MainActivity : AppCompatActivity() {
         handler.removeCallbacks(updateRunnable)
     }
 
-    // 실제 디바이스에 설치된 어플리케이션을 가져오는 함수
-    private fun fetchApplications() {
-
-        val applicationList = arrayListOf<DetoxTargetApp>()
-        val usageStatsMap = getDailyUsageStats(this)
-
-        for (app in requiredApps) {
-            val appName = app.loadLabel(packageManager).toString()
-            val appIcon = app.loadUnbadgedIcon(packageManager)
-            val appPackageName = app.packageName
-            val accumulatedTime =
-                usageStatsMap[app.packageName] ?: 0L // 누적 사용 시간은 실시간으로 변동되지 않음 (리팩토링 필요)
-            applicationList.add(DetoxTargetApp(appIcon, appName, appPackageName, accumulatedTime))
-        }
-
-        detoxRepeatLockViewModel.blockServiceApplications = ArrayList(applicationList)
-        detoxRepeatLockViewModel.repeatLockTargetApplications = ArrayList(applicationList)
-        detoxTimeLockViewModel.allowServiceApplications = ArrayList(applicationList)
-    }
-
     // 앱 사용 시간을 실시간으로 업데이트하는 함수 (1초마다 실행됨)
     private fun updateUsageStats() {
 
@@ -342,52 +314,6 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
-    }
-
-    // 자정을 기준으로 하루 앱 사용 시간을 측정하는 함수
-    private fun getDailyUsageStats(context: Context): Map<String, Long> {
-        val usageStatsManager =
-            context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-
-        val startTime = calendar.timeInMillis
-        val endTime = System.currentTimeMillis()
-
-        val eventMap = mutableMapOf<String, Long>()
-
-        val usageEvents = usageStatsManager.queryEvents(startTime, endTime)
-        val event = UsageEvents.Event()
-
-        var currentForegroundApp: String? = null
-        var lastEventTime = 0L
-
-        while (usageEvents.hasNextEvent()) {
-            usageEvents.getNextEvent(event)
-
-            when (event.eventType) {
-                UsageEvents.Event.MOVE_TO_FOREGROUND -> {
-                    currentForegroundApp = event.packageName
-                    lastEventTime = event.timeStamp
-                }
-
-                UsageEvents.Event.MOVE_TO_BACKGROUND -> {
-                    if (currentForegroundApp != null && lastEventTime != 0L) {
-                        val usageTime = event.timeStamp - lastEventTime
-                        eventMap[currentForegroundApp] =
-                            (eventMap[currentForegroundApp] ?: 0) + usageTime
-                    }
-                    currentForegroundApp = null
-                    lastEventTime = 0L
-                }
-            }
-        }
-
-        return eventMap
     }
 
     // 차단 서비스 기능을 위한 접근성 권한 활성화 여부 확인

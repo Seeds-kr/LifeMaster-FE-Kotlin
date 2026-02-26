@@ -17,13 +17,13 @@ data class DetoxTimeLockItem(
     val endType: String
 )
 
+@Parcelize
 data class DetoxTargetApp(
-    val appIcon: Drawable,
+    val appIcon: @RawValue Drawable,
     val appName: String,
     val appPackageName: String,
-    val accumulatedTime: Long = 0L,
-    val isClicked: Boolean = false
-)
+    val accumulatedTime: Long = 0L
+): Parcelable
 
 @Parcelize
 data class DetoxRepeatLockItem(
