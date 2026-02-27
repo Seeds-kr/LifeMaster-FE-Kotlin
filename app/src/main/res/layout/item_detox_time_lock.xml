@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -77,8 +78,10 @@
         tools:text="PM"/>
 
     <ImageView
+        android:id="@+id/iv_delete_time_lock_item"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_trashcan"/>
+        android:src="@drawable/ic_trashcan"
+        app:tint="#B4D775"/>
 
 </LinearLayout>

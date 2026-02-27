@@ -44,7 +44,9 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         0L // 앱의 총 누적 사용 시간(lifemaster 앱의 현재 포그라운드 상태에서의 누적된 시간 제외)
 
     private val detoxTimeLockAdapter by lazy {
-        DetoxTimeLockAdapter()
+        DetoxTimeLockAdapter { deleteId ->
+            detoxTimeLockViewModel.deleteTimeLockItem(deleteId)
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -168,6 +170,13 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                             }
 
                         }
+                }
+                launch {
+                    detoxTimeLockViewModel.deleteTimeLockResult.collect { dataResource ->
+                        if(dataResource is DataResource.Success) {
+                            detoxTimeLockViewModel.fetchTimeLockItems()
+                        }
+                    }
                 }
             }
         }

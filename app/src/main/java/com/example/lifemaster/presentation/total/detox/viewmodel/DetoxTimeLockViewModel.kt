@@ -65,4 +65,18 @@ class DetoxTimeLockViewModel @Inject constructor(
             }
         }
     }
+
+    private val _deleteTimeLockResult = MutableSharedFlow<DataResource<Unit>>()
+    val deleteTimeLockResult = _deleteTimeLockResult.asSharedFlow()
+
+    fun deleteTimeLockItem(id: Long) {
+        viewModelScope.launch {
+            _deleteTimeLockResult.emit(DataResource.Loading)
+            detoxRepository.deleteTimeLockItem(id = id).onSuccess {
+                _deleteTimeLockResult.emit(DataResource.Success(it))
+            }.onFailure {
+                _deleteTimeLockResult.emit(DataResource.Error(it))
+            }
+        }
+    }
 }

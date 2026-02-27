@@ -27,4 +27,15 @@ class DetoxRepository @Inject constructor(private val networkService: NetworkSer
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    suspend fun deleteTimeLockItem(id: Long): Result<Unit> = try {
+        val response = networkService.deleteTimeLockItem(id = id)
+        if(response.isSuccessful) {
+            Result.success(Unit)
+        } else {
+            Result.failure(Exception(response.message()))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

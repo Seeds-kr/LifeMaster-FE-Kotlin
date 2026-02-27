@@ -9,7 +9,9 @@ import com.example.lifemaster.databinding.ItemDetoxTimeLockBinding
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 
-class DetoxTimeLockAdapter : ListAdapter<DetoxTimeLockResponse, DetoxTimeLockAdapter.DetoxTimeLockViewHolder>(
+class DetoxTimeLockAdapter(
+    private val onDeleteClick: (Long) -> Unit
+) : ListAdapter<DetoxTimeLockResponse, DetoxTimeLockAdapter.DetoxTimeLockViewHolder>(
     differ
 ) {
 
@@ -28,6 +30,9 @@ class DetoxTimeLockAdapter : ListAdapter<DetoxTimeLockResponse, DetoxTimeLockAda
                 tvStartTimeType.text = item.startAmPm
                 tvEndTime.text = String.format("%02d:%02d", item.endHour, item.endMinutes)
                 tvEndTimeType.text = item.endAmPm
+                ivDeleteTimeLockItem.setOnClickListener {
+                    onDeleteClick(item.id)
+                }
             }
         }
     }

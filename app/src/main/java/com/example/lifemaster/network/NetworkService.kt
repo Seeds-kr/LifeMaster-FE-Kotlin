@@ -539,11 +539,19 @@ interface NetworkService {
     /**
      * 디톡스
      */
+    // 시간 잠금 특정 목록 생성
     @POST("/detox/time")
     suspend fun generateTimeLock(
         @Body request: DetoxTimeLockRequest
     ): Response<Unit>
 
+    // 시간 잠금 전체 목록 조회
     @GET("/detox/time")
     suspend fun fetchTimeLockItems(): Response<List<DetoxTimeLockResponse>>
+
+    // 특정 시간 잠금 목록 삭제
+    @DELETE("/detox/time/{id}")
+    suspend fun deleteTimeLockItem(
+        @Path("id") id: Long
+    ): Response<Unit>
 }
