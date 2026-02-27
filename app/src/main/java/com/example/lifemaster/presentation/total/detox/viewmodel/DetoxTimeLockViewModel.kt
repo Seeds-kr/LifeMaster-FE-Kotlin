@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -38,16 +39,7 @@ class DetoxTimeLockViewModel @Inject constructor(
 
     var allowServiceApplications = arrayListOf<DetoxTargetApp>()
 
-    private val _timeLockItems: MutableLiveData<ArrayList<DetoxTimeLockItem>> = MutableLiveData()
-    val timeLockItems: LiveData<ArrayList<DetoxTimeLockItem>> get() = _timeLockItems
-
-    fun addTimeLockItems(timeLockItem: DetoxTimeLockItem) {
-        val currentList = _timeLockItems.value ?: arrayListOf()
-        currentList.add(timeLockItem)
-        _timeLockItems.value = currentList
-    }
-
-    private val _generateTimeLockResult = MutableSharedFlow<DataResource<DetoxTimeLockResponse>>()
+    private val _generateTimeLockResult = MutableSharedFlow<DataResource<Unit>>()
     val generateTimeLockResult = _generateTimeLockResult.asSharedFlow()
 
     fun generateTimeLock(request: DetoxTimeLockRequest) {
@@ -56,6 +48,20 @@ class DetoxTimeLockViewModel @Inject constructor(
                 _generateTimeLockResult.emit(DataResource.Success(it))
             }.onFailure {
                 _generateTimeLockResult.emit(DataResource.Error(it))
+            }
+        }
+    }
+
+    private val _timeLockItems = MutableStateFlow<DataResource<List<DetoxTimeLockResponse>>>(DataResource.Idle)
+    val timeLockItems = _timeLockItems.asStateFlow()
+
+    fun fetchTimeLockItems() {
+        viewModelScope.launch {
+            _timeLockItems.value = DataResource.Loading
+            detoxRepository.fetchTimeLockItems().onSuccess {
+                _timeLockItems.value = DataResource.Success(it)
+            }.onFailure {
+                _timeLockItems.value = DataResource.Error(it)
             }
         }
     }

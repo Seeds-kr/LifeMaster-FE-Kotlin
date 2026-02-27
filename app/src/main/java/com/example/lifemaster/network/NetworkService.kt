@@ -1,33 +1,43 @@
 package com.example.lifemaster.network
 
-import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
-import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
-import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
-import com.example.lifemaster.presentation.login.model.LoginInfo
-import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
-import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
-import com.example.lifemaster.presentation.login.model.RegisterInfo
-import com.example.lifemaster.presentation.login.model.RegResponse
-import com.example.lifemaster.presentation.community.model.*
+import com.example.lifemaster.presentation.community.model.CommentDto
+import com.example.lifemaster.presentation.community.model.NewCommentRequest
+import com.example.lifemaster.presentation.community.model.NewPostRequest
+import com.example.lifemaster.presentation.community.model.PollDetailsDto
+import com.example.lifemaster.presentation.community.model.PollListItem
+import com.example.lifemaster.presentation.community.model.PollResultDto
+import com.example.lifemaster.presentation.community.model.PostDetailDto
+import com.example.lifemaster.presentation.community.model.PostSummaryDto
+import com.example.lifemaster.presentation.community.model.ReportRequest
+import com.example.lifemaster.presentation.community.model.UpdatePostRequest
+import com.example.lifemaster.presentation.community.model.VoteRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
+import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 import com.example.lifemaster.presentation.home.calendar.model.CalendarEntry
 import com.example.lifemaster.presentation.home.calendar.model.EventBody
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroResponse
+import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
+import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.model.TodoRequest
 import com.example.lifemaster.presentation.home.todo.model.TodoResponse
 import com.example.lifemaster.presentation.login.model.EmailRequest
+import com.example.lifemaster.presentation.login.model.LoginInfo
+import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.PasswordResetDto
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
 import com.example.lifemaster.presentation.login.model.RegNickResponse
+import com.example.lifemaster.presentation.login.model.RegResponse
+import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import okhttp3.MultipartBody
@@ -464,7 +474,7 @@ interface NetworkService {
     @POST("/time/alarm")
     suspend fun createNewAlarm(
         @Body alarmRequest: AlarmRequest
-    )
+    ): Response<AlarmResponse>
 
     // 모든 알람 조회
     @GET("/time/alarm/me")
@@ -487,7 +497,7 @@ interface NetworkService {
     suspend fun updateAlarm(
         @Path("alarmId") alarmId: Int,
         @Body request: AlarmRequest
-    )
+    ): Response<AlarmResponse>
 
     // 특정 알람 삭제
     @DELETE("/time/alarm/{alarmId}")
@@ -532,5 +542,8 @@ interface NetworkService {
     @POST("/detox/time")
     suspend fun generateTimeLock(
         @Body request: DetoxTimeLockRequest
-    ): Response<DetoxTimeLockResponse>
+    ): Response<Unit>
+
+    @GET("/detox/time")
+    suspend fun fetchTimeLockItems(): Response<List<DetoxTimeLockResponse>>
 }

@@ -15,7 +15,6 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogDetoxTimeLockBinding
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
-import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
 import com.example.lifemaster.presentation.total.detox.model.TimeLockRepeatDay
 import com.example.lifemaster.presentation.total.detox.model.TimeLockRepeatPeriod
@@ -74,7 +73,7 @@ class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
         childFragmentManager.setFragmentResultListener(DetoxTimeLockTargetDialog.REQUEST_KEY, viewLifecycleOwner) { _, bundle ->
             root.alpha = 1.0f
             if(bundle.containsKey(DetoxTimeLockTargetDialog.BUNDLE_KEY)) {
-                selectedApp = bundle.getParcelable(DetoxTimeLockTargetDialog.BUNDLE_KEY, DetoxTargetApp::class.java)
+                selectedApp = bundle.getParcelable(DetoxTimeLockTargetDialog.BUNDLE_KEY)
                 tvDetoxTimeLockSelectTargetApp.isVisible = false
                 tvTargetAppName.text = selectedApp?.appName
                 ivSelectTargetApp.setImageDrawable(selectedApp?.appIcon)
@@ -110,10 +109,9 @@ class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
                 viewModel.generateTimeLock(request = DetoxTimeLockRequest(
                     cycle = selectedPeriod!!,
                     day = selectedDay!!,
-                    startTime = String.format("%02d:%02d:%02d", startHour, startMinutes, 0),
-                    endTime = String.format("%02d:%02d:%02d", endHour, endMinutes, 0),
-                    active = true,
-                    lockedApps = selectedApp!!.appPackageName
+                    startTime = String.format("%02d:%02d", startHour, startMinutes),
+                    endTime = String.format("%02d:%02d", endHour, endMinutes),
+                    lockedAppPackageName = selectedApp!!.appPackageName
                 ))
             }
         }
@@ -128,8 +126,8 @@ class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
                         DataResource.Idle -> {}
                         DataResource.Loading -> {}
                         is DataResource.Success -> {
+                            viewModel.fetchTimeLockItems()
                             dismiss()
-                            val response = resource.data // TODO: 어떻게 쓸건지?
                         }
                     }
                 }

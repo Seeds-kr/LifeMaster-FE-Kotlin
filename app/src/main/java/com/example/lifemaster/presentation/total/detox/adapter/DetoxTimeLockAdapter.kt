@@ -6,36 +6,40 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemDetoxTimeLockBinding
-import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockItem
+import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
+import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 
-class DetoxTimeLockAdapter : ListAdapter<DetoxTimeLockItem, DetoxTimeLockAdapter.DetoxTimeLockViewHolder>(
+class DetoxTimeLockAdapter : ListAdapter<DetoxTimeLockResponse, DetoxTimeLockAdapter.DetoxTimeLockViewHolder>(
     differ
 ) {
 
+    var allAppList: List<DetoxTargetApp> = emptyList()
+
     inner class DetoxTimeLockViewHolder(private val binding: ItemDetoxTimeLockBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: DetoxTimeLockItem) {
+        fun bind(item: DetoxTimeLockResponse) {
             binding.apply {
-                tvWeekType.text = item.weekType
-                tvDay.text = item.day
-                tvStartHour.text = item.startHour
-                tvStartMinutes.text = item.startMinutes
-                tvStartType.text = item.startType
-                tvEndHour.text = item.endHour
-                tvEndMinutes.text = item.endMinutes
-                tvEndType.text = item.endType
+                val targetApp = allAppList.find { it.appPackageName == item.lockedAppPackageName }
+                ivAppLogo.setImageDrawable(targetApp?.appIcon)
+                tvAppName.text = targetApp?.appName
+                tvWeekType.text = item.cycle.label
+                tvDay.text = item.day.label
+                tvStartTime.text = String.format("%02d:%02d", item.startHour, item.startMinutes)
+                tvStartTimeType.text = item.startAmPm
+                tvEndTime.text = String.format("%02d:%02d", item.endHour, item.endMinutes)
+                tvEndTimeType.text = item.endAmPm
             }
         }
     }
 
 
     companion object {
-        val differ = object : DiffUtil.ItemCallback<DetoxTimeLockItem>() {
-            override fun areItemsTheSame(p0: DetoxTimeLockItem, p1: DetoxTimeLockItem): Boolean {
-                return p0.itemId == p1.itemId
+        val differ = object : DiffUtil.ItemCallback<DetoxTimeLockResponse>() {
+            override fun areItemsTheSame(p0: DetoxTimeLockResponse, p1: DetoxTimeLockResponse): Boolean {
+                return p0.id == p1.id
             }
 
-            override fun areContentsTheSame(p0: DetoxTimeLockItem, p1: DetoxTimeLockItem): Boolean {
+            override fun areContentsTheSame(p0: DetoxTimeLockResponse, p1: DetoxTimeLockResponse): Boolean {
                 return p0 == p1
             }
 
