@@ -31,11 +31,19 @@
             android:exported="false" />
         <activity
             android:name=".presentation.login.view.LoginActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- 네이버 로그인 콜백: 백엔드에서 토큰과 함께 리다이렉트할 URL -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="lifemaster" android:host="naver" android:pathPrefix="/callback" />
             </intent-filter>
         </activity>
         <activity
