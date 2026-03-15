@@ -13,12 +13,14 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogDetoxTargetAppBinding
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxPermanentLockServiceSettingAdapter
-import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLockRequest
+import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLock
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
 import kotlinx.coroutines.launch
 
-class DetoxPermanentLockServiceDialog: DialogFragment(R.layout.dialog_detox_target_app) {
+class DetoxPermanentLockServiceDialog(
+    private val permanentLockedPackageNames: Set<String>? = null
+): DialogFragment(R.layout.dialog_detox_target_app) {
     private lateinit var binding: DialogDetoxTargetAppBinding
     private val repeatLockViewModel: DetoxRepeatLockViewModel by activityViewModels()
     private val viewModel: DetoxViewModel by activityViewModels()
@@ -39,6 +41,7 @@ class DetoxPermanentLockServiceDialog: DialogFragment(R.layout.dialog_detox_targ
         tvDetoxTargetServiceSubTitle.text = "영구적으로 차단하고 싶은 서비스를 설정하세요."
         rvDetoxTargetService.layoutManager = GridLayoutManager(context, 5)
         rvDetoxTargetService.adapter = adapter
+        permanentLockedPackageNames?.let { adapter.selectedPackages = it.toMutableSet() }
         adapter.submitList(viewModel.installedApps.value) // TODO: 반복 잠금, 시간 잠금 설정된 앱은 필터링해서 제거하기
     }
 
@@ -49,7 +52,7 @@ class DetoxPermanentLockServiceDialog: DialogFragment(R.layout.dialog_detox_targ
         binding.btnApply.setOnClickListener {
             val selectedPackages = adapter.getSelectedPackageNames()
             if(selectedPackages.isNotEmpty()) {
-                viewModel.generatePermanentLock(request = DetoxPermanentLockRequest(
+                viewModel.generatePermanentLock(request = DetoxPermanentLock(
                     lockedAppPackageNames = selectedPackages
                 ))
             } else {

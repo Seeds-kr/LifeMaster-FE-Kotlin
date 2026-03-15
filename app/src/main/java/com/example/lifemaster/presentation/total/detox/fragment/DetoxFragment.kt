@@ -7,6 +7,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -16,8 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentDetoxBinding
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
+import com.example.lifemaster.presentation.total.detox.adapter.DetoxPermanentLockAdapter
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxRepeatLockAdapter
-import com.example.lifemaster.presentation.total.detox.adapter.DetoxServiceMainAdapter
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxTimeLockAdapter
 import com.example.lifemaster.presentation.total.detox.dialog.DetoxPermanentLockServiceDialog
 import com.example.lifemaster.presentation.total.detox.dialog.DetoxRepeatLockSettingDialog
@@ -38,11 +39,17 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     private var totalAccumulatedAppUsageTimes: Long =
         0L // 앱의 총 누적 사용 시간(lifemaster 앱의 현재 포그라운드 상태에서의 누적된 시간 제외)
 
+    private val permanentLockAdapter by lazy {
+        DetoxPermanentLockAdapter()
+    }
+
     private val detoxTimeLockAdapter by lazy {
         DetoxTimeLockAdapter { deleteId ->
             detoxViewModel.deleteTimeLockItem(deleteId)
         }
     }
+
+    private var permanentLockedPackageNames: Set<String>? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -54,6 +61,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     }
 
     private fun fetchData() {
+        detoxViewModel.fetchPermanentLockItems() // 영구 잠금 리스트 항목 가져오기
         detoxViewModel.fetchTimeLockItems() // 시간 잠금 리스트 항목 가져오기
     }
 
@@ -73,10 +81,9 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
             }
         }
 
-        // 반복 잠금 - 차단할 서비스 설정
-        binding.recyclerviewBlockService.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        binding.recyclerviewBlockService.adapter = DetoxServiceMainAdapter()
+        // 영구 잠금
+        binding.recyclerviewPermanentLock.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        binding.recyclerviewPermanentLock.adapter = permanentLockAdapter
 
         // 반복 잠금 - 아이템 리스트
         binding.recyclerviewRepeatLock.layoutManager = LinearLayoutManager(context)
@@ -91,7 +98,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
         // 영구 차단할 앱 편집
         binding.btnEditPermanentLockService.setOnClickListener {
-            val dialog = DetoxPermanentLockServiceDialog()
+            val dialog = DetoxPermanentLockServiceDialog(permanentLockedPackageNames) // 매번 새로운 인스턴스를 꼭 생성해야 하나...?
             dialog.isCancelable = false
             dialog.show(childFragmentManager, DetoxPermanentLockServiceDialog.TAG)
         }
@@ -140,9 +147,33 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     }
 
     // 공통 - 오늘 사용한 앱의 총 누적 시간
-    private fun initObservers() {
+    private fun initObservers() = with(binding) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    detoxViewModel.permanentLockItems.combine(detoxViewModel.installedApps) { resource, allApps -> resource to allApps }
+                        .collect { (dataResource, allApps) ->
+                            when(dataResource) {
+                                is DataResource.Success<List<String>> -> {
+                                    permanentLockedPackageNames = dataResource.data.toSet()
+                                    val filteredApps = allApps.filter { app ->
+                                        permanentLockedPackageNames!!.contains(app.appPackageName)
+                                    }
+                                    if(filteredApps.isNotEmpty()) {
+                                        tvPermanentLockPlaceholder.isVisible = false
+                                        recyclerviewPermanentLock.isVisible = true
+                                        permanentLockAdapter.submitList(filteredApps.toList())
+                                    } else {
+                                        tvPermanentLockPlaceholder.isVisible = true
+                                        recyclerviewPermanentLock.isVisible = false
+                                    }
+                                }
+                                is DataResource.Error -> {}
+                                DataResource.Idle -> {}
+                                DataResource.Loading -> {}
+                            }
+                        }
+                }
                 launch {
                     detoxViewModel.timeLockItems.combine(detoxViewModel.installedApps) { resource, allApps -> resource to allApps }
                         .collect { (dataResource, allApps) ->
@@ -189,13 +220,13 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
         detoxRepeatLockViewModel.blockServices.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
-                binding.recyclerviewBlockService.visibility = View.VISIBLE
+                binding.recyclerviewPermanentLock.visibility = View.VISIBLE
                 binding.tvBlockServiceEmpty.visibility = View.GONE
             } else {
-                binding.recyclerviewBlockService.visibility = View.GONE
+                binding.recyclerviewPermanentLock.visibility = View.GONE
                 binding.tvBlockServiceEmpty.visibility = View.VISIBLE
             }
-            (binding.recyclerviewBlockService.adapter as DetoxServiceMainAdapter).updateItems(it)
+            (binding.recyclerviewPermanentLock.adapter as DetoxPermanentLockAdapter).updateItems(it)
         }
 
         detoxRepeatLockViewModel.repeatLockApp.observe(viewLifecycleOwner) {

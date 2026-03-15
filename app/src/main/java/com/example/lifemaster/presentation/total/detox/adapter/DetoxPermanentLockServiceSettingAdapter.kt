@@ -11,7 +11,7 @@ import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 // 반복 잠금과 시간 잠금 둘 다 공유 가능한 어댑터
 class DetoxPermanentLockServiceSettingAdapter: ListAdapter<DetoxTargetApp, DetoxPermanentLockServiceSettingAdapter.DetoxPermanentLockServiceSettingViewHolder>(diffUtil) {
 
-    private val selectedPackages = mutableSetOf<String>()
+    var selectedPackages = mutableSetOf<String>()
 
     fun getSelectedPackageNames(): List<String> {
         return selectedPackages.toList()

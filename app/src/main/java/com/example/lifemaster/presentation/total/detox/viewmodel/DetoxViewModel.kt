@@ -3,7 +3,7 @@ package com.example.lifemaster.presentation.total.detox.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
-import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLockRequest
+import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLock
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
@@ -13,7 +13,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -80,13 +79,27 @@ class DetoxViewModel @Inject constructor(
     private val _generatePermanentLockResult = MutableSharedFlow<DataResource<Unit>>()
     val generatePermanentLockResult = _generatePermanentLockResult.asSharedFlow()
 
-    fun generatePermanentLock(request: DetoxPermanentLockRequest) {
+    fun generatePermanentLock(request: DetoxPermanentLock) {
         viewModelScope.launch {
             _generatePermanentLockResult.emit(DataResource.Loading)
             detoxRepository.generatePermanentLock(request = request).onSuccess {
                 _generatePermanentLockResult.emit(DataResource.Success(it))
             }.onFailure {
                 _generatePermanentLockResult.emit(DataResource.Error(it))
+            }
+        }
+    }
+
+    private val _permanentLockItems = MutableStateFlow<DataResource<List<String>>>(DataResource.Idle)
+    val permanentLockItems = _permanentLockItems.asStateFlow()
+
+    fun fetchPermanentLockItems() {
+        viewModelScope.launch {
+            _permanentLockItems.value = DataResource.Loading
+            detoxRepository.fetchPermanentLockItems().onSuccess {
+                _permanentLockItems.value = DataResource.Success(it.lockedAppPackageNames)
+            }.onFailure {
+                _permanentLockItems.value = DataResource.Error(it)
             }
         }
     }
