@@ -79,7 +79,7 @@ class DetoxViewModel @Inject constructor(
     private val _generatePermanentLockResult = MutableSharedFlow<DataResource<Unit>>()
     val generatePermanentLockResult = _generatePermanentLockResult.asSharedFlow()
 
-    fun generatePermanentLock(request: DetoxPermanentLock) {
+    private fun generatePermanentLock(request: DetoxPermanentLock) {
         viewModelScope.launch {
             _generatePermanentLockResult.emit(DataResource.Loading)
             detoxRepository.generatePermanentLock(request = request).onSuccess {
@@ -102,6 +102,38 @@ class DetoxViewModel @Inject constructor(
                 _permanentLockItems.value = DataResource.Error(it)
             }
         }
+    }
+
+    private val _updatePermanentLockResult = MutableSharedFlow<DataResource<Unit>>()
+    val updatePermanentLockResult = _updatePermanentLockResult.asSharedFlow()
+
+    private fun updatePermanentLockItems(request: DetoxPermanentLock) {
+        viewModelScope.launch {
+            _updatePermanentLockResult.emit(DataResource.Loading)
+            detoxRepository.updatePermanentLockItems(request = request).onSuccess {
+                _updatePermanentLockResult.emit(DataResource.Success(it))
+            }.onFailure {
+                _updatePermanentLockResult.emit(DataResource.Error(it))
+            }
+        }
+    }
+
+    // view에서 호출하는 메서드
+    fun savePermanentLock(request: DetoxPermanentLock) {
+        // 현재 상태 확인
+        val currentData = _permanentLockItems.value
+        when(currentData) {
+            is DataResource.Success -> {
+                // 이미 서버에 데이터가 존재함 → 수정(PUT)
+                updatePermanentLockItems(request = request)
+            }
+            else -> {
+                // 초기 상태 → 생성(POST)
+                generatePermanentLock(request = request)
+            }
+        }
+
+
     }
 
     /**

@@ -51,13 +51,10 @@ class DetoxPermanentLockServiceDialog(
         }
         binding.btnApply.setOnClickListener {
             val selectedPackages = adapter.getSelectedPackageNames()
-            if(selectedPackages.isNotEmpty()) {
-                viewModel.generatePermanentLock(request = DetoxPermanentLock(
-                    lockedAppPackageNames = selectedPackages
-                ))
-            } else {
-                Toast.makeText(context, "영구 차단할 앱을 선택해주세요.", Toast.LENGTH_SHORT).show()
-            }
+
+            viewModel.savePermanentLock(request = DetoxPermanentLock(
+                lockedAppPackageNames = selectedPackages
+            ))
 
             // 선택된 차단할 서비스
 //            val blockServices = repeatLockViewModel.blockServiceApplications.filter { app -> app.isClicked }
@@ -83,15 +80,32 @@ class DetoxPermanentLockServiceDialog(
     private fun initObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.generatePermanentLockResult.collect { dataResource ->
-                    when(dataResource) {
-                        is DataResource.Error -> {}
-                        DataResource.Idle -> {}
-                        DataResource.Loading -> {}
-                        is DataResource.Success<Unit> -> {
-                            Toast.makeText(context, "영구 차단할 서비스가 설정되었습니다.", Toast.LENGTH_SHORT).show()
-                            // TODO: 생성 후 조회 한번 호출하기
-                            dismiss()
+                launch {
+                    viewModel.generatePermanentLockResult.collect { dataResource ->
+                        when(dataResource) {
+                            is DataResource.Error -> {}
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<Unit> -> {
+                                Toast.makeText(context, "영구 차단할 서비스가 생성되었습니다.", Toast.LENGTH_SHORT).show()
+                                viewModel.fetchPermanentLockItems()
+                                dismiss()
+                            }
+                        }
+                    }
+                }
+                launch {
+                    viewModel.updatePermanentLockResult.collect { dataResource ->
+                        when (dataResource) {
+                            is DataResource.Error -> {}
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success<Unit> -> {
+                                Toast.makeText(context, "영구 차단할 서비스가 변경되었습니다.", Toast.LENGTH_SHORT)
+                                    .show()
+                                viewModel.fetchPermanentLockItems()
+                                dismiss()
+                            }
                         }
                     }
                 }

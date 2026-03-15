@@ -550,6 +550,11 @@ interface NetworkService {
     @GET("/detox/permanent")
     suspend fun fetchPermanentLockItems(): Response<DetoxPermanentLock>
 
+    @PUT("/detox/permanent")
+    suspend fun updatePermanentLockItems(
+        @Body request: DetoxPermanentLock
+    ): Response<Unit>
+
     // 시간 잠금 특정 목록 생성
     @POST("/detox/time")
     suspend fun generateTimeLock(
