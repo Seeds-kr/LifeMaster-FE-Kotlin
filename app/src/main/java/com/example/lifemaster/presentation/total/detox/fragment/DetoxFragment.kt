@@ -1,11 +1,8 @@
 package com.example.lifemaster.presentation.total.detox.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
@@ -22,14 +19,12 @@ import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxRepeatLockAdapter
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxServiceMainAdapter
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxTimeLockAdapter
-import com.example.lifemaster.presentation.total.detox.dialog.DetoxRepeatLockBlockServiceDialog
+import com.example.lifemaster.presentation.total.detox.dialog.DetoxPermanentLockServiceDialog
 import com.example.lifemaster.presentation.total.detox.dialog.DetoxRepeatLockSettingDialog
-import com.example.lifemaster.presentation.total.detox.dialog.DetoxTimeLockAllowServiceDialog
 import com.example.lifemaster.presentation.total.detox.dialog.DetoxTimeLockDialog
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
-import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockViewModel
-import kotlinx.coroutines.flow.collect
+import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -37,7 +32,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     lateinit var binding: FragmentDetoxBinding
     private val detoxCommonViewModel: DetoxCommonViewModel by activityViewModels()
-    private val detoxTimeLockViewModel: DetoxTimeLockViewModel by activityViewModels()
+    private val detoxViewModel: DetoxViewModel by activityViewModels()
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by activityViewModels()
 
     private var totalAccumulatedAppUsageTimes: Long =
@@ -45,7 +40,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     private val detoxTimeLockAdapter by lazy {
         DetoxTimeLockAdapter { deleteId ->
-            detoxTimeLockViewModel.deleteTimeLockItem(deleteId)
+            detoxViewModel.deleteTimeLockItem(deleteId)
         }
     }
 
@@ -59,7 +54,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     }
 
     private fun fetchData() {
-        detoxTimeLockViewModel.fetchTimeLockItems() // 시간 잠금 리스트 항목 가져오기
+        detoxViewModel.fetchTimeLockItems() // 시간 잠금 리스트 항목 가져오기
     }
 
     private fun initViews() {
@@ -94,11 +89,11 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     private fun initListeners() {
 
-        // 반복 잠금 - 차단할 서비스 편집
-        binding.btnEditRepeatLockBlockService.setOnClickListener {
-            val dialog = DetoxRepeatLockBlockServiceDialog()
+        // 영구 차단할 앱 편집
+        binding.btnEditPermanentLockService.setOnClickListener {
+            val dialog = DetoxPermanentLockServiceDialog()
             dialog.isCancelable = false
-            dialog.show(childFragmentManager, DetoxRepeatLockBlockServiceDialog.TAG)
+            dialog.show(childFragmentManager, DetoxPermanentLockServiceDialog.TAG)
         }
 
         // 반복 잠금 - 잠금 앱 추가
@@ -149,7 +144,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    detoxTimeLockViewModel.timeLockItems.combine(detoxTimeLockViewModel.repeatLockTargetApplications) { resource, allApps -> resource to allApps }
+                    detoxViewModel.timeLockItems.combine(detoxViewModel.installedApps) { resource, allApps -> resource to allApps }
                         .collect { (dataResource, allApps) ->
                             when (dataResource) {
                                 is DataResource.Success -> {
@@ -172,9 +167,9 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                         }
                 }
                 launch {
-                    detoxTimeLockViewModel.deleteTimeLockResult.collect { dataResource ->
+                    detoxViewModel.deleteTimeLockResult.collect { dataResource ->
                         if(dataResource is DataResource.Success) {
-                            detoxTimeLockViewModel.fetchTimeLockItems()
+                            detoxViewModel.fetchTimeLockItems()
                         }
                     }
                 }

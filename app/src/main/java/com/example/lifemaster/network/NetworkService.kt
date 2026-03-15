@@ -32,6 +32,7 @@ import com.example.lifemaster.presentation.login.model.RegNickResponse
 import com.example.lifemaster.presentation.login.model.RegResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
+import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLockRequest
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
@@ -539,6 +540,12 @@ interface NetworkService {
     /**
      * 디톡스
      */
+    // 영구 잠금 특정 목록 생성
+    @POST("/detox/permanent")
+    suspend fun generatePermanentLock(
+        @Body request: DetoxPermanentLockRequest
+    ): Response<Unit>
+
     // 시간 잠금 특정 목록 생성
     @POST("/detox/time")
     suspend fun generateTimeLock(

@@ -28,18 +28,15 @@ import com.example.lifemaster.R
 import com.example.lifemaster.Utils.getDailyUsageStats
 import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.network.NetworkService
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.login.model.LoginInfo
-import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
-import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockViewModel
+import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
@@ -66,7 +63,7 @@ class MainActivity : AppCompatActivity() {
     // ViewModel 변수
     private val detoxCommonViewModel: DetoxCommonViewModel by viewModels()
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by viewModels()
-    private val detoxTimeLockViewModel: DetoxTimeLockViewModel by viewModels()
+    private val detoxViewModel: DetoxViewModel by viewModels()
     private val toDoViewModel: ToDoViewModel by viewModels()
 
     // 실시간 UI 변경을 위한 변수

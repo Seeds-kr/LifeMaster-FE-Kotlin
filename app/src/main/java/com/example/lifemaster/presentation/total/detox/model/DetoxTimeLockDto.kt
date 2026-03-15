@@ -11,6 +11,7 @@ import com.google.gson.annotations.SerializedName
  * @property lockedAppPackageName 잠금 설정된 앱 이름 리스트
  */
 data class DetoxTimeLockRequest(
+    val type: DetoxType,
     val cycle: TimeLockRepeatPeriod,
     val day: TimeLockRepeatDay,
     val startTime: String,

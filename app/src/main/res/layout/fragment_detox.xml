@@ -108,7 +108,7 @@
             android:textStyle="bold" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_edit_repeat_lock_block_service"
+            android:id="@+id/btn_edit_permanent_lock_service"
             android:layout_width="60dp"
             android:layout_height="32dp"
             android:background="@drawable/bg_round_radius_8dp"

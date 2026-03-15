@@ -16,15 +16,16 @@ import com.example.lifemaster.databinding.DialogDetoxTimeLockBinding
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
+import com.example.lifemaster.presentation.total.detox.model.DetoxType
 import com.example.lifemaster.presentation.total.detox.model.TimeLockRepeatDay
 import com.example.lifemaster.presentation.total.detox.model.TimeLockRepeatPeriod
-import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockViewModel
+import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
 import kotlinx.coroutines.launch
 
 class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
 
     private lateinit var binding: DialogDetoxTimeLockBinding
-    private val viewModel: DetoxTimeLockViewModel by activityViewModels()
+    private val viewModel: DetoxViewModel by activityViewModels()
     private var selectedPeriod: TimeLockRepeatPeriod ?= null
     private var selectedDay: TimeLockRepeatDay ?= null
 
@@ -107,6 +108,7 @@ class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
                 Toast.makeText(context, "정보를 입력해주세요!", Toast.LENGTH_SHORT).show()
             } else {
                 viewModel.generateTimeLock(request = DetoxTimeLockRequest(
+                    type = DetoxType.TIME,
                     cycle = selectedPeriod!!,
                     day = selectedDay!!,
                     startTime = String.format("%02d:%02d", startHour, startMinutes),
