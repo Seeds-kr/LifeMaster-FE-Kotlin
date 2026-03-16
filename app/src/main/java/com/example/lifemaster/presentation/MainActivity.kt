@@ -79,7 +79,6 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        codeCacheDir.setReadOnly()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
