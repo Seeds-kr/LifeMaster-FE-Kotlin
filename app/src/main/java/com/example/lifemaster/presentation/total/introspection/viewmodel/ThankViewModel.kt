@@ -11,6 +11,7 @@ import com.example.lifemaster.presentation.total.introspection.model.ThankCreate
 import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
+import com.example.lifemaster.presentation.total.introspection.model.SelfReflectionResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,6 +33,10 @@ class ThankViewModel @Inject constructor(
 
     private val _thankData = MutableLiveData<ThankResponse?>()
     val thankData: LiveData<ThankResponse?> get() = _thankData
+
+    // 날짜별 자아성찰(다이어리 + 5감사) 조회 결과
+    private val _selfReflectionByDate = MutableLiveData<SelfReflectionResponse?>()
+    val selfReflectionByDate: LiveData<SelfReflectionResponse?> get() = _selfReflectionByDate
 
     //감사일기 작성 기능
     fun createThankEntry(
@@ -228,6 +233,24 @@ class ThankViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다.")
+            }
+        }
+    }
+
+    // 날짜별 자아성찰(다이어리 + 5감사) 조회 기능
+    fun loadSelfReflectionByDate(token: String, date: String) {
+        viewModelScope.launch {
+            try {
+                val response = networkService.getSelfReflectionByDate("Bearer $token", date)
+                if (response.isSuccessful) {
+                    _selfReflectionByDate.value = response.body()
+                } else {
+                    // 해당 날짜에 데이터가 없거나 오류인 경우 null로 초기화
+                    _selfReflectionByDate.value = null
+                }
+            } catch (e: Exception) {
+                // 네트워크 오류 등은 별도 UI 에러로 표기하지 않고, 단순히 데이터 없음으로 처리
+                _selfReflectionByDate.value = null
             }
         }
     }

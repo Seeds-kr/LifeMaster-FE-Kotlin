@@ -213,6 +213,25 @@ class IntrospectionFragment : Fragment() {
             }
         }
 
+        // 날짜별 자아성찰 조회 결과를 보고, 해당 날짜에 기록이 있으면 달력에 별 표시
+        viewModel.selfReflectionByDate.observe(viewLifecycleOwner) { data ->
+            val date = calendarVM.selectedDate.value ?: LocalDate.now()
+            if (data == null) return@observe
+
+            val hasDiary = !data.diaryContent.isNullOrBlank()
+            val hasThanks = listOf(
+                data.thankOne,
+                data.thankTwo,
+                data.thankThree,
+                data.thankFour,
+                data.thankFive
+            ).any { !it.isNullOrBlank() }
+
+            if (hasDiary || hasThanks) {
+                calendarVM.addIntrospectionDate(date)
+            }
+        }
+
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             // 버튼 활성화/비활성화 로직을 한 곳에서 관리
             binding.btnSubmit.isEnabled = state !is UiState.Loading
@@ -313,6 +332,13 @@ class IntrospectionFragment : Fragment() {
         calendarVM.selectedDate.observe(viewLifecycleOwner) { date ->
             val mode = calendarVM.mode.value ?: CalendarMode.MONTH
             updateIntrospectionSelectedDateText(mode, date)
+
+            // 날짜별 자아성찰 조회 → 있으면 홈/자아성찰 달력 모두에 별 표시
+            val token = readAuthToken()
+            if (token != null) {
+                val dateStr = formatSelectedDateForApi(date)
+                viewModel.loadSelfReflectionByDate(token, dateStr)
+            }
         }
         calendarVM.mode.observe(viewLifecycleOwner) { mode ->
             updateIntrospectionDateButtons(mode)

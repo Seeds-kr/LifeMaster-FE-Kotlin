@@ -13,6 +13,7 @@ import com.example.lifemaster.presentation.total.introspection.model.ThankCreate
 import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
+import com.example.lifemaster.presentation.total.introspection.model.SelfReflectionResponse
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
@@ -215,6 +216,13 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Path("diary-id") diaryId: Long
     ): Response<Unit>
+
+    // 날짜별 자아성찰(다이어리 + 5감사) 조회
+    @GET("/schedule/self-reflection")
+    suspend fun getSelfReflectionByDate(
+        @Header("Authorization") token: String,
+        @Query("date") date: String
+    ): Response<SelfReflectionResponse>
 
 
     // 커뮤니티 게시글 전체 목록 조회
