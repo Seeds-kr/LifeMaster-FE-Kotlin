@@ -96,11 +96,12 @@ class MainActivity : AppCompatActivity() {
             binding.bottomNavigation.isVisible = false
         }
 
-//        userToken = intent.getStringExtra("user_token")
-//        val sharedPreferences = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
-//        val editor = sharedPreferences.edit()
-//        editor.putString("token", userToken)
-//        editor.commit()
+        userToken = intent.getStringExtra("user_token")
+        if (!userToken.isNullOrBlank()) {
+            val tokenValue = userToken!!
+            getSharedPreferences("auth", MODE_PRIVATE).edit().putString("token", tokenValue).apply()
+            getSharedPreferences("USER_TABLE", MODE_PRIVATE).edit().putString("token", tokenValue).apply()
+        }
 
         updateRunnable = object : Runnable {
             override fun run() {
