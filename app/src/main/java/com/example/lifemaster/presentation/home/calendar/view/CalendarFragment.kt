@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.lifemaster.databinding.FragmentCalendarBinding
 import com.example.lifemaster.presentation.home.calendar.adapter.CalendarAdapter
 import com.example.lifemaster.presentation.home.calendar.model.CalendarDay
+import com.example.lifemaster.presentation.home.calendar.model.StarType
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
 import java.time.LocalDate
@@ -53,6 +54,15 @@ class CalendarFragment : Fragment() {
                 CalendarMode.WEEK  -> showWeekView()
                 CalendarMode.DAY   -> showDayView()
                 null -> {}
+            }
+        }
+
+        // 자아성찰 등 기능별 표시가 바뀌면 달력을 다시 그림
+        vm.introspectionDates.observe(viewLifecycleOwner) {
+            when (vm.mode.value ?: CalendarMode.MONTH) {
+                CalendarMode.MONTH -> showMonthView()
+                CalendarMode.WEEK  -> showWeekView()
+                CalendarMode.DAY   -> showDayView()
             }
         }
 
@@ -158,7 +168,9 @@ class CalendarFragment : Fragment() {
 
         for (day in 1..daysInMonth) {
             val isToday = isTodayInThisMonth && (day == todayCal.get(Calendar.DAY_OF_MONTH))
-            result.add(CalendarDay(day, isCurrentMonth = true, isToday = isToday))
+            val date = LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, day)
+            val features = buildFeaturesForDate(date)
+            result.add(CalendarDay(day, isCurrentMonth = true, isToday = isToday, features = features))
         }
 
         val totalCells = ((result.size + 6) / 7) * 7
@@ -186,10 +198,21 @@ class CalendarFragment : Fragment() {
             val d = weekCal.get(Calendar.DAY_OF_MONTH)
             val isThisMonth = (y == base.get(Calendar.YEAR) && m == base.get(Calendar.MONTH))
             val isToday = (y == todayY && m == todayM && d == todayD)
-            val item = CalendarDay(d, isCurrentMonth = isThisMonth, isToday = isToday)
+            val date = LocalDate.of(y, m + 1, d)
+            val features = buildFeaturesForDate(date)
+            val item = CalendarDay(d, isCurrentMonth = isThisMonth, isToday = isToday, features = features)
             weekCal.add(Calendar.DAY_OF_MONTH, 1)
             item
         }
+    }
+
+    private fun buildFeaturesForDate(date: LocalDate): List<StarType> {
+        val features = mutableListOf<StarType>()
+        val introspectionDates = vm.introspectionDates.value ?: emptySet()
+        if (introspectionDates.contains(date)) {
+            features.add(StarType.INTROSPECTION)
+        }
+        return features
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

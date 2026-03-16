@@ -149,6 +149,9 @@ class IntrospectionFragment : Fragment() {
                                 date = selectedDateStr
                             )
                         }
+
+                        // 홈 달력에 자아성찰 기록 있음 표시
+                        calendarVM.addIntrospectionDate(calendarVM.selectedDate.value ?: LocalDate.now())
                     }
                 }
 
@@ -189,6 +192,9 @@ class IntrospectionFragment : Fragment() {
                                 thankDate = selectedDateStr
                             )
                         }
+
+                        // 홈 달력에 자아성찰 기록 있음 표시
+                        calendarVM.addIntrospectionDate(calendarVM.selectedDate.value ?: LocalDate.now())
                     } else {
                         Toast.makeText(requireContext(), "감사 내용을 한 가지 이상 입력해주세요", Toast.LENGTH_SHORT).show()
                     }
