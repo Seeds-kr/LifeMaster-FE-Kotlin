@@ -1,6 +1,7 @@
 package com.example.lifemaster.presentation.total.mypage.view
 
 import android.os.Bundle
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -50,6 +51,19 @@ class PremiumSubscribeActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.tvCouponEnter).setOnClickListener {
             // 쿠폰 입력 기능 추후 구현
+        }
+
+        findViewById<Button>(R.id.btnProceedPayment).setOnClickListener {
+            val period = if (isAnnualSelected) getString(R.string.payment_period_annual) else getString(R.string.payment_period_monthly)
+            val amount = if (isAnnualSelected) getString(R.string.subscription_price_annual_main) else getString(R.string.subscription_price_monthly_main)
+
+            startActivity(
+                PaymentMethodSelectionActivity.newIntent(
+                    context = this,
+                    amount = amount,
+                    period = period
+                )
+            )
         }
     }
 }
