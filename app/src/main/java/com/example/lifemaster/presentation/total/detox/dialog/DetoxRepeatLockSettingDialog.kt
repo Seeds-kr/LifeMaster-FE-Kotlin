@@ -11,50 +11,51 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogDetoxRepeatLockSettingBinding
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
-import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
+import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
 
-class DetoxRepeatLockSettingDialog : DialogFragment(R.layout.dialog_detox_repeat_lock_setting) {
+class DetoxRepeatLockSettingDialog(
+    private val targetApp: DetoxTargetApp? = null
+) : DialogFragment(R.layout.dialog_detox_repeat_lock_setting) {
 
     private lateinit var binding: DialogDetoxRepeatLockSettingBinding
-    private lateinit var targetApp: DetoxTargetApp
-    private val viewModel: DetoxRepeatLockViewModel by activityViewModels()
+    private val viewModel: DetoxViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = DialogDetoxRepeatLockSettingBinding.bind(view)
-        setupListeners()
-        observing()
+        initListeners()
+        initObservers()
     }
 
-    private fun setupListeners() {
-        binding.ivOpenMaxTimeSetting.setOnClickListener {
-            binding.llMaxTimeClose.visibility = View.GONE
-            binding.llMaxTimeOpen.visibility = View.VISIBLE
-        }
-        binding.ivCloseMaxTimeSetting.setOnClickListener {
-            binding.llMaxTimeOpen.visibility = View.GONE
-            binding.llMaxTimeClose.visibility = View.VISIBLE
-        }
-
-        binding.tvSelectTargetApp.setOnClickListener {
+    private fun initListeners() = with(binding)  {
+        tvSelectTargetApp.setOnClickListener {
             dismiss()
-            val dialog = DetoxRepeatLockTargetDialog()
+            val dialog = DetoxRepeatLockTargetDialog() // TODO: 다이얼로그에 현재 선택한 어플 UI 반영하기
             dialog.isCancelable = false
             dialog.show(parentFragmentManager, DetoxRepeatLockTargetDialog.TAG)
         }
-        binding.ivSelectTargetApp.setOnClickListener {
+        ivOpenMaxTimeSetting.setOnClickListener {
+            llMaxTimeClose.visibility = View.GONE
+            llMaxTimeOpen.visibility = View.VISIBLE
+        }
+        ivCloseMaxTimeSetting.setOnClickListener {
+            llMaxTimeOpen.visibility = View.GONE
+            llMaxTimeClose.visibility = View.VISIBLE
+        }
+        ivSelectTargetApp.setOnClickListener {
             dismiss()
-            val dialog = DetoxRepeatLockTargetDialog()
+            val dialog = DetoxRepeatLockTargetDialog() // TODO: 다이얼로그에 현재 선택한 어플 UI 반영하기
             dialog.isCancelable = false
             dialog.show(parentFragmentManager, DetoxRepeatLockTargetDialog.TAG)
         }
 
-//        binding.btnUseTimeHour.setOnClickListener {
-//            dismiss()
-//            val dialog = SelectTimeDialog("useTime")
-//            dialog.isCancelable = false
-//            dialog.show(parentFragmentManager, SelectTimeDialog.TAG)
-//        }
+        binding.btnUseTimeHour.setOnClickListener {
+            dismiss()
+            val dialog = SelectTimeDialog("useTime")
+            dialog.isCancelable = false
+            dialog.show(parentFragmentManager, SelectTimeDialog.TAG)
+        }
+
         binding.btnUseTimeMinutes.setOnClickListener {
             dismiss()
             val dialog = DetoxRepeatLockTestDialog("useTime")
@@ -90,6 +91,7 @@ class DetoxRepeatLockSettingDialog : DialogFragment(R.layout.dialog_detox_repeat
             dismiss()
         }
         binding.btnAdd.setOnClickListener {
+
             if (binding.tvSelectTargetApp.visibility == View.VISIBLE) {
                 Toast.makeText(context, "앱을 선택해주세요!", Toast.LENGTH_SHORT).show()
             } else {
@@ -125,7 +127,7 @@ class DetoxRepeatLockSettingDialog : DialogFragment(R.layout.dialog_detox_repeat
         }
     }
 
-    private fun observing() {
+    private fun initObservers() {
         viewModel.repeatLockTargetApp.observe(viewLifecycleOwner) {
             targetApp = it
             binding.ivSelectTargetApp.setImageDrawable(it.appIcon)

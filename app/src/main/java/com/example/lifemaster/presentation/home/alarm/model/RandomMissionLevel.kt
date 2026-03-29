@@ -1,7 +1,12 @@
 package com.example.lifemaster.presentation.home.alarm.model
 
-enum class RandomMissionLevel(val value: String) {
-    HIGH("HIGH"),
-    MEDIUM("MEDIUM"),
-    LOW("LOW")
+import com.google.gson.annotations.SerializedName
+
+enum class RandomMissionLevel {
+    @SerializedName("HIGH")
+    HIGH,
+    @SerializedName("MEDIUM")
+    MEDIUM,
+    @SerializedName("LOW")
+    LOW
 }

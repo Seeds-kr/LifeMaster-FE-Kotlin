@@ -79,12 +79,19 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
     }
     private var answerTapPositions: MutableSet<Int> = hashSetOf()
     private var userTapPositions: MutableSet<Int> = hashSetOf()
-    private var currentPage: Int = 1
+    private val currentPage by lazy {
+        val args: AlarmRandomMissionMathFragmentArgs by navArgs()
+        args.currentPageNum
+    }
+
+    private val alarmItem by lazy {
+        val args: AlarmRandomMissionMathFragmentArgs by navArgs()
+        args.alarmItem
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmRandomMissionTapBinding.bind(view)
-        initData()
         setupBackPressHandler()
         initViews()
         fetchRemoteData()
@@ -102,14 +109,8 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
         )
     }
 
-    private fun initData() {
-        val args: AlarmRandomMissionTapFragmentArgs by navArgs()
-        currentPage = args.currentPageNum
-    }
-
     private fun fetchRemoteData() = with(binding) {
-        // TODO: 실제 alarmId, level 받아와서 연결하기
-        alarmMissionViewModel.generateFollowClickProblem(alarmId = 1105, level = "상")
+        alarmMissionViewModel.generateFollowClickProblem(alarmId = alarmItem.id, level = alarmItem.randomMissionLevel!!.name)
     }
 
     private fun initViews() = with(binding) {
@@ -145,11 +146,15 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
             }
 
             if (answerTapPositions == userTapPositions) {
-                if (currentPage == 3) {
+                if (currentPage == TOTAL_PAGE_NUM) {
 //                    sleepViewModel.getUserSleepInfo(Constants.USER_ID)
                     Toast.makeText(context, "수고하셨습니다!", Toast.LENGTH_SHORT).show()
+                    requireActivity().stopService(Intent(requireContext(), AlarmService::class.java))
+                    // TODO: 현재 액티비티 끄고 메인 액티비티 화면으로 이동하기 (nav_graph_main 연결??)
+                    // TODO: 만약 알람이 일회성 알람인 경우 (반복 요일이 없는 경우) 스위치 상태 OFF 로 변경하기 (업데이트) + 세부 화면 들어가면 이미 꺼진 알람입니다.. (이미 지난 시간인 지 구별하는 지금보다 더 명확한 로직 작성 필요)
+                    // TODO: 추가 기능 작성하기
                 } else {
-                    val action = AlarmRandomMissionTapFragmentDirections.actionAlarmRandomMissionTapFragmentSelf(currentPageNum = currentPage + 1)
+                    val action = AlarmRandomMissionTapFragmentDirections.actionAlarmRandomMissionTapFragmentSelf(currentPageNum = currentPage + 1, alarmItem = alarmItem)
                     findNavController().navigate(action)
                 }
             } else {

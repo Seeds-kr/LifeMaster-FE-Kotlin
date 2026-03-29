@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLock
+import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLock
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
@@ -139,6 +140,19 @@ class DetoxViewModel @Inject constructor(
     /**
      * 반복 잠금
      */
+    private val _generateRepeatLockResult = MutableSharedFlow<DataResource<Unit>>()
+    val generateRepeatLockResult = _generateRepeatLockResult.asSharedFlow()
+
+    private fun generateRepeatLock(request: DetoxRepeatLock) {
+        viewModelScope.launch {
+            _generateRepeatLockResult.emit(DataResource.Loading)
+            detoxRepository.generateRepeatLock(request = request).onSuccess {
+                _generateRepeatLockResult.emit(DataResource.Success(it))
+            }.onFailure {
+                _generateRepeatLockResult.emit(DataResource.Error(it))
+            }
+        }
+    }
 
     /**
      * 시간 잠금

@@ -91,21 +91,6 @@
             app:destination="@id/alarmEditFragment" />
     </fragment>
     <fragment
-        android:id="@+id/alarmRingsFragment"
-        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmRingsFragment"
-        android:label="fragment_alarm_ring"
-        tools:layout="@layout/fragment_alarm_ring" >
-        <action
-            android:id="@+id/action_alarmRingsFragment_to_alarmRandomMissionTapFragment"
-            app:destination="@id/alarmRandomMissionTapFragment" />
-        <action
-            android:id="@+id/action_alarmRingsFragment_to_alarmRandomMissionMathFragment"
-            app:destination="@id/alarmRandomMissionMathFragment" />
-        <action
-            android:id="@+id/action_alarmRingsFragment_to_alarmRandomMissionTypingFragment"
-            app:destination="@id/alarmRandomMissionTypingFragment" />
-    </fragment>
-    <fragment
         android:id="@+id/groupFragment"
         android:name="com.example.lifemaster.presentation.group.view.GroupFragment"
         android:label="fragment_group"
@@ -203,53 +188,6 @@
         <action
             android:id="@+id/action_sleepReportFragment_to_sleepPlaylistFragment"
             app:destination="@id/sleepPlaylistFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/alarmRandomMissionTapFragment"
-        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmRandomMissionTapFragment"
-        android:label="fragment_alarm_random_mission_tap"
-        tools:layout="@layout/fragment_alarm_random_mission_tap">
-        <argument
-            android:name="currentPageNum"
-            android:defaultValue="1"
-            app:argType="integer" />
-        <action
-            android:id="@+id/action_alarmRandomMissionTapFragment_to_alarmListFragment"
-            app:destination="@id/alarmListFragment"
-            app:popUpTo="@id/nav_graph_main"
-            app:popUpToInclusive="true"/>
-        <action
-            android:id="@+id/action_alarmRandomMissionTapFragment_self"
-            app:destination="@id/alarmRandomMissionTapFragment"
-            app:launchSingleTop="true"/>
-    </fragment>
-    <fragment
-        android:id="@+id/alarmRandomMissionMathFragment"
-        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmRandomMissionMathFragment"
-        android:label="fragment_sleep_report"
-        tools:layout="@layout/fragment_alarm_random_mission_math">
-        <argument
-            android:name="currentPageNum"
-            android:defaultValue="1"
-            app:argType="integer"/>
-        <action
-            android:id="@+id/action_alarmRandomMissionMathFragment_to_alarmListFragment"
-            app:destination="@id/alarmListFragment"
-            app:popUpTo="@id/nav_graph_main"
-            app:popUpToInclusive="true"/>
-    </fragment>
-    <fragment
-        android:id="@+id/alarmRandomMissionTypingFragment"
-        android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmRandomMissionTypingFragment"
-        android:label="fragment_alarm_random_mission_typing"
-        tools:layout="@layout/fragment_alarm_random_mission_typing" >
-        <argument
-            android:name="currentPageNum"
-            android:defaultValue="1"
-            app:argType="integer"/>
-        <action
-            android:id="@+id/action_alarmRandomMissionTypingFragment_self"
-            app:destination="@id/alarmRandomMissionTypingFragment"/>
     </fragment>
     <fragment
         android:id="@+id/pomodoroFragment"

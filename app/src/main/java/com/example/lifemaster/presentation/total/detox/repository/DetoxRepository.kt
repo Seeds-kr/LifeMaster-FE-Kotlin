@@ -2,12 +2,14 @@ package com.example.lifemaster.presentation.total.detox.repository
 
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLock
+import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLock
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 import javax.inject.Inject
 
 class DetoxRepository @Inject constructor(private val networkService: NetworkService){
 
+    // 영구 잠금
     suspend fun generatePermanentLock(request: DetoxPermanentLock): Result<Unit> = try {
         val response = networkService.generatePermanentLock(request = request)
         if (response.isSuccessful) {
@@ -40,6 +42,20 @@ class DetoxRepository @Inject constructor(private val networkService: NetworkSer
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    // 반복 잠금
+    suspend fun generateRepeatLock(request: DetoxRepeatLock): Result<Unit> = try {
+        val response = networkService.generateRepeatLock(request = request)
+        if (response.isSuccessful) {
+            Result.success(Unit)
+        } else {
+            Result.failure(Exception(response.message()))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    // 시간 잠금
 
     suspend fun generateTimeLock(request: DetoxTimeLockRequest): Result<Unit> = try {
         val response = networkService.generateTimeLock(request = request)

@@ -98,7 +98,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
         // 영구 차단할 앱 편집
         binding.btnEditPermanentLockService.setOnClickListener {
-            val dialog = DetoxPermanentLockServiceDialog(permanentLockedPackageNames) // 매번 새로운 인스턴스를 꼭 생성해야 하나...?
+            val dialog = DetoxPermanentLockServiceDialog(permanentLockedPackageNames)
             dialog.isCancelable = false
             dialog.show(childFragmentManager, DetoxPermanentLockServiceDialog.TAG)
         }

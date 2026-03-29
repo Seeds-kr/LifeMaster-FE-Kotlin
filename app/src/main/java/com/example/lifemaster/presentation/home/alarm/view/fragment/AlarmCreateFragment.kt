@@ -33,6 +33,7 @@ import com.example.lifemaster.presentation.home.alarm.util.formatRemainingTime
 import com.example.lifemaster.presentation.home.alarm.util.getRemainingDaysUntilAlarmRings
 import com.example.lifemaster.presentation.home.alarm.util.randomMissionLevelMapper
 import com.example.lifemaster.presentation.home.alarm.util.randomMissionTypeMapper
+import com.example.lifemaster.presentation.home.alarm.util.scheduleAlarm
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmRandomMissionDialog
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmSnoozeDialog
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmSnoozeLockDialog
@@ -223,8 +224,8 @@ class AlarmCreateFragment : Fragment(R.layout.fragment_alarm_setting) {
                     antiSnoozeMinute = if (alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked) {
                         tvAlarmSettingSnoozeLockMinutes.text.toString().toInt()
                     } else null,
-                    randomMissionType = randomMissionType?.value,
-                    randomMissionLevel = randomMissionLevel?.value,
+                    randomMissionType = randomMissionType,
+                    randomMissionLevel = randomMissionLevel,
                     alarmStatus = true
                 )
             )
@@ -268,17 +269,14 @@ class AlarmCreateFragment : Fragment(R.layout.fragment_alarm_setting) {
                             is DataResource.Idle -> {}
                             is DataResource.Loading -> {}
                             is DataResource.Success -> {
-                                val alarmTime = resource.data
-                                val targetDateTime =
-                                    Instant.parse(alarmTime).atZone(ZoneId.systemDefault())
-                                        .toLocalDateTime()
-                                val currentDateTime =
-                                    LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
-                                val toastMessage = formatRemainingTime(
-                                    start = currentDateTime,
-                                    end = targetDateTime
-                                )
+                                val newAlarm = resource.data
+                                val toastMessage = formatRemainingTime(newAlarm.formattedAlarmTime)
                                 Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
+//                                scheduleAlarm(
+//                                    context = requireContext(),
+//                                    alarm = newAlarm
+//                                )
+//                              alarmGenerateViewModel.resetAlarmData() // 필요하면 쓰기
                                 findNavController().popBackStack()
                             }
 
