@@ -18,6 +18,7 @@ import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
 import com.example.lifemaster.presentation.community.model.*
+import com.example.lifemaster.presentation.total.mypage.model.PayPalCreateOrderResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -354,4 +355,18 @@ interface NetworkService {
     suspend fun generateMathProblem(
         @Query("level") level: String
     ): MathProblemResponse
+
+    /**
+     * PayPal 결제 API
+     */
+    @POST("/payments/paypal/create-order")
+    suspend fun createPaypalOrder(
+        @Header("Authorization") token: String
+    ): Response<PayPalCreateOrderResponse>
+
+    @POST("/payments/paypal/capture/{orderId}")
+    suspend fun capturePaypalOrder(
+        @Header("Authorization") token: String,
+        @Path("orderId") orderId: String
+    ): Response<ResponseBody>
 }

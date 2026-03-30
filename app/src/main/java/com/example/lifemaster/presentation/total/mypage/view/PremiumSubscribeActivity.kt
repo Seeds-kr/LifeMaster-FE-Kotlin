@@ -56,12 +56,14 @@ class PremiumSubscribeActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnProceedPayment).setOnClickListener {
             val period = if (isAnnualSelected) getString(R.string.payment_period_annual) else getString(R.string.payment_period_monthly)
             val amount = if (isAnnualSelected) getString(R.string.subscription_price_annual_main) else getString(R.string.subscription_price_monthly_main)
+            val planType = if (isAnnualSelected) PaymentMethodSelectionActivity.PLAN_ANNUAL else PaymentMethodSelectionActivity.PLAN_MONTHLY
 
             startActivity(
                 PaymentMethodSelectionActivity.newIntent(
                     context = this,
                     amount = amount,
-                    period = period
+                    period = period,
+                    planType = planType
                 )
             )
         }
