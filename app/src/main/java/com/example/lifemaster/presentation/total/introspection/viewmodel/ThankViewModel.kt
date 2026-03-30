@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lifemaster.network.NetworkService
+import android.util.Log
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
@@ -243,12 +244,25 @@ class ThankViewModel @Inject constructor(
             try {
                 val response = networkService.getSelfReflectionByDate("Bearer $token", date)
                 if (response.isSuccessful) {
+                    Log.d(
+                        "INTROSPECTION_DEBUG",
+                        "loadSelfReflectionByDate OK (date=$date) body=${response.body()}"
+                    )
                     _selfReflectionByDate.value = response.body()
                 } else {
+                    Log.d(
+                        "INTROSPECTION_DEBUG",
+                        "loadSelfReflectionByDate FAIL (date=$date, code=${response.code()}, msg=${response.message()})"
+                    )
                     // 해당 날짜에 데이터가 없거나 오류인 경우 null로 초기화
                     _selfReflectionByDate.value = null
                 }
             } catch (e: Exception) {
+                Log.e(
+                    "INTROSPECTION_DEBUG",
+                    "loadSelfReflectionByDate EXCEPTION (date=$date, ${e.javaClass.simpleName})",
+                    e
+                )
                 // 네트워크 오류 등은 별도 UI 에러로 표기하지 않고, 단순히 데이터 없음으로 처리
                 _selfReflectionByDate.value = null
             }

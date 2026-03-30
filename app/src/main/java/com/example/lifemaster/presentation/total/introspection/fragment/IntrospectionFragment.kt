@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
@@ -15,6 +16,7 @@ import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentIntrospectionBinding
 import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
@@ -23,6 +25,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@AndroidEntryPoint
 class IntrospectionFragment : Fragment() {
 
     private var _binding: FragmentIntrospectionBinding? = null
@@ -216,7 +219,32 @@ class IntrospectionFragment : Fragment() {
         // 날짜별 자아성찰 조회 결과를 보고, 해당 날짜에 기록이 있으면 달력에 별 표시
         viewModel.selfReflectionByDate.observe(viewLifecycleOwner) { data ->
             val date = calendarVM.selectedDate.value ?: LocalDate.now()
-            if (data == null) return@observe
+            if (data == null) {
+                Log.d(
+                    "INTROSPECTION_DEBUG",
+                    "selfReflectionByDate null (selectedDate=$date, isEditMode=$isEditMode)"
+                )
+                // 선택한 날짜에 데이터가 없으면 UI도 비워줍니다.
+                if (!isEditMode) {
+                    binding.etDiary.setText("")
+                    clearThankYouFields()
+                }
+                return@observe
+            }
+
+            // 조회 모드라면(수정 모드 제외) 선택 날짜의 일기/5감사를 UI에 채웁니다.
+            if (!isEditMode) {
+                Log.d(
+                    "INTROSPECTION_DEBUG",
+                    "selfReflectionByDate success (selectedDate=$date, diary=${data.diaryContent?.take(20)}, thanks=${listOf(data.thankOne, data.thankTwo, data.thankThree, data.thankFour, data.thankFive).joinToString { (it ?: "").take(10) }})"
+                )
+                binding.etDiary.setText(data.diaryContent ?: "")
+                binding.etThanks1.setText(data.thankOne ?: "")
+                binding.etThanks2.setText(data.thankTwo ?: "")
+                binding.etThanks3.setText(data.thankThree ?: "")
+                binding.etThanks4.setText(data.thankFour ?: "")
+                binding.etThanks5.setText(data.thankFive ?: "")
+            }
 
             val hasDiary = !data.diaryContent.isNullOrBlank()
             val hasThanks = listOf(

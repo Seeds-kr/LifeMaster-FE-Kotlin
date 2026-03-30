@@ -2,19 +2,29 @@ package com.example.lifemaster.presentation.login.view
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster.databinding.ActivityLoginBinding
 import com.example.lifemaster.presentation.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityLoginBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        try {
+            binding = ActivityLoginBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+        } catch (t: Throwable) {
+            Log.e("LOGIN_ACTIVITY_STARTUP_CRASH", "LoginActivity inflate/setContentView failed", t)
+            Toast.makeText(this, "초기화 오류: ${t.javaClass.simpleName}", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
         handleNaverCallback(intent)
     }
 
