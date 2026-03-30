@@ -82,6 +82,10 @@
             android:name=".presentation.total.mypage.view.PaymentMethodSelectionActivity"
             android:exported="false"
             android:theme="@style/Theme.LifeMaster_XML" />
+        <activity
+            android:name=".presentation.total.mypage.view.RefundPolicyActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LifeMaster_XML" />
 
         <service
             android:name=".presentation.total.detox.service.DetoxBlockService"

@@ -42,6 +42,9 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
         val btnPaymentGooglePlay = findViewById<LinearLayout>(R.id.btnPaymentGooglePlay)
         val btnPaymentNaverPay = findViewById<LinearLayout>(R.id.btnPaymentNaverPay)
         btnPayNow = findViewById<Button>(R.id.btnPayNow)
+        findViewById<TextView>(R.id.tvRefundPolicy).setOnClickListener {
+            startActivity(Intent(this, RefundPolicyActivity::class.java))
+        }
 
         var selectedPaymentOptionId: Int = View.NO_ID
 
