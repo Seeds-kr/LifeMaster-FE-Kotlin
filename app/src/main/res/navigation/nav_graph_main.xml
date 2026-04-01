@@ -23,6 +23,9 @@
             android:id="@+id/action_homeFragment_to_groupFragment"
             app:destination="@id/groupFragment" />
         <action
+            android:id="@+id/action_homeFragment_to_groupStatsFragment"
+            app:destination="@id/groupStatsFragment" />
+        <action
             android:id="@+id/action_homeFragment_to_pomodoroFragment"
             app:destination="@id/pomodoroFragment" />
         <action
@@ -31,6 +34,9 @@
         <action
             android:id="@+id/action_homeFragment_to_challengeFragment"
             app:destination="@id/challengeFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_challengeDetailFragment"
+            app:destination="@id/challengeDetailFragment" />
     </fragment>
     <fragment
         android:id="@+id/communityFragment"
@@ -116,17 +122,73 @@
         <action
             android:id="@+id/action_groupFragment_to_groupCreateFragment"
             app:destination="@id/groupCreateFragment" />
+        <action
+            android:id="@+id/action_groupFragment_to_groupStatsFragment"
+            app:destination="@id/groupStatsFragment" />
     </fragment>
     <fragment
         android:id="@+id/groupListFragment"
         android:name="com.example.lifemaster.presentation.group.view.GroupListFragment"
         android:label="fragment_group_list"
-        tools:layout="@layout/fragment_group_list" />
+        tools:layout="@layout/fragment_group_list" >
+        <action
+            android:id="@+id/action_groupListFragment_to_groupStatsFragment"
+            app:destination="@id/groupStatsFragment" />
+    </fragment>
     <fragment
         android:id="@+id/groupCreateFragment"
         android:name="com.example.lifemaster.presentation.group.view.GroupCreateFragment"
         android:label="GroupCreateFragment"
-        tools:layout="@layout/fragment_group_create" />
+        tools:layout="@layout/fragment_group_create" >
+        <action
+            android:id="@+id/action_groupCreateFragment_to_groupCreateSuccessFragment"
+            app:destination="@id/groupCreateSuccessFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/groupCreateSuccessFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupCreateSuccessFragment"
+        android:label="groupCreateSuccessFragment"
+        tools:layout="@layout/fragment_group_create_success" />
+    <fragment
+        android:id="@+id/groupStatsFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupStatsFragment"
+        android:label="fragment_group_stats"
+        tools:layout="@layout/fragment_group_stats">
+
+        <argument
+            android:name="groupId"
+            app:argType="long" />
+        <argument
+            android:name="groupName"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="memberCount"
+            app:argType="integer"
+            android:defaultValue="0" />
+
+        <action
+            android:id="@+id/action_groupStatsFragment_to_groupChattingFragment"
+            app:destination="@id/groupChattingFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/groupChattingFragment"
+        android:name="com.example.lifemaster.presentation.group.view.GroupChattingFragment"
+        android:label="fragment_group_chatting"
+        tools:layout="@layout/fragment_group_chatting">
+
+        <argument
+            android:name="groupId"
+            app:argType="long" />
+        <argument
+            android:name="groupName"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="memberCount"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
     <fragment
         android:id="@+id/introspectionFragment"
         android:name="com.example.lifemaster.presentation.total.introspection.IntrospectionFragment"
@@ -137,6 +199,10 @@
             android:name="startTab"
             android:defaultValue="TODAY"
             app:argType="string" />
+        <argument
+            android:name="selectedDate"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
     <fragment
         android:id="@+id/challengeFragment"

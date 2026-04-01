@@ -24,6 +24,7 @@
             android:layout_height="168dp"
             android:background="@drawable/bg_round_and_white"
             android:overScrollMode="never"
+            android:nestedScrollingEnabled="false"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_group_list" />
 

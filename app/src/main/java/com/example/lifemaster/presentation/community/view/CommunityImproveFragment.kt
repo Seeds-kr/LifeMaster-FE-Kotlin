@@ -20,7 +20,9 @@ import com.example.lifemaster.presentation.community.adapter.CommunityAdapter
 import com.example.lifemaster.presentation.community.model.CommunityItem
 import com.example.lifemaster.presentation.community.viewmodel.CommunityViewModel
 import com.example.lifemaster.presentation.community.viewmodel.PollViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class CommunityImproveFragment : Fragment(R.layout.fragment_community_improve) {
 
     private val pollVm: PollViewModel by viewModels()
@@ -217,19 +219,17 @@ class CommunityImproveFragment : Fragment(R.layout.fragment_community_improve) {
         setFillWidth(result3Track, result3Fill, o3?.votePercentage ?: 0)
 
         val my = ui.myVotedOptionId
-        val p1Default = result1Percent?.currentTextColor
-        val p2Default = result2Percent?.currentTextColor
-        val p3Default = result3Percent?.currentTextColor
         val selectedColor = ContextCompat.getColor(requireContext(), R.color.poll_percent_selected)
+        val defaultColor = ContextCompat.getColor(requireContext(), R.color.black)
 
         result1Percent?.setTextColor(
-            if (my == (o1?.optionId ?: -1)) selectedColor else (p1Default ?: selectedColor)
+            if (my == (o1?.optionId ?: -1)) selectedColor else defaultColor
         )
         result2Percent?.setTextColor(
-            if (my == (o2?.optionId ?: -1)) selectedColor else (p2Default ?: selectedColor)
+            if (my == (o2?.optionId ?: -1)) selectedColor else defaultColor
         )
         result3Percent?.setTextColor(
-            if (my == (o3?.optionId ?: -1)) selectedColor else (p3Default ?: selectedColor)
+            if (my == (o3?.optionId ?: -1)) selectedColor else defaultColor
         )
 
         result1FillImg?.setImageResource(
@@ -273,10 +273,6 @@ class CommunityImproveFragment : Fragment(R.layout.fragment_community_improve) {
         requireContext().getSharedPreferences("auth", 0)
             .getString("token", null)
 
-    /**
-     * userId: 로그인할 때 SharedPreferences("auth") 에 저장해둔 이메일 사용.
-     *  - "userId" 키 먼저 찾고, 없으면 "email" 키 확인.
-     */
     private fun readUserId(): String? {
         val sp = requireContext().getSharedPreferences("auth", 0)
 
@@ -287,7 +283,8 @@ class CommunityImproveFragment : Fragment(R.layout.fragment_community_improve) {
     }
 
     private fun toast(msg: String?) {
-        if (!msg.isNullOrBlank())
+        if (!msg.isNullOrBlank()) {
             Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+        }
     }
 }

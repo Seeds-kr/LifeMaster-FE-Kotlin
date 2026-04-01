@@ -1,17 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="120dp"
     android:layout_height="120dp"
-    android:orientation="vertical"
     android:padding="12dp"
     android:background="@drawable/bg_group_card"
     android:layout_marginHorizontal="6dp"
     android:layout_marginTop="12dp">
 
     <ImageView
-    android:id="@+id/iv_group_icon"
-    android:layout_width="16dp"
-    android:layout_height="16dp"
-    android:src="@drawable/ic_clock_purple" />
+        android:id="@+id/iv_group_icon"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:src="@drawable/ic_clock_purple" />
 
     <TextView
         android:id="@+id/tv_group_title"
@@ -30,4 +30,4 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:src="@drawable/ic_arrow_purple" />
-    </RelativeLayout>
+</RelativeLayout>

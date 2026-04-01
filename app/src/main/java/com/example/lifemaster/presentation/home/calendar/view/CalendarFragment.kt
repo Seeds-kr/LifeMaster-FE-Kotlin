@@ -22,13 +22,19 @@ import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewM
 import java.time.LocalDate
 import java.util.Calendar
 import java.util.GregorianCalendar
+import com.example.lifemaster.network.NetworkService
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class CalendarFragment : Fragment() {
 
     companion object {
         const val ARG_TARGET_MEMBER_ID = "arg_target_member_id"
         const val ARG_CALENDAR_READ_ONLY = "arg_calendar_read_only"
     }
+
+    @Inject lateinit var networkService: NetworkService
 
     private var _binding: FragmentCalendarBinding? = null
     private val binding get() = _binding!!
@@ -39,6 +45,7 @@ class CalendarFragment : Fragment() {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val repo = CalendarRepository(
+                    api = networkService,
                     authProvider = { TokenProvider.getAccessToken(requireContext()) }
                 )
                 @Suppress("UNCHECKED_CAST")

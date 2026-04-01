@@ -7,17 +7,22 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentFindPasswordVerificationBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
 import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class FindPasswordVerificationFragment : Fragment(R.layout.fragment_find_password_verification) {
 
     private lateinit var binding: FragmentFindPasswordVerificationBinding
     private var email: String? = null
+
+    @Inject lateinit var networkService: NetworkService
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -48,7 +53,7 @@ class FindPasswordVerificationFragment : Fragment(R.layout.fragment_find_passwor
 
             btnCheckVerificationCode.isEnabled = false
 
-            RetrofitInstance.networkService
+            networkService
                 .verifyResetCode(VerifyCodeRequest(email = email!!, code = code))
                 .enqueue(object : Callback<PasswordResponseDto> {
 

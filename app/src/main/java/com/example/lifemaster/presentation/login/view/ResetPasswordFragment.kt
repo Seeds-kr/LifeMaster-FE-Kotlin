@@ -9,17 +9,22 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentResetPasswordBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.login.model.PasswordResetDto
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ResetPasswordFragment : Fragment(R.layout.fragment_reset_password) {
 
     private lateinit var binding: FragmentResetPasswordBinding
     private var token: String? = null
+
+    @Inject lateinit var networkService: NetworkService
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -88,7 +93,7 @@ class ResetPasswordFragment : Fragment(R.layout.fragment_reset_password) {
             val tk = token!!
             btnPasswordChange.isEnabled = false
 
-            RetrofitInstance.networkService
+            networkService
                 .resetPassword(
                     PasswordResetDto(
                         token = tk,

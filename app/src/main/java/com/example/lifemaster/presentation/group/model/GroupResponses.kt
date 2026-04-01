@@ -1,5 +1,13 @@
 package com.example.lifemaster.presentation.group.model
 
+data class GroupResponse(
+    val id: Long,
+    val name: String,
+    val description: String?,
+    val icon: String?,
+    val memberCount: Int? = 0
+)
+
 data class GroupCreateResponse(
     val id: Long,
     val name: String?,
@@ -17,6 +25,6 @@ data class GroupGoalResponse(
 data class GroupGoalCreateRequest(
     val name: String,
     val goalCondition: String,
-    val duration: String? = null,
-    val value: Int? = null
+    val value: Int,
+    val duration: String
 )

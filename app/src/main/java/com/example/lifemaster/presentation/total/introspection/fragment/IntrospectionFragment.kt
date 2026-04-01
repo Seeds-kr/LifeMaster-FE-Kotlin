@@ -15,10 +15,12 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentIntrospectionBinding
 import androidx.fragment.app.viewModels
 import com.example.lifemaster.presentation.total.introspection.viewmodel.UiState
+import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@AndroidEntryPoint
 class IntrospectionFragment : Fragment() {
 
     private var _binding: FragmentIntrospectionBinding? = null
@@ -29,11 +31,16 @@ class IntrospectionFragment : Fragment() {
     private var thankId: Long? = null
     private var diaryId: Long? = null
 
+    private var selectedDate: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
             val thankIdArg = it.getLong(ARG_THANK_ID, 0L)
             val diaryIdArg = it.getLong(ARG_DIARY_ID, 0L)
+            val startTabArg = it.getString("startTab", "TODAY")
+            selectedDate = it.getString("selectedDate")
+            currentMode = if (startTabArg == "THANKS") Mode.THANKS else Mode.TODAY
             if (thankIdArg != 0L) {
                 isEditMode = true
                 thankId = thankIdArg
@@ -62,8 +69,6 @@ class IntrospectionFragment : Fragment() {
             when {
                 diaryId != null -> {
                     currentMode = Mode.TODAY
-                    // 다이어리 수정 모드에서는 조회 API가 필요하지만, 일단 수정 기능만 연결
-                    // TODO: 다이어리 조회 API 추가 필요
                 }
                 thankId != null -> {
                     currentMode = Mode.THANKS
@@ -78,10 +83,13 @@ class IntrospectionFragment : Fragment() {
             // 수정 모드에서는 탭 전환을 막아 혼동을 방지
             binding.btnToday.isEnabled = false
             binding.btnThanks.isEnabled = false
-
-            // 기존 데이터 불러오기
-            val token = "YOUR_TOKEN" // TODO: 실제 토큰으로 교체
-            thankId?.let { viewModel.loadThankEntry(token, it) }
+        } else {
+            readAuthToken()?.let { token ->
+                val targetDate = selectedDate ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                viewModel.loadSelfReflectionByDate(token, targetDate)
+            } ?: run {
+                Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            }
         }
 
         // 초기 화면 설정
@@ -119,7 +127,7 @@ class IntrospectionFragment : Fragment() {
                     } else {
                         // 현재 날짜를 "yyyy-MM-dd" 형식의 문자열로 변환
                         val currentDate =
-                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                            selectedDate ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                         val token = readAuthToken() ?: run {
                             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                             return@setOnClickListener
@@ -160,7 +168,7 @@ class IntrospectionFragment : Fragment() {
                     if (thanksList.any { it.isNotBlank() }) {
                         // 현재 날짜를 "yyyy-MM-dd" 형식의 문자열로 변환
                         val currentDate =
-                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                            selectedDate ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                         val token = readAuthToken() ?: run {
                             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                             return@setOnClickListener
@@ -234,6 +242,25 @@ class IntrospectionFragment : Fragment() {
         viewModel.thankData.observe(viewLifecycleOwner) { thankData ->
             thankData?.let {
                 // 불러온 데이터로 입력창 채우기
+                binding.etThanks1.setText(it.thankOne)
+                binding.etThanks2.setText(it.thankTwo)
+                binding.etThanks3.setText(it.thankThree)
+                binding.etThanks4.setText(it.thankFour)
+                binding.etThanks5.setText(it.thankFive)
+            }
+        }
+
+        viewModel.selfReflectionByDate.observe(viewLifecycleOwner) { data ->
+            data?.let {
+                if (it.diaryId != 0L) {
+                    diaryId = it.diaryId
+                }
+                if (it.thankId != 0L) {
+                    thankId = it.thankId
+                }
+                if (it.diaryContent.isNotBlank()) {
+                    binding.etDiary.setText(it.diaryContent)
+                }
                 binding.etThanks1.setText(it.thankOne)
                 binding.etThanks2.setText(it.thankTwo)
                 binding.etThanks3.setText(it.thankThree)

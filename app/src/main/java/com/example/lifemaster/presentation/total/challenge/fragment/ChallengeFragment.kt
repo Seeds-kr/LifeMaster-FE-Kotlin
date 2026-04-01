@@ -18,7 +18,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModelFactory
@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.collectLatest // Flow의 데이터를 수집
 import kotlinx.coroutines.launch
 import android.widget.PopupMenu
 import androidx.paging.PagingData
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 data class MyChallenge(
     val imageRes: Int,
@@ -33,14 +35,17 @@ data class MyChallenge(
     val completionTime: String? = null
 )
 
+@AndroidEntryPoint
 class ChallengeFragment : Fragment() {
 
     private var _binding: FragmentChallengeBinding? = null
     private val binding get() = _binding!!
 
+    @Inject lateinit var networkService: NetworkService
+
     // DI를 사용하여 ViewModel 생성
     private val viewModel: ChallengeViewModel by lazy {
-        val factory = ChallengeViewModelFactory(RetrofitInstance.networkService)
+        val factory = ChallengeViewModelFactory(networkService)
         ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
     }
 
@@ -112,7 +117,7 @@ class ChallengeFragment : Fragment() {
                 timeTextView.visibility = View.VISIBLE
             }
             checkmark.visibility = View.VISIBLE
-            
+
             // 블러 효과 적용
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val blurEffect = RenderEffect.createBlurEffect(20f, 20f, Shader.TileMode.CLAMP)

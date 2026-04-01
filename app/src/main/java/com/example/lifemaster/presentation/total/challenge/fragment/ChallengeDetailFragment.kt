@@ -10,16 +10,21 @@ import com.bumptech.glide.Glide
 import androidx.navigation.fragment.navArgs
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeDetailBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
     private lateinit var binding: FragmentChallengeDetailBinding
 
+    @Inject lateinit var networkService: NetworkService
+
     // DI를 사용하여 ViewModel 생성
     private val viewModel: ChallengeViewModel by lazy {
-        val factory = ChallengeViewModelFactory(RetrofitInstance.networkService)
+        val factory = ChallengeViewModelFactory(networkService)
         ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
     }
 
@@ -43,7 +48,6 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
         } else {
             Toast.makeText(requireContext(), "챌린지 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
-
 
         val challengeId = args.challId
         Log.d("ChallengeDetail", "전달받은 챌린지 ID: $challengeId")

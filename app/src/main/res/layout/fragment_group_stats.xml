@@ -2,12 +2,11 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/layout_group_main"
+    android:id="@+id/fragment_group_stats"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white">
 
-    <!-- 뒤로가기 -->
     <include
         android:id="@+id/btn_back"
         layout="@layout/item_back_button"
@@ -23,7 +22,9 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         android:overScrollMode="never"
+        android:clipToPadding="false"
         android:paddingHorizontal="16dp"
+        android:paddingBottom="120dp"
         app:layout_constraintTop_toBottomOf="@id/btn_back"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -34,9 +35,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
 
-            <!-- 그룹 헤더(아이콘/이름/참여자/가입하기) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layout_group_header"
                 android:layout_width="match_parent"
@@ -73,7 +74,7 @@
                     android:textStyle="bold"
                     app:layout_constraintEnd_toStartOf="@id/btn_join"
                     app:layout_constraintStart_toEndOf="@id/box_group_icon"
-                    app:layout_constraintTop_toTopOf="@id/layout_group_header"
+                    app:layout_constraintTop_toTopOf="parent"
                     tools:text="GroupName123" />
 
                 <TextView
@@ -104,7 +105,7 @@
                     android:textColor="@android:color/white"
                     android:textSize="12sp"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/layout_group_header" />
+                    app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <View
@@ -113,244 +114,12 @@
                 android:layout_height="1dp"
                 android:background="@color/black_10" />
 
-            <!-- 최소목표 카드 (수면) -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_min_goal_sleep"
-                android:layout_width="match_parent"
-                android:layout_height="37dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_round_input"
-                app:cardBackgroundColor="@color/purple_30"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="0dp">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="10dp">
-
-                    <TextView
-                        android:id="@+id/tv_min_goal_label_sleep"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/min_goal"
-                        android:textColor="@color/purple_100"
-                        android:textSize="12sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/tv_min_goal_value_sleep"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/sleep_8"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <TextView
-                android:id="@+id/tv_sleep_stat_title"
+            <LinearLayout
+                android:id="@+id/layout_goal_chart_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:drawablePadding="12dp"
-                android:gravity="center_vertical"
-                android:text="@string/sleep_stats"
-                android:textColor="@color/black"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:drawableStartCompat="@drawable/ic_chart"
-                app:drawableTint="@color/black" />
+                android:orientation="vertical" />
 
-            <TextView
-                android:id="@+id/tv_sleep_stat_desc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="28dp"
-                android:layout_marginTop="8dp"
-                android:text="@string/sleep_stat_desc_sample"
-                android:textColor="@color/black"
-                android:textSize="12sp" />
-
-            <!-- 차트 영역(자리만) -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_sleep_chart"
-                android:layout_width="match_parent"
-                android:layout_height="240dp"
-                android:layout_marginTop="8dp"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/black_10"
-                app:strokeWidth="1dp">
-
-                <FrameLayout
-                    android:id="@+id/chart_container"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="8dp">
-
-                    <View
-                        android:id="@+id/view_chart_placeholder"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:alpha="0.08"
-                        android:background="@color/black_10" />
-
-                </FrameLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- 최소목표 카드 (뽀모도로) -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_min_goal_pomodoro"
-                android:layout_width="match_parent"
-                android:layout_height="37dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_round_input"
-                app:cardBackgroundColor="@color/purple_30"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="0dp">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="10dp">
-
-                    <TextView
-                        android:id="@+id/tv_min_goal_label_pomodoro"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/min_goal"
-                        android:textColor="@color/purple_100"
-                        android:textSize="12sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/tv_min_goal_value_pomodoro"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/pomodoro_3"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- 뽀모도로 통계 -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/layout_pomodoro_header"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
-
-                <ImageView
-                    android:id="@+id/iv_pomodoro_stat_icon"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:contentDescription="@null"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_pomodoro_stat"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@color/black" />
-
-                <TextView
-                    android:id="@+id/tv_pomodoro_stat_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="@string/pomodoro_stats"
-                    android:textColor="@color/black"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="@id/iv_pomodoro_stat_icon"
-                    app:layout_constraintStart_toEndOf="@id/iv_pomodoro_stat_icon"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <LinearLayout
-                    android:id="@+id/layout_pomodoro_legend"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                    <ImageView
-                        android:id="@+id/iv_legend_me"
-                        android:layout_width="12dp"
-                        android:layout_height="2dp"
-                        android:contentDescription="@null"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_stat_line" />
-
-                    <TextView
-                        android:id="@+id/tv_legend_me"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="@string/me"
-                        android:textColor="@color/black"
-                        android:textSize="12sp" />
-
-                    <View
-                        android:layout_width="12dp"
-                        android:layout_height="1dp" />
-
-                    <ImageView
-                        android:id="@+id/iv_legend_group"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:contentDescription="@null"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_stat_square" />
-
-                    <TextView
-                        android:id="@+id/tv_legend_group"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="@string/group"
-                        android:textColor="@color/black"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <TextView
-                android:id="@+id/tv_pomodoro_stat_desc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/achieve_stats"
-                android:textColor="@color/black"
-                android:textSize="12sp" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_pomodoro_chart"
-                android:layout_width="match_parent"
-                android:layout_height="240dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/black_10"
-                app:strokeWidth="1dp" />
-
-            <!-- 최근 30일 달성 인원 -->
             <TextView
                 android:id="@+id/tv_recent_achieve_title"
                 android:layout_width="match_parent"
@@ -383,23 +152,23 @@
                     android:textStyle="bold"
                     app:drawableStartCompat="@drawable/ic_rank"
                     app:drawableTint="@color/black"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/card_ranking_toggle" />
+                    app:layout_constraintEnd_toStartOf="@id/card_ranking_toggle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card_ranking_toggle"
                     android:layout_width="150dp"
                     android:layout_height="30dp"
+                    app:cardBackgroundColor="@android:color/white"
                     app:cardCornerRadius="15dp"
                     app:cardElevation="0dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="@color/black_10"
-                    app:cardBackgroundColor="@android:color/white"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent">
+                    app:strokeColor="@color/black_10"
+                    app:strokeWidth="1dp">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/toggle_root"
@@ -411,10 +180,10 @@
                             android:layout_width="0dp"
                             android:layout_height="0dp"
                             android:background="@drawable/bg_segment_pill_purple"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintEnd_toStartOf="@id/guideline_toggle_half"
-                            app:layout_constraintTop_toTopOf="parent"
                             app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@id/guideline_toggle_half"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
                             app:layout_constraintWidth_percent="0.5" />
 
                         <androidx.constraintlayout.widget.Guideline
@@ -428,40 +197,37 @@
                             android:id="@+id/btn_toggle_week"
                             android:layout_width="0dp"
                             android:layout_height="0dp"
-                            android:gravity="center"
-                            android:text="@string/weekly"
-                            android:textSize="12sp"
-                            android:textColor="@android:color/white"
                             android:clickable="true"
                             android:focusable="true"
-                            app:layout_constraintStart_toStartOf="parent"
+                            android:gravity="center"
+                            android:text="@string/weekly"
+                            android:textColor="@android:color/white"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toStartOf="@id/guideline_toggle_half"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="parent" />
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
 
                         <TextView
                             android:id="@+id/btn_toggle_all"
                             android:layout_width="0dp"
                             android:layout_height="0dp"
-                            android:gravity="center"
-                            android:text="@string/all"
-                            android:textSize="12sp"
-                            android:textColor="@color/black_30"
                             android:clickable="true"
                             android:focusable="true"
-                            app:layout_constraintStart_toStartOf="@id/guideline_toggle_half"
+                            android:gravity="center"
+                            android:text="@string/all"
+                            android:textColor="@color/black_30"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="parent" />
-
+                            app:layout_constraintStart_toStartOf="@id/guideline_toggle_half"
+                            app:layout_constraintTop_toTopOf="parent" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </com.google.android.material.card.MaterialCardView>
-
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <include layout="@layout/layout_group_ranking" />
 
-            <!-- 그룹 탈퇴하기 -->
             <TextView
                 android:id="@+id/btn_leave_group"
                 android:layout_width="match_parent"
@@ -474,8 +240,27 @@
                 android:text="@string/leave_group"
                 android:textColor="#C5C6C6"
                 android:textSize="12sp" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/btn_chat"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="34dp"
+        app:cardBackgroundColor="@android:color/white"
+        app:cardCornerRadius="36dp"
+        app:cardElevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_chat"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_group_chat_fab" />
+    </com.google.android.material.card.MaterialCardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

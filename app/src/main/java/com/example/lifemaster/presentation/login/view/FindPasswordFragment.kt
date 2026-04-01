@@ -8,16 +8,21 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentFindPasswordBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.login.model.EmailRequest
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class FindPasswordFragment : Fragment(R.layout.fragment_find_password) {
 
     private lateinit var binding: FragmentFindPasswordBinding
+
+    @Inject lateinit var networkService: NetworkService
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -46,7 +51,7 @@ class FindPasswordFragment : Fragment(R.layout.fragment_find_password) {
             val body = EmailRequest(email)
             btnSignup.isEnabled = false
 
-            RetrofitInstance.networkService
+            networkService
                 .requestResetEmail(body)
                 .enqueue(object : Callback<PasswordResponseDto> {
 

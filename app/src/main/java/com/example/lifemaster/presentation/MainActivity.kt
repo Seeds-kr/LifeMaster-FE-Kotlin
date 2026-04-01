@@ -16,7 +16,6 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -27,22 +26,15 @@ import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.network.NetworkService
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoModel
-import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
@@ -51,7 +43,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
-import kotlin.getValue
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -61,7 +52,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var totalApps: MutableList<ApplicationInfo>
     private lateinit var requiredApps: List<ApplicationInfo>
     private var foregroundStartTime: Long = 0L
-    private var userToken: String? = ""
 
     // ViewModel 변수
     private val detoxCommonViewModel: DetoxCommonViewModel by viewModels()
@@ -77,7 +67,7 @@ class MainActivity : AppCompatActivity() {
     private var lastUsageTimeBeforeSleep: Long = 0L // 마지막 사용 시간 = 핸드폰 화면을 끈 시간
     private var firstUsageTimeAfterWake: Long? = null // 핸드폰을 처음 킨 시간 (잠금 해제x)
     private val sleepViewModel: SleepViewModel by viewModels {
-        SleepViewModelFactory(RetrofitInstance.networkService)
+        SleepViewModelFactory(networkService)
     }
 
     @Inject lateinit var tokenManager: TokenManager
@@ -91,23 +81,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        networkService.enterUserLogin(loginInfo = LoginInfo(email = "aaaaa@naver.com", password = "aaaaa")).enqueue(object: Callback<String> {
-            override fun onResponse(
-                call: Call<String?>,
-                response: Response<String?>
-            ) {
-                if(response.isSuccessful) {
-                    val userToken = response.body()
-                    Log.e("login", userToken!!)
-                    tokenManager.accessToken = userToken
-                }
-            }
-
-            override fun onFailure(call: Call<String?>, t: Throwable) {
-                Toast.makeText(this@MainActivity, "로그인에 실패했습니다.", Toast.LENGTH_SHORT).show()
-            }
-
-        })
+        // 여기서 로그인 API를 다시 호출하면 안 됨
+        // LoginEmailFragment에서 저장한 토큰을 그대로 사용해야 함
+        Log.d("MainActivity", "saved bearer token = ${tokenManager.getBearerToken()}")
 
         val targetFragment = intent.getStringExtra("destination")
         if (targetFragment == "alarm") {

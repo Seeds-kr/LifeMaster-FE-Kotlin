@@ -3,6 +3,7 @@ package com.example.lifemaster.presentation.group.view
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -16,34 +17,44 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.Guideline
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.group.model.GroupCreateResponse
 import com.example.lifemaster.presentation.group.model.GroupGoalCreateRequest
-import com.example.lifemaster.presentation.group.model.GroupGoalResponse
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
-    // ✅ 현재는 비공개 고정
-    private var isPublicGroup: Boolean = false
+    companion object {
+        private const val ACCESS_TYPE_PASSWORD = "PASSWORD"
+        private const val GOAL_CONDITION_COUNT = "COUNT"
+        private const val GOAL_CONDITION_TIME = "TIME"
+        private const val GOAL_DURATION_DAILY = "DAILY"
+    }
 
     private lateinit var goalAdapter: GoalRowAdapter
+
+    @Inject
+    lateinit var networkService: NetworkService
+
+    private var isSubmitting = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // -------------------------
-        // 1) 공개/비공개 세그먼트: 비공개 고정 + 클릭 불가
-        // -------------------------
         val segmentRoot = view.findViewById<ConstraintLayout>(R.id.segment_root)
         val guidelineHalf = view.findViewById<Guideline>(R.id.guideline_half)
         val selectedPill = view.findViewById<View>(R.id.view_selected_pill)
@@ -52,13 +63,10 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
         fun applySegmentUiFixedPrivate() {
             val lp = selectedPill.layoutParams as ConstraintLayout.LayoutParams
-
             lp.startToStart = ConstraintLayout.LayoutParams.UNSET
             lp.endToEnd = ConstraintLayout.LayoutParams.UNSET
             lp.startToEnd = ConstraintLayout.LayoutParams.UNSET
             lp.endToStart = ConstraintLayout.LayoutParams.UNSET
-
-            // ✅ 비공개(오른쪽) 고정
             lp.startToEnd = guidelineHalf.id
             lp.endToEnd = segmentRoot.id
 
@@ -68,7 +76,6 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
             selectedPill.layoutParams = lp
             selectedPill.requestLayout()
 
-            // ✅ 클릭 불가
             btnPublic.isEnabled = false
             btnPrivate.isEnabled = false
             segmentRoot.isEnabled = false
@@ -76,16 +83,6 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
         applySegmentUiFixedPrivate()
 
-        /*
-        // (나중에 백엔드에서 공개/비공개 지원되면 주석 해제)
-        fun applySegmentUi(public: Boolean) { ... }
-        btnPublic.setOnClickListener { ... }
-        btnPrivate.setOnClickListener { ... }
-        */
-
-        // -------------------------
-        // 2) 목표 RecyclerView
-        // -------------------------
         val rvGoal = view.findViewById<RecyclerView>(R.id.rv_goal_list)
 
         goalAdapter = GoalRowAdapter(
@@ -96,62 +93,63 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
             onCountClick = { anchor, current, onPicked ->
                 showCountDropdown(anchor, current, onPicked)
             },
-            onDelete = { pos -> goalAdapter.removeAt(pos) }
+            onDelete = { pos ->
+                goalAdapter.removeAt(pos)
+            }
         )
 
         rvGoal.layoutManager = LinearLayoutManager(requireContext())
         rvGoal.adapter = goalAdapter
 
-        // -------------------------
-        // 3) "추가" 버튼 -> row 추가
-        // -------------------------
         view.findViewById<View>(R.id.btn_goal_add).setOnClickListener {
             goalAdapter.add(GoalRow(type = "뽀모도로", count = "1회 이상"))
         }
 
-        // -------------------------
-        // 4) 완료하기 -> 비밀번호 다이얼로그 -> 그룹 생성(Call) -> 목표 추가(suspend)
-        // -------------------------
         val etName = view.findViewById<EditText>(R.id.et_group_name)
         val etDesc = view.findViewById<EditText>(R.id.et_group_desc)
         val btnDone = view.findViewById<View>(R.id.btn_done)
 
         btnDone.setOnClickListener {
+            if (isSubmitting) return@setOnClickListener
+
             val name = etName.text?.toString()?.trim().orEmpty()
             val desc = etDesc.text?.toString()?.trim()
+            val goals = goalAdapter.currentItems()
 
             if (name.isBlank()) {
                 Toast.makeText(requireContext(), "그룹명을 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
+            if (!validateGoals(goals)) {
+                return@setOnClickListener
+            }
+
             showPrivatePasswordDialog { password ->
+                if (isSubmitting) return@showPrivatePasswordDialog
+
                 val token = getAuthTokenOrNull()
-                if (token == null) {
-                    Toast.makeText(requireContext(), "토큰이 없습니다. 다시 로그인 해주세요.", Toast.LENGTH_SHORT).show()
+                if (token.isNullOrBlank()) {
+                    Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                     return@showPrivatePasswordDialog
                 }
 
-                createGroupThenAddGoals(
+                createGroupAndGoals(
                     token = token,
                     name = name,
                     desc = desc,
                     icon = null,
                     statistics = null,
                     password = password,
-                    goals = goalAdapter.currentItems()
+                    accessType = ACCESS_TYPE_PASSWORD,
+                    goals = goals,
+                    btnDone = btnDone
                 )
             }
         }
     }
 
-    // =========================
-    // 비공개 비밀번호 다이얼로그 (XML id에 맞춤)
-    // ids: etPassword / etPasswordConfirm / btnCancel / btnCreate
-    // =========================
-    private fun showPrivatePasswordDialog(
-        onConfirm: (password: String) -> Unit
-    ) {
+    private fun showPrivatePasswordDialog(onConfirm: (password: String) -> Unit) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_group_create_private, null)
 
         val etPw = dialogView.findViewById<EditText>(R.id.etPassword)
@@ -165,12 +163,13 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog.show()
-
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
         btnCancel.setOnClickListener { dialog.dismiss() }
 
         btnCreate.setOnClickListener {
+            if (isSubmitting) return@setOnClickListener
+
             val pw = etPw.text?.toString()?.trim().orEmpty()
             val pw2 = etPwConfirm.text?.toString()?.trim().orEmpty()
 
@@ -178,6 +177,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                 Toast.makeText(requireContext(), "비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             if (pw != pw2) {
                 Toast.makeText(requireContext(), "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -188,116 +188,314 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         }
     }
 
-    // =========================
-    // 토큰: SharedPreferences에서 가져오기 + Bearer 붙이기
-    // =========================
-    private fun getAuthTokenOrNull(): String? {
-        val raw = TokenProvider.getAccessToken(requireContext()) ?: return null
-        return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
+    private fun validateGoals(goals: List<GoalRow>): Boolean {
+        for ((index, goal) in goals.withIndex()) {
+            if (goal.type.isBlank()) {
+                Toast.makeText(
+                    requireContext(),
+                    "${index + 1}번째 목표 종류를 선택해주세요.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return false
+            }
+
+            if (parseGoalValue(goal.count) <= 0) {
+                Toast.makeText(
+                    requireContext(),
+                    "${index + 1}번째 목표 값이 올바르지 않습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return false
+            }
+        }
+        return true
     }
 
-    // =========================
-    // 그룹 생성(Call) -> 성공하면 목표 추가(suspend Response)
-    // =========================
-    private fun createGroupThenAddGoals(
+    private fun getAuthTokenOrNull(): String? {
+        return TokenProvider.getBearerToken(requireContext())
+    }
+
+    private fun createGroupAndGoals(
         token: String,
         name: String,
         desc: String?,
         icon: String?,
         statistics: List<Int>?,
         password: String?,
-        goals: List<GoalRow>
+        accessType: String,
+        goals: List<GoalRow>,
+        btnDone: View
     ) {
-        RetrofitInstance.networkService.createGroup(
+        if (isSubmitting) return
+
+        isSubmitting = true
+        btnDone.isEnabled = false
+
+        networkService.createGroup(
             token = token,
             name = name,
             description = desc,
             icon = icon,
             statistics = statistics,
-            password = password
+            password = password,
+            accessType = accessType
         ).enqueue(object : Callback<GroupCreateResponse> {
 
             override fun onResponse(
                 call: Call<GroupCreateResponse>,
                 response: Response<GroupCreateResponse>
             ) {
+                if (!isAdded) {
+                    isSubmitting = false
+                    btnDone.isEnabled = true
+                    return
+                }
+
                 if (!response.isSuccessful) {
+                    isSubmitting = false
+                    btnDone.isEnabled = true
+
                     val err = response.errorBody()?.string()
+                    Log.e("GroupCreate", "createGroup fail code=${response.code()} err=$err")
                     Toast.makeText(
                         requireContext(),
-                        "그룹 생성 실패: ${response.code()}\n${err ?: ""}",
-                        Toast.LENGTH_LONG
+                        "그룹 생성 실패: ${response.code()}",
+                        Toast.LENGTH_SHORT
                     ).show()
                     return
                 }
 
                 val created = response.body()
                 if (created == null) {
-                    Toast.makeText(requireContext(), "그룹 생성 응답이 비어있습니다.", Toast.LENGTH_SHORT).show()
+                    isSubmitting = false
+                    btnDone.isEnabled = true
+                    Toast.makeText(
+                        requireContext(),
+                        "그룹 생성 응답이 비어있습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     return
                 }
 
                 val groupId = created.id
 
-                // 목표 없으면 종료
-                if (goals.isEmpty()) {
-                    Toast.makeText(requireContext(), "그룹 생성 완료", Toast.LENGTH_SHORT).show()
-                    // TODO: 이동
-                    return
-                }
-
-                // ✅ 목표는 suspend API라서 coroutine에서 순차 추가
                 lifecycleScope.launch {
-                    val ok = addGoalsSequentiallySuspend(token, groupId, goals)
-                    if (ok) {
-                        Toast.makeText(requireContext(), "그룹/목표 생성 완료", Toast.LENGTH_SHORT).show()
-                        // TODO: 이동
+                    val goalsOk = if (goals.isEmpty()) {
+                        true
+                    } else {
+                        addGoalsSequentially(token, groupId, goals)
+                    }
+
+                    if (!goalsOk) {
+                        isSubmitting = false
+                        btnDone.isEnabled = true
+                        Toast.makeText(
+                            requireContext(),
+                            "목표 추가에 실패했습니다.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return@launch
+                    }
+
+                    val inviteCode = fetchInviteCodeSafely(token, groupId)
+                    val goalLines = ArrayList(goals.map { buildGoalLine(it) })
+
+                    val bundle = Bundle().apply {
+                        putLong("groupId", groupId)
+                        putString("groupName", created.name ?: name)
+                        putString("groupDesc", created.description ?: (desc ?: ""))
+                        putString("inviteCode", created.password ?: inviteCode)
+                        putStringArrayList("goalLines", goalLines)
+                    }
+
+                    isSubmitting = false
+                    btnDone.isEnabled = true
+
+                    if (isAdded) {
+                        findNavController().navigate(
+                            R.id.action_groupCreateFragment_to_groupCreateSuccessFragment,
+                            bundle
+                        )
                     }
                 }
             }
 
             override fun onFailure(call: Call<GroupCreateResponse>, t: Throwable) {
-                Toast.makeText(requireContext(), "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                if (!isAdded) {
+                    isSubmitting = false
+                    btnDone.isEnabled = true
+                    return
+                }
+
+                isSubmitting = false
+                btnDone.isEnabled = true
+                Log.e("GroupCreate", "createGroup network error", t)
+                Toast.makeText(
+                    requireContext(),
+                    "네트워크 오류: ${t.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         })
     }
 
-    private suspend fun addGoalsSequentiallySuspend(
+    private suspend fun addGoalsSequentially(
         token: String,
         groupId: Long,
         goals: List<GoalRow>
     ): Boolean = withContext(Dispatchers.IO) {
-        for (g in goals) {
-            val body = GroupGoalCreateRequest(
-                name = g.type,
-                goalCondition = g.count
+
+        for ((idx, goal) in goals.withIndex()) {
+            val request = buildGoalRequest(goal)
+
+            Log.e(
+                "GroupCreate",
+                "goal request idx=$idx name=${request.name}, " +
+                        "goalCondition=${request.goalCondition}, value=${request.value}, duration=${request.duration}"
             )
 
-            val resp: Response<GroupGoalResponse> =
-                RetrofitInstance.networkService.addGoalToGroup(
-                    token = token,
-                    groupId = groupId,
-                    body = body
-                )
+            val resp = networkService.addGoalToGroup(
+                token = token,
+                groupId = groupId,
+                name = request.name,
+                goalCondition = request.goalCondition,
+                value = request.value,
+                duration = request.duration
+            )
 
             if (!resp.isSuccessful) {
                 val err = resp.errorBody()?.string()
+                Log.e(
+                    "GroupCreate",
+                    "addGoal fail idx=$idx code=${resp.code()} err=$err " +
+                            "name=${request.name}, goalCondition=${request.goalCondition}, " +
+                            "value=${request.value}, duration=${request.duration}"
+                )
+
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        requireContext(),
-                        "목표 추가 실패: ${resp.code()}\n${err ?: ""}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    if (isAdded) {
+                        Toast.makeText(
+                            requireContext(),
+                            "목표 추가 실패: ${resp.code()}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
                 return@withContext false
             }
         }
-        return@withContext true
+
+        true
     }
 
-    // =========================
-    // 드롭다운(횟수): 바로 아래 붙게
-    // =========================
+    private fun buildGoalRequest(goal: GoalRow): GroupGoalCreateRequest {
+        val value = parseGoalValue(goal.count)
+        val type = goal.type.trim()
+
+        return when {
+            type.contains("수면") -> GroupGoalCreateRequest(
+                name = "수면 ${value}시간",
+                goalCondition = GOAL_CONDITION_TIME,
+                value = value,
+                duration = GOAL_DURATION_DAILY
+            )
+
+            type.contains("뽀모도로") -> GroupGoalCreateRequest(
+                name = "뽀모도로 ${value}회",
+                goalCondition = GOAL_CONDITION_COUNT,
+                value = value,
+                duration = GOAL_DURATION_DAILY
+            )
+
+            type.contains("폰") || type.contains("디톡스") -> GroupGoalCreateRequest(
+                name = "디톡스 ${value}시간",
+                goalCondition = GOAL_CONDITION_TIME,
+                value = value,
+                duration = GOAL_DURATION_DAILY
+            )
+
+            type.contains("감사일기") -> GroupGoalCreateRequest(
+                name = "감사일기 ${value}회",
+                goalCondition = GOAL_CONDITION_COUNT,
+                value = value,
+                duration = GOAL_DURATION_DAILY
+            )
+
+            type.contains("자아성찰") -> GroupGoalCreateRequest(
+                name = "자아성찰 ${value}회",
+                goalCondition = GOAL_CONDITION_COUNT,
+                value = value,
+                duration = GOAL_DURATION_DAILY
+            )
+
+            type.contains("챌린지") -> GroupGoalCreateRequest(
+                name = "챌린지 ${value}회",
+                goalCondition = GOAL_CONDITION_COUNT,
+                value = value,
+                duration = GOAL_DURATION_DAILY
+            )
+
+            else -> GroupGoalCreateRequest(
+                name = "$type ${value}회",
+                goalCondition = GOAL_CONDITION_COUNT,
+                value = value,
+                duration = GOAL_DURATION_DAILY
+            )
+        }
+    }
+
+    private fun buildGoalLine(goal: GoalRow): String {
+        val value = parseGoalValue(goal.count)
+        val type = goal.type.trim()
+
+        return when {
+            type.contains("수면") -> "수면 ${value}시간"
+            type.contains("뽀모도로") -> "뽀모도로 ${value}회"
+            type.contains("폰") || type.contains("디톡스") -> "디톡스 ${value}시간"
+            type.contains("감사일기") -> "감사일기 ${value}회"
+            type.contains("자아성찰") -> "자아성찰 ${value}회"
+            type.contains("챌린지") -> "챌린지 ${value}회"
+            else -> "$type ${value}회"
+        }
+    }
+
+    private suspend fun fetchInviteCodeSafely(token: String, groupId: Long): String {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val resp = networkService.getGroupInviteCode(token, groupId)
+                if (!resp.isSuccessful) {
+                    Log.e(
+                        "GroupCreate",
+                        "invite fail code=${resp.code()} err=${resp.errorBody()?.string()}"
+                    )
+                    return@runCatching ""
+                }
+
+                val raw = resp.body()?.string().orEmpty()
+
+                if (raw.isNotBlank() && !raw.trim().startsWith("{")) {
+                    return@runCatching raw.trim()
+                }
+
+                val obj = JSONObject(raw)
+                when {
+                    obj.has("inviteCode") -> obj.getString("inviteCode")
+                    obj.has("code") -> obj.getString("code")
+                    obj.has("data") -> obj.optString("data")
+                    else -> raw
+                }.trim()
+            }.getOrElse { e ->
+                Log.e("GroupCreate", "invite exception", e)
+                ""
+            }
+        }
+    }
+
+    private fun parseGoalValue(label: String): Int {
+        val digits = label.filter { it.isDigit() }
+        return digits.toIntOrNull() ?: 0
+    }
+
     private fun showCountDropdown(
         anchor: View,
         selectedValue: String,
@@ -342,9 +540,6 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         popup.showAsDropDown(anchor, 0, 0, Gravity.START)
     }
 
-    // =========================
-    // 드롭다운(타입): 바로 아래 붙게
-    // =========================
     private fun showTypeDropdown(
         anchor: View,
         selectedValue: String,
@@ -385,10 +580,10 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         popup.showAsDropDown(anchor, 0, 0, Gravity.START)
     }
 
-    // =========================
-    // Data + Adapter
-    // =========================
-    data class GoalRow(var type: String, var count: String)
+    data class GoalRow(
+        var type: String,
+        var count: String
+    )
 
     private class GoalRowAdapter(
         private val items: MutableList<GoalRow>,

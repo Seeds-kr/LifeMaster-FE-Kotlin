@@ -4,14 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
 import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
-import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
 import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
-import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
+import com.example.lifemaster.presentation.total.introspection.model.SelfReflectionByDateResponse
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed class UiState {
     object Loading : UiState()
@@ -20,15 +21,39 @@ sealed class UiState {
     object Idle : UiState()
 }
 
-class ThankViewModel : ViewModel() {
-
-    private val networkService = RetrofitInstance.networkService
+@HiltViewModel
+class ThankViewModel @Inject constructor(
+    private val networkService: NetworkService
+) : ViewModel() {
 
     private val _uiState = MutableLiveData<UiState>()
     val uiState: LiveData<UiState> get() = _uiState
 
     private val _thankData = MutableLiveData<ThankResponse?>()
     val thankData: LiveData<ThankResponse?> get() = _thankData
+
+    private val _selfReflectionByDate = MutableLiveData<SelfReflectionByDateResponse?>()
+    val selfReflectionByDate: LiveData<SelfReflectionByDateResponse?> get() = _selfReflectionByDate
+
+    // 날짜 기준 자아성찰 조회
+    fun loadSelfReflectionByDate(token: String, date: String) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val response = networkService.getSelfReflectionByDate("Bearer $token", date)
+                if (response.isSuccessful) {
+                    _selfReflectionByDate.value = response.body()
+                    _uiState.value = UiState.Idle
+                } else {
+                    _selfReflectionByDate.value = null
+                    _uiState.value = UiState.Error("오류: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                _selfReflectionByDate.value = null
+                _uiState.value = UiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다.")
+            }
+        }
+    }
 
     //감사일기 작성 기능
     fun createThankEntry(

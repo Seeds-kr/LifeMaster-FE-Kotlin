@@ -15,7 +15,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRandomMissionMathBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.Constants
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LEVEL_HIGH
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
@@ -30,19 +30,25 @@ import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.google.android.material.card.MaterialCardView
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_mission_math) {
 
     private lateinit var binding: FragmentAlarmRandomMissionMathBinding
+
+    @Inject lateinit var networkService: NetworkService
+
     private val alarmViewModel: AlarmViewModel by activityViewModels(
-        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
+        factoryProducer = { AlarmViewModelFactory(networkService) }
     )
     private val sleepViewModel: SleepViewModel by activityViewModels(
-        factoryProducer = {SleepViewModelFactory(RetrofitInstance.networkService)}
+        factoryProducer = { SleepViewModelFactory(networkService) }
     )
     private val alarmMissionViewModel: AlarmMissionViewModel by activityViewModels()
 

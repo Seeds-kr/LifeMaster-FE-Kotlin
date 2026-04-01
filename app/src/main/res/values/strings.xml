@@ -146,5 +146,9 @@
     <string name="poll_participants">명이 참여했어요</string>
     <!-- 서버 메세지 -->
     <string name="server_error_message">네트워크 오류가 발생했습니다.</string>
+    <string name="find_password">비밀번호 찾기</string>
+    <string name="input_verification_code">인증번호를 입력해주세요</string>
+    <string name="verification_code">인증번호</string>
+    <string name="check_verification">인증번호 확인</string>
 
 </resources>
