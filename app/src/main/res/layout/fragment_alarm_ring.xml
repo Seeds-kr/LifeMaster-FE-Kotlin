@@ -53,12 +53,12 @@
     </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btn_random_mission"
+        android:id="@+id/btn_dismiss_alarm"
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:background="@drawable/bg_round_radius_8dp"
         android:backgroundTint="@color/alarm_primary"
-        android:text="랜덤 미션 수행하기"
+        tools:text="랜덤 미션 수행하기"
         android:textColor="@color/white"
         android:layout_marginTop="56dp"/>
 
@@ -66,8 +66,7 @@
         android:id="@+id/tv_delay_alarm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_round_radius_8dp"
-        android:text="10분 미루기 (2 / 3)"
+        tools:text="10분 미루기 (2 / 3)"
         android:textColor="@color/alarm_primary"
         android:textStyle="bold"
         android:layout_marginTop="12dp"

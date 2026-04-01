@@ -1,25 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="20dp">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:text="시간 잠금 설정"
         android:textColor="@color/black"
         android:textStyle="bold"
         android:textSize="18sp"/>
 
-    <TextView
-        android:layout_width="300dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="디톡스 시간 잠금 기능입니다.\n잠금할 시간대를 설정해주세요 🙂"
-        android:textSize="16sp"
-        android:layout_marginTop="12dp"/>
+        android:layout_marginTop="24dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="대상 어플"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/tv_detox_time_lock_select_target_app"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="선택하기"
+            android:textColor="#B4D775"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_target_app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            tools:text="앱 이름"
+            android:textColor="@color/black"
+            android:visibility="gone"/>
+
+        <ImageView
+            android:id="@+id/iv_select_target_app"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            tools:src="@drawable/ic_twitter"
+            android:visibility="gone"/>
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

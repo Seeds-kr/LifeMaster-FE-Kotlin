@@ -8,22 +8,28 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.databinding.ItemDetoxTargetAppSettingBinding
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 
-class DetoxRepeatLockTargetAppAdapter(
+class DetoxTimeLockTargetAppAdapter(
     private val onClicked: (DetoxTargetApp) -> Unit
-): ListAdapter<DetoxTargetApp, DetoxRepeatLockTargetAppAdapter.DetoxRepeatLockTargetAppViewHolder>(diffUtil) {
+): ListAdapter<DetoxTargetApp, DetoxTimeLockTargetAppAdapter.DetoxTimeLockTargetAppViewHolder>(diffUtil) {
 
-    private var currentPosition = RecyclerView.NO_POSITION
+    private var currentPosition = -1
 
-    inner class DetoxRepeatLockTargetAppViewHolder(private val binding: ItemDetoxTargetAppSettingBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    fun setCurrentPosition(position: Int) {
+        currentPosition = position
+        notifyItemChanged(currentPosition)
+    }
 
+    inner class DetoxTimeLockTargetAppViewHolder(private val binding: ItemDetoxTargetAppSettingBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(item: DetoxTargetApp) = with(binding) {
-            binding.ivAppLogo.setImageDrawable(item.appIcon)
+            ivAppLogo.setImageDrawable(item.appIcon)
             ivAppLogo.alpha = if(bindingAdapterPosition == currentPosition) 1.0f else 0.5f
 
-            binding.ivAppLogo.setOnClickListener {
-                if(bindingAdapterPosition != currentPosition && currentPosition != RecyclerView.NO_POSITION) {
-                    // 기존에 데이터가 있는 상태에서 다른 데이터를 클릭했을 때
+            root.setOnClickListener {
+
+                if(currentPosition == bindingAdapterPosition) return@setOnClickListener
+
+                if(currentPosition != bindingAdapterPosition && currentPosition != RecyclerView.NO_POSITION) {
+                    // 기존에 선택한 항목에서 다른 항목이 선택되었을 때
                     val previousPosition = currentPosition
                     currentPosition = bindingAdapterPosition
                     notifyItemChanged(previousPosition)
@@ -31,6 +37,8 @@ class DetoxRepeatLockTargetAppAdapter(
                     onClicked(item)
                     return@setOnClickListener
                 }
+
+                // 맨 처음 클릭 했을 때
                 currentPosition = bindingAdapterPosition
                 notifyItemChanged(currentPosition)
                 onClicked(item)
@@ -41,27 +49,25 @@ class DetoxRepeatLockTargetAppAdapter(
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): DetoxRepeatLockTargetAppViewHolder {
-        return DetoxRepeatLockTargetAppViewHolder(
-            ItemDetoxTargetAppSettingBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
-            )
-        )
+    ): DetoxTimeLockTargetAppViewHolder {
+        return DetoxTimeLockTargetAppViewHolder(ItemDetoxTargetAppSettingBinding.inflate(
+            LayoutInflater.from(parent.context)))
     }
 
-    override fun onBindViewHolder(holder: DetoxRepeatLockTargetAppViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: DetoxTimeLockTargetAppViewHolder,
+        position: Int
+    ) {
         holder.bind(currentList[position])
     }
 
     companion object {
-        val diffUtil = object: DiffUtil.ItemCallback<DetoxTargetApp>() {
+        val diffUtil = object : DiffUtil.ItemCallback<DetoxTargetApp>() {
             override fun areItemsTheSame(
                 oldItem: DetoxTargetApp,
                 newItem: DetoxTargetApp
             ): Boolean {
-                return oldItem.appPackageName == newItem.appPackageName
+                return oldItem === newItem
             }
 
             override fun areContentsTheSame(
@@ -73,4 +79,5 @@ class DetoxRepeatLockTargetAppAdapter(
 
         }
     }
+
 }

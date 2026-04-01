@@ -68,18 +68,18 @@ class AlarmGenerateViewModel @Inject constructor(
         resetSnoozeAntiMinute()
     }
 
-    private val _alarmCreationState = MutableSharedFlow<DataResource<String>>()
-    val alarmCreationState = _alarmCreationState.asSharedFlow()
+    private val _alarmCreationResult = MutableSharedFlow<DataResource<AlarmModel>>()
+    val alarmCreationState = _alarmCreationResult.asSharedFlow()
 
     // 새 알람 생성
     fun createNewAlarm(alarmRequest: AlarmRequest) {
         viewModelScope.launch {
-            _alarmCreationState.emit(DataResource.Loading)
-            val result: Result<String> = repository.createNewAlarm(alarmRequest = alarmRequest)
-            result.onSuccess { alarmTime ->
-                _alarmCreationState.emit(DataResource.Success(alarmTime))
+            _alarmCreationResult.emit(DataResource.Loading)
+            val result: Result<AlarmModel> = repository.createNewAlarm(alarmRequest = alarmRequest)
+            result.onSuccess { alarm ->
+                _alarmCreationResult.emit(DataResource.Success(alarm))
             }.onFailure { error ->
-                _alarmCreationState.emit(DataResource.Error(error))
+                _alarmCreationResult.emit(DataResource.Error(error))
             }
         }
     }
@@ -131,16 +131,16 @@ class AlarmGenerateViewModel @Inject constructor(
         }
     }
 
-    private val _alarmUpdateState = MutableSharedFlow<DataResource<String>>()
+    private val _alarmUpdateState = MutableSharedFlow<DataResource<AlarmModel>>()
     val alarmUpdateState = _alarmUpdateState.asSharedFlow()
 
     // 특정 알람 상태 업데이트
     fun updateAlarm(alarmId: Int, request: AlarmRequest) {
         viewModelScope.launch {
             _alarmUpdateState.emit(DataResource.Loading)
-            val result: Result<String> = repository.updateAlarm(alarmId = alarmId, request = request)
-            result.onSuccess { alarmTime ->
-                _alarmUpdateState.emit( DataResource.Success(alarmTime))
+            val result: Result<AlarmModel> = repository.updateAlarm(alarmId = alarmId, request = request)
+            result.onSuccess { alarmItem ->
+                _alarmUpdateState.emit( DataResource.Success(alarmItem))
             }.onFailure { error ->
                 _alarmUpdateState.emit( DataResource.Error(error))
             }

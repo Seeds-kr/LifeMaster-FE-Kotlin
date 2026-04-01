@@ -53,4 +53,9 @@ data class AlarmModel(
         get() {
             return if (hour < 12) "AM" else "PM"
         }
+
+    val formattedAlarmTime: String
+        get() {
+            return alarmTime+"Z"
+        }
 }

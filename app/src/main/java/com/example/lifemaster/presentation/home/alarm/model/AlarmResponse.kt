@@ -13,6 +13,7 @@ data class AlarmResponse(
     val alarmFri: Boolean,
     val alarmSat: Boolean,
     val alarmSun: Boolean,
+    val alarmStatus: Boolean,
     @SerializedName("alarmSound")
     val alarmSoundUri: String? = null,
     val snoozed: Boolean,
@@ -25,6 +26,5 @@ data class AlarmResponse(
     val antiSnoozeMinute: Int? = null,
     val randomMissionType: RandomMissionType? = null,
     @SerializedName("missionLevel")
-    val randomMissionLevel: RandomMissionLevel? = null,
-    val alarmStatus: Boolean
+    val randomMissionLevel: RandomMissionLevel? = null
 )

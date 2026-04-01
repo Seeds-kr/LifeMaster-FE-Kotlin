@@ -1,9 +1,12 @@
 package com.example.lifemaster.network
 
+import android.content.Context
 import com.example.lifemaster.BuildConfig
+import com.example.lifemaster.presentation.total.detox.repository.AppListRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -42,5 +45,13 @@ object NetworkModule {
     @Provides
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
         return OkHttpClient.Builder().addInterceptor(authInterceptor).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppListRepository(
+        @ApplicationContext context: Context
+    ): AppListRepository {
+        return AppListRepository(context)
     }
 }

@@ -17,6 +17,17 @@ import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
 import com.example.lifemaster.presentation.community.model.*
+import com.example.lifemaster.presentation.community.model.CommentDto
+import com.example.lifemaster.presentation.community.model.NewCommentRequest
+import com.example.lifemaster.presentation.community.model.NewPostRequest
+import com.example.lifemaster.presentation.community.model.PollDetailsDto
+import com.example.lifemaster.presentation.community.model.PollListItem
+import com.example.lifemaster.presentation.community.model.PollResultDto
+import com.example.lifemaster.presentation.community.model.PostDetailDto
+import com.example.lifemaster.presentation.community.model.PostSummaryDto
+import com.example.lifemaster.presentation.community.model.ReportRequest
+import com.example.lifemaster.presentation.community.model.UpdatePostRequest
+import com.example.lifemaster.presentation.community.model.VoteRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.calendar.model.CalendarEntry
@@ -37,8 +48,11 @@ import com.example.lifemaster.presentation.group.model.GroupGoalProgressResponse
 import com.example.lifemaster.presentation.group.model.GroupAchievementHeatmapItem
 import com.example.lifemaster.presentation.group.model.GroupRankingResponse
 import com.example.lifemaster.presentation.group.model.GroupChatMessage
-import com.example.lifemaster.presentation.group.model.GroupGoalCreateRequest
 import com.example.lifemaster.presentation.login.model.RegNickResponse
+import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLock
+import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLock
+import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
+import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
 import com.example.lifemaster.presentation.total.mypage.model.MeResponse
 import okhttp3.MultipartBody
@@ -497,7 +511,7 @@ interface NetworkService {
     @POST("/time/alarm")
     suspend fun createNewAlarm(
         @Body alarmRequest: AlarmRequest
-    )
+    ): Response<AlarmResponse>
 
     // 모든 알람 조회
     @GET("/time/alarm/me")
@@ -520,7 +534,7 @@ interface NetworkService {
     suspend fun updateAlarm(
         @Path("alarmId") alarmId: Int,
         @Body request: AlarmRequest
-    )
+    ): Response<AlarmResponse>
 
     // 특정 알람 삭제
     @DELETE("/time/alarm/{alarmId}")
@@ -656,4 +670,45 @@ interface NetworkService {
     suspend fun generateTypingSentence(
         @Query("alarmId") alarmId: Int
     ): String
+
+    /**
+     * 디톡스
+     */
+    // 영구 잠금 특정 목록 생성
+    @POST("/detox/permanent")
+    suspend fun generatePermanentLock(
+        @Body request: DetoxPermanentLock
+    ): Response<Unit>
+
+    // 영구 잠금 전체 목록 조회
+    @GET("/detox/permanent")
+    suspend fun fetchPermanentLockItems(): Response<DetoxPermanentLock>
+
+    // 영구 잠금 수정 및 업데이트
+    @PUT("/detox/permanent")
+    suspend fun updatePermanentLockItems(
+        @Body request: DetoxPermanentLock
+    ): Response<Unit>
+
+    // 반복 잠금 특정 목록 생성
+    @POST("/detox/repeat")
+    suspend fun generateRepeatLock(
+        @Body request: DetoxRepeatLock
+    ): Response<Unit>
+
+    // 시간 잠금 특정 목록 생성
+    @POST("/detox/time")
+    suspend fun generateTimeLock(
+        @Body request: DetoxTimeLockRequest
+    ): Response<Unit>
+
+    // 시간 잠금 전체 목록 조회
+    @GET("/detox/time")
+    suspend fun fetchTimeLockItems(): Response<List<DetoxTimeLockResponse>>
+
+    // 특정 시간 잠금 목록 삭제
+    @DELETE("/detox/time/{id}")
+    suspend fun deleteTimeLockItem(
+        @Path("id") id: Long
+    ): Response<Unit>
 }
