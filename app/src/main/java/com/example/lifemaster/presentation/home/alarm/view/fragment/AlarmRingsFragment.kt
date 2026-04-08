@@ -12,21 +12,27 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRingBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
 import java.time.ZoneId
-import kotlin.math.min
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AlarmRingsFragment : Fragment(R.layout.fragment_alarm_ring) {
 
-    lateinit var binding: FragmentAlarmRingBinding
+    private lateinit var binding: FragmentAlarmRingBinding
+
+    @Inject
+    lateinit var networkService: NetworkService
+
     private val alarmViewModel: AlarmViewModel by activityViewModels(
-        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
+        factoryProducer = { AlarmViewModelFactory(networkService) }
     )
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

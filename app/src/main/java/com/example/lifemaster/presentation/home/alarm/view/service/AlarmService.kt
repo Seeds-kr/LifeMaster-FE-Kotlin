@@ -6,16 +6,14 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.example.lifemaster.R
-import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.view.AlarmDisplayActivity
 
@@ -31,24 +29,26 @@ class AlarmService : Service() {
     private var mediaPlayer: MediaPlayer? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if(intent == null) {
-            // 시스템에 의해 서비스가 강제 종료된 이후 재시작 되었을 때
-            // 필요한 경우 알람을 다시 세팅하거나 종료 처리
-            return START_NOT_STICKY
+        val alarmItem = intent?.let {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                it.getParcelableExtra("ALARM_DATA", AlarmModel::class.java)
+            } else {
+                it.getParcelableExtra<AlarmModel>("ALARM_DATA")
+            }
         }
 
-        val alarmItem = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra("ALARM_DATA", AlarmModel::class.java)
-        } else {
-            intent.getParcelableExtra<AlarmModel>("ALARM_DATA")
-        }
-
-        if(alarmItem != null) {
+        if (alarmItem != null) {
             showForegroundNotification(alarmItem)
             playAlarmSound(alarmItem.alarmSoundUri)
+            return START_STICKY
+        } else {
+            // Context.startForegroundService() 호출 후 5초 이내에 startForeground()를 호출하지 않으면
+            // ForegroundServiceDidNotStartInTimeException 발생. 
+            // intent가 null이거나 alarmItem이 null인 경우에도 fallback 알림을 띄워 서비스를 유지하거나 종료해야 함.
+            showFallbackForegroundNotification()
+            stopSelf()
+            return START_NOT_STICKY
         }
-
-        return START_STICKY // 1
     }
 
     /**
@@ -114,7 +114,37 @@ class AlarmService : Service() {
             .setFullScreenIntent(fullScreenPendingIntent, true) // 6
             .build()
 
-        startForeground(alarmItem.id, notification) // 7
+        val notificationId = if (alarmItem.id == 0) NOTIFICATION_ID_FALLBACK else alarmItem.id
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(notificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+        } else {
+            startForeground(notificationId, notification) // 7
+        }
+    }
+
+    private fun showFallbackForegroundNotification() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_LOW
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_alarm_alert)
+            .setContentTitle("알람 서비스")
+            .setContentText("알람을 준비 중입니다.")
+            .build()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(NOTIFICATION_ID_FALLBACK, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+        } else {
+            startForeground(NOTIFICATION_ID_FALLBACK, notification)
+        }
     }
 
     /**
@@ -154,6 +184,7 @@ class AlarmService : Service() {
     companion object {
         const val CHANNEL_ID = "ALARM_SERVICE_CHANNEL_ID"
         const val CHANNEL_NAME = "ALARM_SERVICE_CHANNEL_NAME"
+        private const val NOTIFICATION_ID_FALLBACK = 1001
     }
 
     override fun onBind(intent: Intent?) = null

@@ -209,24 +209,24 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
         // lifemaster 앱이 포그라운드에 있을 때의 시간을 제외한 총 사용 누적 시간 -> 변수만 변경
         detoxCommonViewModel.totalAccumulatedAppUsageTimes.observe(viewLifecycleOwner) { updatedTime ->
-            this.totalAccumulatedAppUsageTimes = updatedTime
+            this@DetoxFragment.totalAccumulatedAppUsageTimes = updatedTime
         }
 
         // lifemaster 앱이 포그라운드에 있을 때의 시간을 포함한 총 사용 누적 시간 -> UI 실시간 업데이트
         detoxCommonViewModel.tempElapsedForegroundTime.observe(viewLifecycleOwner) { elapsedForegroundTime ->
             binding.tvAccumulatedTimeOfDay.text =
-                convertLongFormat(totalAccumulatedAppUsageTimes + elapsedForegroundTime)
+                convertLongFormat(this@DetoxFragment.totalAccumulatedAppUsageTimes + elapsedForegroundTime)
         }
 
         detoxRepeatLockViewModel.blockServices.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
                 binding.recyclerviewPermanentLock.visibility = View.VISIBLE
-                binding.tvBlockServiceEmpty.visibility = View.GONE
+                binding.tvPermanentLockPlaceholder.visibility = View.GONE
             } else {
                 binding.recyclerviewPermanentLock.visibility = View.GONE
-                binding.tvBlockServiceEmpty.visibility = View.VISIBLE
+                binding.tvPermanentLockPlaceholder.visibility = View.VISIBLE
             }
-            (binding.recyclerviewPermanentLock.adapter as DetoxPermanentLockAdapter).updateItems(it)
+            permanentLockAdapter.submitList(it.toList())
         }
 
         detoxRepeatLockViewModel.repeatLockApp.observe(viewLifecycleOwner) {

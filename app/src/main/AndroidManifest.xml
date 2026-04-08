@@ -6,13 +6,11 @@
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- 알람 알림을 띄우기 위해 사용자에게 허가를 받아야 하는 권한 -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" /> <!-- 배터리 최적화 때문에 시스템이 알람을 미루는 것 방지 (API 32 이하)-->
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" /> <!-- 배터리 최적화 때문에 시스템이 알람을 미루는 것 방지 (API 33 이상 정책 확인 필요-->
-    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- 화면이 꺼져 있을 때 CPU를 잠시 깨워 알람 처리를 할 수 있게 함 -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" /> <!-- 폰을 재부팅했을 때 자동으로 앱이 신호를 받아 기존 알람을 재등록하기 위해 필요 -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- 포그라운드 서비스 실행할 때 선언 -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" /> <!-- 알람 소리 재생을 위해 mediaPlayback 타입 선언 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
 
     <application
         android:name=".presentation.MyApplication"
@@ -29,16 +27,17 @@
         tools:targetApi="31">
         <activity
             android:name=".presentation.login.view.LoginActivity"
-            android:exported="true"/>
-        <activity
-            android:name=".presentation.MainActivity"
-            android:exported="true"
-            android:windowSoftInputMode="adjustPan">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".presentation.MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />

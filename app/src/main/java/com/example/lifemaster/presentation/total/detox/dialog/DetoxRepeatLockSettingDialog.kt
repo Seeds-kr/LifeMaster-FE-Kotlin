@@ -11,14 +11,14 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogDetoxRepeatLockSettingBinding
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
-import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
+import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 
 class DetoxRepeatLockSettingDialog(
-    private val targetApp: DetoxTargetApp? = null
+    private var targetApp: DetoxTargetApp? = null
 ) : DialogFragment(R.layout.dialog_detox_repeat_lock_setting) {
 
     private lateinit var binding: DialogDetoxRepeatLockSettingBinding
-    private val viewModel: DetoxViewModel by activityViewModels()
+    private val viewModel: DetoxRepeatLockViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -96,10 +96,11 @@ class DetoxRepeatLockSettingDialog(
                 Toast.makeText(context, "앱을 선택해주세요!", Toast.LENGTH_SHORT).show()
             } else {
                 binding.apply {
-                    val appIcon = targetApp.appIcon
-                    val appName = targetApp.appName
-                    val appPackageName = targetApp.appPackageName
-                    val accumulatedTime = targetApp.accumulatedTime
+                    val selectedApp = targetApp ?: return@setOnClickListener
+                    val appIcon = selectedApp.appIcon
+                    val appName = selectedApp.appName
+                    val appPackageName = selectedApp.appPackageName
+                    val accumulatedTime = selectedApp.accumulatedTime
 
 //                    val useTime = btnUseTimeHour.text.toString().toInt()*60 + btnUseTimeMinutes.text.toString().toInt()
 //                    val lockTime = btnLockTimeHour.text.toString().toInt()*60 + btnLockTimeMinutes.text.toString().toInt()

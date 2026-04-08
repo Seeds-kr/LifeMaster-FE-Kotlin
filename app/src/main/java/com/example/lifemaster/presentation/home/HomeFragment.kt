@@ -185,7 +185,7 @@ class HomeFragment : Fragment() {
         }
 
         binding.cardSleep.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment)
+            findNavController().navigate(R.id.action_homeFragment_to_sleepPlaylistDetailFragment)
         }
 
         binding.cardDetox.setOnClickListener {
@@ -228,11 +228,11 @@ class HomeFragment : Fragment() {
     private fun setupIntrospectionPreviewClicks() {
         binding.cardIntrospection.setOnClickListener { goIntrospection("TODAY") }
 
-        val todayCard = binding.root.findViewById<View>(R.id.card_go_today_diary)
-        val thanksCard = binding.root.findViewById<View>(R.id.card_go_thanks)
+        val todayCard = binding.cardIntrospection.findViewById<View>(R.id.card_go_today_diary)
+        val thanksCard = binding.cardIntrospection.findViewById<View>(R.id.card_go_thanks)
 
-        todayCard.setOnClickListener { goIntrospection("TODAY") }
-        thanksCard.setOnClickListener { goIntrospection("THANKS") }
+        todayCard?.setOnClickListener { goIntrospection("TODAY") }
+        thanksCard?.setOnClickListener { goIntrospection("THANKS") }
     }
 
     private fun goIntrospection(startTab: String) {
@@ -326,7 +326,16 @@ class HomeFragment : Fragment() {
         }
 
         itemSleepPreview.btnSleepReport.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment)
+            val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
+
+            val args = Bundle().apply {
+                putString("selectedDate", selectedDate.toString())
+            }
+
+            findNavController().navigate(
+                R.id.action_homeFragment_to_sleepReportFragment,
+                args
+            )
         }
     }
 

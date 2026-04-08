@@ -28,13 +28,11 @@ import com.example.lifemaster.R
 import com.example.lifemaster.Utils.getDailyUsageStats
 import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.network.NetworkService
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.login.model.LoginInfo
-import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
