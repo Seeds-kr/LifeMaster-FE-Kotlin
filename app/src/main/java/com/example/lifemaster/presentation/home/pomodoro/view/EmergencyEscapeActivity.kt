@@ -8,14 +8,14 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.lifemaster.R
-import com.example.lifemaster.databinding.ActivityEmergencyEscapeBinding
+import androidx.lifecycle.lifecycleScope
+import com.example.lifemaster.databinding.FragmentPomodoroEscapeBinding
 import com.example.lifemaster.network.NetworkService
 import com.google.android.material.internal.TextWatcherAdapter
 import dagger.hilt.android.AndroidEntryPoint
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -24,14 +24,13 @@ class EmergencyEscapeActivity : AppCompatActivity() {
     @Inject
     lateinit var networkService: NetworkService
 
-    private var userToken: String? = null
-    lateinit var binding: ActivityEmergencyEscapeBinding
+    lateinit var binding: FragmentPomodoroEscapeBinding
     private var currentPage = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("ttest(Escape)", "onCreate")
-        binding = ActivityEmergencyEscapeBinding.inflate(layoutInflater)
+        binding = FragmentPomodoroEscapeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val (sentenceList, answerList) = initViews()
@@ -42,35 +41,23 @@ class EmergencyEscapeActivity : AppCompatActivity() {
 
     private fun initViews(): Pair<List<TextView>, List<EditText>> = with(binding) {
 
-        tvMinutesAndSeconds.text = intent.getStringExtra("remainMinutesAndSeconds")
-        tvDecisecond.text = intent.getStringExtra("remainDeciSeconds")
+        tvPomodoroEscapeTypingDate.text =
+            LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
+        tvPomodoroEscapeTypingTime.text = intent.getStringExtra("remainMinutesAndSeconds") ?: "00:00"
+        tvPomodoroEscapeTypingAmPm.text = ""
 
-        val questionList = listOf(tvQuestionFirst, tvQuestionSecond, tvQuestionThird)
-        val answerList = listOf(etAnswerFirst, etAnswerSecond, etAnswerThird)
+        val questionList = listOf(
+            tvPomodoroEscapeQuestionFirst,
+            tvPomodoroEscapeQuestionSecond,
+            tvPomodoroEscapeQuestionThird
+        )
+        val answerList = listOf(
+            etPomodoroEscapeAnswerFirst,
+            etPomodoroEscapeAnswerSecond,
+            etPomodoroEscapeAnswerThird
+        )
 
-        val sharedPreference = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
-        userToken = sharedPreference.getString("token", "null")
-
-        questionList.forEach { question ->
-            networkService.getEscapeSentence(token = "Bearer $userToken")
-                .enqueue(object : Callback<String> {
-                    override fun onResponse(
-                        call: Call<String?>,
-                        response: Response<String?>
-                    ) {
-                        if (response.isSuccessful) {
-                            question.text =
-                                response.body()?.substringAfter("Type this phrase to escape:")
-                                    ?.trim()
-                        }
-                    }
-
-                    override fun onFailure(call: Call<String?>, t: Throwable) {
-                        TODO("Not yet implemented")
-                    }
-
-                })
-        }
+        loadSentences(questionList)
 
         return Pair(questionList, answerList)
     }
@@ -83,7 +70,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
     }
 
     private fun initListeners(sentenceList: List<TextView>, answerList: List<EditText>) = with(binding) {
-        btnNextPage.setOnClickListener {
+        btnPomodoroEscapeTypingNextPage.setOnClickListener {
             answerList.forEach { if (it.isFocused) it.clearFocus() }
             if (currentPage >= 5) {
                 Toast.makeText(this@EmergencyEscapeActivity, "마지막 페이지입니다!", Toast.LENGTH_SHORT).show()
@@ -94,9 +81,9 @@ class EmergencyEscapeActivity : AppCompatActivity() {
             loadSentences(sentenceList)
             answerList.forEach { it.text.clear() }
             updateProgress(answerList)
-//            if (etAnswerFirst.text.toString() == tvQuestionFirst.text.toString()
-//                && etAnswerSecond.text.toString() == tvQuestionSecond.text.toString()
-//                && etAnswerThird.text.toString() == tvQuestionThird.text.toString()
+//            if (etPomodoroEscapeAnswerFirst.text.toString() == tvPomodoroEscapeQuestionFirst.text.toString()
+//                && etPomodoroEscapeAnswerSecond.text.toString() == tvPomodoroEscapeQuestionSecond.text.toString()
+//                && etPomodoroEscapeAnswerThird.text.toString() == tvPomodoroEscapeQuestionThird.text.toString()
 //            ) {
 //                answerList.forEach {
 //                    if (it.isFocused) it.clearFocus()
@@ -121,28 +108,30 @@ class EmergencyEscapeActivity : AppCompatActivity() {
 
     private fun loadSentences(sentenceList: List<TextView>) {
         sentenceList.forEach { sentence ->
-            networkService.getEscapeSentence(token = "Bearer $userToken")
-                .enqueue(object : Callback<String> {
-                    override fun onResponse(
-                        call: Call<String?>,
-                        response: Response<String?>
-                    ) {
+            lifecycleScope.launch {
+                runCatching { networkService.getPomodoroEscapeSentence() }
+                    .onSuccess { response ->
                         if (response.isSuccessful) {
-                            sentence.text =
-                                response.body()?.substringAfter("Type this phrase to escape:")?.trim()
+                            sentence.text = response.body()
+                                ?.substringAfter("Type this phrase to escape:")
+                                ?.trim()
+                                .orEmpty()
                         }
                     }
-
-                    override fun onFailure(call: Call<String?>, t: Throwable) {
-                        TODO("Not yet implemented")
+                    .onFailure {
+                        Toast.makeText(
+                            this@EmergencyEscapeActivity,
+                            "문장을 불러오지 못했습니다.",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                })
+            }
         }
     }
 
     private fun updateProgress(answerList: List<EditText>) {
         val completed = ((currentPage - 1) * 3 + answerList.count { it.text.isNotBlank() })
             .coerceAtMost(15)
-        binding.btnNextPage.text = "${completed}/15 진행 중"
+        binding.btnPomodoroEscapeTypingNextPage.text = "${completed}/15 진행 중"
     }
 }
