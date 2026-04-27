@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster.databinding.ActivityLoginBinding
 import com.example.lifemaster.presentation.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
-import android.content.Intent
 import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 
@@ -28,21 +27,27 @@ class LoginActivity : AppCompatActivity() {
             finish()
             return
         }
-        handleNaverCallback(intent)
+        handleDeepLink(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleNaverCallback(intent)
+        setIntent(intent)
+        handleDeepLink(intent)
     }
 
     /**
      * 백엔드 /naverLogin/callback 처리 후 lifemaster://naver/callback?token=xxx 로
      * 리다이렉트했을 때 호출됩니다. 토큰을 꺼내 메인으로 이동합니다.
      */
-    private fun handleNaverCallback(intent: Intent?) {
-        val data = intent?.data ?: return
-        if (data.scheme != "lifemaster" || data.host != "naver" || data.pathSegments.firstOrNull() != "callback") return
+    private fun handleDeepLink(intent: Intent?) {
+        if (handleNaverCallback(intent)) return
+        handlePasswordResetDeepLink(intent)
+    }
+
+    private fun handleNaverCallback(intent: Intent?): Boolean {
+        val data = intent?.data ?: return false
+        if (data.scheme != "lifemaster" || data.host != "naver" || data.pathSegments.firstOrNull() != "callback") return false
         val token = data.getQueryParameter("token")
         if (!token.isNullOrBlank()) {
             Toast.makeText(this, "네이버 로그인에 성공했습니다.", Toast.LENGTH_SHORT).show()
@@ -51,17 +56,9 @@ class LoginActivity : AppCompatActivity() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             })
             finish()
+            return true
         }
-        binding = ActivityLoginBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        handlePasswordResetDeepLink(intent)
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        handlePasswordResetDeepLink(intent)
+        return false
     }
 
     private fun handlePasswordResetDeepLink(intent: Intent?) {
