@@ -15,13 +15,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.lifemaster.R
-import com.example.lifemaster.databinding.ActivityPomodoroBinding
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
+import com.example.lifemaster.databinding.FragmentPomodoroBinding
 import com.example.lifemaster.presentation.MainActivity
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
 import com.example.lifemaster.presentation.home.pomodoro.model.SharedData
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroStatus
 import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Timer
 import kotlin.concurrent.timer
@@ -29,20 +29,21 @@ import kotlin.concurrent.timer
 @AndroidEntryPoint
 class PomodoroActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityPomodoroBinding
+    private lateinit var binding: FragmentPomodoroBinding
     private var userToken: String? = null
 
     private val pomodoroViewModel: PomodoroViewModel by viewModels()
 
     private var time = 0
     private var timer: Timer? = null
-    private var todoItem: TodoItem? = null
+    private var todoItem: TodoModel? = null
+    private var buttonCount = 0
     var totalDeciSecond = 0
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityPomodoroBinding.inflate(layoutInflater)
+        binding = FragmentPomodoroBinding.inflate(layoutInflater)
         setContentView(binding.root)
         initViews()
         initListeners()
@@ -51,7 +52,7 @@ class PomodoroActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun initViews() = with(binding) {
-        todoItem = intent.getParcelableExtra("item", TodoItem::class.java)
+        todoItem = intent.getParcelableExtra("item", TodoModel::class.java)
         todoItem?.let { tvTodoItemTitle.text = it.title }
         val sharedPreference = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
         userToken = sharedPreference.getString("token", "null")
@@ -67,7 +68,6 @@ class PomodoroActivity : AppCompatActivity() {
         btnStartPomodoro.setOnClickListener {
             if (tvMinutesAndSeconds.text.toString() == getString(R.string.tv_pomodoro_timer_25)) {
                 rgTimer.visibility = View.INVISIBLE
-                ivTimer25.visibility = View.VISIBLE
                 cardviewTodo.strokeColor = ContextCompat.getColor(this@PomodoroActivity, R.color.blue_100)
                 tvTimerTitle.text = "다음 휴식 시간까지"
                 ObjectAnimator.ofFloat(
@@ -80,7 +80,7 @@ class PomodoroActivity : AppCompatActivity() {
                     start()
                 }
 
-                pomodoroViewModel.clickButton() // _buttonCount = 0 -> 1
+                clickPomodoroButton()
 
                 val firstStudyTime = 10 * 60 * 10
 //                val firstStudyTime = 2 * 10 test
@@ -99,7 +99,6 @@ class PomodoroActivity : AppCompatActivity() {
                 }
             } else if (tvMinutesAndSeconds.text.toString() == getString(R.string.tv_pomodoro_timer_50)) {
                 rgTimer.visibility = View.INVISIBLE
-                ivTimer50.visibility = View.VISIBLE
                 cardviewTodo.setStrokeColor(
                     ContextCompat.getColor(
                         this@PomodoroActivity,
@@ -117,7 +116,7 @@ class PomodoroActivity : AppCompatActivity() {
                     start()
                 }
 
-                pomodoroViewModel.clickButton() // _buttonCount = 0 -> 1
+                clickPomodoroButton()
 
                 val firstStudyTime = 20 * 60 * 10
 //                val firstStudyTime = 1 * 10
@@ -134,7 +133,7 @@ class PomodoroActivity : AppCompatActivity() {
             } else if (tvMinutesAndSeconds.text == getString(R.string.tv_pomodoro_timer_not_set)) {
                 Toast.makeText(this@PomodoroActivity, "시간을 설정해주세요!", Toast.LENGTH_SHORT).show()
             } else {
-                pomodoroViewModel.clickButton()
+                clickPomodoroButton()
             }
         }
         onBackPressedDispatcher.addCallback(
@@ -160,14 +159,13 @@ class PomodoroActivity : AppCompatActivity() {
                 val seconds = time.div(10) % 60
                 val deciseconds = time % 10
                 runOnUiThread {
-                    tvMinutesAndSeconds.text =
+                    binding.tvMinutesAndSeconds.text =
                         String.format(
                             "%02d:%02d",
                             minutes,
                             seconds
                         )
-                    tvDecisecond.text = deciseconds.toString()
-                    circularTimerView.startTimer((firstStudyTime * 100).toLong())
+                    binding.circularTimerView.startTimer((firstStudyTime * 100).toLong())
                 }
                 remainTime -= 1
                 time -= 1
@@ -178,15 +176,14 @@ class PomodoroActivity : AppCompatActivity() {
                 val seconds = time.div(10) % 60
                 val deciseconds = time % 10
                 runOnUiThread {
-                    tvTimerTitle.text = "휴식 시간 종료까지"
-                    tvMinutesAndSeconds.text =
+                    binding.tvTimerTitle.text = "휴식 시간 종료까지"
+                    binding.tvMinutesAndSeconds.text =
                         String.format(
                             "%02d:%02d",
                             minutes,
                             seconds
                         )
-                    tvDecisecond.text = deciseconds.toString()
-                    circularTimerView.startTimer((breakTime * 100).toLong()) // decisecond → millisecond
+                    binding.circularTimerView.startTimer((breakTime * 100).toLong()) // decisecond -> millisecond
                 }
                 remainTime -= 1
                 time -= 1
@@ -197,15 +194,14 @@ class PomodoroActivity : AppCompatActivity() {
                 val seconds = time.div(10) % 60
                 val deciseconds = time % 10
                 runOnUiThread {
-                    tvTimerTitle.text = "할일 종료까지"
-                    tvMinutesAndSeconds.text =
+                    binding.tvTimerTitle.text = "할일 종료까지"
+                    binding.tvMinutesAndSeconds.text =
                         String.format(
                             "%02d:%02d",
                             minutes,
                             seconds
                         )
-                    tvDecisecond.text = deciseconds.toString()
-                    circularTimerView.startTimer((secondStudyTime * 100).toLong())
+                    binding.circularTimerView.startTimer((secondStudyTime * 100).toLong())
                 }
                 remainTime -= 1
                 time -= 1
@@ -214,13 +210,12 @@ class PomodoroActivity : AppCompatActivity() {
                 val seconds = time.div(10) % 60
                 val deciseconds = time % 10
                 runOnUiThread {
-                    tvMinutesAndSeconds.text =
+                    binding.tvMinutesAndSeconds.text =
                         String.format(
                             "%02d:%02d",
                             minutes,
                             seconds
                         )
-                    tvDecisecond.text = deciseconds.toString()
                 }
                 remainTime -= 1
                 time -= 1
@@ -240,23 +235,31 @@ class PomodoroActivity : AppCompatActivity() {
 
             if (totalTime == 25 * 60 * 10) {
                 // 25분
-                val pomodoroItem = PomodoroItem(
-                    taskName = todoItem!!.title,
-                    focusTime = 20,
+                val currentTodo = todoItem
+                if (currentTodo != null) {
+                    val pomodoroItem = PomodoroRequest(
+                    todoId = currentTodo.id,
+                    taskName = currentTodo.title,
+                    focusTime = 25,
                     breakTime = 5,
-                    cycles = 0,
-                    date = todoItem!!.calendar.date,
+                    date = currentTodo.date,
                     currentTimer = 0
                 )
+                    pomodoroViewModel.registerPomodoroItem(pomodoroItem)
+                }
             } else if (totalTime == 50 * 60 * 10) {
-                val pomodoroItem = PomodoroItem(
-                    taskName = todoItem!!.title,
-                    focusTime = 40,
+                val currentTodo = todoItem
+                if (currentTodo != null) {
+                    val pomodoroItem = PomodoroRequest(
+                    todoId = currentTodo.id,
+                    taskName = currentTodo.title,
+                    focusTime = 50,
                     breakTime = 10,
-                    cycles = 0,
-                    date = todoItem!!.calendar.date,
+                    date = currentTodo.date,
                     currentTimer = 0
                 )
+                    pomodoroViewModel.registerPomodoroItem(pomodoroItem)
+                }
             }
 
 //            RetrofitInstance.networkService.registerPomodoroTimer(
@@ -315,31 +318,21 @@ class PomodoroActivity : AppCompatActivity() {
     }
 
     private fun initObservers() {
-//        pomodoroViewModel.selectedPosition.observe(viewLifecycleOwner) { selectedPosition ->
-//            binding.tvSelectTodoItem.text = SharedData.todoItems[selectedPosition]
-//        }
-        pomodoroViewModel.buttonCount.observe(this@PomodoroActivity) { btnCount ->
-            when (btnCount) {
-                0 -> {
-                    binding.btnStartPomodoro.text = "시작하기" // 이 코드가 좀 아쉬운데
-                }
+        binding.btnStartPomodoro.text = "시작하기"
+    }
 
-                1 -> {
-                    binding.btnStartPomodoro.text = "비상 탈출"
-                }
-
-                else -> {
-                    Toast.makeText(this@PomodoroActivity, "비상탈출을 시도합니다!", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(this, EmergencyEscapeActivity::class.java)
-                    intent.putExtra(
-                        "remainMinutesAndSeconds",
-                        binding.tvMinutesAndSeconds.text.toString()
-                    )
-                    intent.putExtra("remainDeciSeconds", binding.tvDecisecond.text.toString())
-                    startActivity(intent)
-                }
-            }
+    private fun clickPomodoroButton() {
+        buttonCount += 1
+        if (buttonCount == 1) {
+            binding.btnStartPomodoro.text = "비상 탈출"
+            return
         }
+
+        Toast.makeText(this@PomodoroActivity, "비상탈출을 시도합니다!", Toast.LENGTH_SHORT).show()
+        val intent = Intent(this, EmergencyEscapeActivity::class.java)
+        intent.putExtra("remainMinutesAndSeconds", binding.tvMinutesAndSeconds.text.toString())
+        intent.putExtra("remainDeciSeconds", "0")
+        startActivity(intent)
     }
 
     override fun onStart() {
