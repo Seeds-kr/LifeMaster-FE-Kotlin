@@ -36,7 +36,6 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "BASE_URL", "\"${localProperties.getProperty('SERVER_BASE_URL') ?: ''}\""
         //buildConfigField("String", "KAKAO_NATIVE_KEY", localProperties["KAKAO_NATIVE_KEY"])
-        buildConfigField("String", "BASE_URL", localProperties.getProperty("SERVER_BASE_URL"))
     }
 
     buildTypes {

@@ -32,8 +32,6 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
-import androidx.core.content.edit
-import androidx.core.graphics.toColorInt
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -197,15 +195,11 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
             )
         }
 
-        RetrofitInstance.networkService.registerNickname(regIdPart, nickPart, imagePart)
+        networkService.registerNickname(regIdPart, nickPart, imagePart)
             .enqueue(object : Callback<RegNickResponse> {
                 override fun onResponse(call: Call<RegNickResponse>, res: Response<RegNickResponse>) {
                     val body = res.body()
                     if (!res.isSuccessful || body == null) {
-        networkService.registerNickname(regIdPart, nickPart, imagePart)
-            .enqueue(object : Callback<Void> {
-                override fun onResponse(call: Call<Void>, res: Response<Void>) {
-                    if (!res.isSuccessful) {
                         toast(res.errorBody()?.string()?.take(150) ?: "닉네임 등록 실패(${res.code()})")
                         return
                     }
@@ -217,6 +211,7 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
 
                     autoLoginThenGoHome()
                 }
+
                 override fun onFailure(call: Call<RegNickResponse>, t: Throwable) {
                     toast("네트워크 오류: ${t.message}")
                 }
