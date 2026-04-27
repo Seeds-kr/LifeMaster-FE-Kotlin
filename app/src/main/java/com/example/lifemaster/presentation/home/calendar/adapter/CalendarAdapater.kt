@@ -1,6 +1,5 @@
 package com.example.lifemaster.presentation.home.calendar.adapter
 
-import android.content.res.ColorStateList
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -9,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
 import com.example.lifemaster.presentation.home.calendar.model.CalendarDay
@@ -42,22 +40,6 @@ class CalendarAdapter(
     }
 
     inner class CalendarViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val textView: TextView = view.findViewById(R.id.tv_day)
-        val bgSelected: View = view.findViewById(R.id.bg_selected)
-        val stars: List<ImageView> = listOf(
-            view.findViewById(R.id.star1),
-            view.findViewById(R.id.star2),
-            view.findViewById(R.id.star3),
-            view.findViewById(R.id.star4),
-            view.findViewById(R.id.star5),
-            view.findViewById(R.id.star6),
-            view.findViewById(R.id.star7),
-            view.findViewById(R.id.star8),
-            view.findViewById(R.id.star9),
-            view.findViewById(R.id.star10),
-            view.findViewById(R.id.star11),
-            view.findViewById(R.id.star12),
-        )
         val tvDay: TextView = view.findViewById(R.id.tv_day)
         val bgSelected: View = view.findViewById(R.id.bg_selected)
         val bgToday: View = view.findViewById(R.id.bg_today)
@@ -112,7 +94,7 @@ class CalendarAdapter(
         holder.tvDay.setTextColor(if (item.isCurrentMonth) Color.BLACK else Color.LTGRAY)
 
         holder.itemView.isClickable = true
-        holder.textView.text = if (item.day > 0) item.day.toString() else ""
+        holder.tvDay.text = if (item.day > 0) item.day.toString() else ""
         holder.bgSelected.visibility = View.GONE
         holder.bgToday.visibility = View.GONE
         if (item.isCurrentMonth) {
@@ -123,13 +105,16 @@ class CalendarAdapter(
         // 기본 스타일
         when {
             !item.isCurrentMonth || item.day <= 0 -> {
-                holder.textView.setTextColor(Color.parseColor("#CCCCCC"))
+                holder.tvDay.setTextColor(Color.parseColor("#CCCCCC"))
             }
             item.isToday -> {
-                holder.textView.setTextColor(Color.parseColor("#000000"))
+                holder.tvDay.setTextColor(Color.parseColor("#000000"))
             }
             else -> {
-                holder.textView.setTextColor(Color.parseColor("#000000"))
+                holder.tvDay.setTextColor(Color.parseColor("#000000"))
+            }
+        }
+
         // 별 초기화
         holder.stars.values.forEach {
             it.visibility = View.GONE
@@ -155,24 +140,6 @@ class CalendarAdapter(
                         ColorStateList.valueOf(types[i].colorHex.toColorInt())
                 }
             }
-        }
-
-        // 선택 배경은 아직 ViewModel에서 별도 선택 상태를 관리하지 않으므로 숨김 유지
-        holder.bgSelected.visibility = View.GONE
-
-        // 기능 별(별 아이콘) 초기화
-        holder.stars.forEach { star ->
-            star.visibility = View.GONE
-        }
-
-        // features 리스트를 기반으로 별 표시 (최대 12개)
-        item.features.take(holder.stars.size).forEachIndexed { index, feature ->
-            val starView = holder.stars[index]
-            starView.visibility = View.VISIBLE
-            ImageViewCompat.setImageTintList(
-                starView,
-                ColorStateList.valueOf(Color.parseColor(feature.colorHex))
-            )
         }
 
         holder.itemView.setOnClickListener { onClick(item) }
