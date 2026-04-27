@@ -26,7 +26,6 @@ import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.presentation.Constants
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
-import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.example.lifemaster.presentation.home.sleep.model.AlarmInfo
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
@@ -39,13 +38,8 @@ import kotlin.math.round
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
     private lateinit var binding: FragmentSleepReportBinding
-    private val sleepViewModel: SleepViewModel by activityViewModels {
-        SleepViewModelFactory(RetrofitInstance.networkService)
-    }
-    private val alarmViewModel: AlarmViewModel by activityViewModels {
-        AlarmViewModelFactory(RetrofitInstance.networkService)
-    }
     private val sleepViewModel: SleepViewModel by activityViewModels()
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
 
     private var userSleepDataPoints = mutableListOf<Entry>() // 1개의 line 을 구성하는 점들의 집합
     private var userMoodDataPoints = mutableListOf<Pair<Float, Drawable?>>()
