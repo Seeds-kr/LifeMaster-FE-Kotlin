@@ -19,6 +19,7 @@
             android:weightSum="2">
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/card_go_today_diary"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
                 android:layout_weight="1"
@@ -37,27 +38,26 @@
                     <ImageView
                         android:layout_width="16dp"
                         android:layout_height="16dp"
-                        android:src="@drawable/ic_book_open"
-                        android:tint="#131313" />
+                        android:src="@drawable/ic_book_open" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
-                        android:text="오늘의 일기"
+                        android:text="@string/today_diary"
                         android:textColor="#131313"
                         android:textSize="12sp" />
 
                     <ImageView
                         android:layout_width="16dp"
                         android:layout_height="16dp"
-                        android:src="@drawable/ic_arrow_right"
-                        android:tint="#131313" />
+                        android:src="@drawable/ic_arrow_right" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/card_go_thanks"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
                 android:layout_weight="1"
@@ -76,23 +76,21 @@
                     <ImageView
                         android:layout_width="16dp"
                         android:layout_height="16dp"
-                        android:src="@drawable/ic_certificate"
-                        android:tint="#131313" />
+                        android:src="@drawable/ic_certificate" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
-                        android:text="5감사"
+                        android:text="@string/five_thank"
                         android:textColor="#131313"
                         android:textSize="12sp" />
 
                     <ImageView
                         android:layout_width="16dp"
                         android:layout_height="16dp"
-                        android:src="@drawable/ic_arrow_right"
-                        android:tint="#131313" />
+                        android:src="@drawable/ic_arrow_right" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>

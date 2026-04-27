@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_group_list"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="8dp">
+
+    <!-- 아이콘 -->
+    <FrameLayout
+        android:id="@+id/card_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_rectangle_and_gray"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_group_icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_clock"
+            app:tint="@color/black"
+            android:contentDescription="@null" />
+    </FrameLayout>
+
+    <!-- 제목 -->
+    <TextView
+        android:id="@+id/tv_group_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:text="@string/group_list_title"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:maxLines="1"
+        app:layout_constraintStart_toEndOf="@id/card_icon"
+        app:layout_constraintEnd_toStartOf="@id/iv_chevron"
+        app:layout_constraintTop_toTopOf="@id/card_icon" />
+
+    <!-- 참여 인원 -->
+    <TextView
+        android:id="@+id/tv_group_participants_num"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/group_list_participants_num"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:maxLines="1"
+        app:layout_constraintStart_toStartOf="@id/tv_group_title"
+        app:layout_constraintEnd_toStartOf="@id/iv_chevron"
+        app:layout_constraintTop_toBottomOf="@id/tv_group_title" />
+
+    <!-- 화살표 -->
+    <ImageView
+        android:id="@+id/iv_chevron"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_arrow_right_gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

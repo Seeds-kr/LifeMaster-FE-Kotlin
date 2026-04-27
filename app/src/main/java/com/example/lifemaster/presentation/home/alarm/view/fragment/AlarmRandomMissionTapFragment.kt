@@ -9,13 +9,17 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavOptions
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRandomMissionTapBinding
 import com.example.lifemaster.presentation.Constants
+import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmMissionViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.example.lifemaster.presentation.home.sleep.model.AlarmInfo
 import com.example.lifemaster.presentation.home.sleep.model.AlarmSettingInfo
@@ -28,7 +32,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
-import kotlin.random.Random
 
 
 @AndroidEntryPoint
@@ -38,7 +41,37 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
     private val alarmViewModel: AlarmViewModel by activityViewModels()
     private val sleepViewModel: SleepViewModel by activityViewModels()
 
-    private lateinit var taps: List<MaterialCardView>
+    private val alarmMissionViewModel: AlarmMissionViewModel by activityViewModels()
+
+    private val taps: List<MaterialCardView> by lazy {
+        listOf(
+            binding.cvAlarmRandomMissionTap1,
+            binding.cvAlarmRandomMissionTap2,
+            binding.cvAlarmRandomMissionTap3,
+            binding.cvAlarmRandomMissionTap4,
+            binding.cvAlarmRandomMissionTap5,
+            binding.cvAlarmRandomMissionTap6,
+            binding.cvAlarmRandomMissionTap7,
+            binding.cvAlarmRandomMissionTap8,
+            binding.cvAlarmRandomMissionTap9,
+            binding.cvAlarmRandomMissionTap10,
+            binding.cvAlarmRandomMissionTap11,
+            binding.cvAlarmRandomMissionTap12,
+            binding.cvAlarmRandomMissionTap13,
+            binding.cvAlarmRandomMissionTap14,
+            binding.cvAlarmRandomMissionTap15,
+            binding.cvAlarmRandomMissionTap16,
+            binding.cvAlarmRandomMissionTap17,
+            binding.cvAlarmRandomMissionTap18,
+            binding.cvAlarmRandomMissionTap19,
+            binding.cvAlarmRandomMissionTap20,
+            binding.cvAlarmRandomMissionTap21,
+            binding.cvAlarmRandomMissionTap22,
+            binding.cvAlarmRandomMissionTap23,
+            binding.cvAlarmRandomMissionTap24,
+            binding.cvAlarmRandomMissionTap25
+        )
+    }
     private var answerTapPositions: MutableSet<Int> = hashSetOf()
     private var userTapPositions: MutableSet<Int> = hashSetOf()
     private var currentPage: Int = 1
@@ -46,79 +79,36 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmRandomMissionTapBinding.bind(view)
-        currentPage = arguments?.getInt("currentPageNum")!! // 파라미터 전달 받기
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object: OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                // 뒤로가기 버튼 비활성화
-            }
-        })
+        initData()
+        setupBackPressHandler()
         initViews()
-        initListeners()
+        fetchRemoteData()
         initObservers()
+        initListeners()
+    }
+
+    private fun setupBackPressHandler() {
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    Toast.makeText(context, "뒤로 갈 수 없습니다!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+    }
+
+    private fun initData() {
+        val args: AlarmRandomMissionTapFragmentArgs by navArgs()
+        currentPage = args.currentPageNum
+    }
+
+    private fun fetchRemoteData() = with(binding) {
+        // TODO: 실제 alarmId, level 받아와서 연결하기
+        alarmMissionViewModel.generateFollowClickProblem(alarmId = 1105, level = "상")
     }
 
     private fun initViews() = with(binding) {
-        tvAlarmRandomMissionTapPage.text = "${currentPage}/3"
-        taps = listOf(
-            cvAlarmRandomMissionTap1,
-            cvAlarmRandomMissionTap2,
-            cvAlarmRandomMissionTap3,
-            cvAlarmRandomMissionTap4,
-            cvAlarmRandomMissionTap5,
-            cvAlarmRandomMissionTap6,
-            cvAlarmRandomMissionTap7,
-            cvAlarmRandomMissionTap8,
-            cvAlarmRandomMissionTap9,
-            cvAlarmRandomMissionTap10,
-            cvAlarmRandomMissionTap11,
-            cvAlarmRandomMissionTap12,
-            cvAlarmRandomMissionTap13,
-            cvAlarmRandomMissionTap14,
-            cvAlarmRandomMissionTap15,
-            cvAlarmRandomMissionTap16,
-            cvAlarmRandomMissionTap17,
-            cvAlarmRandomMissionTap18,
-            cvAlarmRandomMissionTap19,
-            cvAlarmRandomMissionTap20,
-            cvAlarmRandomMissionTap21,
-            cvAlarmRandomMissionTap22,
-            cvAlarmRandomMissionTap23,
-            cvAlarmRandomMissionTap24,
-            cvAlarmRandomMissionTap25
-        )
-        lifecycleScope.launch {
-            for (tap in taps) { tap.isEnabled = false } // 사용자 터치 임시 비활성화
-            // repeat 코드 실행 시간 거의 0ms에 가까움
-            repeat(10) {
-                val i = Random.nextInt(0, 25) // 0 ~ 24 (중복 허용)
-                taps[i].apply {
-                    isSelected = true
-                    setCardBackgroundColor(
-                        resources.getColor(
-                            R.color.alarm_primary,
-                            context?.theme
-                        )
-                    )
-                }
-                answerTapPositions.add(i)
-            }
-            delay(1000)
-            tvAlarmRandomMissionTapCount.text = "2"
-            delay(1000)
-            tvAlarmRandomMissionTapCount.text = "1"
-            delay(1000)
-            tvAlarmRandomMissionTapCount.isVisible = false
-            for (tap in taps) {
-                tap.isSelected = false
-                tap.setCardBackgroundColor(
-                    resources.getColor(
-                        R.color.light_gray_100,
-                        context?.theme
-                    )
-                )
-            }
-            for (tap in taps) { tap.isEnabled = true } // 사용자 터치 재활성화
-        }
+        tvAlarmRandomMissionTapPage.text = "$currentPage/$TOTAL_PAGE_NUM"
     }
 
     private fun initListeners() = with(binding) {
@@ -142,43 +132,109 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                 }
             }
         }
+
         cvAlarmRandomMissionNextPage.setOnClickListener {
+
             taps.forEachIndexed { position, tap ->
-                if(tap.isSelected) userTapPositions.add(position) else userTapPositions.remove(position)
+                if (tap.isSelected) userTapPositions.add(position) else userTapPositions.remove(position)
             }
 
-            if(answerTapPositions.equals(userTapPositions)) {
-                if(currentPage == 3) {
-                    sleepViewModel.getUserSleepInfo(Constants.USER_ID)
+            if (answerTapPositions == userTapPositions) {
+                if (currentPage == 3) {
+//                    sleepViewModel.getUserSleepInfo(Constants.USER_ID)
+                    Toast.makeText(context, "수고하셨습니다!", Toast.LENGTH_SHORT).show()
                 } else {
-                    findNavController().navigate(
-                        R.id.alarmRandomMissionTapFragment,
-                        bundleOf("currentPageNum" to ++currentPage),
-                        NavOptions.Builder()
-                            .setLaunchSingleTop(true) // 최상단이 같은 프래그먼트인 경우 쌓지 않고 교체함
-                            .build()
-                    )
+                    val action = AlarmRandomMissionTapFragmentDirections.actionAlarmRandomMissionTapFragmentSelf(currentPageNum = currentPage + 1)
+                    findNavController().navigate(action)
                 }
+            } else {
+                Toast.makeText(context, "답이 틀렸습니다! 다시 입력해주세요!", Toast.LENGTH_SHORT).show()
             }
-            else { Toast.makeText(context, "답이 틀렸습니다! 다시 입력해주세요!", Toast.LENGTH_SHORT).show() }
         }
     }
 
     private fun initObservers() = with(binding) {
+        // 알람 미션
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    alarmMissionViewModel.followClickInfo.collect { resource ->
+                        when (resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "네트워크가 불안정합니다.", Toast.LENGTH_SHORT).show()
+                                cvAlarmRandomMissionNextPage.isEnabled = false
+                            }
+                            DataResource.Idle -> {
+                                cvAlarmRandomMissionNextPage.isEnabled = false
+                            }
+                            DataResource.Loading -> {
+                                cvAlarmRandomMissionNextPage.isEnabled = false
+                            }
+                            is DataResource.Success<List<List<Int>>> -> {
+                                for (tap in taps) {
+                                    tap.isEnabled = false
+                                }
+                                cvAlarmRandomMissionNextPage.isEnabled = false
+
+                                val question = resource.data.flatten()
+                                question.forEachIndexed { position, status ->
+                                    if(status == SELECTED) {
+                                        taps[position].apply {
+                                            isSelected = true
+                                            setCardBackgroundColor(
+                                                resources.getColor(
+                                                    R.color.alarm_primary,
+                                                    context?.theme
+                                                )
+                                            )
+                                        }
+                                        answerTapPositions.add(position)
+                                    }
+                                }
+
+                                delay(1000)
+                                tvAlarmRandomMissionTapCount.text = "2"
+                                delay(1000)
+                                tvAlarmRandomMissionTapCount.text = "1"
+                                delay(1000)
+                                tvAlarmRandomMissionTapCount.isVisible = false
+
+                                for (tap in taps) {
+                                    tap.isSelected = false
+                                    tap.setCardBackgroundColor(
+                                        resources.getColor(
+                                            R.color.light_gray_100,
+                                            context?.theme
+                                        )
+                                    )
+                                    tap.isEnabled = true
+                                }
+                                cvAlarmRandomMissionNextPage.isEnabled = true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 수면
         sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { result ->
-            when(result) {
+            when (result) {
                 is Result.Success -> {
                     alarmViewModel.alarmDismissedAt = System.currentTimeMillis()
                     val data = result.data
                     val todayRecord = data.find { it.sleepDate == LocalDate.now().toString() }
-                    if(todayRecord == null) {
+                    if (todayRecord == null) {
                         // TODO: POST
                         sleepViewModel.registerUserSleepInfo(
                             sleepRequest = SleepRequest(
                                 userId = Constants.USER_ID,
                                 sleepDate = LocalDate.now().toString(),
-                                sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
-                                sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
+                                sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L)
+                                    .toString(),
+                                sleepEnd = Instant.ofEpochMilli(
+                                    alarmViewModel.alarmDismissedAt ?: 0L
+                                ).toString(),
                                 sleepMood = "GOOD",
                                 alarmInfo = AlarmInfo(
                                     isWakeUpAlarmSet = true,
@@ -196,8 +252,11 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                             sleepRequest = SleepRequest(
                                 userId = Constants.USER_ID,
                                 sleepDate = LocalDate.now().toString(),
-                                sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
-                                sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
+                                sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L)
+                                    .toString(),
+                                sleepEnd = Instant.ofEpochMilli(
+                                    alarmViewModel.alarmDismissedAt ?: 0L
+                                ).toString(),
                                 sleepMood = "GOOD",
                                 alarmInfo = AlarmInfo(
                                     isWakeUpAlarmSet = true,
@@ -211,13 +270,14 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                         )
                     }
                 }
+
                 is Result.Error -> {
                     Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
                 }
+
                 is Result.Loading -> {}
             }
         }
-
         sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { event ->
             event.getDataIfNotHandled()?.let { isSuccess ->
                 if (isSuccess) {
@@ -234,7 +294,6 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                 }
             }
         }
-
         sleepViewModel.userSleepUpdatedRecord.observe(viewLifecycleOwner) { result ->
             when (result) {
                 is Result.Success -> {
@@ -247,12 +306,20 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                         bundleOf("origin" to "alarm_random_mission")
                     )
                 }
+
                 is Result.Error -> {
                     Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
                 }
+
                 is Result.Loading -> {}
             }
         }
+    }
+
+    companion object {
+        private const val SELECTED = 1
+        private const val UNSELECTED = 0
+        private const val TOTAL_PAGE_NUM = 3
     }
 
 }

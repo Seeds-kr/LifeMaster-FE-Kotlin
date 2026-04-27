@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_round_and_white"
-    android:padding="20dp">
+    android:padding="16dp">
 
     <TextView
         android:layout_width="wrap_content"
@@ -23,7 +24,7 @@
         android:layout_marginBottom="32dp"/>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cv_math"
+        android:id="@+id/cvMath"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
@@ -58,10 +59,12 @@
     </com.google.android.material.card.MaterialCardView>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cv_level"
+        android:id="@+id/cvMathLevel"
         android:layout_width="match_parent"
         android:layout_height="88dp"
         android:layout_marginBottom="12dp"
+        android:visibility="gone"
+        tools:visibility="visible"
         app:cardBackgroundColor="#EBE6DF"
         app:cardCornerRadius="8dp"
         app:contentPadding="12dp"
@@ -78,7 +81,7 @@
             android:layout_gravity="bottom"
             android:orientation="horizontal">
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cv_level_high"
+                android:id="@+id/cvMathLevelHigh"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -90,7 +93,7 @@
                 app:strokeColor="@color/selector_alarm_random_mission_level_background"
                 app:strokeWidth="1dp">
                 <TextView
-                    android:id="@+id/tv_level_high"
+                    android:id="@+id/tvMathLevelHigh"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -98,7 +101,7 @@
                     android:textColor="@color/selector_alarm_random_mission_level_text"/>
             </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cv_level_medium"
+                android:id="@+id/cvMathLevelMedium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -110,7 +113,7 @@
                 app:cardCornerRadius="8dp"
                 app:cardElevation="0dp">
                 <TextView
-                    android:id="@+id/tv_level_medium"
+                    android:id="@+id/tvMathLevelMedium"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -118,7 +121,7 @@
                     android:textColor="@color/selector_alarm_random_mission_level_text"/>
             </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cv_level_low"
+                android:id="@+id/cvMathLevelLow"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -129,7 +132,7 @@
                 app:cardCornerRadius="8dp"
                 app:cardElevation="0dp">
                 <TextView
-                    android:id="@+id/tv_level_low"
+                    android:id="@+id/tvMathLevelLow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -175,6 +178,90 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cvClickLevel"
+        android:layout_width="match_parent"
+        android:layout_height="88dp"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:cardBackgroundColor="#EBE6DF"
+        app:cardCornerRadius="8dp"
+        app:contentPadding="12dp"
+        app:cardElevation="0dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="난이도"
+            android:textSize="12sp"
+            android:textColor="@color/black"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="horizontal">
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvClickLevelHigh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:contentPadding="6dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/selector_alarm_random_mission_level_background"
+                app:strokeWidth="1dp">
+                <TextView
+                    android:id="@+id/tvClickLevelHigh"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="상"
+                    android:textColor="@color/selector_alarm_random_mission_level_text"/>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvClickLevelMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:strokeColor="@color/selector_alarm_random_mission_level_background"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:contentPadding="6dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp">
+                <TextView
+                    android:id="@+id/tvClickLevelMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="중"
+                    android:textColor="@color/selector_alarm_random_mission_level_text"/>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvClickLevelLow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:strokeColor="@color/selector_alarm_random_mission_level_background"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:contentPadding="6dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp">
+                <TextView
+                    android:id="@+id/tvClickLevelLow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="하"
+                    android:textColor="@color/selector_alarm_random_mission_level_text"/>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cv_write"
         android:layout_width="match_parent"
@@ -214,7 +301,7 @@
         android:id="@+id/btn_apply"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_round_radius"
+        android:background="@drawable/bg_round_radius_8dp"
         android:backgroundTint="#BBAB94"
         android:text="설정하기"
         android:textSize="12sp"

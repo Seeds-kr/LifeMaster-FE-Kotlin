@@ -83,14 +83,6 @@
                 android:textStyle="bold"
                 tools:text="AM" />
 
-            <TextView
-                android:id="@+id/tv_alarm_delay"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:textColor="@color/alarm_primary"
-                android:textSize="12sp"
-                tools:text="미루기 기능에 관한 설명" />
         </LinearLayout>
 
         <TextView

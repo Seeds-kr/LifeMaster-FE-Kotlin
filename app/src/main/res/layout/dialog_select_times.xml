@@ -6,7 +6,7 @@
     android:padding="12dp">
 
     <TextView
-        android:id="@+id/tv_title"
+        android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -45,7 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#F0F4F5"
             android:text="취소" />
         <androidx.appcompat.widget.AppCompatButton
@@ -53,7 +53,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/bg_round_radius"
+            android:background="@drawable/bg_round_radius_8dp"
             android:backgroundTint="#B4D775"
             android:text="확인"
             android:textColor="@color/white" />

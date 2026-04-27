@@ -2,7 +2,6 @@ package com.example.lifemaster.presentation.login.view
 
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -12,6 +11,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.edit
+import androidx.core.graphics.toColorInt
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import com.example.lifemaster.R
@@ -20,6 +21,7 @@ import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
+import com.example.lifemaster.presentation.login.model.RegNickResponse
 import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -78,6 +80,8 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
         regId = arguments?.getString("regId").orEmpty()
         email = arguments?.getString("email").orEmpty()
         password = arguments?.getString("password").orEmpty()
+
+        binding.tvEmail.text = email
 
         binding.includeBackButton.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
@@ -193,6 +197,11 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
             )
         }
 
+        RetrofitInstance.networkService.registerNickname(regIdPart, nickPart, imagePart)
+            .enqueue(object : Callback<RegNickResponse> {
+                override fun onResponse(call: Call<RegNickResponse>, res: Response<RegNickResponse>) {
+                    val body = res.body()
+                    if (!res.isSuccessful || body == null) {
         networkService.registerNickname(regIdPart, nickPart, imagePart)
             .enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, res: Response<Void>) {
@@ -200,9 +209,15 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
                         toast(res.errorBody()?.string()?.take(150) ?: "닉네임 등록 실패(${res.code()})")
                         return
                     }
+
+                    requireContext().getSharedPreferences("auth", 0).edit {
+                        putString("memberId", body.memberId.toString())
+                        putString("userId",  body.memberId.toString()) // userId=memberId 고정
+                    }
+
                     autoLoginThenGoHome()
                 }
-                override fun onFailure(call: Call<Void>, t: Throwable) {
+                override fun onFailure(call: Call<RegNickResponse>, t: Throwable) {
                     toast("네트워크 오류: ${t.message}")
                 }
             })
@@ -221,8 +236,8 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
                     requireContext().getSharedPreferences("auth", android.content.Context.MODE_PRIVATE)
                         .edit {
                             putString("token", token)
-                                .putString("email", email)
-                                .putString("nickname", binding.editNickname.text.toString().trim())
+                            putString("email", email)
+                            putString("nickname", binding.editNickname.text.toString().trim())
                         }
                     startActivity(Intent(requireActivity(), MainActivity::class.java).apply {
                         putExtra("user_token", token)

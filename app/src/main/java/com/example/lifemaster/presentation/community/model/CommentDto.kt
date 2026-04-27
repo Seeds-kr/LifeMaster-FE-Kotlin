@@ -4,11 +4,11 @@ data class CommentDto(
     val commentId: Long?,
     val memberId: Long?,
     val comment: String?,
-    val nickname: String?,
     val commentDate: String?,
-    val liked: Boolean?
+    val likeCount: Int?,
+    val liked: Boolean?,
+    val isMine: Boolean?,
+    val nickname: String?
 )
 
-data class NewCommentRequest(
-    val comment: String
-)
+data class NewCommentRequest(val comment: String)

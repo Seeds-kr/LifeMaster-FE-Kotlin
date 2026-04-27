@@ -8,10 +8,19 @@ import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRandomMissionMathBinding
+import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.Constants
+import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LEVEL_HIGH
+import com.example.lifemaster.presentation.home.alarm.model.DataResource
+import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmMissionViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.google.android.material.card.MaterialCardView
 import java.time.LocalDate
@@ -19,13 +28,19 @@ import java.time.LocalTime
 import android.util.Log
 import com.example.lifemaster.presentation.Constants
 import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.example.lifemaster.presentation.home.sleep.model.AlarmInfo
 import com.example.lifemaster.presentation.home.sleep.model.AlarmSettingInfo
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
+import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.launch
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @AndroidEntryPoint
 class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_mission_math) {
@@ -33,16 +48,20 @@ class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_m
     private lateinit var binding: FragmentAlarmRandomMissionMathBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels()
     private val sleepViewModel: SleepViewModel by activityViewModels()
+    private val alarmViewModel: AlarmViewModel by activityViewModels(
+        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
+    )
+    private val sleepViewModel: SleepViewModel by activityViewModels(
+        factoryProducer = {SleepViewModelFactory(RetrofitInstance.networkService)}
+    )
+    private val alarmMissionViewModel: AlarmMissionViewModel by activityViewModels()
 
-    private lateinit var numberPadList: List<MaterialCardView> // 1 ~ 9
-
-    private var currentPage: Int = 1
-    private var correctAnswer: Int? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.e("Lifecycle", "onCreate")
+    private val numberPadList: List<MaterialCardView> by lazy {
+        listOf(binding.cvMathNumber1, binding.cvMathNumber2, binding.cvMathNumber3, binding.cvMathNumber4, binding.cvMathNumber5, binding.cvMathNumber6, binding.cvMathNumber7, binding.cvMathNumber8, binding.cvMathNumber9)
     }
+
+    private var currentPage: Int = 1 // 기본값(첫 페이지)
+    private var correctAnswer: Int? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -54,16 +73,35 @@ class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_m
     }
 
     private fun fetchRemoteData() {
-        alarmViewModel.generateMathProblem(level = MATH_LEVEL_HIGH)
+        // TODO: dummy data로 테스트 완료 후 alarmId, level 이전 프래그먼트로부터 전달받는 로직 만들기
+        alarmMissionViewModel.generateMathProblem(alarmId = 1103, level = LEVEL_HIGH)
     }
 
     private fun initObservers() = with(binding) {
-        // alarm
-        alarmViewModel.mathProblemInfo.observe(viewLifecycleOwner) { mathProblemInfo ->
-            tvAlarmRandomMissionMathQuestion.text = mathProblemInfo.question
-            correctAnswer = mathProblemInfo.correctAnswer
+
+        // 알람 데이터
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    alarmMissionViewModel.mathProblemInfo.collect { resource ->
+                        when(resource) {
+                            is DataResource.Error -> {
+                                Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
+                            is DataResource.Success -> {
+                                val mathProblemInfo = resource.data
+                                tvAlarmRandomMissionMathQuestion.text = mathProblemInfo.question
+                                correctAnswer = mathProblemInfo.correctAnswer
+                            }
+                        }
+                    }
+                }
+            }
         }
-        // sleep
+
+        // 수면 데이터
         sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { result ->
                 when(result) {
                     is Result.Success -> {
@@ -156,15 +194,15 @@ class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_m
     }
 
     private fun initViews() = with(binding) {
-        // late initialization
-        numberPadList = listOf(cvMathNumber1, cvMathNumber2, cvMathNumber3, cvMathNumber4, cvMathNumber5, cvMathNumber6, cvMathNumber7, cvMathNumber8, cvMathNumber9)
-        currentPage = arguments?.getInt(PAGE_KEY)!!
+        // initialization
+        currentPage = arguments?.getInt(PAGE_KEY, 1)!! // 여러 번 실행되는 것으로 보임
 
         // UI binding
-        tvAlarmRandomMissionMathDate.text = "${LocalDate.now().year}년 ${LocalDate.now().monthValue}월 ${LocalDate.now().dayOfMonth}일"
-        tvAlarmRandomMissionMathTime.text = "${LocalTime.now().hour}:${LocalTime.now().minute}"
-        tvAlarmRandomMissionMathAmPm.text = if(LocalTime.now().hour in 0..11) "am" else "pm"
-        tvAlarmRandomMissionMathPage.text = "${currentPage}/${TOTAL_PAGE_NUM}"
+        val localDateTime = LocalDateTime.now()
+        tvAlarmRandomMissionMathDate.text = "${localDateTime.year}년 ${localDateTime.monthValue}월 ${localDateTime.dayOfMonth}일"
+        tvAlarmRandomMissionMathTime.text = String.format("%02d:%02d", localDateTime.hour, localDateTime.minute)
+        tvAlarmRandomMissionMathAmPm.text = if(localDateTime.hour in 0..11) "am" else "pm"
+        tvAlarmRandomMissionMathPage.text = "$currentPage/$TOTAL_PAGE_NUM"
     }
 
     private fun initListeners() = with(binding) {
@@ -178,7 +216,6 @@ class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_m
                 } else {
                     Toast.makeText(context, "글자 수는 7자리로 제한되어 있습니다", Toast.LENGTH_SHORT).show()
                 }
-
             }
         }
 
@@ -189,6 +226,7 @@ class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_m
             } else if(tvAlarmRandomMissionUserAnswer.text.length < 7) {
                 tvAlarmRandomMissionUserAnswer.append("0")
             } else {
+                // length >= 7
                 Toast.makeText(context, "글자 수는 7자리로 제한되어 있습니다", Toast.LENGTH_SHORT).show()
             }
         }
@@ -209,25 +247,23 @@ class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_m
             if(userAnswer == null) {
                 Toast.makeText(context, "답을 입력해주세요", Toast.LENGTH_SHORT).show()
             } else if(userAnswer == correctAnswer && currentPage < TOTAL_PAGE_NUM) {
+                Toast.makeText(context, "답이 맞았습니다.", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(
                     R.id.alarmRandomMissionMathFragment,
                     bundleOf(PAGE_KEY to currentPage+1),
-                    NavOptions.Builder().setLaunchSingleTop(true).build() // 최상단에 같은 프래그먼트가 있으면 쌓이지 않게 하기
+                    NavOptions.Builder().setLaunchSingleTop(true).build() // 최상단에 같은 프래그먼트가 있으면 기존 인스턴스 제거하고 새로운 인스턴스로 교체
                 )
-                Toast.makeText(context, "답이 맞았습니다!", Toast.LENGTH_SHORT).show()
             } else if(userAnswer == correctAnswer && currentPage == TOTAL_PAGE_NUM) {
-                sleepViewModel.getUserSleepInfo(Constants.USER_ID)
+                Toast.makeText(context, "고생하셨습니다.", Toast.LENGTH_SHORT).show()
+//                sleepViewModel.getUserSleepInfo(Constants.USER_ID)
             } else {
-                Toast.makeText(context, "답이 틀렸습니다!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "답이 틀렸습니다", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     companion object {
-        private const val MATH_LEVEL_HIGH = "상"
-        private const val MATH_LEVEL_MEDIUM = "중"
-        private const val MATH_LEVEL_LOW = "하"
-        private const val PAGE_KEY = "currentPageNum"
+        private const val PAGE_KEY = "currentPageNumber"
         private const val TOTAL_PAGE_NUM = 3
     }
 
