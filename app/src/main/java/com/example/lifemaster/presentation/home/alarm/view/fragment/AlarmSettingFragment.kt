@@ -16,14 +16,17 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmSettingBinding
-import com.example.lifemaster.presentation.home.alarm.model.AlarmItem
-import com.example.lifemaster.presentation.home.alarm.model.MathProblemLevel
+import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmRandomMissionDialog
 import com.example.lifemaster.presentation.home.alarm.view.receiver.AlarmReceiver
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.example.lifemaster.presentation.total.detox.dialog.SelectTimeDialog
 import dagger.hilt.android.AndroidEntryPoint
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
 @AndroidEntryPoint
@@ -32,7 +35,6 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     private lateinit var binding: FragmentAlarmSettingBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels()
     private var randomMissionList = arrayListOf<RandomMissionType>()
-    private var randomMissionMathLevel = MathProblemLevel.NONE
 //    private var isDelaySet: Boolean = false
     private var alarmRepeatDays = arrayListOf<String>()
     private val dayLayouts by lazy {
@@ -77,7 +79,7 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
     private fun initListeners() {
         with(binding) {
             ivBack.setOnClickListener {
-                findNavController().navigate(R.id.action_alarmSettingFragment_to_alarmListFragment)
+                findNavController().navigate(R.id.alarmListFragment)
             }
             ivRandomMission.setOnClickListener {
                 val dialog = AlarmRandomMissionDialog()
@@ -104,9 +106,32 @@ class AlarmSettingFragment : Fragment(R.layout.fragment_alarm_setting) {
                     Toast.makeText(requireContext(), "제목을 입력 해주세요!", Toast.LENGTH_SHORT).show()
                 } else {
 
-                    val alarmItem = AlarmItem(
+                    val alarmItem = AlarmModel(
                         id = alarmViewModel.alarmItems.value?.size ?: 0,
-                        title = etAlarmTitle.text.toString(),
-                        hour = timePicker.hour,
-                        minute = timePicker.minute
+                        alarmTitle = etAlarmTitle.text.toString(),
+                        alarmTime = LocalDateTime.of(
+                            LocalDate.now(),
+                            LocalTime.of(timePicker.hour, timePicker.minute)
+                        ).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                        alarmMon = alarmRepeatDays.contains("월"),
+                        alarmTue = alarmRepeatDays.contains("화"),
+                        alarmWed = alarmRepeatDays.contains("수"),
+                        alarmThu = alarmRepeatDays.contains("목"),
+                        alarmFri = alarmRepeatDays.contains("금"),
+                        alarmSat = alarmRepeatDays.contains("토"),
+                        alarmSun = alarmRepeatDays.contains("일"),
+                        snoozed = false,
+                        antiSnoozed = false,
+                        randomMissionType = randomMissionList.firstOrNull()
                     )
+                    alarmViewModel.updateAlarmItems(alarmItem)
+                    findNavController().navigate(R.id.alarmListFragment)
+                }
+            }
+        }
+    }
+
+    private fun initObservers() {
+        // This legacy fragment is no longer the primary alarm creation screen.
+    }
+}
