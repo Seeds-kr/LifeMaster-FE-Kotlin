@@ -7,12 +7,10 @@ import android.util.Log
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityEmergencyEscapeBinding
 import com.example.lifemaster.network.NetworkService
-import com.example.lifemaster.presentation.home.pomodoro.viewmodel.EmergencyEscapeViewModel
 import com.google.android.material.internal.TextWatcherAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
@@ -28,7 +26,7 @@ class EmergencyEscapeActivity : AppCompatActivity() {
 
     private var userToken: String? = null
     lateinit var binding: ActivityEmergencyEscapeBinding
-    private val emergencyEscapeViewModel by viewModels<EmergencyEscapeViewModel>()
+    private var currentPage = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,8 +36,8 @@ class EmergencyEscapeActivity : AppCompatActivity() {
 
         val (sentenceList, answerList) = initViews()
         initObservers(sentenceList, answerList)
-        initTextWatcher()
-        initListeners(answerList)
+        initTextWatcher(answerList)
+        initListeners(sentenceList, answerList)
     }
 
     private fun initViews(): Pair<List<TextView>, List<EditText>> = with(binding) {
@@ -81,52 +79,21 @@ class EmergencyEscapeActivity : AppCompatActivity() {
         sentenceList: List<TextView>,
         answerList: List<EditText>
     ) {
-        emergencyEscapeViewModel.buttonCount.observe(this) { buttonCount ->
-            when (buttonCount) {
-                1, 2, 3, 4 -> {
-                    // 2페이지, 3페이지, 4페이지, 5페이지
-                    sentenceList.forEach { sentence ->
-                        networkService.getEscapeSentence(token = "Bearer $userToken")
-                            .enqueue(object : Callback<String> {
-                                override fun onResponse(
-                                    call: Call<String?>,
-                                    response: Response<String?>
-                                ) {
-                                    if (response.isSuccessful) {
-                                        sentence.text =
-                                            response.body()?.substringAfter("Type this phrase to escape:")?.trim()
-                                    }
-                                }
-
-                                override fun onFailure(call: Call<String?>, t: Throwable) {
-                                    TODO("Not yet implemented")
-                                }
-                            })
-                    }
-                    answerList.forEach {
-                        it.text.clear()
-                    }
-                }
-
-                5 -> {
-                    // 마지막 페이지에서 클릭한 경우
-                    // 뽀모도로 화면으로 돌아오기
-//                    SharedData.pomodoroStatus = PomodoroStatus.ESCAPE_SUCCESS
-//                    finish()
-                    Toast.makeText(this@EmergencyEscapeActivity, "마지막 페이지입니다!", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
-        emergencyEscapeViewModel.writtenSentence.observe(this) { sentence ->
-            binding.btnNextPage.text = "${sentence}/15 진행 중"
-        }
+        updateProgress(answerList)
     }
 
-    private fun initListeners(answerList: List<EditText>) = with(binding) {
+    private fun initListeners(sentenceList: List<TextView>, answerList: List<EditText>) = with(binding) {
         btnNextPage.setOnClickListener {
             answerList.forEach { if (it.isFocused) it.clearFocus() }
-            emergencyEscapeViewModel.clickButton()
+            if (currentPage >= 5) {
+                Toast.makeText(this@EmergencyEscapeActivity, "마지막 페이지입니다!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            currentPage += 1
+            loadSentences(sentenceList)
+            answerList.forEach { it.text.clear() }
+            updateProgress(answerList)
 //            if (etAnswerFirst.text.toString() == tvQuestionFirst.text.toString()
 //                && etAnswerSecond.text.toString() == tvQuestionSecond.text.toString()
 //                && etAnswerThird.text.toString() == tvQuestionThird.text.toString()
@@ -134,10 +101,48 @@ class EmergencyEscapeActivity : AppCompatActivity() {
 //                answerList.forEach {
 //                    if (it.isFocused) it.clearFocus()
 //                }
-//                emergencyEscapeViewModel.clickButton()
 //            } else if (etAnswerFirst.text.isBlank() || etAnswerSecond.text.isBlank() || etAnswerThird.text.isBlank()) {
 //                Toast.makeText(this@EmergencyEscapeActivity, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()
 //            } else {
 //                Toast.makeText(this@EmergencyEscapeActivity, "문장을 정확하게 입력해주세요!", Toast.LENGTH_SHORT).show()
 //            }
         }
+    }
+
+    private fun initTextWatcher(answerList: List<EditText>) {
+        answerList.forEach { answer ->
+            answer.addTextChangedListener(object : TextWatcherAdapter() {
+                override fun afterTextChanged(s: Editable) {
+                    updateProgress(answerList)
+                }
+            })
+        }
+    }
+
+    private fun loadSentences(sentenceList: List<TextView>) {
+        sentenceList.forEach { sentence ->
+            networkService.getEscapeSentence(token = "Bearer $userToken")
+                .enqueue(object : Callback<String> {
+                    override fun onResponse(
+                        call: Call<String?>,
+                        response: Response<String?>
+                    ) {
+                        if (response.isSuccessful) {
+                            sentence.text =
+                                response.body()?.substringAfter("Type this phrase to escape:")?.trim()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<String?>, t: Throwable) {
+                        TODO("Not yet implemented")
+                    }
+                })
+        }
+    }
+
+    private fun updateProgress(answerList: List<EditText>) {
+        val completed = ((currentPage - 1) * 3 + answerList.count { it.text.isNotBlank() })
+            .coerceAtMost(15)
+        binding.btnNextPage.text = "${completed}/15 진행 중"
+    }
+}
