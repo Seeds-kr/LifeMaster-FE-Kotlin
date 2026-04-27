@@ -21,27 +21,23 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    @Singleton
     private const val DEFAULT_BASE_URL = "https://lifemaster.harvester.kr/"
 
     private val baseUrl: String
-        get() = BuildConfig.BASE_URL.takeIf { it.isNotBlank() } ?: DEFAULT_BASE_URL
+        get() = (BuildConfig.BASE_URL.takeIf { it.isNotBlank() } ?: DEFAULT_BASE_URL)
             .let { if (it.endsWith("/")) it else "$it/" }
 
     @Provides
+    @Singleton
     fun provideNetworkService(retrofit: Retrofit): NetworkService {
         return retrofit.create(NetworkService::class.java)
     }
 
-    @Singleton
-    fun provideRetrofit(): Retrofit {
     @Provides
+    @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(baseUrl)
-            .addConverterFactory(ScalarsConverterFactory.create())
-            .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(ScalarsConverterFactory.create()) // json 구조의 응답이 아닌 경우 처리
             .addConverterFactory(GsonConverterFactory.create()) // json 구조 응답 처리
@@ -50,10 +46,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    @Provides
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
         return OkHttpClient.Builder().addInterceptor(authInterceptor).build()
-    fun provideNetworkService(retrofit: Retrofit): NetworkService {
-        return retrofit.create(NetworkService::class.java)
     }
 }

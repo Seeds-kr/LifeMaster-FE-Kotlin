@@ -158,10 +158,6 @@
             android:name="challId"
             app:argType="string" />
     </fragment>
-            <argument
-                android:name="challId"
-                app:argType="long"/>
-    </fragment>
 
     <fragment
         android:id="@+id/totalFragment"
