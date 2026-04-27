@@ -27,33 +27,18 @@ import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
-import com.example.lifemaster.network.NetworkService
-import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
 import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
-import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
-import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import dagger.hilt.android.AndroidEntryPoint
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
-import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
-
-    @Inject
-    lateinit var networkService: NetworkService
 
     lateinit var binding: FragmentHomeBinding
 
@@ -86,8 +71,6 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        initViews()
 
         binding.containerCalendar.post {
             if (childFragmentManager.findFragmentById(R.id.container_calendar) == null) {
@@ -228,61 +211,6 @@ class HomeFragment : Fragment() {
     }
 
     private fun initViews() = with(binding) {
-
-        val sharedPreference =
-            requireContext().getSharedPreferences("USER_TABLE", Context.MODE_PRIVATE)
-        userToken = sharedPreference.getString("token", "null")
-
-        recyclerview.adapter =
-            ToDoAdapter(requireContext(), toDoViewModel, childFragmentManager, userToken, networkService)
-
-        networkService.getTodoItems(token = "Bearer $userToken")
-            .enqueue(object : Callback<List<TodoItem>> {
-                override fun onResponse(
-                    call: Call<List<TodoItem>>,
-                    response: Response<List<TodoItem>>
-                ) {
-                    if (response.isSuccessful) {
-                        todoItems = response.body() as ArrayList<TodoItem>
-                        networkService.getPomodoroItems(token = "Bearer $userToken")
-                            .enqueue(object : Callback<List<PomodoroItem>> {
-                                override fun onResponse(
-                                    call: Call<List<PomodoroItem>?>,
-                                    response: Response<List<PomodoroItem>?>
-                                ) {
-                                    if (response.isSuccessful) {
-                                        val response = response.body()
-                                        val filterData1 = response?.groupBy { it.taskName }
-                                        val filterData2 = filterData1?.mapValues { (_, list) ->
-                                            val pomodoro25 =
-                                                list.count { it.focusTime == 20 } // 25분
-                                            val pomodoro50 =
-                                                list.count { it.focusTime == 40 } // 50분
-                                            Pair(pomodoro25, pomodoro50)
-                                        }
-                                        todoItems.forEach { todoItem ->
-                                            val pair = filterData2?.get(todoItem.title)
-                                            if (pair != null) {
-                                                todoItem.timer25Number = pair.first
-                                                todoItem.timer50Number = pair.second
-                                            }
-                                        }
-                                        toDoViewModel.getTodoItems(todoItems)
-                                    }
-                                }
-
-                                override fun onFailure(
-                                    call: Call<List<PomodoroItem>?>,
-                                    t: Throwable
-                                ) {
-                                    TODO("Not yet implemented")
-                                }
-
-                            })
-                    } else {
-                        Log.d("server success", "else")
-                    }
-                }
         todoRecyclerview.adapter = ToDoAdapter(context = requireContext(), onToggleClicked = { id ->
             toDoViewModel.toggleItem(id = id)
         }, onEditClicked = { item ->
