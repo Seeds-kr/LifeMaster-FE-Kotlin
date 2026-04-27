@@ -15,7 +15,6 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -27,15 +26,10 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityMainBinding
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroItem
 import com.example.lifemaster.network.NetworkService
-import com.example.lifemaster.network.NetworkService
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
@@ -84,7 +78,6 @@ class MainActivity : AppCompatActivity() {
     private val sleepViewModel: SleepViewModel by viewModels()
 
     @Inject lateinit var tokenManager: TokenManager
-    @Inject lateinit var networkService: NetworkService
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,35 +97,23 @@ class MainActivity : AppCompatActivity() {
                 )
                 binding.bottomNavigation.isVisible = false
             }
-        networkService.enterUserLogin(loginInfo = LoginInfo(email = "aaaaa@naver.com", password = "aaaaa")).enqueue(object: Callback<String> {
-            override fun onResponse(
-                call: Call<String?>,
-                response: Response<String?>
-            ) {
-                if(response.isSuccessful) {
-                    val userToken = response.body()
-                    Log.e("login", userToken!!)
-                    tokenManager.accessToken = userToken
-                }
-            }
+            networkService.enterUserLogin(loginInfo = LoginInfo(email = "aaaaa@naver.com", password = "aaaaa"))
+                .enqueue(object : Callback<String> {
+                    override fun onResponse(
+                        call: Call<String>,
+                        response: Response<String>
+                    ) {
+                        if (response.isSuccessful) {
+                            val userToken = response.body()
+                            Log.e("login", userToken.orEmpty())
+                            tokenManager.accessToken = userToken.orEmpty()
+                        }
+                    }
 
-            override fun onFailure(call: Call<String?>, t: Throwable) {
-                Toast.makeText(this@MainActivity, "로그인에 실패했습니다.", Toast.LENGTH_SHORT).show()
-            }
-
-        })
-
-        val targetFragment = intent.getStringExtra("destination")
-        if (targetFragment == "alarm") {
-            val time = intent.getLongExtra("time", 0L) // 알람이 울린 시간
-            val navController =
-                (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
-            navController.navigate(
-                R.id.alarmRingsFragment,
-                bundleOf("time" to time)
-            )
-            binding.bottomNavigation.isVisible = false
-        }
+                    override fun onFailure(call: Call<String>, t: Throwable) {
+                        Toast.makeText(this@MainActivity, "로그인에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                })
 
             userToken = intent.getStringExtra("user_token")
             if (!userToken.isNullOrBlank()) {
@@ -303,42 +284,6 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // 포모도로 → 할일 업데이트
-        val updateItem = intent.getParcelableExtra("pomodoro", TodoItem::class.java)
-        val todoItemTitle = intent.getStringExtra("todoItemTitle")
-        if (todoItemTitle != null) {
-            networkService.getPomodoroItems(token = "Bearer $userToken")
-                .enqueue(object : Callback<List<PomodoroItem>> {
-                    override fun onResponse(
-                        call: Call<List<PomodoroItem>?>,
-                        response: Response<List<PomodoroItem>?>
-                    ) {
-                        if (response.isSuccessful) {
-                            response.body()?.let { pomodoroList ->
-                                val pomodoro = pomodoroList.filter { it.taskName == todoItemTitle }
-                                val pomodoro25Count = pomodoro.count { it.focusTime == 20 }
-                                val pomodoro50Count = pomodoro.count { it.focusTime == 40 }
-                                val todoItem =
-                                    toDoViewModel.todoItems.value?.find { it.title == todoItemTitle }
-                                todoItem?.let {
-                                    it.timer25Number = pomodoro25Count
-                                    it.timer50Number = pomodoro50Count
-                                    toDoViewModel.changeTodoItems(it)
-                                }
-                            }
-                        }
-                    }
-
-                    override fun onFailure(
-                        call: Call<List<PomodoroItem>?>,
-                        t: Throwable
-                    ) {
-                        TODO("Not yet implemented")
-                    }
-
-                })
-        }
-        updateItem?.let { toDoViewModel.changeTodoItems(it) }
     }
 
     override fun onPause() {
