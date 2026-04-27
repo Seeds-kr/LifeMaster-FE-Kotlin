@@ -1,68 +1,37 @@
 package com.example.lifemaster.presentation.home.todo.view
 
+import android.app.Dialog
 import android.os.Bundle
-import android.util.Log
-import android.view.View
-import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import com.example.lifemaster.R
-import com.example.lifemaster.databinding.DialogLongClickTodoBinding
-import com.example.lifemaster.network.NetworkService
+import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.presentation.home.todo.model.TODO
+import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
 import dagger.hilt.android.AndroidEntryPoint
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ToDoLongClickDialog(
-    private val todoItem: TodoItem,
-    private val todoViewModel: ToDoViewModel,
-    private val userToken: String?
-): DialogFragment(R.layout.dialog_long_click_todo) {
+    private val todoItem: TodoModel
+) : DialogFragment() {
 
-    @Inject
-    lateinit var networkService: NetworkService
+    private val todoViewModel: ToDoViewModel by activityViewModels()
 
-    lateinit var binding: DialogLongClickTodoBinding
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        binding = DialogLongClickTodoBinding.bind(view)
-        initListeners()
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return AlertDialog.Builder(requireContext())
+            .setItems(arrayOf("수정", "삭제", "취소")) { dialog, which ->
+                when (which) {
+                    0 -> showEditDialog()
+                    1 -> todoViewModel.deleteTodoItem(deleteId = todoItem.id)
+                    else -> dialog.dismiss()
+                }
+            }
+            .create()
     }
 
-    private fun initListeners() = with(binding) {
-        btnModify.setOnClickListener {
-            dismiss()
-            val dialog = ToDoDialog(TODO.EDIT, todoItem, userToken)
-            dialog.isCancelable = false
-            dialog.show(parentFragmentManager, ToDoDialog.TAG)
-        }
-        btnDelete.setOnClickListener {
-            // 삭제
-            Log.d("ttest", ""+todoItem)
-            networkService.deleteTodoItem(token = "Bearer $userToken", todoItem.id)
-                .enqueue(object : Callback<Any> {
-                    override fun onResponse(call: Call<Any>, response: Response<Any>) {
-                        if (response.isSuccessful) {
-                            Toast.makeText(context, "할일이 삭제되었습니다!", Toast.LENGTH_SHORT).show()
-                            todoViewModel.deleteTodoItems(todoItem)
-                            dismiss()
-                        } else {
-                            Log.d("ttest", response.message())
-                        }
-                    }
-
-                    override fun onFailure(call: Call<Any>, t: Throwable) {
-                        Log.d("ttest", "" + t.message)
-                    }
-                })
-        }
-        btnCancel.setOnClickListener { dismiss() }
+    private fun showEditDialog() {
+        ToDoDialog(TODO.EDIT, todoItem)
+            .show(parentFragmentManager, ToDoDialog.TAG)
     }
 
     companion object {
