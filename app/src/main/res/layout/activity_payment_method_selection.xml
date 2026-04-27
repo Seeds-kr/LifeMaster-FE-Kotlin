@@ -163,7 +163,7 @@
                 android:layout_height="40dp"
                 android:importantForAccessibility="no"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_playstore" />
+                android:src="@drawable/ic_google_play" />
 
             <TextView
                 android:layout_width="0dp"

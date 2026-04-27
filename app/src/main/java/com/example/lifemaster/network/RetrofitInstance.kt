@@ -10,7 +10,7 @@ object RetrofitInstance {
     private const val DEFAULT_BASE_URL = "https://lifemaster.harvester.kr/"
 
     private val baseUrl: String
-        get() = BuildConfig.BASE_URL.takeIf { it.isNotBlank() } ?: DEFAULT_BASE_URL
+        get() = (BuildConfig.BASE_URL.takeIf { it.isNotBlank() } ?: DEFAULT_BASE_URL)
             .let { if (it.endsWith("/")) it else "$it/" }
 
     private val retrofit: Retrofit by lazy {
