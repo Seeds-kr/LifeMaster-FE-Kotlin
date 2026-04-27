@@ -29,11 +29,6 @@ import com.example.lifemaster.presentation.login.model.PasswordResetDto
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
 import com.example.lifemaster.presentation.login.model.RegNickResponse
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
-import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
-import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
-import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
-import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
-import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import com.example.lifemaster.presentation.total.mypage.model.PayPalCreateOrderResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -102,7 +97,7 @@ interface NetworkService {
     @GET("/schedule/todo")
     fun getTodoItems(
         @Header("Authorization") token: String
-    ): Call<List<TodoItem>>
+    ): Call<List<TodoResponse>>
 
     @Headers("Content-Type: application/json")
     @POST("auth/password/reset")
