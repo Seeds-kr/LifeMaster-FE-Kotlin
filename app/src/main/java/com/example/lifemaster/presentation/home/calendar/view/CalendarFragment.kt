@@ -16,7 +16,6 @@ import com.example.lifemaster.presentation.home.calendar.adapter.CalendarAdapter
 import com.example.lifemaster.presentation.home.calendar.model.CalendarDay
 import com.example.lifemaster.presentation.home.calendar.model.StarType
 import com.example.lifemaster.presentation.home.calendar.model.CalendarRepository
-import com.example.lifemaster.presentation.home.calendar.model.StarType
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarDataViewModel
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
@@ -239,9 +238,7 @@ class CalendarFragment : Fragment() {
 
         for (day in 1..daysInMonth) {
             val isToday = isTodayInThisMonth && (day == todayCal.get(Calendar.DAY_OF_MONTH))
-            val date = LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, day)
-            val features = buildFeaturesForDate(date)
-            result.add(CalendarDay(day, isCurrentMonth = true, isToday = isToday, features = features))
+            result.add(CalendarDay(day, isCurrentMonth = true, isToday = isToday))
         }
         val totalCells = ((result.size + 6) / 7) * 7
         var nextDay = 1
@@ -294,27 +291,6 @@ class CalendarFragment : Fragment() {
         return result
     }
 
-    private fun generateWeekDays(base: Calendar): List<CalendarDay> {
-        val weekCal = (base.clone() as Calendar)
-        val firstDow = weekCal.firstDayOfWeek
-        weekCal.set(Calendar.DAY_OF_WEEK, firstDow)
-
-        val today = GregorianCalendar()
-        val todayY = today.get(Calendar.YEAR)
-        val todayM = today.get(Calendar.MONTH)
-        val todayD = today.get(Calendar.DAY_OF_MONTH)
-
-        return (0..6).map {
-            val y = weekCal.get(Calendar.YEAR)
-            val m = weekCal.get(Calendar.MONTH)
-            val d = weekCal.get(Calendar.DAY_OF_MONTH)
-            val isThisMonth = (y == base.get(Calendar.YEAR) && m == base.get(Calendar.MONTH))
-            val isToday = (y == todayY && m == todayM && d == todayD)
-            val date = LocalDate.of(y, m + 1, d)
-            val features = buildFeaturesForDate(date)
-            val item = CalendarDay(d, isCurrentMonth = isThisMonth, isToday = isToday, features = features)
-            weekCal.add(Calendar.DAY_OF_MONTH, 1)
-            item
     private fun classify(text: String): StarType? {
         val t = text.uppercase()
         return when {
@@ -327,15 +303,6 @@ class CalendarFragment : Fragment() {
             t.contains("TODO") || t.contains("할일") || t.contains("할 일") -> StarType.TODO
             else -> null
         }
-    }
-
-    private fun buildFeaturesForDate(date: LocalDate): List<StarType> {
-        val features = mutableListOf<StarType>()
-        val introspectionDates = vm.introspectionDates.value ?: emptySet()
-        if (introspectionDates.contains(date)) {
-            features.add(StarType.INTROSPECTION)
-        }
-        return features
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
