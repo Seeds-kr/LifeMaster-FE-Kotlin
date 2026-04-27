@@ -14,8 +14,6 @@ import com.example.lifemaster.databinding.FragmentAlarmListBinding
 import com.example.lifemaster.presentation.home.alarm.adapter.AlarmAdapter
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmGenerateViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
-import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
@@ -29,23 +27,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.lifemaster.presentation.home.alarm.ItemClickListener
-import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
-import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
-import com.example.lifemaster.presentation.home.alarm.model.mapper.toPresentation
 import kotlinx.coroutines.launch
 
-@AndroidEntryPoint
-class AlarmListFragment : Fragment(R.layout.fragment_alarm_list) {
 @AndroidEntryPoint
 class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListener {
 
     private lateinit var binding: FragmentAlarmListBinding
     private val alarmViewModel: AlarmViewModel by activityViewModels()
-    private val alarmAdapter = AlarmAdapter()
-    private val alarmViewModel: AlarmViewModel by activityViewModels(
-        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
-    )
     private val alarmGenerateViewModel: AlarmGenerateViewModel by activityViewModels()
 
     private var alarmId: Int? = null
