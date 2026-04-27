@@ -10,15 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.daimajia.swipe.SwipeLayout
 import com.example.lifemaster.databinding.ItemTodoBinding
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
-import com.example.lifemaster.dp
-import com.example.lifemaster.network.NetworkService
-import com.example.lifemaster.presentation.home.pomodoro.view.PomodoroActivity
-import com.example.lifemaster.presentation.home.todo.model.TodoItem
-import com.example.lifemaster.presentation.home.todo.view.ToDoLongClickDialog
-import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class ToDoAdapter (
     private val context: Context,
@@ -26,10 +17,6 @@ class ToDoAdapter (
     private val onDeleteClicked: (Int) -> Unit,
     private val onToggleClicked: (Int) -> Unit,
     private val onViewClicked: (TodoModel) -> Unit
-    private val toDoViewModel: ToDoViewModel,
-    private val fragmentManager: FragmentManager,
-    private val userToken: String?,
-    private val networkService: NetworkService
 ) :
     ListAdapter<TodoModel, ToDoAdapter.ToDoViewHolder>(differ) {
     inner class ToDoViewHolder(private val binding: ItemTodoBinding) :
@@ -66,34 +53,6 @@ class ToDoAdapter (
                 onViewClicked(item)
             }
         }
-
-        private fun toggleTodoStatus(item: TodoItem) {
-            networkService.toggleTodoItem(token = "Bearer $userToken", item.id)
-                .enqueue(object : Callback<TodoItem> {
-                    override fun onResponse(
-                        call: Call<TodoItem>,
-                        response: Response<TodoItem>
-                    ) {
-                        if (response.isSuccessful) {
-                            val todoItem = response.body() ?: return
-                            if (todoItem.isCompleted) {
-                                Toast.makeText(
-                                    context,
-                                    "할일이 완료되었습니다!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "할일이 해제되었습니다!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        } else {
-
-                        }
-                    }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToDoViewHolder {
