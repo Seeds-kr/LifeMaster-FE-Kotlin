@@ -18,8 +18,6 @@ class CommunityViewModel @Inject constructor(
 ) : ViewModel() {
 enum class SortMode { LATEST, LIKES }
 
-class CommunityViewModel : ViewModel() {
-
     private val _items = MutableLiveData<List<CommunityItem>>(emptyList())
     val items: LiveData<List<CommunityItem>> = _items
 
@@ -317,7 +315,7 @@ class CommunityViewModel : ViewModel() {
         cur[idx] = before.copy(liked = nowLiked, likeCount = nowCnt)
         _comments.postValue(cur)
 
-        RetrofitInstance.networkService
+        networkService
             .toggleCommentLike(bear(token), commentId.toString())
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
@@ -371,9 +369,6 @@ class CommunityViewModel : ViewModel() {
             })
     }
 
-    fun createPost(token: String, title: String, content: String, file: String?, type: String = "FREE", onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
-        val body = NewPostRequest(title = title, content = content, file = file, type = type)
-        networkService
     fun createPost(
         token: String,
         title: String,
@@ -391,7 +386,7 @@ class CommunityViewModel : ViewModel() {
             type = type,
             calendarShared = calendarShared
         )
-        RetrofitInstance.networkService
+        networkService
             .createPost(bear(token), body)
             .enqueue(simpleCallback("게시글 등록", onSuccess, onError))
     }
@@ -415,9 +410,6 @@ class CommunityViewModel : ViewModel() {
             calendarShared = calendarShared
         )
 
-        RetrofitInstance.networkService
-    fun updatePost(token: String, id: String, title: String, content: String, file: String?, type: String = "FREE", onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
-        val body = UpdatePostRequest(title = title, content = content, file = file, type = type)
         networkService
             .updatePost(bear(token), id, body)
             .enqueue(object : Callback<ResponseBody> {
@@ -483,7 +475,7 @@ class CommunityViewModel : ViewModel() {
     }
 
     fun reportPost(token: String, postId: Long, reason: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
-        RetrofitInstance.networkService
+        networkService
             .reportPost(bear(token), ReportRequest(postId, reason.ifBlank { "신고" }))
             .enqueue(simpleCallback("신고", onSuccess, onError))
     }
