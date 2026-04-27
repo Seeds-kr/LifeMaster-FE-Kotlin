@@ -6,12 +6,6 @@ import androidx.lifecycle.ViewModel
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.community.model.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import com.example.lifemaster.network.RetrofitInstance
-import com.example.lifemaster.presentation.community.model.PollDetailsDto
-import com.example.lifemaster.presentation.community.model.PollListItem
-import com.example.lifemaster.presentation.community.model.PollOption
-import com.example.lifemaster.presentation.community.model.PollResultDto
-import com.example.lifemaster.presentation.community.model.VoteRequest
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -36,14 +30,13 @@ class PollViewModel @Inject constructor(
     private val _ui = MutableLiveData<PollUi?>()
     val ui: LiveData<PollUi?> = _ui
 
-    private fun bearer(token: String) = "Bearer $token"
+    private fun bearer(token: String) =
+        if (token.startsWith("Bearer ")) token else "Bearer $token"
 
     fun fetchActivePoll(token: String, onError: (String) -> Unit = {}) {
         val auth = bearer(token)
 
-        RetrofitInstance.networkService.getPollList(auth)
-    fun fetchActivePoll(token: String? = null, onError: (String) -> Unit = {}) {
-        networkService.getPollList()
+        networkService.getPollList(auth)
             .enqueue(object : Callback<List<PollListItem>> {
                 override fun onResponse(
                     call: Call<List<PollListItem>>,
@@ -76,9 +69,7 @@ class PollViewModel @Inject constructor(
     fun fetchPollDetails(token: String, pollId: Long, onError: (String) -> Unit = {}) {
         val auth = bearer(token)
 
-        RetrofitInstance.networkService.getPollDetails(auth, pollId)
-    fun fetchPollDetails(pollId: Long, onError: (String) -> Unit = {}) {
-        networkService.getPollDetails(pollId)
+        networkService.getPollDetails(auth, pollId)
             .enqueue(object : Callback<PollDetailsDto> {
                 override fun onResponse(
                     call: Call<PollDetailsDto>,
@@ -126,8 +117,7 @@ class PollViewModel @Inject constructor(
     ) {
         val auth = bearer(token)
 
-        RetrofitInstance.networkService.getPollResults(auth, pollId)
-        networkService.getPollResults(pollId)
+        networkService.getPollResults(auth, pollId)
             .enqueue(object : Callback<Map<String, PollResultDto>> {
                 override fun onResponse(
                     call: Call<Map<String, PollResultDto>>,
@@ -189,20 +179,7 @@ class PollViewModel @Inject constructor(
     ) {
         val bearerToken = bearer(token)
 
-        fun request(optionIdToSend: Int, retryZeroBase: Boolean) {
-            networkService
-                .castVote(bearer, pollId, VoteRequest(optionId = optionIdToSend, userId = userId))
-                .enqueue(object : Callback<ResponseBody> {
-                    override fun onResponse(call: Call<ResponseBody>, res: Response<ResponseBody>) {
-                        if (res.isSuccessful) {
-                            val now = _ui.value
-                            if (now != null && now.pollId == pollId) {
-                                _ui.value = now.copy(myVotedOptionId = optionIdToSend)
-                            }
-                            fetchPollResults(pollId) { onDone() }
-                            return
-                        }
-        RetrofitInstance.networkService
+        networkService
             .castVote(bearerToken, pollId, VoteRequest(optionId = optionId, userId = userId))
             .enqueue(object : Callback<ResponseBody> {
 
