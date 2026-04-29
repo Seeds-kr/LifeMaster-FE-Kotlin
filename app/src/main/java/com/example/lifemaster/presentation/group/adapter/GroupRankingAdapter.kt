@@ -43,7 +43,7 @@ class GroupRankingAdapter : RecyclerView.Adapter<GroupRankingAdapter.RankingView
 
         fun bind(item: GroupRankingItem, myRank: Int?) {
             tvRank.text = item.rank.toString()
-            tvName.text = item.nickname.ifBlank { "이름 없음" }
+            tvName.text = item.nickname?.takeIf { it.isNotBlank() } ?: "이름 없음"
             tvCount.text = item.achieveCount.toString()
 
             val isMine = myRank != null && item.rank == myRank

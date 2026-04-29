@@ -14,6 +14,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -30,18 +31,11 @@ import com.example.lifemaster.presentation.group.model.GroupAchievementHeatmapIt
 import com.example.lifemaster.presentation.group.model.GroupGoalProgressResponseItem
 import com.example.lifemaster.presentation.group.model.GroupRankingItem
 import com.example.lifemaster.presentation.group.model.GroupSleepStatsResponse
-import com.example.lifemaster.presentation.group.model.UserProgressItem
 import com.example.lifemaster.presentation.group.util.ChartStyle
 import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.MarkerView
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.data.CombinedData
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,11 +45,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import retrofit2.Response
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.max
-import kotlin.math.min
 
 @AndroidEntryPoint
 class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
@@ -94,7 +88,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     private var currentRankingScope: String = "WEEKLY"
     private var isRankingExpanded: Boolean = false
     private var rankingAllItems: List<GroupRankingItem> = emptyList()
-    private var rankingMyRank: Int? = null
+    private var rankingMyItem: GroupRankingItem? = null
     private var isRankingLoading: Boolean = false
 
     private var isMember: Boolean = false
@@ -103,6 +97,21 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val backClick = View.OnClickListener {
+            if (!findNavController().popBackStack()) {
+                findNavController().navigateUp()
+            }
+        }
+
+        val backRoot = view.findViewById<View>(R.id.btn_back)
+        backRoot?.setOnClickListener(backClick)
+
+        if (backRoot is ViewGroup) {
+            for (i in 0 until backRoot.childCount) {
+                backRoot.getChildAt(i).setOnClickListener(backClick)
+            }
+        }
 
         tvGroupName = view.findViewById(R.id.tv_group_name)
         tvGroupMemberCount = view.findViewById(R.id.tv_group_member_count)
@@ -194,9 +203,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         layoutRecentAchieveRoot.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 val touchedView = rvRecentAchieve.findChildViewUnder(event.x, event.y)
-                if (touchedView == null) {
-                    hideHeatmapTooltip()
-                }
+                if (touchedView == null) hideHeatmapTooltip()
             }
             false
         }
@@ -224,7 +231,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             isMember = false
             applyMembershipUi()
             rankingAllItems = emptyList()
-            rankingMyRank = null
+            rankingMyItem = null
             bindRankingList()
             return
         }
@@ -247,8 +254,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             val currentGroup = myGroups.find { it.id == groupId }
                 ?: allGroups.find { it.id == groupId }
 
-            val latestCount = currentGroup?.memberCount ?: memberCount
-            memberCount = latestCount
+            memberCount = currentGroup?.memberCount ?: memberCount
             tvGroupMemberCount.text = if (memberCount > 0) "${memberCount}명 참여 중" else ""
 
             loadStats(token, groupId)
@@ -286,7 +292,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         val token = TokenProvider.getBearerToken(requireContext())
         if (token.isNullOrBlank()) {
             rankingAllItems = emptyList()
-            rankingMyRank = null
+            rankingMyItem = null
             bindRankingList()
             return
         }
@@ -304,81 +310,88 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                     )
                 }
 
-                if (!isAdded) return@launch
-
                 if (resp.isSuccessful) {
                     val body = resp.body()
                     rankingAllItems = body?.items.orEmpty()
-                    rankingMyRank = body?.myRank
+
+                    rankingMyItem = body?.let {
+                        GroupRankingItem(
+                            rank = it.myRank ?: 0,
+                            memberId = it.memberId,
+                            nickname = it.myName,
+                            profileImage = it.profileImage,
+                            achieveCount = it.achieveCount ?: 0
+                        )
+                    }
                 } else {
                     rankingAllItems = emptyList()
-                    rankingMyRank = null
+                    rankingMyItem = null
+                    Toast.makeText(requireContext(), "랭킹 조회 실패: ${resp.code()}", Toast.LENGTH_SHORT).show()
                 }
-
-                bindRankingList()
             } catch (e: Exception) {
-                if (!isAdded) return@launch
                 rankingAllItems = emptyList()
-                rankingMyRank = null
-                bindRankingList()
+                rankingMyItem = null
+                Toast.makeText(requireContext(), "랭킹 표시 오류: ${e.message}", Toast.LENGTH_SHORT).show()
             } finally {
                 isRankingLoading = false
+                bindRankingList()
             }
         }
     }
 
     private fun bindRankingList() {
-        val reorderedItems = reorderRankingItems(rankingAllItems, rankingMyRank)
-        val visibleItems = if (isRankingExpanded) reorderedItems else reorderedItems.take(5)
-
         layoutRankingList.removeAllViews()
 
-        visibleItems.forEach { item ->
-            val row = LayoutInflater.from(requireContext())
-                .inflate(R.layout.item_group_ranking_row, layoutRankingList, false)
-
-            val highlightBg = row.findViewById<View>(R.id.view_highlight_bg)
-            val tvRank = row.findViewById<TextView>(R.id.tv_rank)
-            val ivProfile = row.findViewById<ImageView>(R.id.iv_profile)
-            val tvName = row.findViewById<TextView>(R.id.tv_name)
-            val tvCount = row.findViewById<TextView>(R.id.tv_count)
-
-            val isMine = rankingMyRank != null && item.rank == rankingMyRank
-
-            highlightBg.visibility = if (isMine) View.VISIBLE else View.INVISIBLE
-            tvRank.text = item.rank.toString()
-            tvName.text = item.nickname.ifBlank { "이름 없음" }
-            tvCount.text = item.achieveCount.toString()
-
-            if (!item.profileImage.isNullOrBlank()) {
-                Glide.with(this)
-                    .load(item.profileImage)
-                    .placeholder(R.drawable.bg_circle)
-                    .error(R.drawable.bg_circle)
-                    .circleCrop()
-                    .into(ivProfile)
-            } else {
-                ivProfile.setImageResource(R.drawable.bg_circle)
-            }
-
-            layoutRankingList.addView(row)
+        val myItem = rankingMyItem
+        val otherItems = rankingAllItems.filterNot { item ->
+            myItem?.memberId != null && item.memberId == myItem.memberId
         }
 
-        layoutMore.visibility = if (reorderedItems.size > 5) View.VISIBLE else View.GONE
+        val visibleOtherItems = if (isRankingExpanded) otherItems else otherItems.take(5)
+
+        myItem?.let {
+            addRankingRow(item = it, isMine = true)
+        }
+
+        visibleOtherItems.forEach {
+            addRankingRow(item = it, isMine = false)
+        }
+
+        val hasAnyRanking = myItem != null || visibleOtherItems.isNotEmpty()
+        layoutRankingList.visibility = if (hasAnyRanking) View.VISIBLE else View.GONE
+
+        layoutMore.visibility = if (otherItems.size > 5) View.VISIBLE else View.GONE
         btnMore.text = if (isRankingExpanded) "접기" else getString(R.string.more)
         ivMoreArrow.rotation = if (isRankingExpanded) 180f else 0f
     }
 
-    private fun reorderRankingItems(
-        items: List<GroupRankingItem>,
-        myRank: Int?
-    ): List<GroupRankingItem> {
-        if (items.isEmpty() || myRank == null) return items
+    private fun addRankingRow(item: GroupRankingItem, isMine: Boolean) {
+        val row = LayoutInflater.from(requireContext())
+            .inflate(R.layout.item_group_ranking_row, layoutRankingList, false)
 
-        val myItem = items.firstOrNull { it.rank == myRank } ?: return items
-        val others = items.filterNot { it.rank == myRank }
+        val highlightBg = row.findViewById<View>(R.id.view_highlight_bg)
+        val tvRank = row.findViewById<TextView>(R.id.tv_rank)
+        val ivProfile = row.findViewById<ImageView>(R.id.iv_profile)
+        val tvName = row.findViewById<TextView>(R.id.tv_name)
+        val tvCount = row.findViewById<TextView>(R.id.tv_count)
 
-        return listOf(myItem) + others
+        highlightBg.visibility = if (isMine) View.VISIBLE else View.INVISIBLE
+        tvRank.text = if (item.rank > 0) item.rank.toString() else "-"
+        tvName.text = item.nickname?.takeIf { it.isNotBlank() } ?: "이름 없음"
+        tvCount.text = item.achieveCount.toString()
+
+        if (!item.profileImage.isNullOrBlank()) {
+            Glide.with(this)
+                .load(item.profileImage)
+                .placeholder(R.drawable.bg_circle)
+                .error(R.drawable.bg_circle)
+                .circleCrop()
+                .into(ivProfile)
+        } else {
+            ivProfile.setImageResource(R.drawable.bg_circle)
+        }
+
+        layoutRankingList.addView(row)
     }
 
     private fun showJoinDialog() {
@@ -415,14 +428,13 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             return
         }
 
-        val groupId = args.groupId
         val password = passwordOrBlank.ifBlank { null }
 
         lifecycleScope.launch {
             val resp: Response<ResponseBody> = withContext(Dispatchers.IO) {
                 networkService.joinGroup(
                     token = token,
-                    groupId = groupId,
+                    groupId = args.groupId,
                     password = password
                 )
             }
@@ -434,6 +446,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                     Toast.makeText(requireContext(), "비밀번호가 필요하거나 올바르지 않습니다.", Toast.LENGTH_LONG).show()
                     return@launch
                 }
+
                 if (resp.code() == 409 || err.contains("already", ignoreCase = true)) {
                     isMember = true
                     applyMembershipUi()
@@ -469,11 +482,9 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             return
         }
 
-        val groupId = args.groupId
-
         lifecycleScope.launch {
             val resp: Response<ResponseBody> = withContext(Dispatchers.IO) {
-                networkService.leaveGroup(token = token, groupId = groupId)
+                networkService.leaveGroup(token = token, groupId = args.groupId)
             }
 
             if (!resp.isSuccessful) {
@@ -510,7 +521,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
             val sleepDeferred = async(Dispatchers.IO) {
                 runCatching { networkService.getGroupSleepStats(token, groupId) }
-                    .getOrElse { Response.success(GroupSleepStatsResponse(emptyList())) }
+                    .getOrElse { Response.success(GroupSleepStatsResponse()) }
             }
 
             val goalsDeferred = async(Dispatchers.IO) {
@@ -528,44 +539,79 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             val goalsResp = goalsDeferred.await()
             val heatmapResp = heatmapDeferred.await()
 
-            val sleepMinutes = sleepResp.body()?.userSleepDurations.orEmpty()
-            val goals = goalsResp.body().orEmpty()
-            val heatmapItems = heatmapResp.body().orEmpty()
+            val sleepBody = sleepResp.body()
+            val userSleepMinutes = sleepBody?.userSleepDurations.orEmpty()
+            val groupSleepMinutes = sleepBody?.groupAverageSleepDurations.orEmpty()
 
             bindDynamicGoalCharts(
-                goals = goals,
-                sleepMinutes = sleepMinutes,
+                goals = goalsResp.body().orEmpty(),
+                userSleepMinutes = userSleepMinutes,
+                groupSleepMinutes = groupSleepMinutes,
                 myEmail = myEmail
             )
 
-            bindHeatmap(heatmapItems)
+            bindHeatmap(heatmapResp.body().orEmpty())
         }
     }
 
     private fun bindDynamicGoalCharts(
         goals: List<GroupGoalProgressResponseItem>,
-        sleepMinutes: List<Int>,
+        userSleepMinutes: List<Int>,
+        groupSleepMinutes: List<Int>,
         myEmail: String?
     ) {
         layoutGoalChartContainer.removeAllViews()
 
-        goals.forEach { goal ->
-            val goalType = resolveGoalType(goal)
+        goals.firstOrNull { it.goalName.contains("수면") }?.let {
+            addSleepItem(it, userSleepMinutes, groupSleepMinutes)
+        }
 
-            when (goalType.chartType) {
-                GoalChartType.LINE -> addLineGoalItem(goal, goalType, sleepMinutes)
-                GoalChartType.BAR -> addBarGoalItem(goal, goalType, myEmail)
-            }
+        goals.firstOrNull { it.goalName.contains("뽀모도로") }?.let {
+            addPomodoroItem(it, myEmail)
         }
 
         layoutGoalChartContainer.visibility =
             if (layoutGoalChartContainer.childCount > 0) View.VISIBLE else View.GONE
     }
 
-    private fun addLineGoalItem(
+    private fun bindExternalXAxisLabels(container: View, labels: List<String>, isBarChart: Boolean, chart: View) {
+        val labelContainerId = if (isBarChart) R.id.layout_bar_x_labels else R.id.layout_line_x_labels
+
+        val visibleIds = if (isBarChart) {
+            listOf(R.id.tv_bar_x_1, R.id.tv_bar_x_2, R.id.tv_bar_x_3, R.id.tv_bar_x_4, R.id.tv_bar_x_5, R.id.tv_bar_x_6)
+        } else {
+            listOf(R.id.tv_line_x_1, R.id.tv_line_x_2, R.id.tv_line_x_3, R.id.tv_line_x_4, R.id.tv_line_x_5, R.id.tv_line_x_6)
+        }
+
+        val labelContainer = container.findViewById<LinearLayout>(labelContainerId)
+
+        visibleIds.forEachIndexed { index, id ->
+            container.findViewById<TextView>(id)?.apply {
+                visibility = View.VISIBLE
+                text = labels.getOrNull(index).orEmpty()
+            }
+        }
+
+        chart.post {
+            val contentRect = when (chart) {
+                is LineChart -> chart.viewPortHandler.contentRect
+                is CombinedChart -> chart.viewPortHandler.contentRect
+                else -> null
+            } ?: return@post
+
+            labelContainer.setPadding(
+                contentRect.left.toInt(),
+                0,
+                (chart.width - contentRect.right).toInt(),
+                0
+            )
+        }
+    }
+
+    private fun addSleepItem(
         goal: GroupGoalProgressResponseItem,
-        goalType: GoalTypeUi,
-        sleepMinutes: List<Int>
+        userSleepMinutes: List<Int>,
+        groupSleepMinutes: List<Int>
     ) {
         val itemView = LayoutInflater.from(requireContext())
             .inflate(R.layout.item_group_goal_chart, layoutGoalChartContainer, false)
@@ -578,62 +624,51 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         val barCard = itemView.findViewById<View>(R.id.card_bar_chart)
         val lineChart = itemView.findViewById<LineChart>(R.id.chart_line)
 
-        legend.visibility = View.GONE
+        legend.visibility = View.VISIBLE
         lineCard.visibility = View.VISIBLE
         barCard.visibility = View.GONE
 
-        tvMinGoalValue.text = buildGoalValueText(goal, goalType)
-        tvGoalTitle.text = "${goalType.title} 통계"
+        tvMinGoalValue.text = "수면 ${goal.goalValue}시간 이상"
+        tvGoalTitle.text = "수면시간 통계"
 
-        if (goalType.isSleep) {
-            val values = sleepMinutes.ifEmpty { listOf() }
-            if (values.isEmpty()) {
-                tvGoalDesc.text = "수면 데이터가 없습니다"
-                lineChart.clear()
-                layoutGoalChartContainer.addView(itemView)
-                return
-            }
-
-            val xLabels = buildSequentialLabels(values.size)
-            val avgHour = values.average() / 60.0
-            tvGoalDesc.text = "최근 평균 수면: %.1f시간".format(avgHour)
-
-            renderSleepChart(
-                chart = lineChart,
-                values = values.map { it / 60f },
-                xLabels = xLabels,
-                goalY = goal.goalValue.toFloat(),
-                markerSubText = "평균 %.1f시간".format(avgHour)
-            )
-        } else {
-            val values = goal.userProgress.map { it.progress ?: 0 }
-            if (values.isEmpty()) {
-                tvGoalDesc.text = "진행 데이터가 없습니다"
-                lineChart.clear()
-                layoutGoalChartContainer.addView(itemView)
-                return
-            }
-
-            val xLabels = buildMemberLabels(goal.userProgress, values.size)
-            val avg = values.average()
-            tvGoalDesc.text = "최근 평균 진행도: %.1f".format(avg)
-
-            renderGenericLineChart(
-                chart = lineChart,
-                values = values.map { it.toFloat() },
-                xLabels = xLabels,
-                goalY = goal.goalValue.toFloat()
-            )
+        if (userSleepMinutes.isEmpty() && groupSleepMinutes.isEmpty()) {
+            tvGoalDesc.text = "수면 데이터가 없습니다"
+            lineChart.clear()
+            layoutGoalChartContainer.addView(itemView)
+            return
         }
 
+        val xLabels = buildLast6DayLabels()
+        val userSleepHours = normalizeSleepMinutesToSixHours(userSleepMinutes)
+        val groupSleepHours = normalizeSleepMinutesToSixHours(groupSleepMinutes)
+
+        val userAvgMinutes = userSleepMinutes.takeLast(6)
+            .filter { it > 0 }
+            .average()
+            .takeIf { !it.isNaN() }
+            ?: 0.0
+
+        tvGoalDesc.text = if (userAvgMinutes > 0.0) {
+            "최근 평균 수면: ${"%.1f".format(userAvgMinutes / 60.0)}시간"
+        } else {
+            "최근 평균 수면 데이터가 없습니다"
+        }
+
+        renderSleepChart(
+            chart = lineChart,
+            userValues = userSleepHours,
+            groupValues = groupSleepHours,
+            xLabels = xLabels,
+            goalY = goal.goalValue.toFloat(),
+            avgHour = (userAvgMinutes / 60.0).toFloat(),
+            participantCount = memberCount
+        )
+
+        bindExternalXAxisLabels(itemView, xLabels, false, lineChart)
         layoutGoalChartContainer.addView(itemView)
     }
 
-    private fun addBarGoalItem(
-        goal: GroupGoalProgressResponseItem,
-        goalType: GoalTypeUi,
-        myEmail: String?
-    ) {
+    private fun addPomodoroItem(goal: GroupGoalProgressResponseItem, myEmail: String?) {
         val itemView = LayoutInflater.from(requireContext())
             .inflate(R.layout.item_group_goal_chart, layoutGoalChartContainer, false)
 
@@ -649,12 +684,15 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         lineCard.visibility = View.GONE
         barCard.visibility = View.VISIBLE
 
-        tvMinGoalValue.text = buildGoalValueText(goal, goalType)
-        tvGoalTitle.text = "${goalType.title} 통계"
+        val minGoalValue = goal.goalValue.toFloat()
 
-        val groupValues = goal.userProgress.map { (it.progress ?: 0).toFloat() }
-        if (groupValues.isEmpty()) {
-            tvGoalDesc.text = "진행 데이터가 없습니다"
+        tvMinGoalValue.text = "뽀모도로 ${minGoalValue.toInt()}회 이상"
+        tvGoalTitle.text = "뽀모도로 통계"
+        tvGoalDesc.text = "달성 횟수 통계"
+
+        val rawValues = goal.userProgress.map { (it.progress ?: 0).toFloat() }
+
+        if (rawValues.isEmpty()) {
             barChart.clear()
             layoutGoalChartContainer.addView(itemView)
             return
@@ -664,147 +702,106 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             .firstOrNull { it.userEmail == myEmail }
             ?.progress
             ?.toFloat()
-            ?: 0f
+            ?: rawValues.average().toFloat()
 
-        val myLine = List(groupValues.size) { myProgress }
-        val xLabels = buildMemberLabels(goal.userProgress, groupValues.size)
+        val xLabels = buildLast6DayLabels()
+        val groupValues = normalizePomodoroToSixBars(rawValues, minGoalValue)
+        val myValues = normalizePomodoroLineToSix(groupValues, myProgress)
 
-        tvGoalDesc.text = "달성 횟수 통계"
-
-        renderPomodoroChart(
-            chart = barChart,
-            groupValues = groupValues,
-            myValues = myLine,
-            xLabels = xLabels,
-            goalY = goal.goalValue.toFloat()
-        )
+        renderPomodoroChart(barChart, groupValues, myValues, xLabels, minGoalValue)
+        bindExternalXAxisLabels(itemView, xLabels, true, barChart)
 
         layoutGoalChartContainer.addView(itemView)
     }
 
-    private fun resolveGoalType(goal: GroupGoalProgressResponseItem): GoalTypeUi {
-        val name = goal.goalName.orEmpty()
-        val condition = goal.goalCondition.orEmpty().uppercase()
+    private fun buildLast6DayLabels(): List<String> {
+        val formatter = DateTimeFormatter.ofPattern("d")
+        val today = LocalDate.now()
 
-        return when {
-            name.contains("수면") || (condition == "TIME" && name.contains("수면")) ->
-                GoalTypeUi("수면시간", true, GoalChartType.LINE)
-
-            condition == "TIME" ->
-                GoalTypeUi(extractBaseTitle(name, "시간"), false, GoalChartType.LINE)
-
-            else ->
-                GoalTypeUi(extractBaseTitle(name, "회"), false, GoalChartType.BAR)
+        return (5 downTo 0).map { offset ->
+            today.minusDays(offset.toLong()).format(formatter)
         }
     }
 
-    private fun buildGoalValueText(goal: GroupGoalProgressResponseItem, type: GoalTypeUi): String {
-        return when (type.chartType) {
-            GoalChartType.LINE -> {
-                if (type.isSleep) "${goal.goalValue}시간 수면하기"
-                else "${type.title} ${goal.goalValue}시간"
-            }
-            GoalChartType.BAR -> "${type.title} ${goal.goalValue}회 이상"
-        }
+    private fun normalizeSleepMinutesToSixHours(values: List<Int>): List<Float> {
+        val lastSix = values.takeLast(6).map { it / 60f }
+        return if (lastSix.size >= 6) lastSix else List(6 - lastSix.size) { 0f } + lastSix
     }
 
-    private fun extractBaseTitle(name: String, suffixUnit: String): String {
-        if (name.isBlank()) return "목표"
-        val removedUnit = name.substringBefore(" $suffixUnit")
-        return removedUnit.substringBeforeLast(" ").ifBlank { name }
+    private fun normalizePomodoroToSixBars(values: List<Float>, goal: Float): List<Float> {
+        if (values.isEmpty()) return List(6) { 0f }
+
+        val actual = values.takeLast(6)
+        return if (actual.size >= 6) actual else List(6 - actual.size) { 0f } + actual
+    }
+
+    private fun normalizePomodoroLineToSix(groupValues: List<Float>, myProgress: Float): List<Float> {
+        return List(6) { myProgress }
     }
 
     private fun renderSleepChart(
         chart: LineChart,
-        values: List<Float>,
+        userValues: List<Float>,
+        groupValues: List<Float>,
         xLabels: List<String>,
         goalY: Float,
-        markerSubText: String
+        avgHour: Float,
+        participantCount: Int
     ) {
-        val entries = values.mapIndexed { index, value ->
-            Entry(index.toFloat(), value)
-        }
+        val userEntries = userValues.mapIndexed { index, value -> Entry(index.toFloat(), value) }
+        val groupEntries = groupValues.mapIndexed { index, value -> Entry(index.toFloat(), value) }
 
-        val yValues = entries.map { it.y }
-        val yMin = floor(min(yValues.minOrNull() ?: 0f, goalY) - 1f).coerceAtLeast(0f)
-        val yMax = ceil(max(yValues.maxOrNull() ?: 0f, goalY) + 1f)
+        val maxValue = max(max(userValues.maxOrNull() ?: 0f, groupValues.maxOrNull() ?: 0f), goalY)
+        val yMax = max(12f, ceil(maxValue + 1f))
 
-        ChartStyle.applySleep(
-            chart = chart,
-            xLabels = xLabels,
-            goalY = goalY,
-            yMin = yMin,
-            yMax = yMax
-        )
+        ChartStyle.applySleep(chart, xLabels, goalY, 0f, yMax)
 
-        val mainSet = LineDataSet(entries, "").apply {
-            color = ChartStyle.goalColor()
-            lineWidth = 3.2f
+        val groupSet = LineDataSet(groupEntries, "").apply {
+            color = ChartStyle.lineColor()
+            lineWidth = 2.2f
             setDrawValues(false)
             setDrawFilled(false)
             setDrawCircles(false)
             mode = LineDataSet.Mode.LINEAR
             setDrawHighlightIndicators(false)
-            highLightColor = ChartStyle.goalColor()
         }
 
-        val lastEntry = entries.last()
-        val pointSet = LineDataSet(listOf(lastEntry), "").apply {
+        val userSet = LineDataSet(userEntries, "").apply {
             color = ChartStyle.goalColor()
-            lineWidth = 0f
+            lineWidth = 2.6f
             setDrawValues(false)
             setDrawFilled(false)
-            setDrawCircles(true)
-            circleRadius = 7f
-            circleHoleRadius = 4f
-            setCircleColor(ChartStyle.goalColor())
-            circleHoleColor = ChartStyle.circleHoleColor()
-            setDrawHighlightIndicators(false)
-        }
-
-        chart.data = LineData(mainSet, pointSet)
-        chart.marker = SleepMarkerView(requireContext(), markerSubText)
-        chart.highlightValue(lastEntry.x, lastEntry.y, 1)
-        chart.invalidate()
-    }
-
-    private fun renderGenericLineChart(
-        chart: LineChart,
-        values: List<Float>,
-        xLabels: List<String>,
-        goalY: Float
-    ) {
-        val entries = values.mapIndexed { index, value ->
-            Entry(index.toFloat(), value)
-        }
-
-        val yValues = entries.map { it.y }
-        val yMin = floor(min(yValues.minOrNull() ?: 0f, goalY) - 1f).coerceAtLeast(0f)
-        val yMax = ceil(max(yValues.maxOrNull() ?: 0f, goalY) + 1f)
-
-        ChartStyle.applySleep(
-            chart = chart,
-            xLabels = xLabels,
-            goalY = goalY,
-            yMin = yMin,
-            yMax = yMax
-        )
-
-        val dataSet = LineDataSet(entries, "").apply {
-            color = ChartStyle.goalColor()
-            lineWidth = 2.5f
-            setDrawValues(false)
-            setDrawFilled(false)
-            setDrawCircles(true)
-            circleRadius = 4f
-            circleHoleRadius = 2f
-            setCircleColor(ChartStyle.goalColor())
-            circleHoleColor = ChartStyle.circleHoleColor()
+            setDrawCircles(false)
             mode = LineDataSet.Mode.LINEAR
             setDrawHighlightIndicators(false)
         }
 
-        chart.data = LineData(dataSet)
+        val lastUserEntry = userEntries.lastOrNull()
+        val pointSet = lastUserEntry?.let {
+            LineDataSet(listOf(it), "").apply {
+                color = ChartStyle.goalColor()
+                lineWidth = 0f
+                setDrawValues(false)
+                setDrawFilled(false)
+                setDrawCircles(true)
+                circleRadius = 7f
+                circleHoleRadius = 3.6f
+                setCircleColor(ChartStyle.goalColor())
+                circleHoleColor = ChartStyle.circleHoleColor()
+                setDrawHighlightIndicators(false)
+            }
+        }
+
+        chart.data = if (pointSet != null) LineData(groupSet, userSet, pointSet) else LineData(groupSet, userSet)
+        chart.xAxis.axisMinimum = -0.5f
+        chart.xAxis.axisMaximum = 5.5f
+        chart.marker = SleepMarkerView(requireContext(), participantCount, avgHour)
+
+        lastUserEntry?.let {
+            chart.highlightValue(it.x, it.y, 2)
+        }
+
+        chart.notifyDataSetChanged()
         chart.invalidate()
     }
 
@@ -815,55 +812,38 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         xLabels: List<String>,
         goalY: Float
     ) {
-        val barEntries = groupValues.mapIndexed { index, value ->
-            BarEntry(index.toFloat(), value)
-        }
+        val barEntries = groupValues.mapIndexed { index, value -> BarEntry(index.toFloat(), value) }
+        val lineEntries = myValues.mapIndexed { index, value -> Entry(index.toFloat(), value) }
 
-        val lineEntries = myValues.mapIndexed { index, value ->
-            Entry(index.toFloat(), value)
-        }
+        val maxValue = max(max(groupValues.maxOrNull() ?: 0f, myValues.maxOrNull() ?: 0f), goalY)
+        val yMax = ceil(maxValue + 1f).coerceAtLeast(goalY + 1f)
 
-        val yMin = 0f
-        val yMax = ceil(
-            max(
-                max(groupValues.maxOrNull() ?: 0f, myValues.maxOrNull() ?: 0f),
-                goalY
-            ) + 1f
-        )
-
-        ChartStyle.applyPomodoro(
-            chart = chart,
-            xLabels = xLabels,
-            goalY = goalY,
-            yMin = yMin,
-            yMax = yMax
-        )
+        ChartStyle.applyPomodoro(chart, xLabels, goalY, 0f, yMax)
 
         val barDataSet = BarDataSet(barEntries, "").apply {
             color = ChartStyle.barColor()
             setDrawValues(false)
+            highLightAlpha = 0
         }
 
         val lineDataSet = LineDataSet(lineEntries, "").apply {
             color = ChartStyle.lineColor()
-            lineWidth = 3f
+            lineWidth = 2.4f
             setDrawValues(false)
             setDrawCircles(false)
             setDrawFilled(true)
-            fillColor = ChartStyle.fillColor()
-            fillAlpha = 100
+            fillDrawable = ChartStyle.makePomodoroFillDrawable(requireContext())
             mode = LineDataSet.Mode.LINEAR
             setDrawHighlightIndicators(false)
         }
 
-        val lastEntry = lineEntries.last()
-        val pointSet = LineDataSet(listOf(lastEntry), "").apply {
+        val pointSet = LineDataSet(listOf(lineEntries.last()), "").apply {
             color = ChartStyle.lineColor()
             lineWidth = 0f
             setDrawValues(false)
             setDrawFilled(false)
             setDrawCircles(true)
-            circleRadius = 6f
+            circleRadius = 5.5f
             circleHoleRadius = 3f
             setCircleColor(ChartStyle.lineColor())
             circleHoleColor = ChartStyle.circleHoleColor()
@@ -871,33 +851,19 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         val barData = BarData(barDataSet).apply {
-            barWidth = 0.5f
+            barWidth = 0.18f
         }
 
-        val combinedData = CombinedData().apply {
+        chart.data = CombinedData().apply {
             setData(barData)
             setData(LineData(lineDataSet, pointSet))
         }
 
-        chart.data = combinedData
         chart.xAxis.axisMinimum = -0.5f
-        chart.xAxis.axisMaximum = groupValues.size - 0.5f
+        chart.xAxis.axisMaximum = 5.5f
+        chart.fitScreen()
+        chart.notifyDataSetChanged()
         chart.invalidate()
-    }
-
-    private fun buildSequentialLabels(size: Int): List<String> {
-        return List(size) { (it + 1).toString() }
-    }
-
-    private fun buildMemberLabels(
-        userProgress: List<UserProgressItem>,
-        fallbackSize: Int
-    ): List<String> {
-        val labels = userProgress.mapIndexed { index, item ->
-            val base = item.userEmail.substringBefore("@")
-            base.take(4).ifBlank { (index + 1).toString() }
-        }
-        return if (labels.isNotEmpty()) labels else List(fallbackSize) { (it + 1).toString() }
     }
 
     private fun bindHeatmap(items: List<GroupAchievementHeatmapItem>) {
@@ -912,14 +878,9 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             }
         }
 
-        heatmapAdapter = RecentAchieveHeatmapAdapter(
-            items = safeItems
-        ) { item, anchorView, isNowSelected, _ ->
-            if (isNowSelected) {
-                showHeatmapTooltip(item, anchorView)
-            } else {
-                hideHeatmapTooltip(clearSelection = false)
-            }
+        heatmapAdapter = RecentAchieveHeatmapAdapter(items = safeItems) { item, anchorView, isNowSelected, _ ->
+            if (isNowSelected) showHeatmapTooltip(item, anchorView)
+            else hideHeatmapTooltip(clearSelection = false)
         }
 
         rvRecentAchieve.adapter = heatmapAdapter
@@ -966,9 +927,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun hideHeatmapTooltip(clearSelection: Boolean = true) {
         layoutHeatmapTooltip.visibility = View.GONE
-        if (clearSelection) {
-            heatmapAdapter?.clearSelection()
-        }
+        if (clearSelection) heatmapAdapter?.clearSelection()
         tooltipDismissRunnable?.let { layoutHeatmapTooltip.removeCallbacks(it) }
         tooltipDismissRunnable = null
     }
@@ -981,19 +940,10 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         return (dp * resources.displayMetrics.density).toInt()
     }
 
-    private data class GoalTypeUi(
-        val title: String,
-        val isSleep: Boolean,
-        val chartType: GoalChartType
-    )
-
-    private enum class GoalChartType {
-        LINE, BAR
-    }
-
     private inner class SleepMarkerView(
         context: Context,
-        subText: String
+        private val participantCount: Int,
+        private val avgHour: Float
     ) : MarkerView(context, android.R.layout.simple_list_item_1) {
 
         private val root: LinearLayout
@@ -1005,23 +955,20 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
             root = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(dp(16), dp(14), dp(16), dp(14))
+                setPadding(dp(12), dp(10), dp(12), dp(10))
                 background = ChartStyle.makeMarkerBackground()
-                layoutParams = LayoutParams(
-                    LayoutParams.WRAP_CONTENT,
-                    LayoutParams.WRAP_CONTENT
-                )
+                layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
             }
 
             title = TextView(context).apply {
                 text = "평균 수면시간"
                 setTextColor(Color.BLACK)
-                textSize = 14f
-                setTypeface(typeface, Typeface.BOLD)
+                textSize = 13f
+                typeface = Typeface.DEFAULT
             }
 
             sub = TextView(context).apply {
-                text = subText
+                text = "${participantCount}명 참여   ${"%.1f".format(avgHour)}시간"
                 setTextColor(ChartStyle.goalColor())
                 textSize = 11f
                 setPadding(0, dp(8), 0, 0)
@@ -1037,7 +984,18 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         override fun getOffset(): MPPointF {
-            return MPPointF((-width / 2f), (-height - dp(12)).toFloat())
+            return MPPointF((-width - dp(12)).toFloat(), (-height - dp(12)).toFloat())
+        }
+
+        override fun getOffsetForDrawingAtPoint(posX: Float, posY: Float): MPPointF {
+            val offsetY = -height - dp(12).toFloat()
+            var offsetX = -width - dp(12).toFloat()
+
+            if (posX + offsetX < dp(4)) {
+                offsetX = dp(12).toFloat()
+            }
+
+            return MPPointF(offsetX, offsetY)
         }
 
         private fun dp(value: Int): Int {

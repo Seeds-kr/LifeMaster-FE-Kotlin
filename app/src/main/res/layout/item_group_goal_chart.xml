@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="8dp"
@@ -142,48 +143,187 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_line_chart"
             android:layout_width="match_parent"
-            android:layout_height="240dp"
+            android:layout_height="199dp"
             android:layout_marginTop="8dp"
             app:cardBackgroundColor="@android:color/white"
-            app:cardCornerRadius="12dp"
+            app:cardCornerRadius="0dp"
             app:cardElevation="0dp"
-            app:strokeColor="@color/black_10"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
-            <FrameLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="8dp">
+                android:orientation="vertical">
 
                 <com.github.mikephil.charting.charts.LineChart
                     android:id="@+id/chart_line"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-            </FrameLayout>
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <LinearLayout
+                    android:id="@+id/layout_line_x_labels"
+                    android:layout_width="match_parent"
+                    android:layout_height="18dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:weightSum="6">
+
+                    <TextView
+                        android:id="@+id/tv_line_x_1"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="10" />
+
+                    <TextView
+                        android:id="@+id/tv_line_x_2"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="11" />
+
+                    <TextView
+                        android:id="@+id/tv_line_x_3"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="12" />
+
+                    <TextView
+                        android:id="@+id/tv_line_x_4"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="13" />
+
+                    <TextView
+                        android:id="@+id/tv_line_x_5"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="14" />
+
+                    <TextView
+                        android:id="@+id/tv_line_x_6"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="15" />
+
+                </LinearLayout>
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_bar_chart"
             android:layout_width="match_parent"
-            android:layout_height="240dp"
-            android:layout_marginTop="12dp"
+            android:layout_height="199dp"
+            android:layout_marginTop="8dp"
             android:visibility="gone"
             app:cardBackgroundColor="@android:color/white"
-            app:cardCornerRadius="12dp"
+            app:cardCornerRadius="0dp"
             app:cardElevation="0dp"
-            app:strokeColor="@color/black_10"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
-            <FrameLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="8dp">
+                android:orientation="vertical">
 
                 <com.github.mikephil.charting.charts.CombinedChart
                     android:id="@+id/chart_bar"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-            </FrameLayout>
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <LinearLayout
+                    android:id="@+id/layout_bar_x_labels"
+                    android:layout_width="match_parent"
+                    android:layout_height="18dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:weightSum="6">
+
+                    <TextView
+                        android:id="@+id/tv_bar_x_1"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="10" />
+
+                    <TextView
+                        android:id="@+id/tv_bar_x_2"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="11" />
+
+                    <TextView
+                        android:id="@+id/tv_bar_x_3"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="12" />
+
+                    <TextView
+                        android:id="@+id/tv_bar_x_4"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="13" />
+
+                    <TextView
+                        android:id="@+id/tv_bar_x_5"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="14" />
+
+                    <TextView
+                        android:id="@+id/tv_bar_x_6"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#B8B8B8"
+                        android:textSize="12sp"
+                        tools:text="15" />
+                </LinearLayout>
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>

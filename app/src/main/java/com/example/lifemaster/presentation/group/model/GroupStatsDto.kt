@@ -1,7 +1,8 @@
 package com.example.lifemaster.presentation.group.model
 
 data class GroupSleepStatsResponse(
-    val userSleepDurations: List<Int>
+    val userSleepDurations: List<Int> = emptyList(),
+    val groupAverageSleepDurations: List<Int> = emptyList()
 )
 
 data class GroupGoalProgressResponseItem(
@@ -9,7 +10,7 @@ data class GroupGoalProgressResponseItem(
     val goalDuration: String,
     val goalCondition: String,
     val goalName: String,
-    val userProgress: List<UserProgressItem>
+    val userProgress: List<UserProgressItem> = emptyList()
 )
 
 data class UserProgressItem(
@@ -17,13 +18,11 @@ data class UserProgressItem(
     val progress: Int? = null
 )
 
-// 최근 30일 달성 인원
 data class GroupAchievementHeatmapItem(
     val date: String,
     val achievedUserCount: Int
 )
 
-// 그룹 내 랭킹
 data class GroupRankingResponse(
     val scope: String? = null,
     val myRank: Int? = null,
@@ -35,9 +34,9 @@ data class GroupRankingResponse(
 )
 
 data class GroupRankingItem(
-    val rank: Int,
+    val rank: Int = 0,
     val memberId: Long? = null,
-    val nickname: String,
+    val nickname: String? = null,
     val profileImage: String? = null,
-    val achieveCount: Int
+    val achieveCount: Int = 0
 )

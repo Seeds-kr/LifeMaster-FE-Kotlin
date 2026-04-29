@@ -90,8 +90,8 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
             onTypeClick = { anchor, current, onPicked ->
                 showTypeDropdown(anchor, current, onPicked)
             },
-            onCountClick = { anchor, current, onPicked ->
-                showCountDropdown(anchor, current, onPicked)
+            onCountClick = { anchor, goalType, current, onPicked ->
+                showCountDropdown(anchor, goalType, current, onPicked)
             },
             onDelete = { pos ->
                 goalAdapter.removeAt(pos)
@@ -496,8 +496,20 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         return digits.toIntOrNull() ?: 0
     }
 
+    private fun isTimeGoal(goalType: String): Boolean {
+        return goalType.contains("수면") ||
+                goalType.contains("디톡스") ||
+                goalType.contains("폰")
+    }
+
+    private fun formatGoalCount(goalType: String, value: Int): String {
+        val unit = if (isTimeGoal(goalType)) "시간" else "회"
+        return "${value}${unit} 이상"
+    }
+
     private fun showCountDropdown(
         anchor: View,
+        goalType: String,
         selectedValue: String,
         onPicked: (String) -> Unit
     ) {
@@ -514,28 +526,32 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
             elevation = 16f
         }
 
-        fun bind(id: Int, value: String) {
+        fun bind(id: Int, number: Int) {
+            val value = formatGoalCount(goalType, number)
             val tv = popupView.findViewById<TextView>(id)
+
+            tv.text = value
             tv.setTextColor(
                 if (value == selectedValue) requireContext().getColor(R.color.purple_100)
                 else requireContext().getColor(R.color.black)
             )
+
             tv.setOnClickListener {
                 onPicked(value)
                 popup.dismiss()
             }
         }
 
-        bind(R.id.opt_1, "1회 이상")
-        bind(R.id.opt_2, "2회 이상")
-        bind(R.id.opt_3, "3회 이상")
-        bind(R.id.opt_4, "4회 이상")
-        bind(R.id.opt_5, "5회 이상")
-        bind(R.id.opt_6, "6회 이상")
-        bind(R.id.opt_7, "7회 이상")
-        bind(R.id.opt_8, "8회 이상")
-        bind(R.id.opt_9, "9회 이상")
-        bind(R.id.opt_10, "10회 이상")
+        bind(R.id.opt_1, 1)
+        bind(R.id.opt_2, 2)
+        bind(R.id.opt_3, 3)
+        bind(R.id.opt_4, 4)
+        bind(R.id.opt_5, 5)
+        bind(R.id.opt_6, 6)
+        bind(R.id.opt_7, 7)
+        bind(R.id.opt_8, 8)
+        bind(R.id.opt_9, 9)
+        bind(R.id.opt_10, 10)
 
         popup.showAsDropDown(anchor, 0, 0, Gravity.START)
     }
@@ -560,10 +576,12 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
         fun bind(id: Int, value: String) {
             val tv = popupView.findViewById<TextView>(id)
+
             tv.setTextColor(
                 if (value == selectedValue) requireContext().getColor(R.color.purple_100)
                 else requireContext().getColor(R.color.black)
             )
+
             tv.setOnClickListener {
                 onPicked(value)
                 popup.dismiss()
@@ -588,7 +606,12 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
     private class GoalRowAdapter(
         private val items: MutableList<GoalRow>,
         private val onTypeClick: (anchor: View, current: String, onPicked: (String) -> Unit) -> Unit,
-        private val onCountClick: (anchor: View, current: String, onPicked: (String) -> Unit) -> Unit,
+        private val onCountClick: (
+            anchor: View,
+            goalType: String,
+            current: String,
+            onPicked: (String) -> Unit
+        ) -> Unit,
         private val onDelete: (pos: Int) -> Unit
     ) : RecyclerView.Adapter<GoalRowAdapter.VH>() {
 
@@ -624,7 +647,12 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         class VH(
             itemView: View,
             private val onTypeClick: (anchor: View, current: String, onPicked: (String) -> Unit) -> Unit,
-            private val onCountClick: (anchor: View, current: String, onPicked: (String) -> Unit) -> Unit,
+            private val onCountClick: (
+                anchor: View,
+                goalType: String,
+                current: String,
+                onPicked: (String) -> Unit
+            ) -> Unit,
             private val onDelete: (pos: Int) -> Unit
         ) : RecyclerView.ViewHolder(itemView) {
 
@@ -640,19 +668,39 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
                 boxType.setOnClickListener {
                     onTypeClick(boxType, row.type) { picked ->
+                        val currentValue = parseValue(row.count).coerceAtLeast(1)
+
                         row.type = picked
-                        tvType.text = picked
+                        row.count = formatCountByType(picked, currentValue)
+
+                        tvType.text = row.type
+                        tvCount.text = row.count
                     }
                 }
 
                 boxCount.setOnClickListener {
-                    onCountClick(boxCount, row.count) { picked ->
+                    onCountClick(boxCount, row.type, row.count) { picked ->
                         row.count = picked
                         tvCount.text = picked
                     }
                 }
 
                 btnDelete.setOnClickListener { onDelete(pos) }
+            }
+
+            private fun parseValue(label: String): Int {
+                return label.filter { it.isDigit() }.toIntOrNull() ?: 1
+            }
+
+            private fun isTimeGoal(type: String): Boolean {
+                return type.contains("수면") ||
+                        type.contains("디톡스") ||
+                        type.contains("폰")
+            }
+
+            private fun formatCountByType(type: String, value: Int): String {
+                val unit = if (isTimeGoal(type)) "시간" else "회"
+                return "${value}${unit} 이상"
             }
         }
     }

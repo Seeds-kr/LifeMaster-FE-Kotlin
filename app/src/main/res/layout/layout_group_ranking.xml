@@ -10,8 +10,8 @@
         android:id="@+id/layout_ranking_table_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/tv_rank_header"
@@ -52,7 +52,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="13dp"
         android:orientation="vertical"
-        tools:itemCount="5"
         tools:showIn="@layout/fragment_group_stats" />
 
     <LinearLayout
@@ -64,7 +63,9 @@
         android:clickable="true"
         android:focusable="true"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone"
+        tools:visibility="visible">
 
         <TextView
             android:id="@+id/btn_more"

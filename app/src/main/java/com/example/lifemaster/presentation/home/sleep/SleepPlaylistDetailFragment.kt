@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -22,33 +23,44 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
 
     private lateinit var binding: FragmentSleepPlaylistDetailBinding
 
-    @Inject lateinit var networkService: NetworkService
+    @Inject
+    lateinit var networkService: NetworkService
 
     private val sleepViewModel: SleepViewModel by activityViewModels {
         SleepViewModelFactory(networkService)
     }
+
     private lateinit var handler: Handler
     private lateinit var updateProgressBarTask: Runnable
-    private var songAudioResource: Int = 0
+
+    private var songAudioResource: Int = -1
     private var mediaPlayer: MediaPlayer? = null
     private var isAudioPlaying: Boolean = false
     private var songTotalTime: Int = 0
-    private var songCurrentStartTime = 0L // 가장 최근에 재생 버튼을 누른 시간
-    private var accumulatedPlaybackTime = 0L // 가장 최근 재생 이전의 누적된 시간
+    private var songCurrentStartTime = 0L
+    private var accumulatedPlaybackTime = 0L
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentSleepPlaylistDetailBinding.bind(view)
-        songAudioResource = arguments?.getInt("audio") ?: -1
+
+        songAudioResource = arguments?.getInt("audio", -1) ?: -1
+
         initViews()
         initListeners()
     }
 
     private fun initViews() = with(binding) {
 
-        if(sleepViewModel.isMeasured) {
-            tvSleepPlaylistDetailSleepDuration.text = "${sleepViewModel.sleepTime} ~ ${sleepViewModel.wakeTime}"
-            tvSleepMainHour.text = if(sleepViewModel.sleepDurationHour.toString().length == 1) "0${sleepViewModel.sleepDurationHour}" else "${sleepViewModel.sleepDurationHour}"
+        if (sleepViewModel.isMeasured) {
+            tvSleepPlaylistDetailSleepDuration.text =
+                "${sleepViewModel.sleepTime} ~ ${sleepViewModel.wakeTime}"
+            tvSleepMainHour.text =
+                if (sleepViewModel.sleepDurationHour.toString().length == 1) {
+                    "0${sleepViewModel.sleepDurationHour}"
+                } else {
+                    "${sleepViewModel.sleepDurationHour}"
+                }
             tvSleepMainMinute.text = sleepViewModel.sleepDurationMinutes.toString()
         } else {
             tvSleepMainTitle.text = "Your Sleep\nIs Not Recorded"
@@ -59,53 +71,117 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
             tvSleepMainMinuteLabel.isVisible = false
         }
 
-        tvSleepMainMusicTitle.text = arguments?.getString("title")
+        tvSleepMainMusicTitle.text = arguments?.getString("title") ?: "선택한 음악이 없습니다"
+
         handler = Handler(Looper.getMainLooper())
         updateProgressBarTask = object : Runnable {
             override fun run() {
-                val currentPlaybackTime = System.currentTimeMillis() - songCurrentStartTime + accumulatedPlaybackTime // 현재 업데이트 되는 총 음악 누적 시간
+                val currentPlaybackTime =
+                    System.currentTimeMillis() - songCurrentStartTime + accumulatedPlaybackTime
+
                 progressSleepMain.setProgress(currentPlaybackTime.toInt(), true)
-                handler.postDelayed(this, 100L) // 100ms 마다 실행
+                handler.postDelayed(this, 100L)
             }
         }
     }
 
     private fun initListeners() = with(binding) {
-        llSleepMainPlaylist.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistDetailFragment_to_sleepPlaylistFragment) }
+        llSleepMainPlaylist.setOnClickListener {
+            findNavController().navigate(R.id.action_sleepPlaylistDetailFragment_to_sleepPlaylistFragment)
+        }
+
         ivSleepMainPlayToggle.setOnClickListener {
+            if (songAudioResource == -1) {
+                Toast.makeText(requireContext(), "선택한 음악이 없습니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             if (isAudioPlaying) {
-                // 멈추기
-                mediaPlayer?.pause()
-                isAudioPlaying = false
-                ivSleepMainPlayToggle.setImageResource(R.drawable.ic_play_no_background)
-                accumulatedPlaybackTime += System.currentTimeMillis() - songCurrentStartTime
-                handler.removeCallbacks(updateProgressBarTask)
+                pauseAudio()
             } else {
-                // 재생하기
-                if(mediaPlayer == null) {
-                    mediaPlayer = MediaPlayer.create(context, songAudioResource).apply {
-                        songTotalTime = duration
-                        progressSleepMain.max = duration
-                        setOnCompletionListener {
-                            handler.removeCallbacks(updateProgressBarTask)
-                            mediaPlayer?.stop()
-                            mediaPlayer?.release()
-                            mediaPlayer = null
-                            progressSleepMain.progress = 0
-                            ivSleepMainPlayToggle.setImageResource(R.drawable.ic_play_no_background)
-                            isAudioPlaying = false
-                            songCurrentStartTime = 0L
-                            accumulatedPlaybackTime = 0L
-                        }
-                    }
+                startAudio()
+            }
+        }
+    }
+
+    private fun startAudio() {
+        with(binding) {
+            if (mediaPlayer == null) {
+                val createdPlayer = try {
+                    MediaPlayer.create(requireContext(), songAudioResource)
+                } catch (e: Exception) {
+                    null
                 }
+
+                if (createdPlayer == null) {
+                    Toast.makeText(requireContext(), "선택한 음악을 재생할 수 없습니다.", Toast.LENGTH_SHORT).show()
+                    return@with
+                }
+
+                mediaPlayer = createdPlayer
+                songTotalTime = createdPlayer.duration
+                progressSleepMain.max = songTotalTime
+
+                createdPlayer.setOnCompletionListener {
+                    stopAndResetAudio()
+                }
+            }
+
+            try {
                 mediaPlayer?.start()
                 isAudioPlaying = true
                 ivSleepMainPlayToggle.setImageResource(R.drawable.ic_pause)
                 songCurrentStartTime = System.currentTimeMillis()
                 handler.post(updateProgressBarTask)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "음악 재생 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                stopAndResetAudio()
             }
         }
     }
 
+    private fun pauseAudio() = with(binding) {
+        try {
+            mediaPlayer?.pause()
+            isAudioPlaying = false
+            ivSleepMainPlayToggle.setImageResource(R.drawable.ic_play_no_background)
+            accumulatedPlaybackTime += System.currentTimeMillis() - songCurrentStartTime
+            handler.removeCallbacks(updateProgressBarTask)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "음악 일시정지 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+            stopAndResetAudio()
+        }
+    }
+
+    private fun stopAndResetAudio() = with(binding) {
+        handler.removeCallbacks(updateProgressBarTask)
+
+        try {
+            mediaPlayer?.stop()
+        } catch (_: Exception) {
+        }
+
+        try {
+            mediaPlayer?.release()
+        } catch (_: Exception) {
+        }
+
+        mediaPlayer = null
+        progressSleepMain.progress = 0
+        ivSleepMainPlayToggle.setImageResource(R.drawable.ic_play_no_background)
+        isAudioPlaying = false
+        songCurrentStartTime = 0L
+        accumulatedPlaybackTime = 0L
+        songTotalTime = 0
+    }
+
+    override fun onStop() {
+        super.onStop()
+        stopAndResetAudio()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        handler.removeCallbacks(updateProgressBarTask)
+    }
 }

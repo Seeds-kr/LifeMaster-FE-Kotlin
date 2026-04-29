@@ -14,12 +14,28 @@ import com.example.lifemaster.databinding.LayoutSleepPlaylistBinding
 class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
 
     lateinit var binding: FragmentSleepPlaylistBinding
+
     private val sampleWhiteNoiseMusic = mutableListOf<SleepItem>()
     private val sampleNatureSoundMusic = mutableListOf<SleepItem>()
     private val sampleClassicMusic = mutableListOf<SleepItem>()
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
+        initSampleData()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding = FragmentSleepPlaylistBinding.bind(view)
+        initViews()
+        initListeners()
+    }
+
+    private fun initSampleData() {
+        sampleWhiteNoiseMusic.clear()
+        sampleNatureSoundMusic.clear()
+        sampleClassicMusic.clear()
+
         sampleWhiteNoiseMusic.addAll(
             listOf(
                 SleepItem(
@@ -51,6 +67,7 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                 )
             )
         )
+
         sampleNatureSoundMusic.addAll(
             listOf(
                 SleepItem(
@@ -82,12 +99,13 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                 )
             )
         )
+
         sampleClassicMusic.addAll(
             listOf(
                 SleepItem(
                     id = 7,
                     genre = MusicGenre.CLASSIC,
-                    title = "Erik Satie – Gymnopédie No.1", // TODO: 리소스로 분리하기
+                    title = "Erik Satie – Gymnopédie No.1",
                     audio = R.raw.sleep_test_music,
                     duration = getMusicDuration(R.raw.sleep_test_music),
                     thumbnail = R.drawable.tmp_sleep_playlist_classic_gymnopedie_no1,
@@ -115,19 +133,16 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
         )
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        binding = FragmentSleepPlaylistBinding.bind(view)
-        initViews()
-        initListeners()
-    }
-
     private fun initViews() = with(binding) {
+
+        llSleepPlaylistWhiteNoise.removeAllViews()
+        llSleepPlaylistNatureSounds.removeAllViews()
+        llSleepPlaylistClassic.removeAllViews()
 
         // 백색소음
         for (i in 0..1) {
             val playlistView = LayoutSleepPlaylistBinding.inflate(
-                LayoutInflater.from(context),
+                LayoutInflater.from(requireContext()),
                 llSleepPlaylistWhiteNoise,
                 false
             )
@@ -135,17 +150,28 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
             playlistView.tvSleepPlaylistItemTitle.text = sampleWhiteNoiseMusic[i].title
             playlistView.tvSleepPlaylistItemDuration.text = sampleWhiteNoiseMusic[i].duration
             playlistView.tvSleepPlaylistItemDescription.text = sampleWhiteNoiseMusic[i].description
+
             val bundle = Bundle().apply {
                 putString("title", sampleWhiteNoiseMusic[i].title)
                 putInt("audio", sampleWhiteNoiseMusic[i].audio)
             }
-            playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
+
+            playlistView.ivSleepPlaylistItemPlay.setOnClickListener {
+                findNavController().navigate(
+                    R.id.action_sleepPlaylistFragment_to_sleepMainFragment,
+                    bundle
+                )
+            }
             llSleepPlaylistWhiteNoise.addView(playlistView.root)
         }
 
         // 자연의 소리
         for (i in 0..1) {
-            val playlistView = LayoutSleepPlaylistBinding.inflate(LayoutInflater.from(context), llSleepPlaylistNatureSounds, false)
+            val playlistView = LayoutSleepPlaylistBinding.inflate(
+                LayoutInflater.from(requireContext()),
+                llSleepPlaylistNatureSounds,
+                false
+            )
             playlistView.ivSleepPlaylistItemThumbnail.setImageResource(sampleNatureSoundMusic[i].thumbnail)
             playlistView.tvSleepPlaylistItemTitle.text = sampleNatureSoundMusic[i].title
             playlistView.tvSleepPlaylistItemDuration.text = sampleNatureSoundMusic[i].duration
@@ -156,40 +182,52 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                 putInt("audio", sampleNatureSoundMusic[i].audio)
             }
 
-            playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
+            playlistView.ivSleepPlaylistItemPlay.setOnClickListener {
+                findNavController().navigate(
+                    R.id.action_sleepPlaylistFragment_to_sleepMainFragment,
+                    bundle
+                )
+            }
             llSleepPlaylistNatureSounds.addView(playlistView.root)
         }
 
         // 클래식
         for (i in 0..1) {
-            val playlistView = LayoutSleepPlaylistBinding.inflate(LayoutInflater.from(context), llSleepPlaylistClassic, false)
+            val playlistView = LayoutSleepPlaylistBinding.inflate(
+                LayoutInflater.from(requireContext()),
+                llSleepPlaylistClassic,
+                false
+            )
             playlistView.ivSleepPlaylistItemThumbnail.setImageResource(sampleClassicMusic[i].thumbnail)
             playlistView.tvSleepPlaylistItemTitle.text = sampleClassicMusic[i].title
             playlistView.tvSleepPlaylistItemDuration.text = sampleClassicMusic[i].duration
             playlistView.tvSleepPlaylistItemDescription.text = sampleClassicMusic[i].description
 
-            // 상세 프래그먼트에 넘겨줄 데이터
             val bundle = Bundle().apply {
                 putString("title", sampleClassicMusic[i].title)
                 putInt("audio", sampleClassicMusic[i].audio)
             }
 
-            playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
+            playlistView.ivSleepPlaylistItemPlay.setOnClickListener {
+                findNavController().navigate(
+                    R.id.action_sleepPlaylistFragment_to_sleepMainFragment,
+                    bundle
+                )
+            }
             llSleepPlaylistClassic.addView(playlistView.root)
         }
     }
 
     private fun initListeners() = with(binding) {
         llSleepPlaylistWhiteNoiseViewMore.setOnClickListener {
-
             if (tvSleepPlaylistWhiteNoiseViewMore.text == resources.getString(R.string.sleep_playlist_view_more)) {
-                // step 1. 뷰 상태 변경
-                tvSleepPlaylistWhiteNoiseViewMore.text = resources.getString(R.string.sleep_playlist_view_less)
-                ivSleepPlaylistWhiteNoiseViewMore.rotation = 180f // TODO: rotation, rotationX, rotationY 차이 이해하기
-                // step 2. 뷰 추가
+                tvSleepPlaylistWhiteNoiseViewMore.text =
+                    resources.getString(R.string.sleep_playlist_view_less)
+                ivSleepPlaylistWhiteNoiseViewMore.rotation = 180f
+
                 for (i in 2 until sampleWhiteNoiseMusic.size) {
                     val playlistView = LayoutSleepPlaylistBinding.inflate(
-                        LayoutInflater.from(context),
+                        LayoutInflater.from(requireContext()),
                         llSleepPlaylistWhiteNoise,
                         false
                     )
@@ -197,30 +235,37 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                     playlistView.tvSleepPlaylistItemTitle.text = sampleWhiteNoiseMusic[i].title
                     playlistView.tvSleepPlaylistItemDuration.text = sampleWhiteNoiseMusic[i].duration
                     playlistView.tvSleepPlaylistItemDescription.text = sampleWhiteNoiseMusic[i].description
+
                     val bundle = Bundle().apply {
                         putString("title", sampleWhiteNoiseMusic[i].title)
                         putInt("audio", sampleWhiteNoiseMusic[i].audio)
                     }
-                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
+
+                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener {
+                        findNavController().navigate(
+                            R.id.action_sleepPlaylistFragment_to_sleepMainFragment,
+                            bundle
+                        )
+                    }
                     llSleepPlaylistWhiteNoise.addView(playlistView.root)
                 }
             } else {
-                // step 1. 뷰 상태 변경
-                tvSleepPlaylistWhiteNoiseViewMore.text = resources.getString(R.string.sleep_playlist_view_more)
+                tvSleepPlaylistWhiteNoiseViewMore.text =
+                    resources.getString(R.string.sleep_playlist_view_more)
                 ivSleepPlaylistWhiteNoiseViewMore.rotation = 0f
-                // step 2. 뷰 제거
-                llSleepPlaylistWhiteNoise.removeViews(2, sampleWhiteNoiseMusic.size-2)
+                llSleepPlaylistWhiteNoise.removeViews(2, sampleWhiteNoiseMusic.size - 2)
             }
         }
+
         llSleepPlaylistNatureSoundsViewMore.setOnClickListener {
             if (tvSleepPlaylistNatureSoundsViewMore.text == resources.getString(R.string.sleep_playlist_view_more)) {
-                // step 1. 뷰 상태 변경
-                tvSleepPlaylistNatureSoundsViewMore.text = resources.getString(R.string.sleep_playlist_view_less)
+                tvSleepPlaylistNatureSoundsViewMore.text =
+                    resources.getString(R.string.sleep_playlist_view_less)
                 ivSleepPlaylistNatureSoundsViewMore.rotation = 180f
-                // step 2. 뷰 추가
+
                 for (i in 2 until sampleNatureSoundMusic.size) {
                     val playlistView = LayoutSleepPlaylistBinding.inflate(
-                        LayoutInflater.from(context),
+                        LayoutInflater.from(requireContext()),
                         llSleepPlaylistNatureSounds,
                         false
                     )
@@ -234,26 +279,31 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                         putInt("audio", sampleNatureSoundMusic[i].audio)
                     }
 
-                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
+                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener {
+                        findNavController().navigate(
+                            R.id.action_sleepPlaylistFragment_to_sleepMainFragment,
+                            bundle
+                        )
+                    }
                     llSleepPlaylistNatureSounds.addView(playlistView.root)
                 }
             } else {
-                // step 1. 뷰 상태 변경
-                tvSleepPlaylistNatureSoundsViewMore.text = resources.getString(R.string.sleep_playlist_view_more)
+                tvSleepPlaylistNatureSoundsViewMore.text =
+                    resources.getString(R.string.sleep_playlist_view_more)
                 ivSleepPlaylistNatureSoundsViewMore.rotation = 0f
-                // step 2. 뷰 제거
-                llSleepPlaylistNatureSounds.removeViews(2, sampleNatureSoundMusic.size-2)
+                llSleepPlaylistNatureSounds.removeViews(2, sampleNatureSoundMusic.size - 2)
             }
         }
+
         llSleepPlaylistClassicViewMore.setOnClickListener {
             if (tvSleepPlaylistClassicViewMore.text == resources.getString(R.string.sleep_playlist_view_more)) {
-                // step 1. 뷰 상태 변경
-                tvSleepPlaylistClassicViewMore.text = resources.getString(R.string.sleep_playlist_view_less)
+                tvSleepPlaylistClassicViewMore.text =
+                    resources.getString(R.string.sleep_playlist_view_less)
                 ivSleepPlaylistClassicViewMore.rotation = 180f
-                // step 2. 뷰 추가
+
                 for (i in 2 until sampleClassicMusic.size) {
                     val playlistView = LayoutSleepPlaylistBinding.inflate(
-                        LayoutInflater.from(context),
+                        LayoutInflater.from(requireContext()),
                         llSleepPlaylistClassic,
                         false
                     )
@@ -262,35 +312,41 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
                     playlistView.tvSleepPlaylistItemDuration.text = sampleClassicMusic[i].duration
                     playlistView.tvSleepPlaylistItemDescription.text = sampleClassicMusic[i].description
 
-                    // 상세 프래그먼트에 넘겨줄 데이터
                     val bundle = Bundle().apply {
                         putString("title", sampleClassicMusic[i].title)
                         putInt("audio", sampleClassicMusic[i].audio)
                     }
 
-                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener { findNavController().navigate(R.id.action_sleepPlaylistFragment_to_sleepMainFragment, bundle) }
+                    playlistView.ivSleepPlaylistItemPlay.setOnClickListener {
+                        findNavController().navigate(
+                            R.id.action_sleepPlaylistFragment_to_sleepMainFragment,
+                            bundle
+                        )
+                    }
                     llSleepPlaylistClassic.addView(playlistView.root)
                 }
             } else {
-                // step 1. 뷰 상태 변경
-                tvSleepPlaylistClassicViewMore.text = resources.getString(R.string.sleep_playlist_view_more)
+                tvSleepPlaylistClassicViewMore.text =
+                    resources.getString(R.string.sleep_playlist_view_more)
                 ivSleepPlaylistClassicViewMore.rotation = 0f
-                // step 2. 뷰 제거
-                llSleepPlaylistClassic.removeViews(2, sampleClassicMusic.size-2)
+                llSleepPlaylistClassic.removeViews(2, sampleClassicMusic.size - 2)
             }
         }
     }
 
-    // 음악 raw 파일을 통해 재생 길이를 가져오는 메소드
     private fun getMusicDuration(musicResource: Int): String {
-        return MediaPlayer.create(context, musicResource).run {
-            val totalSeconds = duration/1000
-            val hours = totalSeconds/3600
-            val minutes = (totalSeconds%3600)/60
+        val mediaPlayer = MediaPlayer.create(requireContext(), musicResource) ?: return "00:00:00"
+
+        return try {
+            val totalSeconds = mediaPlayer.duration / 1000
+            val hours = totalSeconds / 3600
+            val minutes = (totalSeconds % 3600) / 60
             val seconds = totalSeconds % 60
-            release()
             String.format("%02d:%02d:%02d", hours, minutes, seconds)
+        } catch (e: Exception) {
+            "00:00:00"
+        } finally {
+            mediaPlayer.release()
         }
     }
-
 }
