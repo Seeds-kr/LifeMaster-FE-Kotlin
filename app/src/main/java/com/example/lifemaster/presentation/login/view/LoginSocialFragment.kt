@@ -45,34 +45,7 @@ class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
                 }
             )
         }
-        btnGeneralLogin.setOnClickListener {
-            val intent = Intent(requireContext(), MainActivity::class.java).apply {
-                putExtra("user_token", "1234")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            startActivity(intent)
-//            RetrofitInstance.networkService.enterUserLogin(loginInfo = LoginInfo(email = "seyeongb18@gmail.com", password = "0324")).enqueue(object: Callback<String> {
-//                override fun onResponse(
-//                    call: Call<String?>,
-//                    response: Response<String?>
-//                ) {
-//                    if(response.isSuccessful) {
-//                        val token = response.body()
-//                        Toast.makeText(requireContext(), "로그인이 성공했습니다!", Toast.LENGTH_SHORT).show()
-//                        val intent = Intent(requireContext(), MainActivity::class.java).apply {
-//                            putExtra("user_token", token)
-//                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-//                        }
-//                        startActivity(intent)
-//                    }
-//                }
-//
-//                override fun onFailure(call: Call<String?>, t: Throwable) {
-//                    Log.d("server error: ", t.message!!)
-//                }
-//
-//            })
-        }
+
         // 이메일로 로그인, 이메일로 가입
         btnEmailLogin.setOnClickListener {
             findNavController().navigate(R.id.loginEmailFragment)

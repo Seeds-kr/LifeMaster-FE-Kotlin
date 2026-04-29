@@ -37,9 +37,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
 
-    @Inject
-    lateinit var networkService: NetworkService
-
     private var _binding: FragmentRegisterProfileBinding? = null
     private val binding get() = _binding!!
 
@@ -213,7 +210,6 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
 
                     autoLoginThenGoHome()
                 }
-
                 override fun onFailure(call: Call<RegNickResponse>, t: Throwable) {
                     toast("네트워크 오류: ${t.message}")
                 }

@@ -10,24 +10,13 @@ import com.bumptech.glide.Glide
 import androidx.navigation.fragment.navArgs
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeDetailBinding
-import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
-import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModelFactory
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
     private lateinit var binding: FragmentChallengeDetailBinding
 
-    @Inject lateinit var networkService: NetworkService
-
-    // DI를 사용하여 ViewModel 생성
-    private val viewModel: ChallengeViewModel by lazy {
-        val factory = ChallengeViewModelFactory(networkService)
-        ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
-    }
     // Hilt를 사용하여 ViewModel 생성
     private val viewModel: ChallengeViewModel by viewModels()
 
@@ -46,14 +35,15 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentChallengeDetailBinding.bind(view)
 
+        challId = args.challId.toString()
+
+        Log.d("ChallengeDetail", "전달받은 챌린지 ID: $challId")
+
         if (challId != "0") {
             loadChallengeDetail()
         } else {
             Toast.makeText(requireContext(), "챌린지 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
-
-        val challengeId = args.challId
-        Log.d("ChallengeDetail", "전달받은 챌린지 ID: $challengeId")
 
         initListeners()
     }
@@ -112,7 +102,7 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
 
             viewModel.joinChallenge(
                 token = token,
-                challId = challId,
+                challId = challIdAsLong,
                 onSuccess = { message ->
                     Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                 },

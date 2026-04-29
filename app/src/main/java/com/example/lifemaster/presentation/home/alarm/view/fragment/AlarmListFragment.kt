@@ -14,6 +14,7 @@ import com.example.lifemaster.databinding.FragmentAlarmListBinding
 import com.example.lifemaster.presentation.home.alarm.adapter.AlarmAdapter
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmGenerateViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
@@ -43,7 +44,6 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
     private val alarmViewModel: AlarmViewModel by activityViewModels(
         factoryProducer = { AlarmViewModelFactory(networkService) }
     )
-    private val alarmViewModel: AlarmViewModel by activityViewModels()
     private val alarmGenerateViewModel: AlarmGenerateViewModel by activityViewModels()
 
     private var alarmId: Int? = null

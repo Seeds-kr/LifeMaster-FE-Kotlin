@@ -24,19 +24,12 @@ import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmMissionViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
-import com.google.android.material.card.MaterialCardView
-import java.time.LocalDate
-import java.time.LocalTime
-import android.util.Log
-import com.example.lifemaster.presentation.Constants
-import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.example.lifemaster.presentation.home.sleep.model.AlarmInfo
 import com.example.lifemaster.presentation.home.sleep.model.AlarmSettingInfo
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.google.android.material.card.MaterialCardView
 import dagger.hilt.android.AndroidEntryPoint
@@ -53,8 +46,6 @@ class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_m
 
     @Inject lateinit var networkService: NetworkService
 
-    private val alarmViewModel: AlarmViewModel by activityViewModels()
-    private val sleepViewModel: SleepViewModel by activityViewModels()
     private val alarmViewModel: AlarmViewModel by activityViewModels(
         factoryProducer = { AlarmViewModelFactory(networkService) }
     )
@@ -114,57 +105,57 @@ class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_m
 
         // 수면 데이터
         sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { result ->
-                when(result) {
-                    is Result.Success -> {
-                        alarmViewModel.alarmDismissedAt = System.currentTimeMillis()
-                        val data = result.data
-                        val todayRecord = data.find { it.sleepDate == LocalDate.now().toString() }
-                        if(todayRecord == null) {
-                            // POST
-                            sleepViewModel.registerUserSleepInfo(
-                                sleepRequest = SleepRequest(
-                                    userId = Constants.USER_ID,
-                                    sleepDate = LocalDate.now().toString(),
-                                    sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
-                                    sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
-                                    sleepMood = "GOOD",
-                                    alarmInfo = AlarmInfo(
-                                        isWakeUpAlarmSet = true,
-                                        alarmSettings = AlarmSettingInfo(
-                                            alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
-                                            timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
-                                            antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
-                                        )
+            when(result) {
+                is Result.Success -> {
+                    alarmViewModel.alarmDismissedAt = System.currentTimeMillis()
+                    val data = result.data
+                    val todayRecord = data.find { it.sleepDate == LocalDate.now().toString() }
+                    if(todayRecord == null) {
+                        // POST
+                        sleepViewModel.registerUserSleepInfo(
+                            sleepRequest = SleepRequest(
+                                userId = Constants.USER_ID,
+                                sleepDate = LocalDate.now().toString(),
+                                sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
+                                sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
+                                sleepMood = "GOOD",
+                                alarmInfo = AlarmInfo(
+                                    isWakeUpAlarmSet = true,
+                                    alarmSettings = AlarmSettingInfo(
+                                        alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
                                     )
                                 )
                             )
-                        } else {
-                            // PATCH
-                            sleepViewModel.updateUserSleepInfo(
-                                sleepRequest = SleepRequest(
-                                    userId = Constants.USER_ID,
-                                    sleepDate = LocalDate.now().toString(),
-                                    sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
-                                    sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
-                                    sleepMood = "GOOD",
-                                    alarmInfo = AlarmInfo(
-                                        isWakeUpAlarmSet = true,
-                                        alarmSettings = AlarmSettingInfo(
-                                            alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
-                                            timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
-                                            antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
-                                        )
+                        )
+                    } else {
+                        // PATCH
+                        sleepViewModel.updateUserSleepInfo(
+                            sleepRequest = SleepRequest(
+                                userId = Constants.USER_ID,
+                                sleepDate = LocalDate.now().toString(),
+                                sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
+                                sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
+                                sleepMood = "GOOD",
+                                alarmInfo = AlarmInfo(
+                                    isWakeUpAlarmSet = true,
+                                    alarmSettings = AlarmSettingInfo(
+                                        alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
                                     )
                                 )
                             )
-                        }
+                        )
                     }
-                    is Result.Error -> {
-                        Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
-                    }
-                    is Result.Loading -> {}
                 }
+                is Result.Error -> {
+                    Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
+                }
+                is Result.Loading -> {}
             }
+        }
         sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { event ->
             event.getDataIfNotHandled()?.let { isSuccess ->
                 if (isSuccess) {

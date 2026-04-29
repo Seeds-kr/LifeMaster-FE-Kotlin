@@ -10,16 +10,12 @@ import com.example.lifemaster.presentation.community.model.PollOption
 import com.example.lifemaster.presentation.community.model.PollResultDto
 import com.example.lifemaster.presentation.community.model.VoteRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
-import com.example.lifemaster.network.NetworkService
-import com.example.lifemaster.presentation.community.model.*
-import dagger.hilt.android.lifecycle.HiltViewModel
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import javax.inject.Inject
 import kotlin.math.roundToInt
-import javax.inject.Inject
 
 @HiltViewModel
 class PollViewModel @Inject constructor(
@@ -38,8 +34,7 @@ class PollViewModel @Inject constructor(
     private val _ui = MutableLiveData<PollUi?>()
     val ui: LiveData<PollUi?> = _ui
 
-    private fun bearer(token: String) =
-        if (token.startsWith("Bearer ")) token else "Bearer $token"
+    private fun bearer(token: String) = "Bearer $token"
 
     fun fetchActivePoll(token: String, onError: (String) -> Unit = {}) {
         val auth = bearer(token)

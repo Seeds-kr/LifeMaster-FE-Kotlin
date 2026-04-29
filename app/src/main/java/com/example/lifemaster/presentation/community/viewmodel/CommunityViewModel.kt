@@ -12,10 +12,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import javax.inject.Inject
 
-@HiltViewModel
-class CommunityViewModel @Inject constructor(
-    private val networkService: NetworkService
-) : ViewModel() {
 enum class SortMode { LATEST, LIKES }
 
 @HiltViewModel

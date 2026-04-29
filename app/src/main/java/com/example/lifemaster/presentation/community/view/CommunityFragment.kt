@@ -24,7 +24,7 @@ import com.example.lifemaster.databinding.FragmentCommunityFreeBinding
 import com.example.lifemaster.presentation.community.adapter.CommunityAdapter
 import com.example.lifemaster.presentation.community.model.CommunityItem
 import com.example.lifemaster.presentation.community.viewmodel.CommunityViewModel
-import com.example.lifemaster.presentation.community.viewmodel.CommunityViewModel.SortMode
+import com.example.lifemaster.presentation.community.viewmodel.SortMode
 import kotlin.math.roundToInt
 
 class CommunityFragment : Fragment() {

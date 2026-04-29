@@ -210,7 +210,7 @@
         tools:layout="@layout/fragment_challenge_detail">
         <argument
             android:name="challId"
-            app:argType="string" />
+            app:argType="long" />
     </fragment>
 
     <fragment

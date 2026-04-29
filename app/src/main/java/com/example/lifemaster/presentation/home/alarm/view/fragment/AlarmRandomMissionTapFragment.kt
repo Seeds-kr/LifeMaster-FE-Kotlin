@@ -38,8 +38,6 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 @AndroidEntryPoint
-
-@AndroidEntryPoint
 class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mission_tap) {
 
     private lateinit var binding: FragmentAlarmRandomMissionTapBinding
@@ -52,8 +50,6 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
     private val sleepViewModel: SleepViewModel by activityViewModels {
         SleepViewModelFactory(networkService)
     }
-    private val alarmViewModel: AlarmViewModel by activityViewModels()
-    private val sleepViewModel: SleepViewModel by activityViewModels()
 
     private val alarmMissionViewModel: AlarmMissionViewModel by activityViewModels()
 
@@ -101,7 +97,6 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmRandomMissionTapBinding.bind(view)
-        initData()
         setupBackPressHandler()
         initViews()
         fetchRemoteData()
@@ -119,14 +114,8 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
         )
     }
 
-    private fun initData() {
-        val args: AlarmRandomMissionTapFragmentArgs by navArgs()
-        currentPage = args.currentPageNum
-    }
-
     private fun fetchRemoteData() = with(binding) {
-        // TODO: 실제 alarmId, level 받아와서 연결하기
-        alarmMissionViewModel.generateFollowClickProblem(alarmId = 1105, level = "상")
+        alarmMissionViewModel.generateFollowClickProblem(alarmId = alarmItem.id, level = alarmItem.randomMissionLevel!!.name)
     }
 
     private fun initViews() = with(binding) {

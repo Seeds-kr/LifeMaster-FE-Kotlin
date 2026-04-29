@@ -8,10 +8,10 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogSelectTimesBinding
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
+import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SelectTimeDialog(private val type: String) :
@@ -24,7 +24,6 @@ class SelectTimeDialog(private val type: String) :
     private val alarmViewModel: AlarmViewModel by activityViewModels(
         factoryProducer = { AlarmViewModelFactory(networkService) }
     )
-    private val alarmViewModel: AlarmViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -18,7 +18,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeBinding
-import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,8 +25,6 @@ import kotlinx.coroutines.flow.collectLatest // Flow의 데이터를 수집
 import kotlinx.coroutines.launch
 import android.widget.PopupMenu
 import androidx.paging.PagingData
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 data class MyChallenge(
     val imageRes: Int,
@@ -43,13 +40,6 @@ class ChallengeFragment : Fragment() {
 
     // Hilt를 사용하여 ViewModel 생성
     private val viewModel: ChallengeViewModel by viewModels()
-    @Inject lateinit var networkService: NetworkService
-
-    // DI를 사용하여 ViewModel 생성
-    private val viewModel: ChallengeViewModel by lazy {
-        val factory = ChallengeViewModelFactory(networkService)
-        ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
-    }
 
     private lateinit var challengeAdapter: ChallengeAdapter
 
@@ -204,7 +194,7 @@ class ChallengeFragment : Fragment() {
     private fun setupClickListeners() {
         challengeAdapter.onItemClickListener = { challenge ->
             val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(
-                challenge.challId.toString()
+                challenge.challId.toLong()
             )
             findNavController().navigate(action)
         }

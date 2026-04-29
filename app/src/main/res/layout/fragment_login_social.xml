@@ -12,21 +12,11 @@
         android:src="@drawable/bg_login"/>
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btn_general_login"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:backgroundTint="#03C75A"
-        android:text="메인화면 넘어가기"
-        android:layout_marginHorizontal="40dp"
-        android:layout_marginTop="80dp"
-        android:textColor="@color/white"/>
-
-    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_naver_login"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginHorizontal="40dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="80dp"
         android:backgroundTint="#03C75A"
         android:text="네이버로 로그인"
         android:textColor="@color/white" />
