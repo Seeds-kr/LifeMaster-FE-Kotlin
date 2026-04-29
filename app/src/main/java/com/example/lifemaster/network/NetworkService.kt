@@ -12,12 +12,10 @@ import com.example.lifemaster.presentation.total.introspection.model.ThankCreate
 import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
-import com.example.lifemaster.presentation.total.introspection.model.SelfReflectionByDateResponse
 import com.example.lifemaster.presentation.total.introspection.model.SelfReflectionResponse
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
-import com.example.lifemaster.presentation.community.model.*
 import com.example.lifemaster.presentation.community.model.CommentDto
 import com.example.lifemaster.presentation.community.model.NewCommentRequest
 import com.example.lifemaster.presentation.community.model.NewPostRequest
