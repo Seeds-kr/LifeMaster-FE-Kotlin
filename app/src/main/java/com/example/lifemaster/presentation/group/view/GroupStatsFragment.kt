@@ -137,7 +137,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         ivMoreArrow = view.findViewById(R.id.iv_more_arrow)
 
         rvRecentAchieve.layoutManager = GridLayoutManager(requireContext(), 10)
-        rvRecentAchieve.setHasFixedSize(true)
+        rvRecentAchieve.setHasFixedSize(false)
         rvRecentAchieve.isNestedScrollingEnabled = false
 
         tvGroupName.text = args.groupName ?: "Group"
