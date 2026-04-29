@@ -19,6 +19,7 @@ import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject
@@ -34,6 +35,8 @@ class AlarmRingsFragment : Fragment(R.layout.fragment_alarm_ring) {
     private val alarmViewModel: AlarmViewModel by activityViewModels(
         factoryProducer = { AlarmViewModelFactory(networkService) }
     )
+    lateinit var binding: FragmentAlarmRingBinding
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

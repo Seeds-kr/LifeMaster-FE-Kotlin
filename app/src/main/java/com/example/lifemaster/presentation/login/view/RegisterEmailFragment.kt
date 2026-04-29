@@ -22,6 +22,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class RegisterEmailFragment : Fragment(R.layout.fragment_register_email) {
 
+    @Inject
+    lateinit var networkService: NetworkService
+
     private var _binding: FragmentRegisterEmailBinding? = null
     private val binding get() = _binding!!
 

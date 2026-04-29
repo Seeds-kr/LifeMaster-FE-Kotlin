@@ -93,11 +93,26 @@ class CalendarAdapter(
         holder.tvDay.text = item.day.toString()
         holder.tvDay.setTextColor(if (item.isCurrentMonth) Color.BLACK else Color.LTGRAY)
 
+        holder.itemView.isClickable = true
+        holder.tvDay.text = if (item.day > 0) item.day.toString() else ""
         holder.bgSelected.visibility = View.GONE
         holder.bgToday.visibility = View.GONE
         if (item.isCurrentMonth) {
             if (selectedDay != null && selectedDay == item.day) holder.bgSelected.visibility = View.VISIBLE
             if (item.isToday) holder.bgToday.visibility = View.VISIBLE
+        }
+
+        // 기본 스타일
+        when {
+            !item.isCurrentMonth || item.day <= 0 -> {
+                holder.tvDay.setTextColor(Color.parseColor("#CCCCCC"))
+            }
+            item.isToday -> {
+                holder.tvDay.setTextColor(Color.parseColor("#000000"))
+            }
+            else -> {
+                holder.tvDay.setTextColor(Color.parseColor("#000000"))
+            }
         }
 
         // 별 초기화

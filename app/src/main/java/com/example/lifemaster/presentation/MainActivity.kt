@@ -30,7 +30,6 @@ import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
@@ -48,6 +47,9 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var networkService: NetworkService
 
     // View 관련 변수
     private lateinit var binding: ActivityMainBinding
@@ -70,18 +72,40 @@ class MainActivity : AppCompatActivity() {
     private val sleepViewModel: SleepViewModel by viewModels {
         SleepViewModelFactory(networkService)
     }
+    private val sleepViewModel: SleepViewModel by viewModels()
 
     @Inject lateinit var tokenManager: TokenManager
-    @Inject lateinit var networkService: NetworkService
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        codeCacheDir.setReadOnly()
+        try {
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
+            val targetFragment = intent.getStringExtra("destination")
+            if (targetFragment == "alarm") {
+                val time = intent.getLongExtra("time", 0L) // 알람이 울린 시간
+                val navController =
+                    (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
+                navController.navigate(
+                    R.id.alarmRingsFragment,
+                    bundleOf("time" to time)
+                )
+                binding.bottomNavigation.isVisible = false
+            }
+            networkService.enterUserLogin(loginInfo = LoginInfo(email = "aaaaa@naver.com", password = "aaaaa"))
+                .enqueue(object : Callback<String> {
+                    override fun onResponse(
+                        call: Call<String>,
+                        response: Response<String>
+                    ) {
+                        if (response.isSuccessful) {
+                            val userToken = response.body()
+                            Log.e("login", userToken.orEmpty())
+                            tokenManager.accessToken = userToken.orEmpty()
+                        }
+                    }
         // 여기서 로그인 API를 다시 호출하면 안 됨
         // LoginEmailFragment에서 저장한 토큰을 그대로 사용해야 함
         Log.d("MainActivity", "saved bearer token = ${tokenManager.getBearerToken()}")
@@ -106,6 +130,26 @@ class MainActivity : AppCompatActivity() {
                 handler.postDelayed(this, 1000L)
             }
         }
+                    override fun onFailure(call: Call<String>, t: Throwable) {
+                        Toast.makeText(this@MainActivity, "로그인에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                })
+
+            userToken = intent.getStringExtra("user_token")
+            if (!userToken.isNullOrBlank()) {
+                val tokenValue = userToken!!
+                getSharedPreferences("auth", MODE_PRIVATE).edit().putString("token", tokenValue).apply()
+                getSharedPreferences("USER_TABLE", MODE_PRIVATE).edit().putString("token", tokenValue).apply()
+            }
+
+            updateRunnable = object : Runnable {
+                override fun run() {
+                    val elapsedForegroundTime =
+                        SystemClock.elapsedRealtime() - foregroundStartTime // 포그라운드로 전환 이후 누적된 시간
+                    detoxCommonViewModel.updateTempElapsedForegroundTime(elapsedForegroundTime)
+                    handler.postDelayed(this, 1000L)
+                }
+            }
 
         val totalApps = packageManager.getInstalledApplications(0)
         requiredApps = totalApps.filter { app ->
@@ -113,20 +157,43 @@ class MainActivity : AppCompatActivity() {
             val isUpdatedSystemApp = (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
             !isSystemApp && !isUpdatedSystemApp
         }
+            totalApps = packageManager.getInstalledApplications(0)
+            requiredApps = totalApps.filter { app ->
+                val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+                val isUpdatedSystemApp = (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                !isSystemApp && !isUpdatedSystemApp
+            }
 
-        if (savedInstanceState == null) binding.bottomNavigation.selectedItemId = R.id.action_home
+            if (savedInstanceState == null) binding.bottomNavigation.selectedItemId = R.id.action_home
 
         setupListeners()
+            fetchApplications()
 
-        requestUsageAccessPermission(this) // 사용 용도: 디톡스, 수면시간 측정
+            setupListeners()
 
-        getUserSleepInfo()
+            requestUsageAccessPermission(this) // 사용 용도: 디톡스, 수면시간 측정
+            // 사용 정보 접근 권한이 없으면 UsageStatsManager.queryEvents() 호출 시 SecurityException이 발생할 수 있어,
+            // 권한이 있을 때만 수면 정보 로직을 실행합니다.
+            if (checkUsageAccessPermission(this)) {
+                getUserSleepInfo()
+            } else {
+                sleepViewModel.isMeasured = false
+            }
 
-//        requestAccessibilityPermission(this)
+            //        requestAccessibilityPermission(this)
+        } catch (t: Throwable) {
+            Log.e("MAIN_ACTIVITY_STARTUP_CRASH", "MainActivity.onCreate failed", t)
+            Toast.makeText(this, "초기화 오류: ${t.javaClass.simpleName}", Toast.LENGTH_LONG).show()
+        }
     }
 
     // 사용자의 전날 수면 정보를 가져오는 함수
     private fun getUserSleepInfo() {
+        if (!checkUsageAccessPermission(this)) {
+            sleepViewModel.isMeasured = false
+            return
+        }
+
         // 사용자가 잠든 시간 추적하기
         val usageStatsManager = getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager // 1. USAGE_STATS_SERVICE란? UsageStatsManager란?
         val sleepCalendar = Calendar.getInstance().apply {
@@ -143,10 +210,15 @@ class MainActivity : AppCompatActivity() {
 
         val sleepEvent = UsageEvents.Event() // 2.
 
-        val sleepUsageEvents = usageStatsManager.queryEvents( // 3.
-            sleepTrackingStartTime,
-            sleepTrackingEndTime
-        )
+        val sleepUsageEvents = try {
+            usageStatsManager.queryEvents( // 3.
+                sleepTrackingStartTime,
+                sleepTrackingEndTime
+            )
+        } catch (e: SecurityException) {
+            sleepViewModel.isMeasured = false
+            return
+        }
 
         while (sleepUsageEvents.hasNextEvent()) {
             sleepUsageEvents.getNextEvent(sleepEvent)
@@ -168,10 +240,15 @@ class MainActivity : AppCompatActivity() {
         val wakeTrackingEndTime = wakeUpCalendar.timeInMillis
 
         val wakeEvent = UsageEvents.Event()
-        val wakeUsageEvents = usageStatsManager.queryEvents(
-            wakeTrackingStartTime,
-            wakeTrackingEndTime
-        ) // 금일 오전 5시 ~ 금일 오전 10시 사이의 이벤트 조회
+        val wakeUsageEvents = try {
+            usageStatsManager.queryEvents(
+                wakeTrackingStartTime,
+                wakeTrackingEndTime
+            )
+        } catch (e: SecurityException) {
+            sleepViewModel.isMeasured = false
+            return
+        } // 금일 오전 5시 ~ 금일 오전 10시 사이의 이벤트 조회
 
         while (wakeUsageEvents.hasNextEvent()) {
             wakeUsageEvents.getNextEvent(wakeEvent)
@@ -229,6 +306,11 @@ class MainActivity : AppCompatActivity() {
         foregroundStartTime = SystemClock.elapsedRealtime() // 앱이 포그라운드로 전환된 시간 기록
         updateUsageStats()
         handler.post(updateRunnable)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
     }
 
     override fun onPause() {
@@ -291,6 +373,58 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+    }
+
+    // 자정을 기준으로 하루 앱 사용 시간을 측정하는 함수
+    private fun getDailyUsageStats(context: Context): Map<String, Long> {
+        val usageStatsManager =
+            context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+
+        val startTime = calendar.timeInMillis
+        val endTime = System.currentTimeMillis()
+
+        val eventMap = mutableMapOf<String, Long>()
+
+        // UsageStats 권한이 없으면 queryEvents()에서 SecurityException이 발생할 수 있습니다.
+        // 이 경우 앱이 바로 종료되지 않도록 빈 결과를 반환합니다.
+        val usageEvents = try {
+            usageStatsManager.queryEvents(startTime, endTime)
+        } catch (e: SecurityException) {
+            return emptyMap()
+        }
+        val event = UsageEvents.Event()
+
+        var currentForegroundApp: String? = null
+        var lastEventTime = 0L
+
+        while (usageEvents.hasNextEvent()) {
+            usageEvents.getNextEvent(event)
+
+            when (event.eventType) {
+                UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                    currentForegroundApp = event.packageName
+                    lastEventTime = event.timeStamp
+                }
+
+                UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                    if (currentForegroundApp != null && lastEventTime != 0L) {
+                        val usageTime = event.timeStamp - lastEventTime
+                        eventMap[currentForegroundApp] =
+                            (eventMap[currentForegroundApp] ?: 0) + usageTime
+                    }
+                    currentForegroundApp = null
+                    lastEventTime = 0L
+                }
+            }
+        }
+
+        return eventMap
     }
 
     // 차단 서비스 기능을 위한 접근성 권한 활성화 여부 확인

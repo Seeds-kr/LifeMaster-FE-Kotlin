@@ -24,12 +24,19 @@ import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmMissionViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
+import com.google.android.material.card.MaterialCardView
+import java.time.LocalDate
+import java.time.LocalTime
+import android.util.Log
+import com.example.lifemaster.presentation.Constants
+import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.example.lifemaster.presentation.home.sleep.model.AlarmInfo
 import com.example.lifemaster.presentation.home.sleep.model.AlarmSettingInfo
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.google.android.material.card.MaterialCardView
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,6 +53,8 @@ class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_m
 
     @Inject lateinit var networkService: NetworkService
 
+    private val alarmViewModel: AlarmViewModel by activityViewModels()
+    private val sleepViewModel: SleepViewModel by activityViewModels()
     private val alarmViewModel: AlarmViewModel by activityViewModels(
         factoryProducer = { AlarmViewModelFactory(networkService) }
     )
