@@ -14,8 +14,8 @@ import com.example.lifemaster.databinding.FragmentCalendarBinding
 import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.home.calendar.adapter.CalendarAdapter
 import com.example.lifemaster.presentation.home.calendar.model.CalendarDay
-import com.example.lifemaster.presentation.home.calendar.model.CalendarRepository
 import com.example.lifemaster.presentation.home.calendar.model.StarType
+import com.example.lifemaster.presentation.home.calendar.model.CalendarRepository
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarDataViewModel
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
@@ -82,6 +82,15 @@ class CalendarFragment : Fragment() {
                 CalendarMode.WEEK  -> showWeekView()
                 CalendarMode.DAY   -> showDayView()
                 null -> {}
+            }
+        }
+
+        // 자아성찰 등 기능별 표시가 바뀌면 달력을 다시 그림
+        vm.introspectionDates.observe(viewLifecycleOwner) {
+            when (vm.mode.value ?: CalendarMode.MONTH) {
+                CalendarMode.MONTH -> showMonthView()
+                CalendarMode.WEEK  -> showWeekView()
+                CalendarMode.DAY   -> showDayView()
             }
         }
 

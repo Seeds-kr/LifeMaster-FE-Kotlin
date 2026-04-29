@@ -27,13 +27,9 @@ import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityMainBinding
 import com.example.lifemaster.network.NetworkService
-import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
-import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.login.model.LoginInfo
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
@@ -56,6 +52,9 @@ import kotlin.getValue
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    @Inject
+    lateinit var networkService: NetworkService
+
     // View 관련 변수
     private lateinit var binding: ActivityMainBinding
     private lateinit var totalApps: MutableList<ApplicationInfo>
@@ -76,88 +75,98 @@ class MainActivity : AppCompatActivity() {
     // 수면 관련 변수
     private var lastUsageTimeBeforeSleep: Long = 0L // 마지막 사용 시간 = 핸드폰 화면을 끈 시간
     private var firstUsageTimeAfterWake: Long? = null // 핸드폰을 처음 킨 시간 (잠금 해제x)
-    private val sleepViewModel: SleepViewModel by viewModels {
-        SleepViewModelFactory(RetrofitInstance.networkService)
-    }
+    private val sleepViewModel: SleepViewModel by viewModels()
 
     @Inject lateinit var tokenManager: TokenManager
-    @Inject lateinit var networkService: NetworkService
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        codeCacheDir.setReadOnly()
+        try {
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+            val targetFragment = intent.getStringExtra("destination")
+            if (targetFragment == "alarm") {
+                val time = intent.getLongExtra("time", 0L) // 알람이 울린 시간
+                val navController =
+                    (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
+                navController.navigate(
+                    R.id.alarmRingsFragment,
+                    bundleOf("time" to time)
+                )
+                binding.bottomNavigation.isVisible = false
+            }
+            networkService.enterUserLogin(loginInfo = LoginInfo(email = "aaaaa@naver.com", password = "aaaaa"))
+                .enqueue(object : Callback<String> {
+                    override fun onResponse(
+                        call: Call<String>,
+                        response: Response<String>
+                    ) {
+                        if (response.isSuccessful) {
+                            val userToken = response.body()
+                            Log.e("login", userToken.orEmpty())
+                            tokenManager.accessToken = userToken.orEmpty()
+                        }
+                    }
 
-        networkService.enterUserLogin(loginInfo = LoginInfo(email = "aaaaa@naver.com", password = "aaaaa")).enqueue(object: Callback<String> {
-            override fun onResponse(
-                call: Call<String?>,
-                response: Response<String?>
-            ) {
-                if(response.isSuccessful) {
-                    val userToken = response.body()
-                    Log.e("login", userToken!!)
-                    tokenManager.accessToken = userToken
+                    override fun onFailure(call: Call<String>, t: Throwable) {
+                        Toast.makeText(this@MainActivity, "로그인에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                })
+
+            userToken = intent.getStringExtra("user_token")
+            if (!userToken.isNullOrBlank()) {
+                val tokenValue = userToken!!
+                getSharedPreferences("auth", MODE_PRIVATE).edit().putString("token", tokenValue).apply()
+                getSharedPreferences("USER_TABLE", MODE_PRIVATE).edit().putString("token", tokenValue).apply()
+            }
+
+            updateRunnable = object : Runnable {
+                override fun run() {
+                    val elapsedForegroundTime =
+                        SystemClock.elapsedRealtime() - foregroundStartTime // 포그라운드로 전환 이후 누적된 시간
+                    detoxCommonViewModel.updateTempElapsedForegroundTime(elapsedForegroundTime)
+                    handler.postDelayed(this, 1000L)
                 }
             }
 
-            override fun onFailure(call: Call<String?>, t: Throwable) {
-                Toast.makeText(this@MainActivity, "로그인에 실패했습니다.", Toast.LENGTH_SHORT).show()
+            totalApps = packageManager.getInstalledApplications(0)
+            requiredApps = totalApps.filter { app ->
+                val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+                val isUpdatedSystemApp = (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                !isSystemApp && !isUpdatedSystemApp
             }
 
-        })
+            if (savedInstanceState == null) binding.bottomNavigation.selectedItemId = R.id.action_home
 
-        val targetFragment = intent.getStringExtra("destination")
-        if (targetFragment == "alarm") {
-            val time = intent.getLongExtra("time", 0L) // 알람이 울린 시간
-            val navController =
-                (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
-            navController.navigate(
-                R.id.alarmRingsFragment,
-                bundleOf("time" to time)
-            )
-            binding.bottomNavigation.isVisible = false
-        }
+            fetchApplications()
 
-//        userToken = intent.getStringExtra("user_token")
-//        val sharedPreferences = getSharedPreferences("USER_TABLE", MODE_PRIVATE)
-//        val editor = sharedPreferences.edit()
-//        editor.putString("token", userToken)
-//        editor.commit()
+            setupListeners()
 
-        updateRunnable = object : Runnable {
-            override fun run() {
-                val elapsedForegroundTime =
-                    SystemClock.elapsedRealtime() - foregroundStartTime // 포그라운드로 전환 이후 누적된 시간
-                detoxCommonViewModel.updateTempElapsedForegroundTime(elapsedForegroundTime)
-                handler.postDelayed(this, 1000L)
+            requestUsageAccessPermission(this) // 사용 용도: 디톡스, 수면시간 측정
+            // 사용 정보 접근 권한이 없으면 UsageStatsManager.queryEvents() 호출 시 SecurityException이 발생할 수 있어,
+            // 권한이 있을 때만 수면 정보 로직을 실행합니다.
+            if (checkUsageAccessPermission(this)) {
+                getUserSleepInfo()
+            } else {
+                sleepViewModel.isMeasured = false
             }
+
+            //        requestAccessibilityPermission(this)
+        } catch (t: Throwable) {
+            Log.e("MAIN_ACTIVITY_STARTUP_CRASH", "MainActivity.onCreate failed", t)
+            Toast.makeText(this, "초기화 오류: ${t.javaClass.simpleName}", Toast.LENGTH_LONG).show()
         }
-
-        totalApps = packageManager.getInstalledApplications(0)
-        requiredApps = totalApps.filter { app ->
-            val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-            val isUpdatedSystemApp = (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
-            !isSystemApp && !isUpdatedSystemApp
-        }
-
-        if (savedInstanceState == null) binding.bottomNavigation.selectedItemId = R.id.action_home
-
-        fetchApplications()
-
-        setupListeners()
-
-        requestUsageAccessPermission(this) // 사용 용도: 디톡스, 수면시간 측정
-
-        getUserSleepInfo()
-
-//        requestAccessibilityPermission(this)
     }
 
     // 사용자의 전날 수면 정보를 가져오는 함수
     private fun getUserSleepInfo() {
+        if (!checkUsageAccessPermission(this)) {
+            sleepViewModel.isMeasured = false
+            return
+        }
+
         // 사용자가 잠든 시간 추적하기
         val usageStatsManager = getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager // 1. USAGE_STATS_SERVICE란? UsageStatsManager란?
         val sleepCalendar = Calendar.getInstance().apply {
@@ -174,10 +183,15 @@ class MainActivity : AppCompatActivity() {
 
         val sleepEvent = UsageEvents.Event() // 2.
 
-        val sleepUsageEvents = usageStatsManager.queryEvents( // 3.
-            sleepTrackingStartTime,
-            sleepTrackingEndTime
-        )
+        val sleepUsageEvents = try {
+            usageStatsManager.queryEvents( // 3.
+                sleepTrackingStartTime,
+                sleepTrackingEndTime
+            )
+        } catch (e: SecurityException) {
+            sleepViewModel.isMeasured = false
+            return
+        }
 
         while (sleepUsageEvents.hasNextEvent()) {
             sleepUsageEvents.getNextEvent(sleepEvent)
@@ -199,10 +213,15 @@ class MainActivity : AppCompatActivity() {
         val wakeTrackingEndTime = wakeUpCalendar.timeInMillis
 
         val wakeEvent = UsageEvents.Event()
-        val wakeUsageEvents = usageStatsManager.queryEvents(
-            wakeTrackingStartTime,
-            wakeTrackingEndTime
-        ) // 금일 오전 5시 ~ 금일 오전 10시 사이의 이벤트 조회
+        val wakeUsageEvents = try {
+            usageStatsManager.queryEvents(
+                wakeTrackingStartTime,
+                wakeTrackingEndTime
+            )
+        } catch (e: SecurityException) {
+            sleepViewModel.isMeasured = false
+            return
+        } // 금일 오전 5시 ~ 금일 오전 10시 사이의 이벤트 조회
 
         while (wakeUsageEvents.hasNextEvent()) {
             wakeUsageEvents.getNextEvent(wakeEvent)
@@ -260,6 +279,11 @@ class MainActivity : AppCompatActivity() {
         foregroundStartTime = SystemClock.elapsedRealtime() // 앱이 포그라운드로 전환된 시간 기록
         updateUsageStats()
         handler.post(updateRunnable)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
     }
 
     override fun onPause() {
@@ -360,7 +384,13 @@ class MainActivity : AppCompatActivity() {
 
         val eventMap = mutableMapOf<String, Long>()
 
-        val usageEvents = usageStatsManager.queryEvents(startTime, endTime)
+        // UsageStats 권한이 없으면 queryEvents()에서 SecurityException이 발생할 수 있습니다.
+        // 이 경우 앱이 바로 종료되지 않도록 빈 결과를 반환합니다.
+        val usageEvents = try {
+            usageStatsManager.queryEvents(startTime, endTime)
+        } catch (e: SecurityException) {
+            return emptyMap()
+        }
         val event = UsageEvents.Event()
 
         var currentForegroundApp: String? = null

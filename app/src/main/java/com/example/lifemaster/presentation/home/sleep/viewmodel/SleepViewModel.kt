@@ -10,9 +10,14 @@ import com.example.lifemaster.presentation.home.alarm.view.fragment.Event
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SleepViewModel(private val networkService: NetworkService): ViewModel() {
+@HiltViewModel
+class SleepViewModel @Inject constructor(
+    private val networkService: NetworkService
+): ViewModel() {
 
     var isMeasured: Boolean = false // 수면 시간이 제대로 측정되었는지 유무
     var sleepTime: String? = null // 금일 기준 전날 잠든 시각(HH:mm) ex) 01:11

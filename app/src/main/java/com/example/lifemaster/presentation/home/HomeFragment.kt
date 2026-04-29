@@ -18,7 +18,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
@@ -26,16 +25,17 @@ import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewM
 import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
-import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
 import com.example.lifemaster.presentation.home.todo.adapter.ToDoAdapter
 import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
+@AndroidEntryPoint
 class HomeFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding
@@ -49,9 +49,7 @@ class HomeFragment : Fragment() {
     private val pomodoroViewModel: PomodoroViewModel by activityViewModels()
 
     // 수면 관련 변수
-    private val sleepViewModel: SleepViewModel by activityViewModels {
-        SleepViewModelFactory(RetrofitInstance.networkService)
-    }
+    private val sleepViewModel: SleepViewModel by activityViewModels()
     private val calendarVM: CalendarViewModel by activityViewModels()
 
     private var tvAlarmDate: TextView? = null
@@ -69,8 +67,6 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        initViews()
 
         binding.containerCalendar.post {
             if (childFragmentManager.findFragmentById(R.id.container_calendar) == null) {
@@ -211,7 +207,6 @@ class HomeFragment : Fragment() {
     }
 
     private fun initViews() = with(binding) {
-
         todoRecyclerview.adapter = ToDoAdapter(context = requireContext(), onToggleClicked = { id ->
             toDoViewModel.toggleItem(id = id)
         }, onEditClicked = { item ->

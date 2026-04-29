@@ -10,14 +10,20 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentRegisterEmailBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.login.model.RegResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class RegisterEmailFragment : Fragment(R.layout.fragment_register_email) {
+
+    @Inject
+    lateinit var networkService: NetworkService
 
     private var _binding: FragmentRegisterEmailBinding? = null
     private val binding get() = _binding!!
@@ -59,7 +65,7 @@ class RegisterEmailFragment : Fragment(R.layout.fragment_register_email) {
 
             binding.btnSignup.isEnabled = false
 
-            RetrofitInstance.networkService.registerUser(RegisterInfo(email, pw, pwc))
+            networkService.registerUser(RegisterInfo(email, pw, pwc))
                 .enqueue(object : Callback<RegResponse> {
                     override fun onResponse(call: Call<RegResponse>, res: Response<RegResponse>) {
                         binding.btnSignup.isEnabled = true

@@ -4,12 +4,14 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
     id 'kotlin-parcelize'
     id 'androidx.navigation.safeargs.kotlin'
-    id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
+    id 'kotlin-kapt'
 }
 
 def localProperties = new Properties()
-localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+if (rootProject.file("local.properties").exists()) {
+    localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+}
 
 android {
     namespace 'com.example.lifemaster'
@@ -32,7 +34,8 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "BASE_URL", localProperties.getProperty("SERVER_BASE_URL"))
+        buildConfigField "String", "BASE_URL", "\"${localProperties.getProperty('SERVER_BASE_URL') ?: ''}\""
+        //buildConfigField("String", "KAKAO_NATIVE_KEY", localProperties["KAKAO_NATIVE_KEY"])
     }
 
     buildTypes {
@@ -87,9 +90,20 @@ dependencies {
     implementation 'androidx.paging:paging-runtime-ktx:3.2.1'// Paging 3
     implementation 'javax.inject:javax.inject:1'
 
+    // Hilt
+    implementation 'com.google.dagger:hilt-android:2.56.2'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.9.7'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.9.7'
+    kapt 'com.google.dagger:hilt-compiler:2.56.2'
+    implementation 'androidx.hilt:hilt-navigation-fragment:1.2.0'
+
     // navigation
     implementation 'androidx.navigation:navigation-fragment-ktx:2.9.6'
     implementation 'androidx.navigation:navigation-ui-ktx:2.9.6'
+    def nav_version = "2.7.7"
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+
     implementation 'com.google.ai.client.generativeai:generativeai:0.9.0'
 
     testImplementation 'junit:junit:4.13.2'
@@ -103,6 +117,7 @@ dependencies {
     implementation 'com.prolificinteractive:material-calendarview:1.4.3' //자아성찰 캘린더
     implementation "com.github.bumptech.glide:glide:4.16.0" //이미지 로딩을 위한 Glide
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+    implementation 'com.android.billingclient:billing-ktx:7.1.1'
 
     // hilt
     implementation("com.google.dagger:hilt-android:2.51.1")
