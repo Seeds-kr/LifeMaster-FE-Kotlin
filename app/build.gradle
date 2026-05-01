@@ -14,7 +14,7 @@ if (rootProject.file("local.properties").exists()) {
 }
 
 android {
-    namespace 'com.example.lifemaster'
+    namespace 'com.seeds.lifemaster'
     compileSdk 34
 
     viewBinding {
