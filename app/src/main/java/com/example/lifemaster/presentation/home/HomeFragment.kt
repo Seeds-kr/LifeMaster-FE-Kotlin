@@ -3,6 +3,7 @@ package com.example.lifemaster.presentation.home
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.util.Log
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -53,6 +54,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import android.graphics.RenderEffect
+import android.graphics.Shader
+import android.os.Build
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -839,11 +846,17 @@ class HomeFragment : Fragment() {
             val bg = itemView.findViewById<ImageView>(R.id.iv_challenge_preview_bg)
             val icon = itemView.findViewById<ImageView>(R.id.iv_challenge_preview_icon)
             val title = itemView.findViewById<TextView>(R.id.tv_challenge_preview_name)
+            val overlay = itemView.findViewById<LinearLayout>(R.id.layout_completion_overlay)
+            val checkmark = itemView.findViewById<ImageView>(R.id.iv_checkmark)
+            val timeText = itemView.findViewById<TextView>(R.id.tv_completion_time)
 
             title.text = challenge.challName
             title.setTextColor(Color.parseColor("#BDBDBD"))
 
             bg.setImageResource(R.drawable.bg_circle_default)
+
+            // 초기 상태 반영 (이미 완료된 경우 등)
+            updateChallengeItemUI(challenge, icon, overlay, checkmark, timeText)
 
             if (challenge.challImg.isNotBlank()) {
                 Glide.with(icon.context)
@@ -858,35 +871,47 @@ class HomeFragment : Fragment() {
                     .into(icon)
             }
 
-            root.setOnClickListener {
-                val args = Bundle().apply {
-                    putLong("challId", challenge.challId)
+            val toggleComplete = {
+                if (!challenge.isCompleted) {
+                    challenge.isCompleted = true
+                    val now = LocalTime.now()
+                    val formatter = DateTimeFormatter.ofPattern("h:mma", Locale.ENGLISH)
+                    challenge.completionTime = now.format(formatter).lowercase(Locale.ENGLISH)
+                    updateChallengeItemUI(challenge, icon, overlay, checkmark, timeText)
+                    Toast.makeText(requireContext(), "${challenge.challName} 완료!", Toast.LENGTH_SHORT).show()
+
+                    // 달력에 별 추가 (챌린지 완료 이벤트)
+                    val token = TokenProvider.getBearerToken(requireContext())
+                    if (!token.isNullOrBlank()) {
+                        val bearerToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            try {
+                                val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                                withContext(Dispatchers.IO) {
+                                    networkService.createEvents(todayStr, listOf("챌린지 완료"), bearerToken)
+                                }
+                                // 달력 갱신 트리거
+                                calendarVM.addIntrospectionDate(LocalDate.now())
+                            } catch (e: Exception) {
+                                Log.e("HomeFragment", "챌린지 완료 이벤트 추가 실패", e)
+                            }
+                        }
+                    }
+                } else {
+                    // 이미 완료된 경우 상세 화면으로 이동
+                    val args = Bundle().apply {
+                        putLong("challId", challenge.challId)
+                    }
+                    findNavController().navigate(
+                        R.id.action_homeFragment_to_challengeDetailFragment,
+                        args
+                    )
                 }
-                findNavController().navigate(
-                    R.id.action_homeFragment_to_challengeDetailFragment,
-                    args
-                )
             }
 
-            frame.setOnClickListener {
-                val args = Bundle().apply {
-                    putLong("challId", challenge.challId)
-                }
-                findNavController().navigate(
-                    R.id.action_homeFragment_to_challengeDetailFragment,
-                    args
-                )
-            }
-
-            itemView.setOnClickListener {
-                val args = Bundle().apply {
-                    putLong("challId", challenge.challId)
-                }
-                findNavController().navigate(
-                    R.id.action_homeFragment_to_challengeDetailFragment,
-                    args
-                )
-            }
+            root.setOnClickListener { toggleComplete() }
+            frame.setOnClickListener { toggleComplete() }
+            itemView.setOnClickListener { toggleComplete() }
 
             if (index == challenges.lastIndex) {
                 val lp = itemView.layoutParams as? ViewGroup.MarginLayoutParams
@@ -895,6 +920,37 @@ class HomeFragment : Fragment() {
             }
 
             container.addView(itemView)
+        }
+    }
+
+    private fun updateChallengeItemUI(
+        challenge: ChallengeItem,
+        icon: ImageView,
+        overlay: View?,
+        checkmark: ImageView,
+        timeText: TextView
+    ) {
+        if (challenge.isCompleted) {
+            overlay?.visibility = View.VISIBLE
+            checkmark.visibility = View.VISIBLE
+            timeText.visibility = View.VISIBLE
+            timeText.text = challenge.completionTime
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val blurEffect = RenderEffect.createBlurEffect(15f, 15f, Shader.TileMode.CLAMP)
+                icon.setRenderEffect(blurEffect)
+            } else {
+                icon.alpha = 0.5f
+            }
+        } else {
+            overlay?.visibility = View.GONE
+            checkmark.visibility = View.GONE
+            timeText.visibility = View.GONE
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                icon.setRenderEffect(null)
+            } else {
+                icon.alpha = 1.0f
+            }
         }
     }
 
