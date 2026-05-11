@@ -1,5 +1,6 @@
 package com.example.lifemaster.presentation.home.alarm.view.service
 
+import android.app.ActivityOptions
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -11,7 +12,10 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.lifemaster.R
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
@@ -123,6 +127,27 @@ class AlarmService : Service() {
         } else {
             startForeground(notificationId, notification) // 7
         }
+
+        // Android 12+에서는 잠금 해제 상태에서 FSI만으로 Activity가 자동 실행되지 않고 헤드업 알림만 뜹니다.
+        // 포그라운드 서비스로 전환한 직후 PendingIntent 로 Activity를 열면 잠금/해제·다른 앱 사용 중에도 최상단에 띄울 수 있습니다.
+        launchAlarmDisplayActivity(fullScreenPendingIntent)
+    }
+
+    private fun launchAlarmDisplayActivity(launchAlarmPendingIntent: PendingIntent) {
+        Handler(Looper.getMainLooper()).post {
+            try {
+                val options = ActivityOptions.makeBasic()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    options.pendingIntentBackgroundActivityStartMode =
+                        ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                }
+                launchAlarmPendingIntent.send(this, 0, null, null, null, null, options.toBundle())
+            } catch (e: PendingIntent.CanceledException) {
+                Log.w(TAG, "Alarm display PendingIntent canceled", e)
+            } catch (e: IllegalArgumentException) {
+                Log.w(TAG, "Could not launch alarm display Activity", e)
+            }
+        }
     }
 
     private fun showFallbackForegroundNotification() {
@@ -184,6 +209,7 @@ class AlarmService : Service() {
     }
 
     companion object {
+        private const val TAG = "AlarmService"
         const val CHANNEL_ID = "ALARM_SERVICE_CHANNEL_ID"
         const val CHANNEL_NAME = "ALARM_SERVICE_CHANNEL_NAME"
         private const val NOTIFICATION_ID_FALLBACK = 1001

@@ -1,10 +1,14 @@
 package com.example.lifemaster.presentation.home.alarm.util
 
 import android.app.AlarmManager
+import android.app.AlarmManager.AlarmClockInfo
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.content.ContextCompat
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.FOLLOW_CLICK
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LEVEL_HIGH
 import com.example.lifemaster.presentation.home.alarm.AlarmConstants.LEVEL_LOW
@@ -108,7 +112,8 @@ fun formatRemainingTime(alarmTime: String): String {
  * 3. AlarmManager은 알람이 울릴 시간을 "1970년 1월 1일 0시부터 현재까지 흐른 밀리초(ms)" 단위로 받는다.
  * alarmTimeIso는 "2024-05-20T07:30:00Z" 와 같이 ISO-8601 표준 형식의 문자열이다.
  * 이 표준 시간 문자열을 시간 객체(Instant)로 변환한 뒤 AlarmManager가 사용하는 '밀리초'로 변환하는 과정이다.
- * 4. Android 12 이상에서는 정확한 알람 권한 확인이 필요하다. 권한이 없는 경우 일반 알람으로 설정하거나 권한 요청이 필요하다.
+ * 4. setAlarmClock·setExact·setAlarmClock류는 일부 버전에서는 SCHEDULE_EXACT_ALARM 또는 USE_EXACT_ALARM이 없으면 SecurityException으로 실패함.
+ *    미허용 시 setAndAllowWhileIdle로 크래시 없이 근사 시각에 예약한다.
  * 5. 알람의 기준 시계와 작동 방식을 결정함
  * RTC: Real Time Clock. 실제 세상의 시각을 기준으로 한다. (반대 개념인 ELAPSED_REALTIME은 핸드폰이 켜진 후 흐른 시간이다.)
  * WAKEUP: 핸드폰 배터리 절약을 위해 절전 모드(Doze Mode)에 빠져 있더라도, 알람이 울릴 시간이 되면 CPU를 깨워서 알람 수신기(BroadcastReceiver)을 실행하라는 뜻이다.
@@ -154,14 +159,11 @@ fun scheduleAlarm(context: Context, alarm: AlarmModel) {
         .toInstant()
         .toEpochMilli()
 
-    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        if(alarmManager.canScheduleExactAlarms()) {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP, // 5
-                triggerTime,
-                pendingIntent
-            )
-        } else {
+    val canScheduleExactAlarm = canScheduleExactAlarmCompat(context, alarmManager)
+    if (canScheduleExactAlarm) {
+        try {
+            alarmManager.setAlarmClock(AlarmClockInfo(triggerTime, null), pendingIntent)
+        } catch (e: SecurityException) {
             alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 triggerTime,
@@ -169,12 +171,28 @@ fun scheduleAlarm(context: Context, alarm: AlarmModel) {
             )
         }
     } else {
-        alarmManager.setExactAndAllowWhileIdle(
+        alarmManager.setAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             triggerTime,
             pendingIntent
         )
     }
+}
+
+/**
+ * Android 14+에서는 알람 코어 기능용 USE_EXACT_ALARM 또는 설정에서 허용된 SCHEDULE_EXACT_ALARM이 필요함.
+ */
+private fun canScheduleExactAlarmCompat(context: Context, alarmManager: AlarmManager): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+        ContextCompat.checkSelfPermission(context, Manifest.permission.USE_EXACT_ALARM) ==
+        PackageManager.PERMISSION_GRANTED
+    ) {
+        return true
+    }
+
+    return alarmManager.canScheduleExactAlarms()
 }
 
 /**
