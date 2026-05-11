@@ -30,23 +30,20 @@ data class AlarmModel(
 ): Parcelable {
     val hour: Int
         get() {
-            val hour = Instant.parse(alarmTime+"Z").atZone(ZoneId.systemDefault()).hour
-            return hour
+            val time = if (alarmTime.endsWith("Z")) alarmTime else "${alarmTime}Z"
+            return Instant.parse(time).atZone(ZoneId.systemDefault()).hour
         }
 
     val minute: Int
         get() {
-            val minute = Instant.parse(alarmTime+"Z").atZone(ZoneId.systemDefault()).minute
-            return minute
+            val time = if (alarmTime.endsWith("Z")) alarmTime else "${alarmTime}Z"
+            return Instant.parse(time).atZone(ZoneId.systemDefault()).minute
         }
 
     val timeText: String
         get() {
-            val h = "%02d".format(
-                if (hour < 12) hour else hour - 12
-            )
-            val m = "%02d".format(minute)
-            return "$h:$m"
+            val h = if (hour == 0 || hour == 12) 12 else hour % 12
+            return "%02d:%02d".format(h, minute)
         }
 
     val ampm: String
@@ -56,6 +53,6 @@ data class AlarmModel(
 
     val formattedAlarmTime: String
         get() {
-            return alarmTime+"Z"
+            return if (alarmTime.endsWith("Z")) alarmTime else "${alarmTime}Z"
         }
 }

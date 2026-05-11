@@ -13,7 +13,9 @@ import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityAlarmDisplayBinding
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AlarmDisplayActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAlarmDisplayBinding

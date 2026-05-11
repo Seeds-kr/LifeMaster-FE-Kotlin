@@ -112,6 +112,8 @@ class AlarmService : Service() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setFullScreenIntent(fullScreenPendingIntent, true) // 6
+            .setContentIntent(fullScreenPendingIntent) // 알림 클릭 시 액티비티 이동
+            .setAutoCancel(true)
             .build()
 
         val notificationId = if (alarmItem.id == 0) NOTIFICATION_ID_FALLBACK else alarmItem.id

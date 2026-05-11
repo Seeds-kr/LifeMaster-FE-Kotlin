@@ -84,7 +84,8 @@ fun getRemainingDaysUntilAlarmRings(alarmTime: LocalTime, selectedDays: MutableS
 fun formatRemainingTime(alarmTime: String): String {
 
     val start = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
-    val end = Instant.parse(alarmTime).atZone(ZoneId.systemDefault()).toLocalDateTime()
+    val time = if (alarmTime.endsWith("Z")) alarmTime else "${alarmTime}Z"
+    val end = Instant.parse(time).atZone(ZoneId.systemDefault()).toLocalDateTime()
 
     val duration = Duration.between(start, end)
     val days = duration.toDays()
@@ -121,14 +122,38 @@ fun scheduleAlarm(context: Context, alarm: AlarmModel) {
 
     val pendingIntent = PendingIntent.getBroadcast(
         context,
-        alarm.id, // 1
+        alarm.id,
         intent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE // 2
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
-    val triggerTime = Instant.parse(alarm.alarmTime).toEpochMilli() // 3
+    // 알람이 울릴 시간을 현재 시각 기준으로 항상 미래로 계산
+    val selectedDays = mutableSetOf<Int>()
+    if (alarm.alarmMon) selectedDays.add(1)
+    if (alarm.alarmTue) selectedDays.add(2)
+    if (alarm.alarmWed) selectedDays.add(3)
+    if (alarm.alarmThu) selectedDays.add(4)
+    if (alarm.alarmFri) selectedDays.add(5)
+    if (alarm.alarmSat) selectedDays.add(6)
+    if (alarm.alarmSun) selectedDays.add(7)
 
-    // 4
+    val alarmLocalTime = LocalTime.of(alarm.hour, alarm.minute)
+    val daysUntilNext = if (selectedDays.isEmpty()) {
+        val now = LocalTime.now()
+        if (alarmLocalTime.isAfter(now)) 0 else 1
+    } else {
+        getRemainingDaysUntilAlarmRings(alarmLocalTime, selectedDays)
+    }
+
+    val triggerTime = LocalDateTime.now().plusDays(daysUntilNext.toLong())
+        .withHour(alarm.hour)
+        .withMinute(alarm.minute)
+        .withSecond(0)
+        .withNano(0)
+        .atZone(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
+
     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         if(alarmManager.canScheduleExactAlarms()) {
             alarmManager.setExactAndAllowWhileIdle(
@@ -150,6 +175,22 @@ fun scheduleAlarm(context: Context, alarm: AlarmModel) {
             pendingIntent
         )
     }
+}
+
+/**
+ * 알람을 취소하는 메소드
+ */
+fun cancelAlarm(context: Context, alarmId: Int) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val intent = Intent(context, AlarmReceiver::class.java)
+    val pendingIntent = PendingIntent.getBroadcast(
+        context,
+        alarmId,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    alarmManager.cancel(pendingIntent)
+    pendingIntent.cancel()
 }
 
 val randomMissionTypeMapper = mapOf(

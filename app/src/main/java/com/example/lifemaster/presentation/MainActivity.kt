@@ -16,9 +16,15 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
@@ -117,6 +123,8 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
 
         requestUsageAccessPermission(this) // 사용 용도: 디톡스, 수면시간 측정
+        requestOverlayPermission(this)
+        requestNotificationPermission()
 
         getUserSleepInfo()
 
@@ -355,5 +363,41 @@ class MainActivity : AppCompatActivity() {
             )
         }
         return mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    private fun requestOverlayPermission(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(context)) {
+                AlertDialog.Builder(context).apply {
+                    setTitle("다른 앱 위에 표시 권한 필요")
+                    setMessage("알람 화면을 즉시 띄우기 위해 '다른 앱 위에 표시' 권한이 필요합니다. 설정에서 허용해주세요.")
+                    setPositiveButton("설정 이동") { _, _ ->
+                        val intent = Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            "package:${context.packageName}".toUri()
+                        )
+                        startActivity(intent)
+                    }
+                    setCancelable(false)
+                    create().show()
+                }
+            }
+        }
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (!isGranted) {
+            Toast.makeText(this, "알림 권한이 거부되었습니다. 알람이 울리지 않을 수 있습니다.", Toast.LENGTH_SHORT).show()
+        }
     }
 }
