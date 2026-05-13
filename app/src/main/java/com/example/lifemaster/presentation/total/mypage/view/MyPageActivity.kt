@@ -1,5 +1,6 @@
 package com.example.lifemaster.presentation.total.mypage.view
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -23,7 +24,7 @@ class MyPageActivity : AppCompatActivity() {
         val tvEdit = findViewById<TextView>(R.id.tvEdit)
         val tvNickname = findViewById<TextView>(R.id.tvNickname)
         val tvEmail = findViewById<TextView>(R.id.tvEmail)
-        val btnPayment = findViewById<Button>(R.id.btnPayment)
+        val btnSubscribePremium = findViewById<Button>(R.id.btnSubscribePremium)
         val tvWithdrawal = findViewById<TextView>(R.id.tvWithdrawal)
 
         // 블러 처리를 위한 뷰 초기화 및 추가
@@ -43,8 +44,8 @@ class MyPageActivity : AppCompatActivity() {
             Toast.makeText(this, "프로필 수정 클릭", Toast.LENGTH_SHORT).show()
         }
 
-        btnPayment.setOnClickListener {
-            Toast.makeText(this, "요금제 정보 클릭", Toast.LENGTH_SHORT).show()
+        btnSubscribePremium.setOnClickListener {
+            startActivity(Intent(this, PremiumSubscribeActivity::class.java))
         }
 
         tvWithdrawal.setOnClickListener {

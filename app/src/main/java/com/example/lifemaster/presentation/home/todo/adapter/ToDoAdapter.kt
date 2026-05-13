@@ -53,7 +53,6 @@ class ToDoAdapter (
                 onViewClicked(item)
             }
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToDoViewHolder {

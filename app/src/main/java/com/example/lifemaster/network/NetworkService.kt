@@ -12,11 +12,10 @@ import com.example.lifemaster.presentation.total.introspection.model.ThankCreate
 import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
 import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
-import com.example.lifemaster.presentation.total.introspection.model.SelfReflectionByDateResponse
+import com.example.lifemaster.presentation.total.introspection.model.SelfReflectionResponse
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
-import com.example.lifemaster.presentation.community.model.*
 import com.example.lifemaster.presentation.community.model.CommentDto
 import com.example.lifemaster.presentation.community.model.NewCommentRequest
 import com.example.lifemaster.presentation.community.model.NewPostRequest
@@ -55,6 +54,7 @@ import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockReques
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
 import com.example.lifemaster.presentation.total.mypage.model.MeResponse
+import com.example.lifemaster.presentation.total.mypage.model.PayPalCreateOrderResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -123,6 +123,16 @@ interface NetworkService {
     fun verifyResetCode(
         @Body body: VerifyCodeRequest
     ): Call<PasswordResponseDto>
+
+    // 네이버 로그인: OAuth2 인증 URL 발급
+    @GET("/naverLogin/authUrl")
+    fun getNaverAuthUrl(): Call<String>
+
+    // 모든 To-Do 항목 조회
+    @GET("/schedule/todo")
+    fun getTodoItems(
+        @Header("Authorization") token: String
+    ): Call<List<TodoResponse>>
 
     @Headers("Content-Type: application/json")
     @POST("auth/password/reset")
@@ -291,12 +301,12 @@ interface NetworkService {
         @Path("diary-id") diaryId: Long
     ): Response<Unit>
 
-    // 날짜 기준 자아성찰 조회
+    // 날짜별 자아성찰(다이어리 + 5감사) 조회
     @GET("/schedule/self-reflection")
     suspend fun getSelfReflectionByDate(
         @Header("Authorization") token: String,
         @Query("date") date: String
-    ): Response<SelfReflectionByDateResponse>
+    ): Response<SelfReflectionResponse>
 
     @GET("/calendar")
     suspend fun getCalendarAll(
@@ -657,6 +667,20 @@ interface NetworkService {
         @Path("groupId") groupId: Long,
         @Query("scope") scope: String
     ): Response<GroupRankingResponse>
+
+    /**
+     * PayPal 결제 API
+     */
+    @POST("/payments/paypal/create-order")
+    suspend fun createPaypalOrder(
+        @Header("Authorization") token: String
+    ): Response<PayPalCreateOrderResponse>
+
+    @POST("/payments/paypal/capture/{orderId}")
+    suspend fun capturePaypalOrder(
+        @Header("Authorization") token: String,
+        @Path("orderId") orderId: String
+    ): Response<ResponseBody>
 
     // 5x5 클릭 그리드 생성 API
     @GET("/time/alarm/mission/follow-click")

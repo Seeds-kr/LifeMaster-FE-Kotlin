@@ -501,7 +501,7 @@ class HomeFragment : Fragment() {
         binding.recyclerviewGroup.apply {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
             adapter = homeGroupAdapter
-            setHasFixedSize(true)
+            setHasFixedSize(false)
             isNestedScrollingEnabled = false
         }
     }
@@ -515,7 +515,7 @@ class HomeFragment : Fragment() {
                 LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
             rv.adapter = homeGroupAdapter
         }
-        rv.setHasFixedSize(true)
+        rv.setHasFixedSize(false)
         rv.isNestedScrollingEnabled = false
         rv.requestLayout()
         rv.invalidate()

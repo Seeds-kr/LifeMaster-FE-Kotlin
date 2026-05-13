@@ -12,22 +12,19 @@ import android.widget.Toast
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeBinding
-import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
-import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest // Flow의 데이터를 수집
 import kotlinx.coroutines.launch
 import android.widget.PopupMenu
 import androidx.paging.PagingData
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 data class MyChallenge(
     val imageRes: Int,
@@ -41,13 +38,8 @@ class ChallengeFragment : Fragment() {
     private var _binding: FragmentChallengeBinding? = null
     private val binding get() = _binding!!
 
-    @Inject lateinit var networkService: NetworkService
-
-    // DI를 사용하여 ViewModel 생성
-    private val viewModel: ChallengeViewModel by lazy {
-        val factory = ChallengeViewModelFactory(networkService)
-        ViewModelProvider(this, factory)[ChallengeViewModel::class.java]
-    }
+    // Hilt를 사용하여 ViewModel 생성
+    private val viewModel: ChallengeViewModel by viewModels()
 
     private lateinit var challengeAdapter: ChallengeAdapter
 
@@ -202,7 +194,7 @@ class ChallengeFragment : Fragment() {
     private fun setupClickListeners() {
         challengeAdapter.onItemClickListener = { challenge ->
             val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(
-                challenge.challId
+                challenge.challId.toLong()
             )
             findNavController().navigate(action)
         }

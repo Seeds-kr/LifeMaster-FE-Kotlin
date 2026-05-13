@@ -105,57 +105,57 @@ class AlarmRandomMissionMathFragment : Fragment(R.layout.fragment_alarm_random_m
 
         // 수면 데이터
         sleepViewModel.userSleepRecordList.observe(viewLifecycleOwner) { result ->
-                when(result) {
-                    is Result.Success -> {
-                        alarmViewModel.alarmDismissedAt = System.currentTimeMillis()
-                        val data = result.data
-                        val todayRecord = data.find { it.sleepDate == LocalDate.now().toString() }
-                        if(todayRecord == null) {
-                            // POST
-                            sleepViewModel.registerUserSleepInfo(
-                                sleepRequest = SleepRequest(
-                                    userId = Constants.USER_ID,
-                                    sleepDate = LocalDate.now().toString(),
-                                    sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
-                                    sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
-                                    sleepMood = "GOOD",
-                                    alarmInfo = AlarmInfo(
-                                        isWakeUpAlarmSet = true,
-                                        alarmSettings = AlarmSettingInfo(
-                                            alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
-                                            timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
-                                            antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
-                                        )
+            when(result) {
+                is Result.Success -> {
+                    alarmViewModel.alarmDismissedAt = System.currentTimeMillis()
+                    val data = result.data
+                    val todayRecord = data.find { it.sleepDate == LocalDate.now().toString() }
+                    if(todayRecord == null) {
+                        // POST
+                        sleepViewModel.registerUserSleepInfo(
+                            sleepRequest = SleepRequest(
+                                userId = Constants.USER_ID,
+                                sleepDate = LocalDate.now().toString(),
+                                sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
+                                sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
+                                sleepMood = "GOOD",
+                                alarmInfo = AlarmInfo(
+                                    isWakeUpAlarmSet = true,
+                                    alarmSettings = AlarmSettingInfo(
+                                        alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
                                     )
                                 )
                             )
-                        } else {
-                            // PATCH
-                            sleepViewModel.updateUserSleepInfo(
-                                sleepRequest = SleepRequest(
-                                    userId = Constants.USER_ID,
-                                    sleepDate = LocalDate.now().toString(),
-                                    sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
-                                    sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
-                                    sleepMood = "GOOD",
-                                    alarmInfo = AlarmInfo(
-                                        isWakeUpAlarmSet = true,
-                                        alarmSettings = AlarmSettingInfo(
-                                            alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
-                                            timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
-                                            antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
-                                        )
+                        )
+                    } else {
+                        // PATCH
+                        sleepViewModel.updateUserSleepInfo(
+                            sleepRequest = SleepRequest(
+                                userId = Constants.USER_ID,
+                                sleepDate = LocalDate.now().toString(),
+                                sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
+                                sleepEnd =  Instant.ofEpochMilli(alarmViewModel.alarmDismissedAt ?: 0L).toString(),
+                                sleepMood = "GOOD",
+                                alarmInfo = AlarmInfo(
+                                    isWakeUpAlarmSet = true,
+                                    alarmSettings = AlarmSettingInfo(
+                                        alarmSnoozeCnt = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        timeToWakeUp = 0, // TODO: 실제 알람 데이터로 변경하기
+                                        antiSleepMode = false // TODO: 실제 알람 데이터로 변경하기
                                     )
                                 )
                             )
-                        }
+                        )
                     }
-                    is Result.Error -> {
-                        Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
-                    }
-                    is Result.Loading -> {}
                 }
+                is Result.Error -> {
+                    Toast.makeText(context, "네트워크 연결이 불안정합니다.", Toast.LENGTH_SHORT).show()
+                }
+                is Result.Loading -> {}
             }
+        }
         sleepViewModel.isUserSleepRecordGenerated.observe(viewLifecycleOwner) { event ->
             event.getDataIfNotHandled()?.let { isSuccess ->
                 if (isSuccess) {

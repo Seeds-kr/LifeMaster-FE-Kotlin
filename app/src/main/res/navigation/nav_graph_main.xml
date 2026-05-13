@@ -208,9 +208,9 @@
         android:name="com.example.lifemaster.presentation.total.challenge.fragment.ChallengeDetailFragment"
         android:label="fragment_challenge_detail"
         tools:layout="@layout/fragment_challenge_detail">
-            <argument
-                android:name="challId"
-                app:argType="long"/>
+        <argument
+            android:name="challId"
+            app:argType="long" />
     </fragment>
 
     <fragment

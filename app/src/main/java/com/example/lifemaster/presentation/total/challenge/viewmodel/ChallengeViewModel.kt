@@ -14,15 +14,18 @@ import androidx.paging.cachedIn
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.network.NetworkService
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import retrofit2.HttpException
 import java.io.IOException
+import javax.inject.Inject
 
 // DI(의존성 주입) 패턴을 사용하여 의존성을 생성자로 주입받음
-class ChallengeViewModel(
+@HiltViewModel
+class ChallengeViewModel @Inject constructor(
     private val apiService: NetworkService
 ) : ViewModel() {
 
