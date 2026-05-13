@@ -25,6 +25,7 @@ import com.example.lifemaster.presentation.group.model.GroupResponse
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -52,6 +53,9 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
     private lateinit var tvJoinedCount: TextView
     private lateinit var searchContainer: View
     private lateinit var etSearchInput: EditText
+    private lateinit var btnCreateGroup: View
+
+    private var isPremiumLocked = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -60,8 +64,17 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
             findNavController().navigate(R.id.action_groupFragment_to_groupListFragment)
         }
 
-        // 그룹 생성하기
-        view.findViewById<View>(R.id.create_group)?.setOnClickListener {
+        btnCreateGroup = view.findViewById(R.id.create_group)
+        btnCreateGroup.setOnClickListener {
+            if (isPremiumLocked) {
+                Toast.makeText(
+                    requireContext(),
+                    "프리미엄 구독 후 이용할 수 있어요.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
             findNavController().navigate(R.id.action_groupFragment_to_groupCreateFragment)
         }
 
@@ -72,13 +85,13 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
         ivMore = joinedRoot.findViewById(R.id.iv_more_down)
         tvJoinedCount = view.findViewById(R.id.tv_joined_groups_count)
 
-        joinedAdapter = GroupListAdapter { g ->
-            openGroupStats(g)
+        joinedAdapter = GroupListAdapter { group ->
+            openGroupStats(group)
         }
 
-        searchAdapter = GroupListAdapter { g ->
+        searchAdapter = GroupListAdapter { group ->
             dismissSearchPopup()
-            openGroupStats(g)
+            openGroupStats(group)
         }
 
         rvJoined.layoutManager = LinearLayoutManager(requireContext())
@@ -119,13 +132,17 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
         loadGroupData()
     }
 
-    private fun openGroupStats(g: GroupResponse) {
-        val b = Bundle().apply {
-            putLong("groupId", g.id)
-            putString("groupName", g.name)
-            putInt("memberCount", g.memberCount ?: 0)
+    private fun openGroupStats(group: GroupResponse) {
+        val bundle = Bundle().apply {
+            putLong("groupId", group.id)
+            putString("groupName", group.name)
+            putInt("memberCount", group.memberCount ?: 0)
         }
-        findNavController().navigate(R.id.action_groupFragment_to_groupStatsFragment, b)
+
+        findNavController().navigate(
+            R.id.action_groupFragment_to_groupStatsFragment,
+            bundle
+        )
     }
 
     private fun clearJoinedGroupsUi() {
@@ -138,9 +155,9 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
         joinedAdapter.submitList(emptyList())
         searchAdapter.submitList(emptyList())
 
-        val lp = rvJoined.layoutParams
-        lp.height = 0
-        rvJoined.layoutParams = lp
+        val layoutParams = rvJoined.layoutParams
+        layoutParams.height = 0
+        rvJoined.layoutParams = layoutParams
 
         tvMore.text = getString(R.string.more)
         ivMore.setImageResource(R.drawable.ic_arrow_down)
@@ -149,6 +166,7 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
 
     private fun loadGroupData() {
         val token = TokenProvider.getBearerToken(requireContext())
+
         if (token.isNullOrBlank()) {
             clearJoinedGroupsUi()
             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
@@ -157,14 +175,37 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
 
         lifecycleScope.launch {
             val myGroupsDeferred = async {
-                runCatching { networkService.getMyGroups(token) }.getOrElse { emptyList() }
-            }
-            val allGroupsDeferred = async {
-                runCatching { networkService.getAllGroups(token) }.getOrElse { emptyList() }
+                runCatching {
+                    networkService.getMyGroups(token)
+                }
             }
 
-            val myGroups = myGroupsDeferred.await().distinctBy { it.id }
-            val all = allGroupsDeferred.await().distinctBy { it.id }
+            val allGroupsDeferred = async {
+                runCatching {
+                    networkService.getAllGroups(token)
+                }
+            }
+
+            val myGroupsResult = myGroupsDeferred.await()
+            val allGroupsResult = allGroupsDeferred.await()
+
+            val myGroupsError = myGroupsResult.exceptionOrNull()
+            isPremiumLocked = isPremiumError(myGroupsError)
+
+            val myGroups = if (isPremiumLocked) {
+                emptyList()
+            } else {
+                myGroupsResult.getOrElse { emptyList() }
+            }.distinctBy { it.id }
+
+            val all = allGroupsResult.getOrElse { error ->
+                Toast.makeText(
+                    requireContext(),
+                    "그룹 목록 조회 실패: ${error.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                emptyList()
+            }.distinctBy { it.id }
 
             joinedAll = myGroups
             joinedGroupIds = joinedAll.map { it.id }.toSet()
@@ -179,17 +220,21 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
         }
     }
 
+    private fun isPremiumError(error: Throwable?): Boolean {
+        return error is HttpException && error.code() == 403
+    }
+
     private fun applyJoinedListUi() {
         val showList = if (expanded) joinedAll else joinedAll.take(collapsedShowCount)
         joinedAdapter.submitList(showList.toList())
 
-        val lp = rvJoined.layoutParams
-        lp.height = when {
+        val layoutParams = rvJoined.layoutParams
+        layoutParams.height = when {
             showList.isEmpty() -> 0
             expanded -> LinearLayout.LayoutParams.WRAP_CONTENT
             else -> dpToPx(168)
         }
-        rvJoined.layoutParams = lp
+        rvJoined.layoutParams = layoutParams
 
         tvMore.text = if (expanded) "접기" else getString(R.string.more)
         ivMore.setImageResource(
@@ -200,24 +245,25 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
     private fun ensureAllGroupsLoadedThenShow(anchor: View, initialQuery: String) {
         if (allGroups.isEmpty()) {
             val token = TokenProvider.getBearerToken(requireContext())
+
             if (token.isNullOrBlank()) {
                 Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                 return
             }
 
             lifecycleScope.launch {
-                runCatching { networkService.getAllGroups(token) }
-                    .onSuccess { list ->
-                        allGroups = list.distinctBy { it.id }
-                        showSearchPopup(anchor, initialQuery)
-                    }
-                    .onFailure { e ->
-                        Toast.makeText(
-                            requireContext(),
-                            "그룹 목록 조회 실패: ${e.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                runCatching {
+                    networkService.getAllGroups(token)
+                }.onSuccess { list ->
+                    allGroups = list.distinctBy { it.id }
+                    showSearchPopup(anchor, initialQuery)
+                }.onFailure { error ->
+                    Toast.makeText(
+                        requireContext(),
+                        "그룹 목록 조회 실패: ${error.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
             return
         }
@@ -251,14 +297,18 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
     }
 
     private fun submitFilteredGroups(query: String) {
-        val q = query.trim()
+        val trimmedQuery = query.trim()
 
-        val base = allGroups.filterNot { joinedGroupIds.contains(it.id) }
+        val base = allGroups.filterNot {
+            joinedGroupIds.contains(it.id)
+        }
 
-        val filtered = if (q.isEmpty()) {
+        val filtered = if (trimmedQuery.isEmpty()) {
             base
         } else {
-            base.filter { it.name.contains(q, ignoreCase = true) }
+            base.filter {
+                it.name.contains(trimmedQuery, ignoreCase = true)
+            }
         }
 
         searchAdapter.submitList(filtered.toList())

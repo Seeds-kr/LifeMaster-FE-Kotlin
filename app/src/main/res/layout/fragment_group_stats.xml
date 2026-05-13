@@ -60,7 +60,7 @@
                         android:layout_gravity="center"
                         android:contentDescription="@null"
                         android:importantForAccessibility="no"
-                        android:src="@drawable/ic_clock"
+                        android:src="@drawable/ic_clock_sleep"
                         app:tint="@color/black" />
                 </FrameLayout>
 
@@ -113,6 +113,74 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/black_10" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layout_premium_locked"
+                android:layout_width="match_parent"
+                android:layout_height="360dp"
+                android:layout_marginTop="20dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="#F8F4FC"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#E8DDF3"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="28dp">
+
+                    <FrameLayout
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_round_input">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="🔒"
+                            android:textSize="26sp" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="프리미엄 전용 기능이에요"
+                        android:textColor="@color/black"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center"
+                        android:lineSpacingExtra="4dp"
+                        android:text="그룹 가입, 통계, 랭킹은\n프리미엄 구독 후 이용할 수 있어요."
+                        android:textColor="@color/gray"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/btn_premium_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp"
+                        android:background="@drawable/bg_round_and_gray"
+                        android:backgroundTint="@color/purple_100"
+                        android:gravity="center"
+                        android:paddingHorizontal="22dp"
+                        android:paddingVertical="10dp"
+                        android:text="프리미엄 구독하기"
+                        android:textColor="@android:color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <LinearLayout
                 android:id="@+id/layout_goal_chart_container"

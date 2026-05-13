@@ -3,7 +3,6 @@ package com.example.lifemaster.presentation.group.view
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
@@ -34,37 +33,43 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
 
         val rv = view.findViewById<RecyclerView>(R.id.rv_group_list)
         val etSearch = view.findViewById<EditText>(R.id.search_group)
-        val tvCurrent = view.findViewById<TextView>(R.id.tv_page_current)
-        val tvTotal = view.findViewById<TextView>(R.id.tv_page_total)
 
-        adapter = GroupListAdapter { g ->
-            val b = Bundle().apply {
-                putLong("groupId", g.id)
-                putString("groupName", g.name)
-                putInt("memberCount", g.memberCount ?: 0)
+        adapter = GroupListAdapter { group ->
+            val bundle = Bundle().apply {
+                putLong("groupId", group.id)
+                putString("groupName", group.name)
+                putInt("memberCount", group.memberCount ?: 0)
             }
-            findNavController().navigate(R.id.action_groupListFragment_to_groupStatsFragment, b)
+
+            findNavController().navigate(
+                R.id.action_groupListFragment_to_groupStatsFragment,
+                bundle
+            )
         }
 
         rv.layoutManager = LinearLayoutManager(requireContext())
         rv.adapter = adapter
 
-        loadAllGroups(tvCurrent, tvTotal)
+        loadAllGroups()
 
         etSearch.doAfterTextChanged { editable ->
-            val q = editable?.toString()?.trim().orEmpty()
-            val filtered =
-                if (q.isBlank()) allGroups
-                else allGroups.filter { it.name.contains(q, ignoreCase = true) }
+            val query = editable?.toString()?.trim().orEmpty()
 
-            adapter.submitList(filtered)
-            tvCurrent.text = "1"
-            tvTotal.text = "1"
+            val filteredGroups = if (query.isBlank()) {
+                allGroups
+            } else {
+                allGroups.filter {
+                    it.name.contains(query, ignoreCase = true)
+                }
+            }
+
+            adapter.submitList(filteredGroups)
         }
     }
 
-    private fun loadAllGroups(tvCurrent: TextView, tvTotal: TextView) {
+    private fun loadAllGroups() {
         val token = TokenProvider.getBearerToken(requireContext())
+
         if (token.isNullOrBlank()) {
             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
             return
@@ -73,13 +78,15 @@ class GroupListFragment : Fragment(R.layout.fragment_group_list) {
         lifecycleScope.launch {
             runCatching {
                 networkService.getAllGroups(token)
-            }.onSuccess { list ->
-                allGroups = list.distinctBy { it.id }
+            }.onSuccess { groups ->
+                allGroups = groups.distinctBy { it.id }
                 adapter.submitList(allGroups)
-                tvCurrent.text = "1"
-                tvTotal.text = "1"
-            }.onFailure { e ->
-                Toast.makeText(requireContext(), "전체 그룹 조회 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+            }.onFailure {
+                Toast.makeText(
+                    requireContext(),
+                    "전체 그룹 목록을 불러오지 못했습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
