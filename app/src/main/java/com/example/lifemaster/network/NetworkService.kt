@@ -153,6 +153,12 @@ interface NetworkService {
     @GET("/schedule/todo/member/{memberId}")
     suspend fun getTodoItems(): List<TodoResponse>
 
+    // 현재 유저의 날짜별 To-Do 조회
+    @GET("/schedule/todo/date/{date}")
+    suspend fun getTodoItemsByDate(
+        @Path("date") date: String
+    ): List<TodoResponse>
+
     // To-Do 삭제
     @DELETE("/schedule/todo/{id}")
     suspend fun deleteTodoItem(
