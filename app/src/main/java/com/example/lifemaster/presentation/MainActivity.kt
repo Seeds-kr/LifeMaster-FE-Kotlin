@@ -16,6 +16,7 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -34,6 +35,8 @@ import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroButtonStatus
+import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.time.Duration
@@ -57,6 +60,7 @@ class MainActivity : AppCompatActivity() {
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by viewModels()
     private val detoxViewModel: DetoxViewModel by viewModels()
     private val toDoViewModel: ToDoViewModel by viewModels()
+    private val pomodoroViewModel: PomodoroViewModel by viewModels()
 
     // 실시간 UI 변경을 위한 변수
     private val handler = Handler(Looper.getMainLooper())
@@ -261,10 +265,23 @@ class MainActivity : AppCompatActivity() {
         return String.format("%02d:%02d:%02d", hours, minutes, remainSeconds)
     }
 
+    private fun isPomodoroBlockingNavigation(): Boolean {
+        return pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.ESCAPE ||
+                pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.REST_ONGOING
+    }
+
     // 클릭 이벤트 관련 함수
     private fun setupListeners() {
         // [!] setOnClickListener 가 아니라 setOnItemSelectedListener 이기 때문에, 하단 개별 뷰를 누르지 않더라도 selectedItemId 를 해당 뷰로 바꿔주면 동작한다.
         binding.bottomNavigation.setOnItemSelectedListener { item ->
+            if (isPomodoroBlockingNavigation()) {
+                Toast.makeText(
+                    this,
+                    "포모도로 진행 중에는 비상 탈출을 완료해야 이동할 수 있어요.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnItemSelectedListener false
+            }
             when (item.itemId) {
                 R.id.action_home -> {
                     findNavController(R.id.fragmentContainerView).navigate(R.id.homeFragment)
