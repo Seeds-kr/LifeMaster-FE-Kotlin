@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
+import com.example.lifemaster.presentation.home.HomeConfig
 import java.util.Collections
 
 class HomeEditAdapter(
@@ -19,15 +20,6 @@ class HomeEditAdapter(
     private val startDragListener: HomeEditOnStartDragListener? = null
 ) : RecyclerView.Adapter<HomeEditAdapter.ServiceViewHolder>(),
     HomeEditTouchHelperAdapter {
-
-    private val iconTintMap = mapOf(
-        "수면" to "#333333",
-        "디톡스" to "#B4D775",
-        "그룹 바로가기" to "#AC87CC",
-        "자아성찰 바로가기" to "#FFB943",
-        "챌린지" to "#6DABD9",
-        "알람" to "#BBAB94"
-    )
 
     inner class ServiceViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val ivServiceIcon: ImageView = itemView.findViewById(R.id.ivServiceIcon)
@@ -47,7 +39,9 @@ class HomeEditAdapter(
         val item = itemList[position]
 
         holder.tvServiceName.text = item
-        holder.ivServiceIcon.setColorFilter((iconTintMap[item] ?: "#333333").toColorInt())
+        holder.ivServiceIcon.setColorFilter(
+            (HomeConfig.HOME_EDIT_ICON_TINT_BY_NAME[item] ?: "#333333").toColorInt()
+        )
         holder.ivToggle.setImageResource(
             if (isServiceList) R.drawable.ic_toggle_delete else R.drawable.ic_toggle_add
         )
