@@ -108,7 +108,7 @@
     <string name="subscription_plan_monthly">월간 구독</string>
     <string name="subscription_badge_30_off">30% 할인</string>
     <string name="subscription_price_annual_main">₩41,200 / 년</string>
-    <string name="subscription_price_annual_sub">월 ₩3,433 꼴</string>
+    <string name="subscription_price_annual_sub">월 ₩3,433</string>
     <string name="subscription_price_monthly_main">₩4,900 / 월</string>
     <string name="subscription_price_monthly_sub">매월 결제</string>
     <string name="subscription_monthly_no_trial">첫 달 체험 없음</string>

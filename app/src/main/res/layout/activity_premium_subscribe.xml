@@ -247,14 +247,6 @@
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@android:color/black" />
-
-                        <TextView
-                            android:id="@+id/tvMonthlyNoTrial"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/subscription_monthly_no_trial"
-                            android:textSize="12sp"
-                            android:textColor="#757575" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -274,14 +266,6 @@
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@android:color/black" />
-
-                        <TextView
-                            android:id="@+id/tvMonthlyPriceSub"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/subscription_price_monthly_sub"
-                            android:textSize="12sp"
-                            android:textColor="#757575" />
                     </LinearLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </LinearLayout>
