@@ -1,6 +1,5 @@
 package com.example.lifemaster.presentation.home.alarm.view.fragment
 
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -15,7 +14,7 @@ import com.example.lifemaster.databinding.FragmentAlarmRingBinding
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.model.RandomMissionType
-import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
+import com.example.lifemaster.presentation.home.alarm.util.dismissAlarmDisplayFlow
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import dagger.hilt.android.AndroidEntryPoint
@@ -86,10 +85,7 @@ class AlarmRingsFragment : Fragment(R.layout.fragment_alarm_ring) {
 
         btnDismissAlarm.setOnClickListener {
             if(alarmItem.randomMissionType == null) {
-                requireActivity().stopService(Intent(requireContext(), AlarmService::class.java))
-                // TODO: 현재 액티비티 끄고 메인 액티비티 화면으로 이동하기 (nav_graph_main 연결??)
-                // TODO: 만약 알람이 일회성 알람인 경우 (반복 요일이 없는 경우) 스위치 상태 OFF 로 변경하기 (업데이트) + 세부 화면 들어가면 이미 꺼진 알람입니다.. (이미 지난 시간인 지 구별하는 지금보다 더 명확한 로직 작성 필요)
-                // TODO: 추가 설정 필요한 지 고민해보기
+                dismissAlarmDisplayFlow()
             } else {
                 when(alarmItem.randomMissionType) {
                     RandomMissionType.MATH_PROBLEM -> {

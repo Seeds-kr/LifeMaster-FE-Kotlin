@@ -35,11 +35,6 @@
             android:id="@+id/action_alarmRandomMissionTapFragment_self"
             app:destination="@id/alarmRandomMissionTapFragment"
             app:launchSingleTop="true"/> <!-- 이 액션을 통해 이동하려는 목적지(Fragment)가 이미 백스택의 가장 위에(Top) 있다면, 새로운 인스턴스를 만들지 말고 기존의 것을 재사용하라 -->
-        <action
-            android:id="@+id/action_alarmRandomMissionTapFragment_to_alarmListFragment"
-            app:destination="@id/alarmListFragment"
-            app:popUpTo="@id/nav_graph_main"
-            app:popUpToInclusive="true"/>
     </fragment>
     <fragment
         android:id="@+id/alarmRandomMissionMathFragment"
@@ -53,11 +48,6 @@
         <argument
             android:name="currentPageNum"
             app:argType="integer"/>
-        <action
-            android:id="@+id/action_alarmRandomMissionMathFragment_to_alarmListFragment"
-            app:destination="@id/alarmListFragment"
-            app:popUpTo="@id/nav_graph_main"
-            app:popUpToInclusive="true"/>
         <action
             android:id="@+id/action_alarmRandomMissionMathFragment_self"
             app:destination="@id/alarmRandomMissionMathFragment"
