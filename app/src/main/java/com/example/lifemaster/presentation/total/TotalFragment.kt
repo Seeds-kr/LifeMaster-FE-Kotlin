@@ -18,6 +18,7 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentTotalBinding
 import com.example.lifemaster.presentation.home.HomeConfig
 import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
+import com.example.lifemaster.presentation.total.mypage.view.LegalDocumentActivity
 import com.example.lifemaster.presentation.total.mypage.view.MyPageActivity
 import com.example.lifemaster.presentation.total.mypage.view.RefundPolicyActivity
 import java.time.LocalDate
@@ -122,7 +123,7 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
         }
 
         binding.btnFaq.setOnClickListener {
-            Toast.makeText(requireContext(), R.string.total_page_preparing, Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), FaqActivity::class.java))
         }
 
         binding.btnCustomerSupport.setOnClickListener {
@@ -130,11 +131,23 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
         }
 
         binding.tvTermsOfService.setOnClickListener {
-            Toast.makeText(requireContext(), R.string.total_page_preparing, Toast.LENGTH_SHORT).show()
+            startActivity(
+                LegalDocumentActivity.createIntent(
+                    requireContext(),
+                    R.string.total_terms,
+                    R.string.terms_of_service_content,
+                )
+            )
         }
 
         binding.tvPrivacyPolicy.setOnClickListener {
-            Toast.makeText(requireContext(), R.string.total_page_preparing, Toast.LENGTH_SHORT).show()
+            startActivity(
+                LegalDocumentActivity.createIntent(
+                    requireContext(),
+                    R.string.total_privacy,
+                    R.string.privacy_policy_content,
+                )
+            )
         }
 
         binding.tvRefundPolicy.setOnClickListener {
