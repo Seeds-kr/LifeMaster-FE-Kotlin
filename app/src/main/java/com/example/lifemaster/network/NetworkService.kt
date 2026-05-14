@@ -211,6 +211,7 @@ interface NetworkService {
     // 챌린지 목록 조회
     @GET("/challenge")
     suspend fun getChallenges(
+        @Header("Authorization") token: String,
         @Query("page") page: Int,
         @Query("size") size: Int
     ): Response<ChallengeListResponse>
@@ -235,14 +236,6 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Path("challId") challId: Long
     ): Response<com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto>
-
-    // 챌린지 검색
-    @GET("/challenge/search")
-    suspend fun searchChallenges(
-        @Header("Authorization") token: String,
-        @Query("name") name: String,
-        @Query("page") page: Int = 0
-    ): ChallengeListResponse
 
     // 내 챌린지 목록 조회
     @GET("/challenge/my")

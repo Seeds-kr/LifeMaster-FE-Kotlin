@@ -208,7 +208,11 @@ class HomeFragment : Fragment() {
         }
 
         binding.cardChallenge.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_challengeFragment)
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.challenge_feature_in_development),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -812,7 +816,8 @@ class HomeFragment : Fragment() {
                     networkService.getMyChallengeList(token)
                 }
             }.onSuccess { response ->
-                cachedChallengeList = response.map { it.toChallengePresentation() }
+                val myIds = response.map { it.challId }.toSet()
+                cachedChallengeList = response.map { it.toChallengePresentation(myIds) }
                 renderChallengePreview(cachedChallengeList)
             }.onFailure {
                 cachedChallengeList = emptyList()
@@ -897,14 +902,11 @@ class HomeFragment : Fragment() {
                         }
                     }
                 } else {
-                    // 이미 완료된 경우 상세 화면으로 이동
-                    val args = Bundle().apply {
-                        putLong("challId", challenge.challId)
-                    }
-                    findNavController().navigate(
-                        R.id.action_homeFragment_to_challengeDetailFragment,
-                        args
-                    )
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.challenge_feature_in_development),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
 
