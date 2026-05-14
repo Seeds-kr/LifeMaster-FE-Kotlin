@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
-    <!-- 뒤로가기 -->
     <include
         android:id="@+id/includeBackButton"
         layout="@layout/item_back_button"
@@ -45,7 +44,6 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
-            <!-- 그룹 카드 -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_group"
                 android:layout_width="match_parent"
@@ -123,52 +121,12 @@
                         android:background="@color/black_30" />
 
                     <LinearLayout
+                        android:id="@+id/layout_goals"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
+                        android:orientation="vertical" />
 
-                        <TextView
-                            android:id="@+id/tv_goal_num"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            tools:text="최소목표 1"
-                            android:textColor="@color/black"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/tv_goal"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            tools:text="뽀모도로 3회 이상"
-                            android:textColor="@color/black"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/tv_goal_num2"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            tools:text="최소목표 2"
-                            android:textColor="@color/black"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/tv_goal2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            tools:text="뽀모도로 4회 이상"
-                            android:textColor="@color/black"
-                            android:textSize="12sp" />
-                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -258,7 +216,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- 하단 버튼 -->
     <TextView
         android:id="@+id/btn_back_group"
         android:layout_width="0dp"
