@@ -266,8 +266,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isPomodoroBlockingNavigation(): Boolean {
-        return pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.ESCAPE ||
-                pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.REST_ONGOING
+        return pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.ESCAPE
     }
 
     // 클릭 이벤트 관련 함수

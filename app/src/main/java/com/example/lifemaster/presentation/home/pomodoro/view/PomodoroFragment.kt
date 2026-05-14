@@ -49,6 +49,7 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
         setupBackPressedHandler()
         initListeners()
         initObservers()
+        restoreRestTimerIfNeeded()
     }
 
     private fun fetchData() {
@@ -58,6 +59,31 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
     private fun initViews() = with(binding) {
         currentTodoItem = args.todoItem
         tvTodoItemTitle.text = currentTodoItem.title
+        updateTodoSelectionEnabled(pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.TODO)
+    }
+
+    private fun restoreRestTimerIfNeeded() = with(binding) {
+        if (pomodoroViewModel.pomodoroStatus != PomodoroButtonStatus.REST_ONGOING) return@with
+        if (pomodoroViewModel.restEndTimeMillis <= 0L) return@with
+
+        val remainingSeconds =
+            ((pomodoroViewModel.restEndTimeMillis - System.currentTimeMillis()) / 1000L).toInt()
+
+        if (remainingSeconds > 0) {
+            tvTimerTitle.text = "휴식을 취하는 중입니다"
+            btnStartPomodoro.text = "휴식 중"
+            updateTimerText(remainingSeconds)
+            updateTodoSelectionEnabled(false)
+            startTimer(remainingSeconds)
+        } else {
+            onTimerRestFinished()
+        }
+    }
+
+    private fun updateTodoSelectionEnabled(isEnabled: Boolean) = with(binding) {
+        cardviewTodo.isEnabled = isEnabled
+        cardviewTodo.isClickable = isEnabled
+        ivPomodoroTodoArrow.isVisible = isEnabled
     }
 
     private fun setupBackPressedHandler() {
@@ -80,8 +106,7 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
     }
 
     private fun isPomodoroBlockingNavigation(): Boolean {
-        return pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.ESCAPE ||
-                pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.REST_ONGOING
+        return pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.ESCAPE
     }
 
     // 시스템 뷰 상태 복원이 완료된 후에 호출됨
@@ -100,6 +125,10 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
             pomodoroViewModel.pomodoroTimeType = PomodoroTimeType.TIMER_50
         }
         cardviewTodo.setOnClickListener {
+            if (pomodoroViewModel.pomodoroStatus != PomodoroButtonStatus.TODO) {
+                return@setOnClickListener
+            }
+
             val dialog = SelectTodoDialog(todoItems = todoItems, currentItem = currentTodoItem) { item ->
                 tvTodoItemTitle.text = item.title
                 currentTodoItem = item
@@ -108,42 +137,61 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
             dialog.show(childFragmentManager, SelectTodoDialog.TAG)
         }
         btnStartPomodoro.setOnClickListener {
-            when(pomodoroViewModel.pomodoroStatus) {
+            when (pomodoroViewModel.pomodoroStatus) {
                 PomodoroButtonStatus.TODO -> {
                     when (pomodoroViewModel.pomodoroTimeType) {
                         PomodoroTimeType.TIMER_25 -> {
                             pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.ESCAPE
+                            updateTodoSelectionEnabled(false)
                             tvTimerTitle.text = "다음 휴식 시간까지"
                             btnStartPomodoro.text = "비상 탈출"
                             startTimer(TIMER_25)
                         }
+
                         PomodoroTimeType.TIMER_50 -> {
                             pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.ESCAPE
+                            updateTodoSelectionEnabled(false)
                             tvTimerTitle.text = "다음 휴식 시간까지"
                             btnStartPomodoro.text = "비상 탈출"
                             startTimer(TIMER_50)
                         }
+
                         else -> {
                             Toast.makeText(context, "시간을 설정해 주세요.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
+
                 PomodoroButtonStatus.ESCAPE -> {
                     findNavController().navigate(R.id.action_pomodoroFragment_to_pomodoroEscapeFragment)
                     timerJob?.cancel()
                     timerJob = null
                 }
+
                 PomodoroButtonStatus.REST -> {
-                    if(pomodoroViewModel.pomodoroTimeType == PomodoroTimeType.TIMER_25) {
+                    if (pomodoroViewModel.pomodoroTimeType == PomodoroTimeType.TIMER_25) {
                         pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.REST_ONGOING
+                        pomodoroViewModel.startRestTimerState(
+                            focusTime = 25,
+                            restSeconds = TIMER_25_REST
+                        )
                         tvTimerTitle.text = "휴식을 취하는 중입니다"
+                        btnStartPomodoro.text = "휴식 중"
+                        updateTodoSelectionEnabled(false)
                         startTimer(TIMER_25_REST)
                     } else {
                         pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.REST_ONGOING
+                        pomodoroViewModel.startRestTimerState(
+                            focusTime = 50,
+                            restSeconds = TIMER_50_REST
+                        )
                         tvTimerTitle.text = "휴식을 취하는 중입니다"
+                        btnStartPomodoro.text = "휴식 중"
+                        updateTodoSelectionEnabled(false)
                         startTimer(TIMER_50_REST)
                     }
                 }
+
                 PomodoroButtonStatus.REST_ONGOING -> {
                     Toast.makeText(context, "현재 휴식 중입니다.", Toast.LENGTH_SHORT).show()
                 }
@@ -164,7 +212,7 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
                     onTimerTodoFinished(totalSeconds)
                 }
                 PomodoroButtonStatus.REST_ONGOING -> {
-                    onTimerRestFinished(totalSeconds)
+                    onTimerRestFinished()
                 }
                 else -> {}
             }
@@ -186,26 +234,27 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
         updateTimerText(restTotalSeconds)
     }
 
-    private fun onTimerRestFinished(focusRestSeconds: Int) {
-        when(focusRestSeconds) {
-            TIMER_25_REST -> {
+    private fun onTimerRestFinished() {
+        when (pomodoroViewModel.restFocusTime) {
+            25 -> {
                 val pomodoroModel = PomodoroRequest(
                     todoId = currentTodoItem.id,
                     taskName = currentTodoItem.title,
                     focusTime = 25,
                     breakTime = 5,
-                    currentTimer = 1, // 로직 바꾸기
+                    currentTimer = 1,
                     date = currentTodoItem.date
                 )
                 pomodoroViewModel.registerPomodoroItem(pomodoroRequest = pomodoroModel)
             }
-            TIMER_50_REST -> {
+
+            50 -> {
                 val pomodoroModel = PomodoroRequest(
                     todoId = currentTodoItem.id,
                     taskName = currentTodoItem.title,
                     focusTime = 50,
                     breakTime = 10,
-                    currentTimer = 1, // 로직 바꾸기
+                    currentTimer = 1,
                     date = currentTodoItem.date
                 )
                 pomodoroViewModel.registerPomodoroItem(pomodoroRequest = pomodoroModel)
@@ -244,6 +293,8 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
                                 pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.TODO
                                 pomodoroViewModel.pomodoroTimeType = PomodoroTimeType.NONE
                                 pomodoroViewModel.getPomodoroItemsByTodo(todoId = dataResource.data.todo.id)
+                                pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.TODO
+                                pomodoroViewModel.pomodoroTimeType = PomodoroTimeType.NONE
                             }
                             is DataResource.Error -> {
                                 Toast.makeText(context, getString(R.string.server_error_message), Toast.LENGTH_SHORT).show()
