@@ -164,6 +164,11 @@ class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
                 } else {
                     remove("memberId")
                 }
+
+                val profileUrl = me?.profileImageUrl?.trim().orEmpty()
+                if (profileUrl.isNotBlank()) {
+                    putString("profileImageUrl", profileUrl)
+                }
             }
     }
 

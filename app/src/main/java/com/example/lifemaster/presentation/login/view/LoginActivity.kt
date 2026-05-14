@@ -11,13 +11,25 @@ import dagger.hilt.android.AndroidEntryPoint
 import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 
+import com.example.lifemaster.network.TokenManager
+import javax.inject.Inject
+
 @AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
+    @Inject lateinit var tokenManager: TokenManager
     private lateinit var binding: ActivityLoginBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 로그인 상태 유지 확인: 저장된 토큰이 있고, 딥링크(콜백)로 들어온 것이 아닐 때 메인으로 이동
+        if (!tokenManager.accessToken.isNullOrBlank() && intent?.data == null) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
+
         try {
             binding = ActivityLoginBinding.inflate(layoutInflater)
             setContentView(binding.root)
@@ -50,6 +62,10 @@ class LoginActivity : AppCompatActivity() {
         if (data.scheme != "lifemaster" || data.host != "naver" || data.pathSegments.firstOrNull() != "callback") return false
         val token = data.getQueryParameter("token")
         if (!token.isNullOrBlank()) {
+            // 네이버 로그인 성공 시 토큰 저장
+            tokenManager.accessToken = token
+            tokenManager.refreshFromStorage()
+
             Toast.makeText(this, "네이버 로그인에 성공했습니다.", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, MainActivity::class.java).apply {
                 putExtra("user_token", token)

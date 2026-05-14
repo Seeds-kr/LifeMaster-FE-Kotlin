@@ -93,7 +93,11 @@
     <string name="mypage_payment_date_sample">7월 18일</string>
     <string name="mypage_payment_description_sample">포인트 충전</string>
     <string name="mypage_payment_amount_sample">50,000원</string>
+    <string name="mypage_payment_empty">결제 내역이 없습니다.</string>
+    <string name="mypage_subscription_basic_detail">무료 플랜 이용 중</string>
+    <string name="mypage_subscription_premium_paid_detail">%1$s 결제 완료</string>
     <string name="mypage_withdrawal_button_text">회원 탈퇴</string>
+    <string name="mypage_logout_button_text">로그아웃</string>
 
     <!-- Premium Subscribe (결제 페이지) -->
     <string name="premium_subscribe_title">Premium 구독</string>

@@ -14,6 +14,7 @@ import androidx.core.graphics.toColorInt
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentTotalBinding
 import com.example.lifemaster.presentation.home.HomeConfig
@@ -43,8 +44,22 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
         val prefs = requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE)
         val nick = prefs.getString("nickname", null)
             ?.takeIf { it.isNotBlank() }
+            ?: prefs.getString("nickName", null)?.takeIf { it.isNotBlank() }
             ?: getString(R.string.mypage_nickname_sample)
         binding.tvUserName.text = nick
+
+        val url = prefs.getString("profileImageUrl", null)?.trim().orEmpty()
+        if (url.isBlank()) {
+            Glide.with(this).clear(binding.ivProfile)
+            binding.ivProfile.setImageDrawable(null)
+            binding.ivProfilePlaceholder.visibility = View.VISIBLE
+        } else {
+            binding.ivProfilePlaceholder.visibility = View.GONE
+            Glide.with(this)
+                .load(url)
+                .circleCrop()
+                .into(binding.ivProfile)
+        }
     }
 
     private fun bindServiceRows() {

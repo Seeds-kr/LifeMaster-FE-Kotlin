@@ -19,9 +19,13 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+import com.example.lifemaster.network.TokenManager
+import javax.inject.Inject
+
 @AndroidEntryPoint
 class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
 
+    @Inject lateinit var tokenManager: TokenManager
     lateinit var binding: FragmentLoginSocialBinding
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -36,8 +40,15 @@ class LoginSocialFragment: Fragment(R.layout.fragment_login_social) {
                 context = requireContext(),
                 onSuccess = { token ->
                     Log.d("kakao login token : ", token)
+                    // 카카오 로그인 성공 시 토큰 저장
+                    tokenManager.accessToken = token
+                    tokenManager.refreshFromStorage()
+
                     Toast.makeText(requireContext(), "로그인에 성공하였습니다!", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(requireContext(), MainActivity::class.java))
+                    startActivity(Intent(requireContext(), MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    })
+                    requireActivity().finish()
                 },
                 onFailure = { error ->
                     Log.d("kakao login error : ", error.toString())

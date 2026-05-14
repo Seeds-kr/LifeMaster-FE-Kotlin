@@ -13,8 +13,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.lifemaster.R
 import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.presentation.total.mypage.MyPageLocalStore
 import com.example.lifemaster.presentation.total.mypage.model.PayPalCreateOrderResponse
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class PaymentMethodSelectionActivity : AppCompatActivity() {
 
@@ -77,6 +81,9 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
                         R.string.payment_purchase_success,
                         Toast.LENGTH_SHORT
                     ).show()
+                    recordPremiumPurchase(
+                        getString(R.string.payment_method_google_play),
+                    )
                 }
 
                 override fun onError(message: String) {
@@ -227,6 +234,9 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
                         R.string.payment_purchase_success,
                         Toast.LENGTH_SHORT
                     ).show()
+                    recordPremiumPurchase(
+                        getString(R.string.payment_method_paypal),
+                    )
                     pendingPaypalOrderId = null
                 } else {
                     Toast.makeText(
@@ -252,6 +262,25 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         billingManager.release()
+    }
+
+    private fun planLabelForStore(): String =
+        if (selectedPlanType == PLAN_ANNUAL) {
+            getString(R.string.payment_period_annual)
+        } else {
+            getString(R.string.payment_period_monthly)
+        }
+
+    private fun recordPremiumPurchase(paymentChannelDescription: String) {
+        val desc = "$paymentChannelDescription · ${planLabelForStore()}"
+        val amount = intent.getStringExtra(EXTRA_AMOUNT).orEmpty().ifBlank { "—" }
+        MyPageLocalStore.appendPayment(this, desc, amount)
+        val today = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA).format(Date())
+        MyPageLocalStore.setSubscriptionSummary(
+            this,
+            getString(R.string.mypage_premium),
+            getString(R.string.mypage_subscription_premium_paid_detail, today),
+        )
     }
 
     companion object {
