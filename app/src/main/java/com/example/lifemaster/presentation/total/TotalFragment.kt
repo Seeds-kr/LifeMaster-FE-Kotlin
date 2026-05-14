@@ -86,7 +86,11 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
                 findNavController().navigate(R.id.action_totalFragment_to_alarmListFragment)
             }
             TotalServicesConfig.KEY_SLEEP -> ServiceRowContent(getString(R.string.sleep)) {
-                findNavController().navigate(R.id.action_totalFragment_to_sleepPlaylistDetailFragment)
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.sleep_feature_in_development),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
             TotalServicesConfig.KEY_CHALLENGE -> ServiceRowContent(getString(R.string.challenge)) {
                 findNavController().navigate(R.id.action_totalFragment_to_challengeFragment)

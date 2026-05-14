@@ -192,7 +192,11 @@ class HomeFragment : Fragment() {
         }
 
         binding.cardSleep.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_sleepPlaylistDetailFragment)
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.sleep_feature_in_development),
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         binding.cardDetox.setOnClickListener {
@@ -333,16 +337,11 @@ class HomeFragment : Fragment() {
         }
 
         itemSleepPreview.btnSleepReport.setOnClickListener {
-            val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
-
-            val args = Bundle().apply {
-                putString("selectedDate", selectedDate.toString())
-            }
-
-            findNavController().navigate(
-                R.id.action_homeFragment_to_sleepReportFragment,
-                args
-            )
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.sleep_feature_in_development),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
