@@ -197,7 +197,12 @@ class HomeFragment : Fragment() {
         }
 
         binding.cardDetox.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+            //findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+            Toast.makeText(
+                requireContext(),
+                "디톡스는 현재 준비 중입니다.",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         binding.cardGroup.setOnClickListener {
@@ -224,7 +229,12 @@ class HomeFragment : Fragment() {
         btnDetox = binding.root.findViewById(R.id.btn_detox)
 
         btnDetox?.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+            //findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+            Toast.makeText(
+                requireContext(),
+                "디톡스는 현재 준비 중입니다.",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
