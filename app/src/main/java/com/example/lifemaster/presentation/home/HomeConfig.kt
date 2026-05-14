@@ -10,7 +10,8 @@ object HomeConfig {
         "그룹 바로가기" to "#AC87CC",
         "자아성찰 바로가기" to "#FFB943",
         "챌린지" to "#6DABD9",
-        "알람" to "#BBAB94"
+        "알람" to "#BBAB94",
+        "커뮤니티" to "#333333"
     )
 
     val SERVICE_KEY_MAP = mapOf(

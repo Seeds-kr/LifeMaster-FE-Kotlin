@@ -238,6 +238,8 @@
 
     <!-- 전체 메뉴 -->
     <string name="total_all_services">전체 서비스</string>
+    <string name="total_services_edit_title">전체 서비스 편집</string>
+    <string name="total_services_edit_save">저장하기</string>
     <string name="total_edit">편집</string>
     <string name="total_faq">자주 묻는 질문</string>
     <string name="total_customer_support">고객 지원</string>

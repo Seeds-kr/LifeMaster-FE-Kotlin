@@ -17,7 +17,10 @@ class HomeEditAdapter(
     private val itemList: MutableList<String>,
     private val isServiceList: Boolean,
     private val onToggleClick: (String, Boolean) -> Unit,
-    private val startDragListener: HomeEditOnStartDragListener? = null
+    private val startDragListener: HomeEditOnStartDragListener? = null,
+    private val showToggle: Boolean = true,
+    private val labelForItem: ((String) -> String)? = null,
+    private val iconTintForItem: ((String) -> String)? = null
 ) : RecyclerView.Adapter<HomeEditAdapter.ServiceViewHolder>(),
     HomeEditTouchHelperAdapter {
 
@@ -38,14 +41,20 @@ class HomeEditAdapter(
     override fun onBindViewHolder(holder: ServiceViewHolder, position: Int) {
         val item = itemList[position]
 
-        holder.tvServiceName.text = item
-        holder.ivServiceIcon.setColorFilter(
-            (HomeConfig.HOME_EDIT_ICON_TINT_BY_NAME[item] ?: "#333333").toColorInt()
-        )
-        holder.ivToggle.setImageResource(
-            if (isServiceList) R.drawable.ic_toggle_delete else R.drawable.ic_toggle_add
-        )
-        holder.ivToggle.setOnClickListener { onToggleClick(item, isServiceList) }
+        holder.tvServiceName.text = labelForItem?.invoke(item) ?: item
+        val tintHex = iconTintForItem?.invoke(item)
+            ?: (HomeConfig.HOME_EDIT_ICON_TINT_BY_NAME[item] ?: "#333333")
+        holder.ivServiceIcon.setColorFilter(tintHex.toColorInt())
+        if (showToggle) {
+            holder.ivToggle.visibility = View.VISIBLE
+            holder.ivToggle.setImageResource(
+                if (isServiceList) R.drawable.ic_toggle_delete else R.drawable.ic_toggle_add
+            )
+            holder.ivToggle.setOnClickListener { onToggleClick(item, isServiceList) }
+        } else {
+            holder.ivToggle.visibility = View.GONE
+            holder.ivToggle.setOnClickListener(null)
+        }
 
         holder.ivDragHandle.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN) {

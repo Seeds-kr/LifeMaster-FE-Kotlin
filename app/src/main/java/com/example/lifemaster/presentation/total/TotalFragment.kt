@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.graphics.toColorInt
@@ -17,8 +16,6 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentTotalBinding
-import com.example.lifemaster.presentation.home.HomeConfig
-import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import com.example.lifemaster.presentation.total.mypage.view.LegalDocumentActivity
 import com.example.lifemaster.presentation.total.mypage.view.MyPageActivity
 import com.example.lifemaster.presentation.total.mypage.view.RefundPolicyActivity
@@ -31,13 +28,13 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentTotalBinding.bind(view)
-        bindServiceRows()
         initListeners()
     }
 
     override fun onResume() {
         super.onResume()
         refreshProfile()
+        bindServiceRows()
     }
 
     private fun refreshProfile() {
@@ -65,58 +62,48 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
     private fun bindServiceRows() {
         binding.llServiceItems.removeAllViews()
         val inflater = LayoutInflater.from(requireContext())
+        val order = TotalServicesConfig.loadOrder(requireContext())
 
-        fun addRow(
-            title: String,
-            homeEditTintKey: String?,
-            onClick: () -> Unit
-        ) {
+        for (key in order) {
+            val content = rowContentForServiceKey(key) ?: continue
             val row = inflater.inflate(R.layout.item_total_service_row, binding.llServiceItems, false)
-            val hex = homeEditTintKey?.let { HomeConfig.HOME_EDIT_ICON_TINT_BY_NAME[it] } ?: "#333333"
+            val hex = TotalServicesConfig.homeEditTintHexForKey(key)
             row.findViewById<ImageView>(R.id.ivServiceIcon).apply {
                 setImageResource(R.drawable.ic_logo_star)
                 imageTintList = ColorStateList.valueOf(hex.toColorInt())
             }
-            row.findViewById<TextView>(R.id.tvServiceTitle).text = title
-            row.setOnClickListener { onClick() }
+            row.findViewById<TextView>(R.id.tvServiceTitle).text = content.title
+            row.setOnClickListener { content.onClick() }
             binding.llServiceItems.addView(row)
         }
+    }
 
-        addRow(getString(R.string.total_menu_alarm), "알람") {
-            findNavController().navigate(R.id.action_totalFragment_to_alarmListFragment)
-        }
-        addRow(getString(R.string.sleep), "수면") {
-            findNavController().navigate(R.id.action_totalFragment_to_sleepPlaylistDetailFragment)
-        }
-        addRow(getString(R.string.challenge), "챌린지") {
-            findNavController().navigate(R.id.action_totalFragment_to_challengeFragment)
-        }
-        addRow(getString(R.string.total_menu_diary), "자아성찰 바로가기") {
-            goIntrospection("TODAY")
-        }
-        addRow(getString(R.string.total_menu_thanks), "자아성찰 바로가기") {
-            goIntrospection("THANKS")
-        }
+    private data class ServiceRowContent(val title: String, val onClick: () -> Unit)
 
-        val d = resources.displayMetrics.density
-        binding.llServiceItems.addView(
-            View(requireContext()).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    (1 * d).toInt()
-                ).apply {
-                    topMargin = (8 * d).toInt()
-                    bottomMargin = (8 * d).toInt()
-                }
-                setBackgroundColor(0xFFEEEEEE.toInt())
+    private fun rowContentForServiceKey(key: String): ServiceRowContent? {
+        return when (key) {
+            TotalServicesConfig.KEY_ALARM -> ServiceRowContent(getString(R.string.total_menu_alarm)) {
+                findNavController().navigate(R.id.action_totalFragment_to_alarmListFragment)
             }
-        )
-
-        addRow(getString(R.string.group), "그룹 바로가기") {
-            findNavController().navigate(R.id.action_totalFragment_to_groupFragment)
-        }
-        addRow(getString(R.string.total_menu_community), null) {
-            findNavController().navigate(R.id.action_totalFragment_to_communityFragment)
+            TotalServicesConfig.KEY_SLEEP -> ServiceRowContent(getString(R.string.sleep)) {
+                findNavController().navigate(R.id.action_totalFragment_to_sleepPlaylistDetailFragment)
+            }
+            TotalServicesConfig.KEY_CHALLENGE -> ServiceRowContent(getString(R.string.challenge)) {
+                findNavController().navigate(R.id.action_totalFragment_to_challengeFragment)
+            }
+            TotalServicesConfig.KEY_INTROSPECTION_DIARY -> ServiceRowContent(getString(R.string.total_menu_diary)) {
+                goIntrospection("TODAY")
+            }
+            TotalServicesConfig.KEY_INTROSPECTION_THANKS -> ServiceRowContent(getString(R.string.total_menu_thanks)) {
+                goIntrospection("THANKS")
+            }
+            TotalServicesConfig.KEY_GROUP -> ServiceRowContent(getString(R.string.group)) {
+                findNavController().navigate(R.id.action_totalFragment_to_groupFragment)
+            }
+            TotalServicesConfig.KEY_COMMUNITY -> ServiceRowContent(getString(R.string.total_menu_community)) {
+                findNavController().navigate(R.id.action_totalFragment_to_communityFragment)
+            }
+            else -> null
         }
     }
 
@@ -134,7 +121,7 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
         }
 
         binding.tvEditHome.setOnClickListener {
-            startActivity(Intent(requireContext(), HomeEditActivity::class.java))
+            startActivity(Intent(requireContext(), TotalServicesEditActivity::class.java))
         }
 
         binding.btnFaq.setOnClickListener {
