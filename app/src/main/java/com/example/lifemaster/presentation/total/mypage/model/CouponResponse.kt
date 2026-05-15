@@ -2,6 +2,8 @@ package com.example.lifemaster.presentation.total.mypage.model
 
 import com.google.gson.annotations.SerializedName
 
+import java.io.Serializable
+
 data class CouponResponse(
     val couponId: Long,
     val couponCode: String,
@@ -10,4 +12,4 @@ data class CouponResponse(
     val couponStatus: String,
     val createdAt: String?,
     val updatedAt: String?
-)
+) : Serializable

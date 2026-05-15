@@ -742,4 +742,10 @@ interface NetworkService {
     suspend fun getMyCoupons(
         @Header("Authorization") token: String
     ): Response<List<com.example.lifemaster.presentation.total.mypage.model.CouponResponse>>
+
+    @POST("/coupon/use")
+    suspend fun useCoupon(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, String>
+    ): Response<ResponseBody>
 }

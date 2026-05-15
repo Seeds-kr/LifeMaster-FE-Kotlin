@@ -56,6 +56,11 @@ class CouponRegisterActivity : AppCompatActivity() {
         fetchMyCoupons()
     }
 
+    override fun onResume() {
+        super.onResume()
+        fetchMyCoupons()
+    }
+
     private fun registerCoupon(code: String) {
         val token = tokenManager.getBearerToken()
         if (token == null) {
