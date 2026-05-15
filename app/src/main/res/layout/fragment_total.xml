@@ -56,6 +56,7 @@
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
+            android:id="@+id/cv_mypage"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_marginBottom="12dp">
@@ -67,5 +68,65 @@
                 android:text="마이페이지"
                 android:textSize="20sp" />
         </androidx.cardview.widget.CardView>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/llFaqSupport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:paddingBottom="12dp">
+
+            <TextView
+                android:id="@+id/tvFaq"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="자주 묻는 질문"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:background="@android:color/transparent" />
+
+            <TextView
+                android:id="@+id/tvCustomerSupport"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="고객 지원"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:background="@android:color/transparent" />
+
+            <TextView
+                android:id="@+id/tvTermsOfService"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="이용 약관"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:background="@android:color/transparent" />
+
+            <TextView
+                android:id="@+id/tvPrivacyPolicy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="개인정보처리방침"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:background="@android:color/transparent" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.core.widget.NestedScrollView>

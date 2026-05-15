@@ -10,7 +10,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentSleepReportBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModelFactory
@@ -25,25 +24,31 @@ import java.time.LocalDate
 import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.Constants
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModelFactory
 import com.example.lifemaster.presentation.home.sleep.model.AlarmInfo
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
 import java.time.ZoneId
+import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.math.round
+import kotlin.math.roundToInt
 
+@AndroidEntryPoint
 class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
     private lateinit var binding: FragmentSleepReportBinding
+    @Inject lateinit var networkService: NetworkService
     private val sleepViewModel: SleepViewModel by activityViewModels {
-        SleepViewModelFactory(RetrofitInstance.networkService)
+        SleepViewModelFactory(networkService)
     }
     private val alarmViewModel: AlarmViewModel by activityViewModels {
-        AlarmViewModelFactory(RetrofitInstance.networkService)
+        AlarmViewModelFactory(networkService)
     }
 
     private var userSleepDataPoints = mutableListOf<Entry>() // 1개의 line 을 구성하는 점들의 집합
@@ -58,9 +63,13 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
     private var remoteUserSleepRecordList = listOf<SleepResponse>()
 
+    private var selectedDate: LocalDate = LocalDate.now()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentSleepReportBinding.bind(view)
+        val selectedDateArg = arguments?.getString("selectedDate")
+        selectedDate = selectedDateArg?.let { LocalDate.parse(it) } ?: LocalDate.now()
         fetchRemoteData()
         initObservers()
     }
@@ -181,13 +190,13 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
     private fun initRemoteUI(remoteUserSleepRecordList: List<SleepResponse>) = with(binding) {
 
-        val todaySleepRecord = remoteUserSleepRecordList.find { it.sleepDate == LocalDate.now().toString() }
+        val todaySleepRecord = remoteUserSleepRecordList.find { it.sleepDate == selectedDate.toString() }
 
         if(todaySleepRecord == null && sleepViewModel.isMeasured == true) {
             sleepViewModel.registerUserSleepInfo(
                 sleepRequest = SleepRequest(
                     userId = Constants.USER_ID,
-                    sleepDate = LocalDate.now().toString(),
+                    sleepDate = selectedDate.toString(),
                     sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L).toString(),
                     sleepEnd =  Instant.ofEpochMilli(sleepViewModel.rawWakeTime ?: 0L).toString(),
                     sleepMood = DEFAULT_MOOD,
@@ -203,9 +212,9 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         // 금일 수면 기록 정보가 없는 경우
         if(todaySleepRecord == null && sleepViewModel.isMeasured == false) {
 
-            tvSleepReportTitle.text = "오늘은\n수면 측정 기록이 없어요"
+            tvSleepReportTitle.text = "${selectedDate.monthValue}월 ${selectedDate.dayOfMonth}일\n수면 측정 기록이 없어요"
 
-            tvSleepReportAnalysisTitle.text = "오늘은"
+            tvSleepReportAnalysisTitle.text = "${selectedDate.monthValue}월 ${selectedDate.dayOfMonth}일은"
 
             tvSleepReportAnalysisSleepTimeTitle.text = "수면 기록이 없어요"
             tvSleepReportAnalysisSleepTimeValue.text = "미측정"
@@ -236,7 +245,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             tvSleepReportAnalysisAlarmDurationValue.text = todayAlarmRingDuration
             tvSleepReportAnalysisWakeupDelayTimeValue.text = "${todayAlarmTimeToWakeUp}분"
 
-            val pastSleepRecords = remoteUserSleepRecordList.filter { it.sleepDate != LocalDate.now().toString() }
+            val pastSleepRecords = remoteUserSleepRecordList.filter { it.sleepDate != selectedDate.toString() }
             var pastTimeToWakeUpSum = 0
             for(pastSleepRecord in pastSleepRecords) {
                 pastTimeToWakeUpSum += pastSleepRecord.alarmInfo.alarmSettings?.timeToWakeUp ?: 0
@@ -255,7 +264,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
          * 공통 로직
          */
         // 금일 수면 타이틀 UI
-        tvSleepReportTitle.text = "오늘은\n총 ${todaySleepRecord?.sleepDurationText} 잤어요"
+        tvSleepReportTitle.text = "${selectedDate.monthValue}월 ${selectedDate.dayOfMonth}일\n총 ${todaySleepRecord?.sleepDurationText} 잤어요"
 
         // 금일 기분 UI
         when (todaySleepRecord?.sleepMood) {
@@ -429,7 +438,7 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             findNavController().navigate(R.id.action_sleepReportFragment_to_sleepPlaylistFragment)
         }
 
-        val todaySleepRecord = remoteUserSleepRecordList.find { it.sleepDate == LocalDate.now().toString() }
+        val todaySleepRecord = remoteUserSleepRecordList.find { it.sleepDate == selectedDate.toString() }
 
         if(todaySleepRecord == null) {
             // TODO: 수면 기록이 측정되지 않은 경우 오늘의 기분 표시를 어떻게 할 것인가?

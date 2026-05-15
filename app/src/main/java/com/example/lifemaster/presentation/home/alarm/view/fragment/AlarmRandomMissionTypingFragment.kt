@@ -1,5 +1,6 @@
 package com.example.lifemaster.presentation.home.alarm.view.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -17,6 +18,7 @@ import androidx.navigation.fragment.navArgs
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRandomMissionTypingBinding
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
+import com.example.lifemaster.presentation.home.alarm.view.service.AlarmService
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmMissionViewModel
 import com.google.android.material.card.MaterialCardView
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,22 +36,25 @@ class AlarmRandomMissionTypingFragment : Fragment(R.layout.fragment_alarm_random
     private val answerList by lazy {
         listOf(binding.etAnswerFirst, binding.etAnswerSecond, binding.etAnswerThird)
     }
-    private var currentPage: Int = 1 // 기본값(첫 페이지)
+
+    private val currentPage by lazy {
+        val args: AlarmRandomMissionMathFragmentArgs by navArgs()
+        args.currentPageNum
+    }
+
+    private val alarmItem by lazy {
+        val args: AlarmRandomMissionMathFragmentArgs by navArgs()
+        args.alarmItem
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentAlarmRandomMissionTypingBinding.bind(view)
-        initData()
         setupBackPressHandler()
         initViews()
-        fetchRemoteData(1103) // TODO: 실제 alarmId를 받아와서 연결하기
+        fetchRemoteData()
         initObservers()
         initListeners()
-    }
-
-    private fun initData() {
-        val args: AlarmRandomMissionTypingFragmentArgs by navArgs()
-        currentPage = args.currentPageNum
     }
 
     private fun setupBackPressHandler() {
@@ -69,8 +74,8 @@ class AlarmRandomMissionTypingFragment : Fragment(R.layout.fragment_alarm_random
         tvAlarmRandomMissionTypingAmPm.text = if(localDateTime.hour in 0..11) "am" else "pm"
     }
 
-    private fun fetchRemoteData(alarmId: Int) {
-        alarmMissionViewModel.generateTypingSentence(count = questionList.size, alarmId = alarmId)
+    private fun fetchRemoteData() {
+        alarmMissionViewModel.generateTypingSentence(count = questionList.size, alarmId = alarmItem.id)
     }
 
     private fun initObservers() = with(binding) {
@@ -105,10 +110,7 @@ class AlarmRandomMissionTypingFragment : Fragment(R.layout.fragment_alarm_random
                 launch {
                     alarmMissionViewModel.typingSentenceInfo.collect { resource ->
                         when (resource) {
-                            is DataResource.Error -> {
-                                Toast.makeText(context, "네트워크가 불안정합니다.", Toast.LENGTH_SHORT).show()
-                            }
-
+                            is DataResource.Error -> {}
                             DataResource.Idle -> {}
                             DataResource.Loading -> {}
                             is DataResource.Success<List<String>> -> {
@@ -136,11 +138,16 @@ class AlarmRandomMissionTypingFragment : Fragment(R.layout.fragment_alarm_random
                 && etAnswerThird.text.toString() == tvQuestionThird.text.toString()
             ) {
                 if(currentPage < 5) {
-                    val action = AlarmRandomMissionTypingFragmentDirections.actionAlarmRandomMissionTypingFragmentSelf(currentPageNum = currentPage + 1)
+                    val action = AlarmRandomMissionTypingFragmentDirections.actionAlarmRandomMissionTypingFragmentSelf(currentPageNum = currentPage + 1, alarmItem = alarmItem)
                     findNavController().navigate(action)
                 } else {
                     Toast.makeText(context, "수고하셨습니다!", Toast.LENGTH_SHORT).show()
-                    alarmMissionViewModel.clearData()
+//                    alarmMissionViewModel.clearData()
+//                    sleepViewModel.getUserSleepInfo(Constants.USER_ID) 수면 연동
+                    requireActivity().stopService(Intent(requireContext(), AlarmService::class.java))
+                    // TODO: 현재 액티비티 끄고 메인 액티비티 화면으로 이동하기 (nav_graph_main 연결??)
+                    // TODO: 만약 알람이 일회성 알람인 경우 (반복 요일이 없는 경우) 스위치 상태 OFF 로 변경하기 (업데이트) + 세부 화면 들어가면 이미 꺼진 알람입니다.. (이미 지난 시간인 지 구별하는 지금보다 더 명확한 로직 작성 필요)
+                    // TODO: 추가 기능 작성하기
                 }
             } else if (etAnswerFirst.text.isBlank() || etAnswerSecond.text.isBlank() || etAnswerThird.text.isBlank()) {
                 Toast.makeText(context, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()

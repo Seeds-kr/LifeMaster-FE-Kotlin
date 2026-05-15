@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 임시: 실제 네이버페이 로고로 교체 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M4,4h16v16H4z"
+        android:fillColor="#03C75A" />
+    <path
+        android:pathData="M7.5,8h2v8h-2z M14.5,8h2v8h-2z M9.5,8 L15,16 L13.2,16 L8.2,8z"
+        android:fillColor="#FFFFFF" />
+</vector>

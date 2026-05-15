@@ -3,7 +3,6 @@ package com.example.lifemaster.presentation.login.view
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Base64
 import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
@@ -11,21 +10,29 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentLoginEmailBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
+import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.MainActivity
-import com.example.lifemaster.presentation.login.model.LoginInfo
-import org.json.JSONObject
+import com.example.lifemaster.presentation.total.mypage.model.MeResponse
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
 
     private var _binding: FragmentLoginEmailBinding? = null
     private val binding get() = _binding!!
+
+    @Inject lateinit var networkService: NetworkService
+    @Inject lateinit var tokenManager: TokenManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,9 +49,11 @@ class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
         binding.includeBackButton.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+
         binding.btnFindPassword.setOnClickListener {
             findNavController().navigate(R.id.findPasswordFragment)
         }
+
         binding.btnSignup.setOnClickListener {
             findNavController().navigate(R.id.signupEmailFragment)
         }
@@ -56,37 +65,39 @@ class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
             when {
                 email.isEmpty() || password.isEmpty() ->
                     toast("이메일과 비밀번호를 입력해주세요.")
+
                 !Patterns.EMAIL_ADDRESS.matcher(email).matches() ->
                     toast("올바른 이메일 형식을 입력해주세요.")
+
                 else -> login(email, password)
             }
         }
     }
 
     private fun login(email: String, password: String) {
-        RetrofitInstance.networkService.enterUserLogin(LoginInfo(email, password))
+        networkService.enterUserLogin(com.example.lifemaster.presentation.login.model.LoginInfo(email, password))
             .enqueue(object : Callback<String> {
                 override fun onResponse(call: Call<String>, res: Response<String>) {
                     if (!res.isSuccessful) {
                         toast(parseErrorMessage(res))
                         return
                     }
-                    val tokenOrId = res.body().orEmpty()
-                    // JWT 또는 숫자 ID 에서 userId 추출 (있으면 memberId 용으로 저장)
-                    val extractedUserId = extractUserId(tokenOrId)
 
-                    // 토큰 + 이메일 + (있다면) memberId 를 한 번에 저장
-                    saveToken(tokenOrId, email, extractedUserId)
-
-                    if (extractedUserId == null || extractedUserId <= 0L) {
-                        // 토큰에서 ID 추출이 안 돼도, 로그인/토큰/이메일은 이미 저장된 상태
-                        toast("로그인 성공했지만 사용자 ID를 확인할 수 없어요.")
+                    val token = res.body()?.trim().orEmpty()
+                    if (token.isBlank()) {
+                        toast("로그인 토큰이 비어 있어요.")
+                        return
                     }
 
-                    startActivity(Intent(requireActivity(), MainActivity::class.java).apply {
-                        putExtra("user_token", tokenOrId)
-                    })
-                    requireActivity().finish()
+                    // 예전 토큰 흔적 제거 후 새 토큰 저장
+                    tokenManager.clear()
+                    tokenManager.accessToken = token
+                    tokenManager.refreshFromStorage()
+
+                    // 로그인 직후 /users/me 로 실제 사용자 정보 조회
+                    lifecycleScope.launch {
+                        fetchAndSaveMeThenMove(email, token)
+                    }
                 }
 
                 override fun onFailure(call: Call<String>, t: Throwable) {
@@ -95,54 +106,100 @@ class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
             })
     }
 
+    private suspend fun fetchAndSaveMeThenMove(loginEmail: String, token: String) {
+        runCatching {
+            networkService.getMe("Bearer $token")
+        }.onSuccess { response ->
+            if (response.isSuccessful) {
+                val me = response.body()
+                saveAuthUser(
+                    token = token,
+                    loginEmail = loginEmail,
+                    me = me
+                )
+            } else {
+                // getMe 실패해도 토큰은 저장된 상태이므로 이메일만 저장하고 진입
+                saveAuthUser(
+                    token = token,
+                    loginEmail = loginEmail,
+                    me = null
+                )
+            }
+
+            moveToMain(token)
+        }.onFailure {
+            // getMe 실패해도 로그인 자체는 성공했으므로 최소 정보 저장 후 진입
+            saveAuthUser(
+                token = token,
+                loginEmail = loginEmail,
+                me = null
+            )
+            moveToMain(token)
+        }
+    }
+
+    private fun saveAuthUser(
+        token: String,
+        loginEmail: String,
+        me: MeResponse?
+    ) {
+        // 토큰은 TokenManager/TokenProvider 쪽에서 이미 저장됨
+        // 여기서는 부가 정보만 저장
+        requireContext()
+            .getSharedPreferences("auth", Context.MODE_PRIVATE)
+            .edit {
+                putString("loginEmail", loginEmail)
+                putString("email", me?.email ?: loginEmail)
+
+                val nick = me?.nickName
+                if (!nick.isNullOrBlank()) {
+                    putString("nickName", nick)
+                } else {
+                    remove("nickName")
+                }
+
+                val memberId = me?.id
+                if (memberId != null && memberId > 0L) {
+                    putLong("memberId", memberId)
+                } else {
+                    remove("memberId")
+                }
+            }
+    }
+
+    private fun moveToMain(token: String) {
+        startActivity(Intent(requireActivity(), MainActivity::class.java).apply {
+            putExtra("user_token", token)
+        })
+        requireActivity().finish()
+    }
+
     private fun parseErrorMessage(res: Response<*>): String {
         val defaultMsg = "아이디 또는 비밀번호가 잘못되었습니다."
 
         if (res.code() in listOf(400, 401, 403, 404)) return defaultMsg
 
-        val raw = try { res.errorBody()?.string().orEmpty() } catch (_: Exception) { "" }
+        val raw = try {
+            res.errorBody()?.string().orEmpty()
+        } catch (_: Exception) {
+            ""
+        }
 
-        if (raw.contains("credential", true) ||
+        if (
+            raw.contains("credential", true) ||
             raw.contains("password", true) ||
             raw.contains("email", true) ||
             raw.contains("user not", true) ||
             raw.contains("not found", true)
-        ) return defaultMsg
+        ) {
+            return defaultMsg
+        }
 
         return Regex("\"message\"\\s*:\\s*\"([^\"]+)\"")
-            .find(raw)?.groupValues?.getOrNull(1)
+            .find(raw)
+            ?.groupValues
+            ?.getOrNull(1)
             ?: "로그인에 실패했어요 (${res.code()})"
-    }
-
-    private fun saveToken(token: String, email: String, userId: Long?) {
-        requireContext()
-            .getSharedPreferences("auth", Context.MODE_PRIVATE)
-            .edit {
-                putString("token", token)
-                putString("userId", email)
-                if (userId != null && userId > 0L) {
-                    putLong("memberId", userId)
-                }
-            }
-    }
-
-    private fun extractUserId(tokenOrId: String): Long? {
-        tokenOrId.toLongOrNull()?.let { return it }
-        return try {
-            val parts = tokenOrId.split(".")
-            if (parts.size >= 2) {
-                val json = String(Base64.decode(parts[1], Base64.URL_SAFE or Base64.NO_WRAP))
-                val obj = JSONObject(json)
-                when {
-                    obj.has("id") -> obj.getLong("id")
-                    obj.has("userId") -> obj.getLong("userId")
-                    obj.has("sub") -> obj.getLong("sub")
-                    else -> null
-                }
-            } else null
-        } catch (_: Exception) {
-            Regex("(\\d+)").find(tokenOrId)?.groupValues?.getOrNull(1)?.toLongOrNull()
-        }
     }
 
     private fun toast(msg: String) =

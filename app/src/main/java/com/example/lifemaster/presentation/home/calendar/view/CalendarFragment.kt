@@ -14,21 +14,27 @@ import com.example.lifemaster.databinding.FragmentCalendarBinding
 import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.home.calendar.adapter.CalendarAdapter
 import com.example.lifemaster.presentation.home.calendar.model.CalendarDay
-import com.example.lifemaster.presentation.home.calendar.model.CalendarRepository
 import com.example.lifemaster.presentation.home.calendar.model.StarType
+import com.example.lifemaster.presentation.home.calendar.model.CalendarRepository
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarDataViewModel
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
 import java.time.LocalDate
 import java.util.Calendar
 import java.util.GregorianCalendar
+import com.example.lifemaster.network.NetworkService
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class CalendarFragment : Fragment() {
 
     companion object {
         const val ARG_TARGET_MEMBER_ID = "arg_target_member_id"
         const val ARG_CALENDAR_READ_ONLY = "arg_calendar_read_only"
     }
+
+    @Inject lateinit var networkService: NetworkService
 
     private var _binding: FragmentCalendarBinding? = null
     private val binding get() = _binding!!
@@ -39,6 +45,7 @@ class CalendarFragment : Fragment() {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val repo = CalendarRepository(
+                    api = networkService,
                     authProvider = { TokenProvider.getAccessToken(requireContext()) }
                 )
                 @Suppress("UNCHECKED_CAST")
@@ -82,6 +89,15 @@ class CalendarFragment : Fragment() {
                 CalendarMode.WEEK  -> showWeekView()
                 CalendarMode.DAY   -> showDayView()
                 null -> {}
+            }
+        }
+
+        // 자아성찰 등 기능별 표시가 바뀌면 달력을 다시 그림
+        vm.introspectionDates.observe(viewLifecycleOwner) {
+            when (vm.mode.value ?: CalendarMode.MONTH) {
+                CalendarMode.MONTH -> showMonthView()
+                CalendarMode.WEEK  -> showWeekView()
+                CalendarMode.DAY   -> showDayView()
             }
         }
 

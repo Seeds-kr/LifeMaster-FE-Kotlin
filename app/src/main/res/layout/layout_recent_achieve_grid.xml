@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_recent_achieve_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_recent_achieve"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:nestedScrollingEnabled="false"
+        android:overScrollMode="never" />
+
+    <FrameLayout
+        android:id="@+id/layout_heatmap_tooltip"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|start"
+        android:background="@drawable/bg_heatmap_tooltip"
+        android:elevation="12dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp">
+
+            <TextView
+                android:id="@+id/tv_tooltip_day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="13"
+                android:textColor="#BDBDBD"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/tv_tooltip_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12명"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/view_tooltip_dot"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/bg_heatmap_tooltip_dot"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+</FrameLayout>

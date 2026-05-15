@@ -4,11 +4,29 @@ import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.model.SleepRequest
 import com.example.lifemaster.presentation.login.model.LoginInfo
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto
 import com.example.lifemaster.presentation.total.introspection.model.ThankRequest
+import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
+import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
+import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
+import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
+import com.example.lifemaster.presentation.total.introspection.model.SelfReflectionResponse
 import com.example.lifemaster.presentation.login.model.NicknameCheckResponse
 import com.example.lifemaster.presentation.login.model.RegisterInfo
 import com.example.lifemaster.presentation.login.model.RegResponse
-import com.example.lifemaster.presentation.community.model.*
+import com.example.lifemaster.presentation.community.model.CommentDto
+import com.example.lifemaster.presentation.community.model.NewCommentRequest
+import com.example.lifemaster.presentation.community.model.NewPostRequest
+import com.example.lifemaster.presentation.community.model.PollDetailsDto
+import com.example.lifemaster.presentation.community.model.PollListItem
+import com.example.lifemaster.presentation.community.model.PollResultDto
+import com.example.lifemaster.presentation.community.model.PostDetailDto
+import com.example.lifemaster.presentation.community.model.PostSummaryDto
+import com.example.lifemaster.presentation.community.model.ReportRequest
+import com.example.lifemaster.presentation.community.model.UpdatePostRequest
+import com.example.lifemaster.presentation.community.model.VoteRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmRequest
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.calendar.model.CalendarEntry
@@ -21,13 +39,22 @@ import com.example.lifemaster.presentation.home.todo.model.TodoResponse
 import com.example.lifemaster.presentation.login.model.EmailRequest
 import com.example.lifemaster.presentation.login.model.PasswordResetDto
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
+import com.example.lifemaster.presentation.group.model.GroupCreateResponse
+import com.example.lifemaster.presentation.group.model.GroupGoalResponse
+import com.example.lifemaster.presentation.group.model.GroupResponse
+import com.example.lifemaster.presentation.group.model.GroupSleepStatsResponse
+import com.example.lifemaster.presentation.group.model.GroupGoalProgressResponseItem
+import com.example.lifemaster.presentation.group.model.GroupAchievementHeatmapItem
+import com.example.lifemaster.presentation.group.model.GroupRankingResponse
+import com.example.lifemaster.presentation.group.model.GroupChatMessage
 import com.example.lifemaster.presentation.login.model.RegNickResponse
-import com.example.lifemaster.presentation.total.challenge.model.ChallengeListResponse
-import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
-import com.example.lifemaster.presentation.total.introspection.model.DiaryResponse
-import com.example.lifemaster.presentation.total.introspection.model.ThankCreateResponse
-import com.example.lifemaster.presentation.total.introspection.model.ThankResponse
-import com.example.lifemaster.presentation.total.introspection.model.ThankUpdateRequest
+import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLock
+import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLock
+import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
+import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
+import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
+import com.example.lifemaster.presentation.total.mypage.model.MeResponse
+import com.example.lifemaster.presentation.total.mypage.model.PayPalCreateOrderResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -35,6 +62,8 @@ import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.Header
@@ -48,6 +77,12 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface NetworkService {
+
+    // 내 정보 조회
+    @GET("/users/me")
+    suspend fun getMe(
+        @Header("Authorization") token: String
+    ): Response<MeResponse>
 
     // 유저 회원가입
     @POST("/user/register")
@@ -83,10 +118,21 @@ interface NetworkService {
         @Body body: EmailRequest
     ): Call<PasswordResponseDto>
 
-    @GET("auth/password/reset/verify")
-    fun verifyResetToken(
-        @Query("token") token: String
+    @Headers("Content-Type: application/json")
+    @POST("auth/password/reset/verify-code")
+    fun verifyResetCode(
+        @Body body: VerifyCodeRequest
     ): Call<PasswordResponseDto>
+
+    // 네이버 로그인: OAuth2 인증 URL 발급
+    @GET("/naverLogin/authUrl")
+    fun getNaverAuthUrl(): Call<String>
+
+    // 모든 To-Do 항목 조회
+    @GET("/schedule/todo")
+    fun getTodoItems(
+        @Header("Authorization") token: String
+    ): Call<List<TodoResponse>>
 
     @Headers("Content-Type: application/json")
     @POST("auth/password/reset")
@@ -198,6 +244,12 @@ interface NetworkService {
         @Query("page") page: Int = 0
     ): ChallengeListResponse
 
+    // 내 챌린지 목록 조회
+    @GET("/challenge/my")
+    suspend fun getMyChallengeList(
+        @Header("Authorization") token: String
+    ): List<ChallengeItemDto>
+
     // 감사일기 생성
     @POST("/schedule/self-reflection/thank")
     suspend fun createThank(
@@ -248,6 +300,13 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Path("diary-id") diaryId: Long
     ): Response<Unit>
+
+    // 날짜별 자아성찰(다이어리 + 5감사) 조회
+    @GET("/schedule/self-reflection")
+    suspend fun getSelfReflectionByDate(
+        @Header("Authorization") token: String,
+        @Query("date") date: String
+    ): Response<SelfReflectionResponse>
 
     @GET("/calendar")
     suspend fun getCalendarAll(
@@ -462,7 +521,7 @@ interface NetworkService {
     @POST("/time/alarm")
     suspend fun createNewAlarm(
         @Body alarmRequest: AlarmRequest
-    )
+    ): Response<AlarmResponse>
 
     // 모든 알람 조회
     @GET("/time/alarm/me")
@@ -485,7 +544,7 @@ interface NetworkService {
     suspend fun updateAlarm(
         @Path("alarmId") alarmId: Int,
         @Body request: AlarmRequest
-    )
+    ): Response<AlarmResponse>
 
     // 특정 알람 삭제
     @DELETE("/time/alarm/{alarmId}")
@@ -511,6 +570,118 @@ interface NetworkService {
         @Query("level") level: String
     ): MathProblemResponse
 
+    // 그룹 전체 목록 조회
+    @GET("/group")
+    suspend fun getAllGroups(
+        @Header("Authorization") token: String
+    ): List<GroupResponse>
+
+    // 참여중인 그룹 조회
+    @GET("/group/user/me")
+    suspend fun getMyGroups(
+        @Header("Authorization") token: String
+    ): List<GroupResponse>
+
+    // 그룹 생성
+    @POST("/group/create")
+    fun createGroup(
+        @Header("Authorization") token: String,
+        @Query("name") name: String,
+        @Query("description") description: String?,
+        @Query("icon") icon: String?,
+        @Query("statistics") statistics: List<Int>?,
+        @Query("password") password: String?,
+        @Query("accessType") accessType: String
+    ): Call<GroupCreateResponse>
+
+    // 목표 추가
+    @FormUrlEncoded
+    @POST("/group/{groupId}/goal")
+    suspend fun addGoalToGroup(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long,
+        @Field("name") name: String,
+        @Field("goalCondition") goalCondition: String,
+        @Field("value") value: Int,
+        @Field("duration") duration: String
+    ): Response<GroupGoalResponse>
+
+    // 그룹 초대 코드
+    @GET("/group/{groupId}/invite")
+    suspend fun getGroupInviteCode(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long
+    ): Response<ResponseBody>
+
+    // 그룹 상세 조회
+    @GET("/group/{id}")
+    suspend fun getGroupById(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long
+    ): Response<ResponseBody>
+
+    // 그룹 가입
+    @POST("/group/{groupId}/join")
+    suspend fun joinGroup(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long,
+        @Query("password") password: String? = null
+    ): Response<ResponseBody>
+
+    // 그룹 탈퇴
+    @POST("/group/{groupId}/leave")
+    suspend fun leaveGroup(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long
+    ): Response<ResponseBody>
+
+    @GET("/group/{groupId}/sleep-stats")
+    suspend fun getGroupSleepStats(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long
+    ): Response<GroupSleepStatsResponse>
+
+    @GET("/group/{groupId}/goals/progress")
+    suspend fun getGroupGoalsProgress(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long
+    ): Response<List<GroupGoalProgressResponseItem>>
+
+    @GET("/groups/{groupId}/chats")
+    suspend fun getGroupChats(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long
+    ): Response<List<GroupChatMessage>>
+
+    // 최근 30일 달성 인원
+    @GET("/groups/{groupId}/achievements/heatmap")
+    suspend fun getGoalHeatmap(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long
+    ): Response<List<GroupAchievementHeatmapItem>>
+
+    // 그룹 내 랭킹
+    @GET("/groups/{groupId}/stats/ranking")
+    suspend fun getGroupRanking(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long,
+        @Query("scope") scope: String
+    ): Response<GroupRankingResponse>
+
+    /**
+     * PayPal 결제 API
+     */
+    @POST("/payments/paypal/create-order")
+    suspend fun createPaypalOrder(
+        @Header("Authorization") token: String
+    ): Response<PayPalCreateOrderResponse>
+
+    @POST("/payments/paypal/capture/{orderId}")
+    suspend fun capturePaypalOrder(
+        @Header("Authorization") token: String,
+        @Path("orderId") orderId: String
+    ): Response<ResponseBody>
+
     // 5x5 클릭 그리드 생성 API
     @GET("/time/alarm/mission/follow-click")
     suspend fun generateFollowClickProblem(
@@ -523,4 +694,45 @@ interface NetworkService {
     suspend fun generateTypingSentence(
         @Query("alarmId") alarmId: Int
     ): String
+
+    /**
+     * 디톡스
+     */
+    // 영구 잠금 특정 목록 생성
+    @POST("/detox/permanent")
+    suspend fun generatePermanentLock(
+        @Body request: DetoxPermanentLock
+    ): Response<Unit>
+
+    // 영구 잠금 전체 목록 조회
+    @GET("/detox/permanent")
+    suspend fun fetchPermanentLockItems(): Response<DetoxPermanentLock>
+
+    // 영구 잠금 수정 및 업데이트
+    @PUT("/detox/permanent")
+    suspend fun updatePermanentLockItems(
+        @Body request: DetoxPermanentLock
+    ): Response<Unit>
+
+    // 반복 잠금 특정 목록 생성
+    @POST("/detox/repeat")
+    suspend fun generateRepeatLock(
+        @Body request: DetoxRepeatLock
+    ): Response<Unit>
+
+    // 시간 잠금 특정 목록 생성
+    @POST("/detox/time")
+    suspend fun generateTimeLock(
+        @Body request: DetoxTimeLockRequest
+    ): Response<Unit>
+
+    // 시간 잠금 전체 목록 조회
+    @GET("/detox/time")
+    suspend fun fetchTimeLockItems(): Response<List<DetoxTimeLockResponse>>
+
+    // 특정 시간 잠금 목록 삭제
+    @DELETE("/detox/time/{id}")
+    suspend fun deleteTimeLockItem(
+        @Path("id") id: Long
+    ): Response<Unit>
 }

@@ -27,11 +27,19 @@
         tools:targetApi="31">
         <activity
             android:name=".presentation.login.view.LoginActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- 네이버 로그인 콜백: 백엔드에서 토큰과 함께 리다이렉트할 URL -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="lifemaster" android:host="naver" android:pathPrefix="/callback" />
             </intent-filter>
         </activity>
         <activity
@@ -42,6 +50,16 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
+        <activity android:name=".presentation.home.alarm.view.AlarmDisplayActivity"
+            android:launchMode="singleInstance"
+            android:showOnLockScreen="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"/>
+        <!-- showOnLockScreen: 잠금 화면 위에서도 액티비티가 보일 수 있게 함 -->
+        <!-- showWhenLocked: 스마트폰이 잠겨 있는 상태에서도 액티비티를 화면에 표시함 (사용자가 잠금을 풀지 않아도 알람 해제 버튼을 누를 수 있게 함 -->
+        <!-- turnScreenOn: 액티비티가 실행될 때 꺼져 있던 화면을 자동으로 켬 -->
+
         <property
             android:name="android.view.attributionTags"
             android:value="lifemaster_attribution_tag" />
@@ -49,6 +67,22 @@
         <activity
             android:name=".presentation.home.edit.view.HomeEditActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".presentation.total.mypage.view.MyPageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.total.mypage.view.PremiumSubscribeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LifeMaster_XML" />
+        <activity
+            android:name=".presentation.total.mypage.view.PaymentMethodSelectionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LifeMaster_XML" />
+        <activity
+            android:name=".presentation.total.mypage.view.RefundPolicyActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LifeMaster_XML" />
 
         <service
             android:name=".presentation.total.detox.service.DetoxBlockService"
@@ -72,10 +106,11 @@
             </intent-filter>
         </receiver>
 
-        <service android:name=".presentation.home.alarm.view.service.AlarmService"
-            android:exported="false"
+        <service
+            android:name=".presentation.home.alarm.view.service.AlarmService"
             android:enabled="true"
-            android:foregroundServiceType="mediaPlayback"/>
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
     </application>
 
 </manifest>

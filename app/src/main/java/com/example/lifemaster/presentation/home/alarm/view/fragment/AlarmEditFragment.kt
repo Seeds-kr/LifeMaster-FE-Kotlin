@@ -6,6 +6,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -224,8 +225,8 @@ class AlarmEditFragment : Fragment(R.layout.fragment_alarm_setting) {
                 antiSnoozeMinute = if (alarmSettingLayoutSwitchAntiSnooze.alarmSwitch.isChecked) {
                     tvAlarmSettingSnoozeLockMinutes.text.toString().toInt()
                 } else null,
-                randomMissionType = randomMissionType?.value,
-                randomMissionLevel = randomMissionLevel?.value,
+                randomMissionType = randomMissionType,
+                randomMissionLevel = randomMissionLevel,
                 alarmStatus = true
             ))
         }
@@ -313,12 +314,9 @@ class AlarmEditFragment : Fragment(R.layout.fragment_alarm_setting) {
                             DataResource.Idle -> {}
                             DataResource.Loading -> {}
                             is DataResource.Success -> {
-                                val alarmTime = resource.data
-                                val targetDateTime = Instant.parse(alarmTime).atZone(ZoneId.systemDefault()).toLocalDateTime()
-                                val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
-                                val toastMessage = formatRemainingTime(start = currentDateTime, end = targetDateTime)
+                                val updatedAlarmItem = resource.data
+                                val toastMessage = formatRemainingTime(updatedAlarmItem.formattedAlarmTime)
                                 Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
-//                                clearUI()
                                 findNavController().popBackStack()
                             }
                         }

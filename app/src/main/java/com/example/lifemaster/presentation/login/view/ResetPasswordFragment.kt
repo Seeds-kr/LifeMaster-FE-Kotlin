@@ -1,23 +1,30 @@
 package com.example.lifemaster.presentation.login.view
 
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentResetPasswordBinding
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.login.model.PasswordResetDto
 import com.example.lifemaster.presentation.login.model.PasswordResponseDto
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ResetPasswordFragment : Fragment(R.layout.fragment_reset_password) {
 
     private lateinit var binding: FragmentResetPasswordBinding
     private var token: String? = null
+
+    @Inject lateinit var networkService: NetworkService
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -27,78 +34,105 @@ class ResetPasswordFragment : Fragment(R.layout.fragment_reset_password) {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
-        // 토큰 추출(임시)
-        token = arguments?.getString("token") ?: extractTokenFromIntent()
+        token = arguments?.getString("token")
         if (token.isNullOrBlank()) {
-            toast("유효하지 않은 접근입니다. 메일 링크를 통해 다시 시도해 주세요.")
+            toast("유효하지 않은 접근입니다. 비밀번호 찾기를 다시 진행해주세요.")
             return
         }
 
-        // 진입 시 토큰 검증
-        verifyToken(token!!)
-
+        setupRealtimeValidation()
         setupListeners()
+    }
+
+    private fun setupRealtimeValidation() = with(binding) {
+
+        fun updateCheckMismatch() {
+            val pw = editNewPassword.text.toString()
+            val check = editPasswordCheck.text.toString()
+
+            if (check.isEmpty()) {
+                tvPasswordCheckError.visibility = View.GONE
+                return
+            }
+
+            tvPasswordCheckError.visibility =
+                if (pw == check) View.GONE else View.VISIBLE
+        }
+
+        editPasswordCheck.doAfterTextChanged { updateCheckMismatch() }
+        editNewPassword.doAfterTextChanged { updateCheckMismatch() }
     }
 
     private fun setupListeners() = with(binding) {
         btnPasswordChange.setOnClickListener {
             val newPw = editNewPassword.text.toString()
             val check = editPasswordCheck.text.toString()
-            val rule = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,16}\$".toRegex()
 
+            // 영문 + 숫자 + 특수문자(@$!%*#?&) 각 1개 이상, 8~16자
+            val rule =
+                "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@\$!%*#?&])[A-Za-z\\d@\$!%*#?&]{8,16}$"
+                    .toRegex()
+
+            // 비밀번호 규칙 검사
             if (!newPw.matches(rule)) {
                 tvNewPasswordError.visibility = View.VISIBLE
                 return@setOnClickListener
-            } else tvNewPasswordError.visibility = View.GONE
+            } else {
+                tvNewPasswordError.visibility = View.GONE
+            }
 
+            // 비밀번호 일치 검사
             if (newPw != check) {
                 tvPasswordCheckError.visibility = View.VISIBLE
+                toast("비밀번호가 일치하지 않아요")
                 return@setOnClickListener
-            } else tvPasswordCheckError.visibility = View.GONE
+            } else {
+                tvPasswordCheckError.visibility = View.GONE
+            }
 
-            val tk = token
-            if (tk.isNullOrBlank()) { toast("토큰이 없습니다. 메일 링크로 다시 들어오세요."); return@setOnClickListener }
-
+            val tk = token!!
             btnPasswordChange.isEnabled = false
 
-            RetrofitInstance.networkService
-                .resetPassword(PasswordResetDto(token = tk, newPassword = newPw, checkPassword = check))
+            networkService
+                .resetPassword(
+                    PasswordResetDto(
+                        token = tk,
+                        newPassword = newPw,
+                        checkPassword = check
+                    )
+                )
                 .enqueue(object : Callback<PasswordResponseDto> {
-                    override fun onResponse(call: Call<PasswordResponseDto>, res: Response<PasswordResponseDto>) {
+
+                    override fun onResponse(
+                        call: Call<PasswordResponseDto>,
+                        res: Response<PasswordResponseDto>
+                    ) {
                         btnPasswordChange.isEnabled = true
                         val body = res.body()
+
                         if (res.isSuccessful && body?.success == true) {
-                            toast("비밀번호가 변경되었습니다.")
-                            // 필요 시 로그인 화면으로 이동
+                            toast("비밀번호가 변경되었습니다")
+
+                            val navOptions = NavOptions.Builder()
+                                .setPopUpTo(R.id.nav_graph_login, true) // 그래프까지 싹 비움
+                                .build()
+
+                            findNavController().navigate(
+                                R.id.loginEmailFragment,
+                                null,
+                                navOptions
+                            )
                         } else {
                             toast("변경 실패: code=${res.code()} / ${body?.message ?: res.message()}")
                         }
                     }
+
                     override fun onFailure(call: Call<PasswordResponseDto>, t: Throwable) {
                         btnPasswordChange.isEnabled = true
                         toast("네트워크 오류: ${t.localizedMessage}")
                     }
                 })
         }
-    }
-
-    private fun verifyToken(token: String) {
-        RetrofitInstance.networkService
-            .verifyResetToken(token)
-            .enqueue(object : Callback<PasswordResponseDto> {
-                override fun onResponse(call: Call<PasswordResponseDto>, res: Response<PasswordResponseDto>) {
-                    val ok = res.isSuccessful && (res.body()?.success == true)
-                    if (!ok) toast("토큰 검증 실패: 다시 메일 링크로 시도해 주세요.")
-                }
-                override fun onFailure(call: Call<PasswordResponseDto>, t: Throwable) {
-                    toast("토큰 검증 네트워크 오류: ${t.localizedMessage}")
-                }
-            })
-    }
-
-    private fun extractTokenFromIntent(): String? {
-        val data: Uri? = activity?.intent?.data
-        return data?.getQueryParameter("token")
     }
 
     private fun toast(msg: String) =

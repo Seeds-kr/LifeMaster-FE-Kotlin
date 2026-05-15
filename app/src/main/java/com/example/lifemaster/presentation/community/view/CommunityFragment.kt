@@ -1,7 +1,6 @@
 package com.example.lifemaster.presentation.community.view
 
 import android.view.Gravity
-import android.os.Build
 import androidx.core.widget.PopupWindowCompat
 import android.graphics.Color
 import android.graphics.Rect

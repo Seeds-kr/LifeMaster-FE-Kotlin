@@ -1,12 +1,11 @@
 package com.example.lifemaster.presentation.home.calendar.model
 
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 
 class CalendarRepository(
+    private val api: NetworkService,
     private val authProvider: () -> String?
 ) {
-    private val api = RetrofitInstance.networkService
-
     private fun bearer(): String? =
         authProvider()
             ?.trim()

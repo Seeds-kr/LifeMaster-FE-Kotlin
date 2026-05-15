@@ -1,7 +1,12 @@
 package com.example.lifemaster.presentation.home.alarm.model
 
-enum class RandomMissionType(val value: String) {
-    MATH_PROBLEM("MATH_PROBLEM"),
-    TYPING_SENTENCE("TYPING_SENTENCE"),
-    FOLLOW_CLICK("FOLLOW_CLICK")
+import com.google.gson.annotations.SerializedName
+
+enum class RandomMissionType {
+    @SerializedName("MATH_PROBLEM")
+    MATH_PROBLEM,
+    @SerializedName("TYPING_SENTENCE")
+    TYPING_SENTENCE,
+    @SerializedName("FOLLOW_CLICK")
+    FOLLOW_CLICK
 }

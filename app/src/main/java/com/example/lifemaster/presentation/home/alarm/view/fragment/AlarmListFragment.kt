@@ -11,7 +11,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmListBinding
-import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.home.alarm.adapter.AlarmAdapter
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmGenerateViewModel
 import com.example.lifemaster.presentation.home.alarm.viewmodel.AlarmViewModel
@@ -34,13 +33,16 @@ import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.home.alarm.model.mapper.toPresentation
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import com.example.lifemaster.network.NetworkService
 
 @AndroidEntryPoint
 class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListener {
 
     private lateinit var binding: FragmentAlarmListBinding
+    @Inject lateinit var networkService: NetworkService
     private val alarmViewModel: AlarmViewModel by activityViewModels(
-        factoryProducer = { AlarmViewModelFactory(RetrofitInstance.networkService) }
+        factoryProducer = { AlarmViewModelFactory(networkService) }
     )
     private val alarmGenerateViewModel: AlarmGenerateViewModel by activityViewModels()
 

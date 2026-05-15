@@ -7,13 +7,13 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogDetoxTimeLockAllowServiceBinding
-import com.example.lifemaster.presentation.total.detox.adapter.DetoxServiceSettingAdapter
-import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockViewModel
+import com.example.lifemaster.presentation.total.detox.adapter.DetoxPermanentLockServiceSettingAdapter
+import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
 
 class DetoxTimeLockAllowServiceDialog: DialogFragment(R.layout.dialog_detox_time_lock_allow_service) {
 
     private lateinit var binding: DialogDetoxTimeLockAllowServiceBinding
-    private val timeLockViewModel: DetoxTimeLockViewModel by activityViewModels()
+    private val timeLockViewModel: DetoxViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -23,8 +23,8 @@ class DetoxTimeLockAllowServiceDialog: DialogFragment(R.layout.dialog_detox_time
     }
 
     private fun setupViews() {
-        binding.recyclerview.layoutManager = GridLayoutManager(context, 5)
-        binding.recyclerview.adapter = DetoxServiceSettingAdapter(timeLockViewModel.allowServiceApplications)
+//        binding.recyclerview.layoutManager = GridLayoutManager(context, 5)
+//        binding.recyclerview.adapter = DetoxPermanentLockServiceSettingAdapter(timeLockViewModel.allowServiceApplications)
     }
 
     private fun setupListeners() {
@@ -34,6 +34,6 @@ class DetoxTimeLockAllowServiceDialog: DialogFragment(R.layout.dialog_detox_time
     }
 
     companion object {
-        const val TAG = "DetoxRepeatLockBlockServiceDialog"
+        const val TAG = "DetoxPermanentLockServiceDialog"
     }
 }

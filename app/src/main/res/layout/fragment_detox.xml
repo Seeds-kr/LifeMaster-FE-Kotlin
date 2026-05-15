@@ -108,7 +108,7 @@
             android:textStyle="bold" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_edit_repeat_lock_block_service"
+            android:id="@+id/btn_edit_permanent_lock_service"
             android:layout_width="60dp"
             android:layout_height="32dp"
             android:background="@drawable/bg_round_radius_8dp"
@@ -128,7 +128,7 @@
         android:padding="4dp">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerview_block_service"
+            android:id="@+id/recyclerview_permanent_lock"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="4dp"
@@ -137,7 +137,7 @@
             tools:listitem="@layout/item_detox_target_app_main" />
 
         <TextView
-            android:id="@+id/tv_block_service_empty"
+            android:id="@+id/tv_permanent_lock_placeholder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="8dp"

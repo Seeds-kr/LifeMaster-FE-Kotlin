@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_challenge_preview_item"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="16dp"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <FrameLayout
+        android:id="@+id/frame_challenge_preview_bg"
+        android:layout_width="56dp"
+        android:layout_height="56dp">
+
+        <ImageView
+            android:id="@+id/iv_challenge_preview_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/bg_circle_default"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true" />
+
+        <ImageView
+            android:id="@+id/iv_challenge_preview_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/ic_shower"
+            android:scaleType="centerCrop" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_challenge_preview_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="찬물 샤워"
+        android:textSize="12sp"
+        android:textColor="#BDBDBD"
+        android:maxLines="1" />
+</LinearLayout>

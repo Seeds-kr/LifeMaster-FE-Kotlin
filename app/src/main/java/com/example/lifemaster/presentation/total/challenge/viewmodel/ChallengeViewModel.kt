@@ -14,17 +14,18 @@ import androidx.paging.cachedIn
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.network.NetworkService
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.example.lifemaster.network.RetrofitInstance
 import retrofit2.HttpException
-import retrofit2.Response
 import java.io.IOException
+import javax.inject.Inject
 
 // DI(의존성 주입) 패턴을 사용하여 의존성을 생성자로 주입받음
-class ChallengeViewModel(
+@HiltViewModel
+class ChallengeViewModel @Inject constructor(
     private val apiService: NetworkService
 ) : ViewModel() {
 
@@ -164,7 +165,7 @@ class ChallengeViewModel(
     suspend fun loadChallenges() {
         Log.d("API_CALL", "챌린지 API 호출 시작")
         try {
-            val response = RetrofitInstance.networkService.getChallenges(page = 0, size = 10)
+            val response = apiService.getChallenges(page = 0, size = 10)
 
             if (response.isSuccessful) {
                 response.body()?.content?.let { dtoList ->

@@ -3,19 +3,24 @@ package com.example.lifemaster.presentation.community.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.community.model.PollDetailsDto
 import com.example.lifemaster.presentation.community.model.PollListItem
 import com.example.lifemaster.presentation.community.model.PollOption
 import com.example.lifemaster.presentation.community.model.PollResultDto
 import com.example.lifemaster.presentation.community.model.VoteRequest
+import dagger.hilt.android.lifecycle.HiltViewModel
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
-class PollViewModel : ViewModel() {
+@HiltViewModel
+class PollViewModel @Inject constructor(
+    private val networkService: NetworkService
+) : ViewModel() {
 
     data class PollUi(
         val pollId: Long,
@@ -34,7 +39,7 @@ class PollViewModel : ViewModel() {
     fun fetchActivePoll(token: String, onError: (String) -> Unit = {}) {
         val auth = bearer(token)
 
-        RetrofitInstance.networkService.getPollList(auth)
+        networkService.getPollList(auth)
             .enqueue(object : Callback<List<PollListItem>> {
                 override fun onResponse(
                     call: Call<List<PollListItem>>,
@@ -67,7 +72,7 @@ class PollViewModel : ViewModel() {
     fun fetchPollDetails(token: String, pollId: Long, onError: (String) -> Unit = {}) {
         val auth = bearer(token)
 
-        RetrofitInstance.networkService.getPollDetails(auth, pollId)
+        networkService.getPollDetails(auth, pollId)
             .enqueue(object : Callback<PollDetailsDto> {
                 override fun onResponse(
                     call: Call<PollDetailsDto>,
@@ -92,7 +97,7 @@ class PollViewModel : ViewModel() {
                         isExpired = d.isExpired,
                         options = normalized,
                         totalVotes = total,
-                        myVotedOptionId = d.myVotedOptionId  // ← 서버에서 내려준 값 그대로 저장
+                        myVotedOptionId = d.myVotedOptionId
                     )
 
                     fetchPollResults(token, pollId)
@@ -115,7 +120,7 @@ class PollViewModel : ViewModel() {
     ) {
         val auth = bearer(token)
 
-        RetrofitInstance.networkService.getPollResults(auth, pollId)
+        networkService.getPollResults(auth, pollId)
             .enqueue(object : Callback<Map<String, PollResultDto>> {
                 override fun onResponse(
                     call: Call<Map<String, PollResultDto>>,
@@ -177,7 +182,7 @@ class PollViewModel : ViewModel() {
     ) {
         val bearerToken = bearer(token)
 
-        RetrofitInstance.networkService
+        networkService
             .castVote(bearerToken, pollId, VoteRequest(optionId = optionId, userId = userId))
             .enqueue(object : Callback<ResponseBody> {
 

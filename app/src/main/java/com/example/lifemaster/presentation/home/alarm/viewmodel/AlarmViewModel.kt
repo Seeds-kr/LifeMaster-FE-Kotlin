@@ -8,9 +8,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.model.MathProblemResponse
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AlarmViewModel(private val networkService: NetworkService): ViewModel() {
+@HiltViewModel
+class AlarmViewModel @Inject constructor(
+    private val networkService: NetworkService
+): ViewModel() {
 
     var alarmTriggeredAt: Long? = 0L
     var alarmDismissedAt: Long? = 0L

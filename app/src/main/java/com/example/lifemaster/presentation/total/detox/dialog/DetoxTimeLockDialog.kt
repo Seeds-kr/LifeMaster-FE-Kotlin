@@ -5,30 +5,53 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogDetoxTimeLockBinding
-import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockItem
-import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxTimeLockViewModel
+import com.example.lifemaster.presentation.home.alarm.model.DataResource
+import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
+import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
+import com.example.lifemaster.presentation.total.detox.model.DetoxType
+import com.example.lifemaster.presentation.total.detox.model.TimeLockRepeatDay
+import com.example.lifemaster.presentation.total.detox.model.TimeLockRepeatPeriod
+import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
+import kotlinx.coroutines.launch
 
 class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
 
     private lateinit var binding: DialogDetoxTimeLockBinding
-    private val viewModel: DetoxTimeLockViewModel by activityViewModels()
-    private var selectedPeriod: String? = null
-    private var selectedDay: String ?= null
+    private val viewModel: DetoxViewModel by activityViewModels()
+    private var selectedPeriod: TimeLockRepeatPeriod ?= null
+    private var selectedDay: TimeLockRepeatDay ?= null
+
+    private var selectedApp: DetoxTargetApp? = null
+
+    private var startHour: Int? = null // 24H
+    private var startMinutes: Int? = null // 0~60
+
+    private var endHour: Int? = null // 24
+    private var endMinutes: Int? = null // 0~60
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = DialogDetoxTimeLockBinding.bind(view)
+        initViews()
+        initListeners()
+        initObservers()
+    }
 
+    private fun initViews() = with(binding) {
         // 드롭다운 - 반복 기간
         val periodArray = resources.getStringArray(R.array.detox_time_lock_repeat_period)
         val periodAdapter = ArrayAdapter(requireContext(), R.layout.item_dropdown, periodArray)
         binding.autoCompleteTextViewPeriod.setAdapter(periodAdapter)
         binding.autoCompleteTextViewPeriod.setOnItemClickListener { parent, view, position, id ->
-            selectedPeriod = parent.getItemAtPosition(position).toString()
+            selectedPeriod = TimeLockRepeatPeriod.WEEKLY // TODO: 서버 및 UI에서 매주 외에 다른 필드 추가시 수정하기
         }
 
         // 드롭다운 - 반복 요일
@@ -36,12 +59,29 @@ class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
         val dayAdapter = ArrayAdapter(requireContext(), R.layout.item_dropdown, dayArray)
         binding.autoCompleteTextViewDay.setAdapter(dayAdapter)
         binding.autoCompleteTextViewDay.setOnItemClickListener { parent, view, position, id ->
-            selectedDay = parent.getItemAtPosition(position).toString()
+            selectedDay = TimeLockRepeatDay.entries[position]
         }
-        setupListeners()
     }
 
-    private fun setupListeners() {
+    private fun initListeners() = with(binding) {
+
+        tvDetoxTimeLockSelectTargetApp.setOnClickListener {
+            root.alpha = 0.0f
+            val dialog = DetoxTimeLockTargetDialog(selectedApp).apply { isCancelable = false }
+            dialog.show(childFragmentManager, DetoxTimeLockTargetDialog.TAG)
+        }
+
+        childFragmentManager.setFragmentResultListener(DetoxTimeLockTargetDialog.REQUEST_KEY, viewLifecycleOwner) { _, bundle ->
+            root.alpha = 1.0f
+            if(bundle.containsKey(DetoxTimeLockTargetDialog.BUNDLE_KEY)) {
+                selectedApp = bundle.getParcelable(DetoxTimeLockTargetDialog.BUNDLE_KEY)
+                tvDetoxTimeLockSelectTargetApp.isVisible = false
+                tvTargetAppName.text = selectedApp?.appName
+                ivSelectTargetApp.setImageDrawable(selectedApp?.appIcon)
+                tvTargetAppName.isVisible = true
+                ivSelectTargetApp.isVisible = true
+            }
+        }
 
         // 시작 시간
         binding.btnStartHour.setOnClickListener {
@@ -64,29 +104,35 @@ class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
         }
 
         binding.btnAdd.setOnClickListener {
-            if(selectedPeriod == null || selectedDay == null) {
-                Toast.makeText(context, "기간 또는 요일 설정을 해주세요!", Toast.LENGTH_SHORT).show()
+            if(selectedApp == null || selectedPeriod == null || selectedDay == null || startHour == null || startMinutes == null || endHour == null || endMinutes == null) {
+                Toast.makeText(context, "정보를 입력해주세요!", Toast.LENGTH_SHORT).show()
             } else {
-
-                val newItemId = viewModel.timeLockItems.value?.size ?: 0
-                val startHour = if(binding.btnStartHour.text.length == 1) "0${binding.btnStartHour.text}" else binding.btnStartHour.text
-                val startMinutes = if(binding.btnStartMinutes.text.length == 1) "0${binding.btnStartMinutes.text}" else binding.btnStartMinutes.text
-                val endHour = if(binding.btnEndHour.text.length == 1) "0${binding.btnEndHour.text}" else binding.btnEndHour.text
-                val endMinutes = if(binding.btnEndMinutes.text.length == 1) "0${binding.btnEndMinutes.text}" else binding.btnEndMinutes.text
-
-                val newItem = DetoxTimeLockItem(
-                    itemId = newItemId,
-                    weekType = selectedPeriod!!,
+                viewModel.generateTimeLock(request = DetoxTimeLockRequest(
+                    type = DetoxType.TIME,
+                    cycle = selectedPeriod!!,
                     day = selectedDay!!,
-                    startHour = startHour.toString(),
-                    startMinutes = startMinutes.toString(),
-                    startType = binding.btnStartDayPart.text.toString(),
-                    endHour = endHour.toString(),
-                    endMinutes = endMinutes.toString(),
-                    endType = binding.btnEndDayPart.text.toString()
-                )
-                viewModel.addTimeLockItems(newItem)
-                dismiss()
+                    startTime = String.format("%02d:%02d", startHour, startMinutes),
+                    endTime = String.format("%02d:%02d", endHour, endMinutes),
+                    lockedAppPackageName = selectedApp!!.appPackageName
+                ))
+            }
+        }
+    }
+
+    private fun initObservers() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.generateTimeLockResult.collect { resource ->
+                    when(resource) {
+                        is DataResource.Error -> {}
+                        DataResource.Idle -> {}
+                        DataResource.Loading -> {}
+                        is DataResource.Success -> {
+                            viewModel.fetchTimeLockItems()
+                            dismiss()
+                        }
+                    }
+                }
             }
         }
     }
@@ -98,6 +144,8 @@ class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
                 binding.btnStartHour.text = if(hour in 0..12) hour.toString() else (hour-12).toString()
                 binding.btnStartMinutes.text = minutes.toString()
                 binding.btnStartDayPart.text = if(hour in 0..11) "AM" else "PM"
+                this.startHour = hour
+                this.startMinutes = minutes
             },
             10,
             20,
@@ -113,6 +161,8 @@ class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
                 binding.btnEndHour.text = if(hour in 0..12) hour.toString() else (hour-12).toString()
                 binding.btnEndMinutes.text = minutes.toString()
                 binding.btnEndDayPart.text = if(hour in 0..11) "AM" else "PM"
+                this.endHour = hour
+                this.endMinutes = minutes
             },
             10,
             20,

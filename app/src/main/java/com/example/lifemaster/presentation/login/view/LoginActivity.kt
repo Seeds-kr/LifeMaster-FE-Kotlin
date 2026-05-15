@@ -1,28 +1,64 @@
 package com.example.lifemaster.presentation.login.view
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lifemaster.databinding.ActivityLoginBinding
-import android.content.Intent
+import com.example.lifemaster.presentation.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
 import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 
+@AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        handlePasswordResetDeepLink(intent)
+        try {
+            binding = ActivityLoginBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+        } catch (t: Throwable) {
+            Log.e("LOGIN_ACTIVITY_STARTUP_CRASH", "LoginActivity inflate/setContentView failed", t)
+            Toast.makeText(this, "초기화 오류: ${t.javaClass.simpleName}", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+        handleDeepLink(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    /**
+     * 백엔드 /naverLogin/callback 처리 후 lifemaster://naver/callback?token=xxx 로
+     * 리다이렉트했을 때 호출됩니다. 토큰을 꺼내 메인으로 이동합니다.
+     */
+    private fun handleDeepLink(intent: Intent?) {
+        if (handleNaverCallback(intent)) return
         handlePasswordResetDeepLink(intent)
+    }
+
+    private fun handleNaverCallback(intent: Intent?): Boolean {
+        val data = intent?.data ?: return false
+        if (data.scheme != "lifemaster" || data.host != "naver" || data.pathSegments.firstOrNull() != "callback") return false
+        val token = data.getQueryParameter("token")
+        if (!token.isNullOrBlank()) {
+            Toast.makeText(this, "네이버 로그인에 성공했습니다.", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, MainActivity::class.java).apply {
+                putExtra("user_token", token)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            })
+            finish()
+            return true
+        }
+        return false
     }
 
     private fun handlePasswordResetDeepLink(intent: Intent?) {

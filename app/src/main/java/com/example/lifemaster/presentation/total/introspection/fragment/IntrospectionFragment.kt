@@ -7,23 +7,31 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentIntrospectionBinding
 import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
+import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
+import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
+import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
 import com.example.lifemaster.presentation.total.introspection.viewmodel.UiState
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@AndroidEntryPoint
 class IntrospectionFragment : Fragment() {
 
     private var _binding: FragmentIntrospectionBinding? = null
     private val binding get() = _binding!!
     private val viewModel: ThankViewModel by viewModels()
+    private val calendarVM: CalendarViewModel by activityViewModels()
     private var currentMode: Mode = Mode.TODAY
     private var isEditMode = false
     private var thankId: Long? = null
@@ -31,6 +39,15 @@ class IntrospectionFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val startTab = arguments?.getString("startTab") ?: "TODAY"
+
+        currentMode = if (startTab == "THANKS") {
+            Mode.THANKS
+        } else {
+            Mode.TODAY
+        }
+
         arguments?.let {
             val thankIdArg = it.getLong(ARG_THANK_ID, 0L)
             val diaryIdArg = it.getLong(ARG_DIARY_ID, 0L)
@@ -87,6 +104,10 @@ class IntrospectionFragment : Fragment() {
         // 초기 화면 설정
         updateUI(animated = false) // 처음에는 애니메이션 없이 UI 설정
 
+        // 달력 연결 (홈과 동일한 CalendarFragment + CalendarViewModel 사용)
+        setupIntrospectionCalendar()
+        observeIntrospectionCalendarDate()
+
         // 버튼 클릭 이벤트
         binding.btnToday.setOnClickListener {
             if (currentMode != Mode.TODAY) {
@@ -117,33 +138,32 @@ class IntrospectionFragment : Fragment() {
                     if (text.isBlank()) {
                         Toast.makeText(requireContext(), "내용을 입력해주세요", Toast.LENGTH_SHORT).show()
                     } else {
-                        // 현재 날짜를 "yyyy-MM-dd" 형식의 문자열로 변환
-                        val currentDate =
-                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        // 달력에서 선택한 날짜 사용 (선택 없으면 오늘)
+                        val selectedDateStr = formatSelectedDateForApi(calendarVM.selectedDate.value)
                         val token = readAuthToken() ?: run {
                             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                             return@setOnClickListener
                         }
 
-                        // 수정 모드인지 확인
                         if (isEditMode && diaryId != null) {
-                            // 다이어리 수정
                             viewModel.updateDiaryEntry(
                                 token = token,
                                 diaryId = diaryId!!,
                                 diaryContent = text,
-                                diaryDate = currentDate,
-                                date = currentDate
+                                diaryDate = selectedDateStr,
+                                date = selectedDateStr
                             )
                         } else {
-                            // 다이어리 생성
                             viewModel.createDiaryEntry(
                                 token = token,
                                 diaryContent = text,
-                                diaryDate = currentDate,
-                                date = currentDate
+                                diaryDate = selectedDateStr,
+                                date = selectedDateStr
                             )
                         }
+
+                        // 홈 달력에 자아성찰 기록 있음 표시
+                        calendarVM.addIntrospectionDate(calendarVM.selectedDate.value ?: LocalDate.now())
                     }
                 }
 
@@ -156,19 +176,14 @@ class IntrospectionFragment : Fragment() {
                         binding.etThanks5.text.toString()
                     )
 
-                    // "비어있지 않은 항목이 하나라도 있는가?"를 직접적으로 확인
                     if (thanksList.any { it.isNotBlank() }) {
-                        // 현재 날짜를 "yyyy-MM-dd" 형식의 문자열로 변환
-                        val currentDate =
-                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        val selectedDateStr = formatSelectedDateForApi(calendarVM.selectedDate.value)
                         val token = readAuthToken() ?: run {
                             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                             return@setOnClickListener
                         }
 
-                        // 수정 모드인지 확인
                         if (isEditMode && thankId != null) {
-                            // 감사일기 수정
                             viewModel.updateThankEntry(
                                 token = token,
                                 thankId = thankId!!,
@@ -179,7 +194,6 @@ class IntrospectionFragment : Fragment() {
                                 thankFive = thanksList[4]
                             )
                         } else {
-                            // 감사일기 생성
                             viewModel.createThankEntry(
                                 token = token,
                                 thankOne = thanksList[0],
@@ -187,32 +201,12 @@ class IntrospectionFragment : Fragment() {
                                 thankThree = thanksList[2],
                                 thankFour = thanksList[3],
                                 thankFive = thanksList[4],
-                                thankDate = currentDate
+                                thankDate = selectedDateStr
                             )
                         }
-                        if (isEditMode && thankId != null) {
-                            // 수정 모드
-                            viewModel.updateThankEntry(
-                                token = token,
-                                thankId = thankId!!,
-                                thankOne = thanksList[0],
-                                thankTwo = thanksList[1],
-                                thankThree = thanksList[2],
-                                thankFour = thanksList[3],
-                                thankFive = thanksList[4]
-                            )
-                        } else {
-                            // 생성 모드
-                            viewModel.createThankEntry(
-                                token = token,
-                                thankOne = thanksList[0],
-                                thankTwo = thanksList[1],
-                                thankThree = thanksList[2],
-                                thankFour = thanksList[3],
-                                thankFive = thanksList[4],
-                                thankDate = currentDate
-                            )
-                        }
+
+                        // 홈 달력에 자아성찰 기록 있음 표시
+                        calendarVM.addIntrospectionDate(calendarVM.selectedDate.value ?: LocalDate.now())
                     } else {
                         Toast.makeText(requireContext(), "감사 내용을 한 가지 이상 입력해주세요", Toast.LENGTH_SHORT).show()
                     }
@@ -231,14 +225,47 @@ class IntrospectionFragment : Fragment() {
             }
         }
 
-        viewModel.thankData.observe(viewLifecycleOwner) { thankData ->
-            thankData?.let {
-                // 불러온 데이터로 입력창 채우기
-                binding.etThanks1.setText(it.thankOne)
-                binding.etThanks2.setText(it.thankTwo)
-                binding.etThanks3.setText(it.thankThree)
-                binding.etThanks4.setText(it.thankFour)
-                binding.etThanks5.setText(it.thankFive)
+        // 날짜별 자아성찰 조회 결과를 보고, 해당 날짜에 기록이 있으면 달력에 별 표시
+        viewModel.selfReflectionByDate.observe(viewLifecycleOwner) { data ->
+            val date = calendarVM.selectedDate.value ?: LocalDate.now()
+            if (data == null) {
+                Log.d(
+                    "INTROSPECTION_DEBUG",
+                    "selfReflectionByDate null (selectedDate=$date, isEditMode=$isEditMode)"
+                )
+                // 선택한 날짜에 데이터가 없으면 UI도 비워줍니다.
+                if (!isEditMode) {
+                    binding.etDiary.setText("")
+                    clearThankYouFields()
+                }
+                return@observe
+            }
+
+            // 조회 모드라면(수정 모드 제외) 선택 날짜의 일기/5감사를 UI에 채웁니다.
+            if (!isEditMode) {
+                Log.d(
+                    "INTROSPECTION_DEBUG",
+                    "selfReflectionByDate success (selectedDate=$date, diary=${data.diaryContent?.take(20)}, thanks=${listOf(data.thankOne, data.thankTwo, data.thankThree, data.thankFour, data.thankFive).joinToString { (it ?: "").take(10) }})"
+                )
+                binding.etDiary.setText(data.diaryContent ?: "")
+                binding.etThanks1.setText(data.thankOne ?: "")
+                binding.etThanks2.setText(data.thankTwo ?: "")
+                binding.etThanks3.setText(data.thankThree ?: "")
+                binding.etThanks4.setText(data.thankFour ?: "")
+                binding.etThanks5.setText(data.thankFive ?: "")
+            }
+
+            val hasDiary = !data.diaryContent.isNullOrBlank()
+            val hasThanks = listOf(
+                data.thankOne,
+                data.thankTwo,
+                data.thankThree,
+                data.thankFour,
+                data.thankFive
+            ).any { !it.isNullOrBlank() }
+
+            if (hasDiary || hasThanks) {
+                calendarVM.addIntrospectionDate(date)
             }
         }
 
@@ -305,6 +332,88 @@ class IntrospectionFragment : Fragment() {
         binding.etThanks3.text.clear()
         binding.etThanks4.text.clear()
         binding.etThanks5.text.clear()
+    }
+
+    /** 달력 초기화: CalendarFragment 삽입 + 월/주/일 버튼 (홈과 동일한 방식) */
+    private fun setupIntrospectionCalendar() {
+        if (childFragmentManager.findFragmentById(R.id.container_introspection_calendar) == null) {
+            childFragmentManager.beginTransaction()
+                .replace(R.id.container_introspection_calendar, CalendarFragment())
+                .commit()
+        }
+        if (calendarVM.mode.value == null) calendarVM.setMode(CalendarMode.MONTH)
+        if (calendarVM.selectedDate.value == null) calendarVM.selectDate(LocalDate.now())
+
+        binding.btnIntrospectionMonth.setOnClickListener {
+            calendarVM.setMode(CalendarMode.MONTH)
+            updateIntrospectionDateButtons(CalendarMode.MONTH)
+            updateIntrospectionSelectedDateText(calendarVM.mode.value ?: CalendarMode.MONTH, calendarVM.selectedDate.value ?: LocalDate.now())
+        }
+        binding.btnIntrospectionWeek.setOnClickListener {
+            calendarVM.setMode(CalendarMode.WEEK)
+            updateIntrospectionDateButtons(CalendarMode.WEEK)
+            updateIntrospectionSelectedDateText(calendarVM.mode.value ?: CalendarMode.WEEK, calendarVM.selectedDate.value ?: LocalDate.now())
+        }
+        binding.btnIntrospectionDay.setOnClickListener {
+            calendarVM.setMode(CalendarMode.DAY)
+            updateIntrospectionDateButtons(CalendarMode.DAY)
+            updateIntrospectionSelectedDateText(calendarVM.mode.value ?: CalendarMode.DAY, calendarVM.selectedDate.value ?: LocalDate.now())
+        }
+        val mode = calendarVM.mode.value ?: CalendarMode.MONTH
+        val date = calendarVM.selectedDate.value ?: LocalDate.now()
+        updateIntrospectionDateButtons(mode)
+        updateIntrospectionSelectedDateText(mode, date)
+    }
+
+    private fun observeIntrospectionCalendarDate() {
+        calendarVM.selectedDate.observe(viewLifecycleOwner) { date ->
+            val mode = calendarVM.mode.value ?: CalendarMode.MONTH
+            updateIntrospectionSelectedDateText(mode, date)
+
+            // 날짜별 자아성찰 조회 → 있으면 홈/자아성찰 달력 모두에 별 표시
+            val token = readAuthToken()
+            if (token != null) {
+                val dateStr = formatSelectedDateForApi(date)
+                viewModel.loadSelfReflectionByDate(token, dateStr)
+            }
+        }
+        calendarVM.mode.observe(viewLifecycleOwner) { mode ->
+            updateIntrospectionDateButtons(mode)
+            updateIntrospectionSelectedDateText(mode, calendarVM.selectedDate.value ?: LocalDate.now())
+        }
+    }
+
+    private fun updateIntrospectionDateButtons(selected: CalendarMode) {
+        val selectedBtn = when (selected) {
+            CalendarMode.MONTH -> binding.btnIntrospectionMonth
+            CalendarMode.WEEK -> binding.btnIntrospectionWeek
+            CalendarMode.DAY -> binding.btnIntrospectionDay
+        }
+        listOf(binding.btnIntrospectionMonth, binding.btnIntrospectionWeek, binding.btnIntrospectionDay).forEach { btn ->
+            if (btn == selectedBtn) {
+                btn.setBackgroundResource(R.drawable.bg_round_and_mint)
+                btn.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white))
+            } else {
+                btn.setBackgroundResource(R.drawable.bg_calendar_unselected)
+                btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.mint_60))
+            }
+        }
+    }
+
+    private fun updateIntrospectionSelectedDateText(mode: CalendarMode, date: LocalDate) {
+        binding.tvIntrospectionSelectedDate.text = when (mode) {
+            CalendarMode.MONTH -> "${date.monthValue}월"
+            CalendarMode.WEEK -> "${date.monthValue}월 ${weekOfMonth(date)}째주"
+            CalendarMode.DAY -> "${date.monthValue}월 ${date.dayOfMonth}일"
+        }
+    }
+
+    private fun weekOfMonth(date: LocalDate): Int = ((date.dayOfMonth - 1) / 7) + 1
+
+    /** API 요청용 날짜 문자열 (yyyy-MM-dd). null이면 오늘. */
+    private fun formatSelectedDateForApi(date: LocalDate?): String {
+        val d = date ?: LocalDate.now()
+        return d.format(DateTimeFormatter.ISO_LOCAL_DATE)
     }
 
     override fun onDestroyView() {

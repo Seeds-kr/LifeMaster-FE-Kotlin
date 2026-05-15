@@ -24,6 +24,7 @@
             android:layout_height="168dp"
             android:background="@drawable/bg_round_and_white"
             android:overScrollMode="never"
+            android:nestedScrollingEnabled="false"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_group_list" />
 
@@ -41,7 +42,7 @@
                 android:id="@+id/tv_more"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/group_list_more"
+                android:text="@string/more"
                 android:textColor="@color/black"
                 android:textSize="12sp"
                 android:textStyle="bold" />

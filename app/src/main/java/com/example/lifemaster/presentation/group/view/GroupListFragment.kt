@@ -1,60 +1,86 @@
 package com.example.lifemaster.presentation.group.view
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
+import androidx.core.widget.doAfterTextChanged
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
+import com.example.lifemaster.network.NetworkService
+import com.example.lifemaster.network.TokenProvider
+import com.example.lifemaster.presentation.group.adapter.GroupListAdapter
+import com.example.lifemaster.presentation.group.model.GroupResponse
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+@AndroidEntryPoint
+class GroupListFragment : Fragment(R.layout.fragment_group_list) {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [GroupFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class GroupListFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private lateinit var adapter: GroupListAdapter
+    private var allGroups: List<GroupResponse> = emptyList()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    @Inject
+    lateinit var networkService: NetworkService
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val rv = view.findViewById<RecyclerView>(R.id.rv_group_list)
+        val etSearch = view.findViewById<EditText>(R.id.search_group)
+        val tvCurrent = view.findViewById<TextView>(R.id.tv_page_current)
+        val tvTotal = view.findViewById<TextView>(R.id.tv_page_total)
+
+        adapter = GroupListAdapter { g ->
+            val b = Bundle().apply {
+                putLong("groupId", g.id)
+                putString("groupName", g.name)
+                putInt("memberCount", g.memberCount ?: 0)
+            }
+            findNavController().navigate(R.id.action_groupListFragment_to_groupStatsFragment, b)
+        }
+
+        rv.layoutManager = LinearLayoutManager(requireContext())
+        rv.adapter = adapter
+
+        loadAllGroups(tvCurrent, tvTotal)
+
+        etSearch.doAfterTextChanged { editable ->
+            val q = editable?.toString()?.trim().orEmpty()
+            val filtered =
+                if (q.isBlank()) allGroups
+                else allGroups.filter { it.name.contains(q, ignoreCase = true) }
+
+            adapter.submitList(filtered)
+            tvCurrent.text = "1"
+            tvTotal.text = "1"
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_group_list, container, false)
-    }
+    private fun loadAllGroups(tvCurrent: TextView, tvTotal: TextView) {
+        val token = TokenProvider.getBearerToken(requireContext())
+        if (token.isNullOrBlank()) {
+            Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment GroupFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            GroupFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+        lifecycleScope.launch {
+            runCatching {
+                networkService.getAllGroups(token)
+            }.onSuccess { list ->
+                allGroups = list.distinctBy { it.id }
+                adapter.submitList(allGroups)
+                tvCurrent.text = "1"
+                tvTotal.text = "1"
+            }.onFailure { e ->
+                Toast.makeText(requireContext(), "전체 그룹 조회 실패: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
     }
 }

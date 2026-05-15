@@ -15,7 +15,6 @@
     <!-- 디톡스 -->
     <string-array name="detox_time_lock_repeat_period">
         <item>매주</item>
-        <item>격주</item>
     </string-array>
     <string-array name="detox_time_lock_repeat_day">
         <item>월요일</item>
@@ -58,6 +57,88 @@
     <string name="sat_text">SAT</string>
     <string name="sun_text">SUN</string>
 
+    <!-- faq -->
+    <string name="expand_collapse_indicator">Expand/Collapse</string>
+
+    <!-- My Page -->
+    <string name="mypage_title">마이페이지</string>
+    <string name="mypage_edit">수정</string>
+    <string name="mypage_profile_image_description">Profile Picture</string>
+    <string name="mypage_nickname_label">닉네임</string>
+    <string name="mypage_nickname_sample">미라클이노베이팅하는사람</string>
+    <string name="mypage_email_label">이메일 주소</string>
+    <string name="mypage_email_sample">example@test.com</string>
+    <string name="mypage_subscription_title">구독 정보</string>
+    <string name="mypage_premium">Premium</string>
+    <string name="mypage_subscription_date_sample">2024.07.12 갱신됨</string>
+    <string name="mypage_plan_title">요금제</string>
+    <string name="mypage_basic_plan_title">Basic</string>
+    <string name="mypage_free_price">무료</string>
+    <string name="mypage_basic_plan_feature_1">• 투두(할일)</string>
+    <string name="mypage_basic_plan_feature_2">• 기본 알람</string>
+    <string name="mypage_basic_plan_feature_3">• 기록 (일기/5감사 중 하나)</string>
+    <string name="mypage_basic_plan_feature_4">• 과거 기록 조회 제한</string>
+    <string name="mypage_basic_plan_feature_5">• 커뮤니티</string>
+    <string name="mypage_basic_plan_feature_6">• 챌린지 (1개 제한)</string>
+    <string name="mypage_premium_price">월 ₩4,900</string>
+    <string name="mypage_premium_plan_feature_1">• 디지털 디톡스</string>
+    <string name="mypage_premium_plan_feature_2">• 챌린지 확장</string>
+    <string name="mypage_premium_plan_feature_2_detail">  (여러 개 사용 가능)</string>
+    <string name="mypage_premium_plan_feature_3">• 기록 데이터 확장</string>
+    <string name="mypage_premium_plan_feature_3_detail">  (통계 - 수면 패턴, 연속 성공일)</string>
+    <string name="mypage_premium_plan_feature_4">• 수면 관리</string>
+    <string name="mypage_premium_plan_feature_5">• UI 커스터마이징</string>
+    <string name="mypage_subscribe_button_text">Premium 구독하기</string>
+    <string name="mypage_payment_history_title">결제 내역</string>
+    <string name="mypage_payment_date_sample">7월 18일</string>
+    <string name="mypage_payment_description_sample">포인트 충전</string>
+    <string name="mypage_payment_amount_sample">50,000원</string>
+    <string name="mypage_withdrawal_button_text">회원 탈퇴</string>
+
+    <!-- Premium Subscribe (결제 페이지) -->
+    <string name="premium_subscribe_title">Premium 구독</string>
+    <string name="premium_subscribe_catchphrase">커피 한 잔 값으로 삶에 활력을 불어넣으세요!</string>
+    <string name="premium_subscribe_benefits_title">프리미엄 혜택</string>
+    <string name="premium_subscribe_start_button">PREMIUM 시작하기</string>
+    <string name="subscription_plan_annual">연간 구독</string>
+    <string name="subscription_plan_monthly">월간 구독</string>
+    <string name="subscription_badge_30_off">30% 할인</string>
+    <string name="subscription_price_annual_main">₩41,200 / 년</string>
+    <string name="subscription_price_annual_sub">월 ₩3,433 꼴</string>
+    <string name="subscription_price_monthly_main">₩4,900 / 월</string>
+    <string name="subscription_price_monthly_sub">매월 결제</string>
+    <string name="subscription_monthly_no_trial">첫 달 체험 없음</string>
+    <string name="premium_coupon_enter">쿠폰 번호 입력하기</string>
+    <string name="payment_proceed_button">결제하기</string>
+    <string name="payment_screen_title">결제 화면</string>
+    <string name="payment_summary_title">결제 정보</string>
+    <string name="payment_amount_label">결제 금액</string>
+    <string name="payment_period_label">결제 기간</string>
+    <string name="payment_period_annual">연간 구독</string>
+    <string name="payment_period_monthly">월간 구독</string>
+    <string name="payment_select_method_title">결제 수단 선택</string>
+    <string name="payment_method_paypal">페이팔 결제</string>
+    <string name="payment_method_google_play">구글 플레이스토어 결제</string>
+    <string name="payment_method_naver_pay">네이버페이</string>
+    <string name="payment_pay_now_button">결제 진행하기</string>
+    <string name="payment_refund_cancel_policy">환불 및 취소 정책</string>
+    <string name="payment_select_method_required">결제 수단을 선택해 주세요.</string>
+    <string name="payment_preparing_message">%1$s 연동 준비 중입니다.</string>
+    <string name="payment_purchase_success">결제가 완료되었습니다.</string>
+    <string name="payment_refund_cancel_policy_content">\n
+[프리미엄 구독]\n
+프리미엄 구독은 앱 스토어 또는 결제 플랫폼의 정책에 따라 결제 및 환불이 처리될 수 있습니다.\n
+각 결제 플랫폼의 정책에 따라 환불 가능 여부가 결정될 수 있습니다.\n\n
+
+[텀블벅 후원 관련]\n
+텀블벅 프로젝트의 경우 프로젝트 마감 이후 후원금이 창작자에게 전달되므로 텀블벅을 통한 환불은 불가능합니다.\n
+환불이 필요한 경우 창작자에게 직접 문의하여 처리됩니다.\n\n
+
+[환불 가능 조건]\n
+다음과 같은 경우 환불이 검토될 수 있습니다.\n
+- 서비스 제공이 불가능한 경우\n
+- 중대한 기술적 문제로 서비스 이용이 지속적으로 불가능한 경우\n
+환불 요청은 고객 지원 채널을 통해 접수할 수 있습니다.\n</string>
     <!-- 그룹 -->
     <string name="group">그룹</string>
     <string name="All_group">전체 그룹 보기</string>
@@ -65,7 +146,7 @@
     <string name="joined_groups_count">14</string>
     <string name="group_list_title">하루에 뽀모도로 10회하기</string>
     <string name="group_list_participants_num">140명 참여 중</string>
-    <string name="group_list_more">더보기</string>
+    <string name="more">더보기</string>
     <string name="search_group">그룹 이름으로 검색하기</string>
     <string name="my_stats">내 통계</string>
     <string name="create_group">새 그룹 생성</string>
@@ -82,7 +163,7 @@
     <string name="group_explain">그룹을 설명해주세요</string>
     <string name="open_group">공개 그룹</string>
     <string name="private_group">비공개 그룹</string>
-    <string name="min_goal">최소 목표 설정</string>
+    <string name="min_goal_setting">최소 목표 설정</string>
     <string name="add">추가</string>
     <string name="goal_type">뽀모도로</string>
     <string name="group_goal_setting">3회 이상</string>
@@ -99,6 +180,40 @@
     <string name="check_password">비밀번호 확인</string>
     <string name="cancel">취소하기</string>
     <string name="create">생성하기</string>
+    <string name="one">1회 이상</string>
+    <string name="two">2회 이상</string>
+    <string name="three">3회 이상</string>
+    <string name="four">4회 이상</string>
+    <string name="five">5회 이상</string>
+    <string name="six">6회 이상</string>
+    <string name="seven">7회 이상</string>
+    <string name="eight">8회 이상</string>
+    <string name="nine">9회 이상</string>
+    <string name="ten">10회 이상</string>
+    <string name="pomodoro">뽀모도로</string>
+    <string name="detox">디톡스</string>
+    <string name="challenge">챌린지</string>
+    <string name="thank_diary">감사일기</string>
+    <string name="introspection">자아성찰</string>
+    <string name="sleep">수면</string>
+    <string name="group_join_title1">비공개 그룹 가입을 위해</string>
+    <string name="group_join_title2">비밀번호를 입력해주세요</string>
+    <string name="password_wrong">비밀번호가 일치하지 않습니다.</string>
+    <string name="group_join">가입하기</string>
+    <string name="min_goal">최소목표</string>
+    <string name="sleep_8">8시간 수면하기</string>
+    <string name="pomodoro_3">뽀모도로 3회 이상</string>
+    <string name="me">나</string>
+    <string name="leave_group">그룹 탈퇴하기</string>
+    <string name="all">전체</string>
+    <string name="weekly">주간</string>
+    <string name="my_rank">그룹 내 랭킹</string>
+    <string name="recent_30">최근 30일 달성 인원</string>
+    <string name="achieve_stats">달성 횟수 통계</string>
+    <string name="profile">프로필</string>
+    <string name="achieve_num">달성 횟수</string>
+    <string name="rank">순위</string>
+    <string name="sleep_stat_desc_sample">나는 평균보다 12분 덜 잤어요!</string>
 
     <!-- 미리보기 -->
     <string name="alarm_preview_date">7월 20일</string>
@@ -112,5 +227,9 @@
     <string name="poll_participants">명이 참여했어요</string>
     <!-- 서버 메세지 -->
     <string name="server_error_message">네트워크 오류가 발생했습니다.</string>
+    <string name="find_password">비밀번호 찾기</string>
+    <string name="input_verification_code">인증번호를 입력해주세요</string>
+    <string name="verification_code">인증번호</string>
+    <string name="check_verification">인증번호 확인</string>
 
 </resources>

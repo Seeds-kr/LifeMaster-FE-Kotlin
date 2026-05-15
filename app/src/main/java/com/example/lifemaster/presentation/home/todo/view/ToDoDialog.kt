@@ -14,10 +14,12 @@ import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.model.TodoRequest
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 // 할일 추가하기, 할일 수정하기에서 같이 사용하는 다이얼로그
+@AndroidEntryPoint
 class ToDoDialog(
     private val origin: TODO,
     private val item: TodoModel? = null
