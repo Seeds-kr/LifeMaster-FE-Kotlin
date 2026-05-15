@@ -728,4 +728,18 @@ interface NetworkService {
     suspend fun deleteTimeLockItem(
         @Path("id") id: Long
     ): Response<Unit>
+
+    /**
+     * Coupon API
+     */
+    @POST("/coupon/register")
+    suspend fun registerCoupon(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, String>
+    ): Response<ResponseBody>
+
+    @GET("/coupon")
+    suspend fun getMyCoupons(
+        @Header("Authorization") token: String
+    ): Response<List<com.example.lifemaster.presentation.total.mypage.model.CouponResponse>>
 }

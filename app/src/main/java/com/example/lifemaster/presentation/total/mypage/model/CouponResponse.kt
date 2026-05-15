@@ -1,0 +1,13 @@
+package com.example.lifemaster.presentation.total.mypage.model
+
+import com.google.gson.annotations.SerializedName
+
+data class CouponResponse(
+    val couponId: Long,
+    val couponCode: String,
+    val couponPercent: Int,
+    val couponType: String,
+    val couponStatus: String,
+    val createdAt: String?,
+    val updatedAt: String?
+)

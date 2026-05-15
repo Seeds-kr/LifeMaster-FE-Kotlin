@@ -83,6 +83,10 @@
             android:exported="false"
             android:theme="@style/Theme.LifeMaster_XML" />
         <activity
+            android:name=".presentation.total.mypage.view.CouponRegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LifeMaster_XML" />
+        <activity
             android:name=".presentation.total.mypage.view.PaymentMethodSelectionActivity"
             android:exported="false"
             android:theme="@style/Theme.LifeMaster_XML" />
