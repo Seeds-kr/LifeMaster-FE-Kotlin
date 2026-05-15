@@ -411,6 +411,20 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     }
 
     private fun loadRanking() {
+        if (!isMember) {
+            rankingAllItems = emptyList()
+            rankingMyItem = null
+            bindRankingList()
+
+            Toast.makeText(
+                requireContext(),
+                "그룹 가입 후 랭킹을 확인할 수 있어요.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
         val token = TokenProvider.getBearerToken(requireContext())
         if (token.isNullOrBlank()) {
             rankingAllItems = emptyList()
@@ -456,13 +470,21 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                     if (resp.code() == 403) {
                         showPremiumLockedUi()
                     } else {
-                        Toast.makeText(requireContext(), "랭킹 조회 실패: ${resp.code()}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "랭킹 조회 실패: ${resp.code()}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             } catch (e: Exception) {
                 rankingAllItems = emptyList()
                 rankingMyItem = null
-                Toast.makeText(requireContext(), "랭킹 표시 오류: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "랭킹 표시 오류: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             } finally {
                 isRankingLoading = false
                 bindRankingList()
