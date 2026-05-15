@@ -48,33 +48,8 @@ class LoginActivity : AppCompatActivity() {
         handleDeepLink(intent)
     }
 
-    /**
-     * 백엔드 /naverLogin/callback 처리 후 lifemaster://naver/callback?token=xxx 로
-     * 리다이렉트했을 때 호출됩니다. 토큰을 꺼내 메인으로 이동합니다.
-     */
     private fun handleDeepLink(intent: Intent?) {
-        if (handleNaverCallback(intent)) return
         handlePasswordResetDeepLink(intent)
-    }
-
-    private fun handleNaverCallback(intent: Intent?): Boolean {
-        val data = intent?.data ?: return false
-        if (data.scheme != "lifemaster" || data.host != "naver" || data.pathSegments.firstOrNull() != "callback") return false
-        val token = data.getQueryParameter("token")
-        if (!token.isNullOrBlank()) {
-            // 네이버 로그인 성공 시 토큰 저장
-            tokenManager.accessToken = token
-            tokenManager.refreshFromStorage()
-
-            Toast.makeText(this, "네이버 로그인에 성공했습니다.", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this, MainActivity::class.java).apply {
-                putExtra("user_token", token)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            })
-            finish()
-            return true
-        }
-        return false
     }
 
     private fun handlePasswordResetDeepLink(intent: Intent?) {
