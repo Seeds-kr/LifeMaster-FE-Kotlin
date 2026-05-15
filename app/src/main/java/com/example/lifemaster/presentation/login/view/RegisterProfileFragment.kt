@@ -204,8 +204,12 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
                     }
 
                     requireContext().getSharedPreferences("auth", 0).edit {
-                        putString("memberId", body.memberId.toString())
-                        putString("userId",  body.memberId.toString()) // userId=memberId 고정
+                        val mid = body.memberId.toString()
+                        putString("memberId", mid)
+                        putString("userId",  mid) 
+                        // 가입 시 입력한 닉네임 미리 저장
+                        putString("nickname", nickname)
+                        putString("nickName", nickname)
                     }
 
                     autoLoginThenGoHome()
@@ -228,9 +232,11 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
                     val token = res.body().orEmpty()
                     requireContext().getSharedPreferences("auth", android.content.Context.MODE_PRIVATE)
                         .edit {
+                            val nick = binding.editNickname.text.toString().trim()
                             putString("token", token)
                             putString("email", email)
-                            putString("nickname", binding.editNickname.text.toString().trim())
+                            putString("nickname", nick)
+                            putString("nickName", nick)
                         }
                     startActivity(Intent(requireActivity(), MainActivity::class.java).apply {
                         putExtra("user_token", token)

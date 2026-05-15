@@ -38,16 +38,34 @@
         app:layout_constraintTop_toTopOf="@id/tvTitle"
         app:layout_constraintBottom_toBottomOf="@id/tvTitle" />
 
-    <ImageView
-        android:id="@+id/ivProfile"
+    <FrameLayout
+        android:id="@+id/frameProfile"
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:src="@drawable/profile_image"
         android:layout_marginTop="32dp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:background="@drawable/bg_round_gray"
+        android:clipToOutline="true"
+        android:outlineProvider="background"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        android:contentDescription="@string/mypage_profile_image_description" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle">
+
+        <ImageView
+            android:id="@+id/ivProfile"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/mypage_profile_image_description"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/ivProfilePlaceholder"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_profile"
+            app:tint="#99131313" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/tvNicknameLabel"
@@ -58,13 +76,13 @@
         android:layout_marginTop="32dp"
         android:layout_marginStart="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/ivProfile" />
+        app:layout_constraintTop_toBottomOf="@id/frameProfile" />
 
     <TextView
         android:id="@+id/tvNickname"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/mypage_nickname_sample"
+        tools:text="@string/mypage_nickname_sample"
         android:textColor="@android:color/black"
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -98,7 +116,7 @@
         android:id="@+id/tvEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/mypage_email_sample"
+        tools:text="@string/mypage_email_sample"
         android:textColor="@android:color/black"
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -151,21 +169,21 @@
                 android:id="@+id/tvSubscriptionType"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/mypage_premium"
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:textColor="@android:color/black"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="@string/mypage_premium" />
 
             <TextView
                 android:id="@+id/tvSubscriptionDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/mypage_subscription_date_sample"
                 android:textColor="#A0A0A0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvSubscriptionType" />
+                app:layout_constraintTop_toBottomOf="@id/tvSubscriptionType"
+                tools:text="@string/mypage_subscription_date_sample" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -419,120 +437,24 @@
         android:id="@+id/llPaymentHistory"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvPaymentTitle" />
+
+    <TextView
+        android:id="@+id/tvLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/mypage_logout_button_text"
+        android:textColor="#A0A0A0"
+        android:layout_marginTop="32dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvPaymentTitle">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingVertical="8dp">
-
-            <TextView
-                android:id="@+id/tvPaymentDate1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mypage_payment_date_sample"
-                android:textColor="@android:color/black"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/tvPaymentDesc1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mypage_payment_description_sample"
-                android:textColor="@android:color/black"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toEndOf="@id/tvPaymentDate1"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/tvPaymentAmount1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mypage_payment_amount_sample"
-                android:textColor="@android:color/black"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingVertical="8dp">
-
-            <TextView
-                android:id="@+id/tvPaymentDate2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mypage_payment_date_sample"
-                android:textColor="@android:color/black"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/tvPaymentDesc2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mypage_payment_description_sample"
-                android:textColor="@android:color/black"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toEndOf="@id/tvPaymentDate2"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/tvPaymentAmount2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mypage_payment_amount_sample"
-                android:textColor="@android:color/black"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingVertical="8dp">
-
-            <TextView
-                android:id="@+id/tvPaymentDate3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mypage_payment_date_sample"
-                android:textColor="@android:color/black"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/tvPaymentDesc3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mypage_payment_description_sample"
-                android:textColor="@android:color/black"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toEndOf="@id/tvPaymentDate3"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/tvPaymentAmount3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/mypage_payment_amount_sample"
-                android:textColor="@android:color/black"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </LinearLayout>
+        app:layout_constraintTop_toBottomOf="@id/llPaymentHistory" />
 
     <TextView
         android:id="@+id/tvWithdrawal"
@@ -540,10 +462,10 @@
         android:layout_height="wrap_content"
         android:text="@string/mypage_withdrawal_button_text"
         android:textColor="#A0A0A0"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/llPaymentHistory" />
+        app:layout_constraintTop_toBottomOf="@id/tvLogout" />
 </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>

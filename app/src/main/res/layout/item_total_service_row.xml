@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="14dp">
+
+    <FrameLayout
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="@drawable/bg_total_icon_slot">
+
+        <ImageView
+            android:id="@+id/ivServiceIcon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="center"
+            android:contentDescription="@null"
+            tools:src="@drawable/ic_alarm" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvServiceTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_weight="1"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        tools:text="알람" />
+</LinearLayout>

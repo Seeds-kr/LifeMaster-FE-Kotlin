@@ -2,14 +2,15 @@ package com.example.lifemaster.presentation.total.challenge.fragment.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ItemChallengeBinding
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 
-class ChallengeAdapter : PagingDataAdapter<ChallengeItem, ChallengeAdapter.ChallengeViewHolder>(ChallengeDiffCallback()) {
+class ChallengeAdapter : ListAdapter<ChallengeItem, ChallengeAdapter.ChallengeViewHolder>(ChallengeDiffCallback()) {
 
     var onItemClickListener: ((ChallengeItem) -> Unit)? = null
     var onJoinButtonClickListener: ((ChallengeItem) -> Unit)? = null
@@ -30,27 +31,46 @@ class ChallengeAdapter : PagingDataAdapter<ChallengeItem, ChallengeAdapter.Chall
 
         init {
             itemView.setOnClickListener {
-                getItem(bindingAdapterPosition)?.let { challenge ->
-                    onItemClickListener?.invoke(challenge)
+                if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
+                    getItem(bindingAdapterPosition)?.let { challenge ->
+                        onItemClickListener?.invoke(challenge)
+                    }
                 }
             }
 
             binding.btnJoinChallenge.setOnClickListener {
-                getItem(bindingAdapterPosition)?.let { challenge ->
-                    onJoinButtonClickListener?.invoke(challenge)
+                if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
+                    getItem(bindingAdapterPosition)?.let { challenge ->
+                        onJoinButtonClickListener?.invoke(challenge)
+                    }
                 }
             }
         }
 
         fun bind(challenge: ChallengeItem) {
             binding.tvChallengeTitle.text = challenge.challName
-            binding.tvParticipantCount.text = "${challenge.challJoinCnt}명 참여중"
+            binding.tvParticipantCount.text = "${challenge.challJoinCnt}명 참여"
+            binding.tvChallengeDescription.text = challenge.challTitle // challTitle에 API의 challDesc가 매핑되어 있음
+            
+            // 날짜 표시 (createdAt 활용)
+            if (!challenge.createdAt.isNullOrBlank()) {
+                // "2024-07-20T..." -> "2024.07.20 ~" 형태로 변환 (간단히 앞부분만 사용)
+                val datePart = challenge.createdAt.split("T").firstOrNull() ?: ""
+                binding.tvChallengeDate.text = if (datePart.isNotBlank()) "$datePart ~" else ""
+            }
+
+            if (challenge.isJoined) {
+                binding.btnJoinChallenge.text = "참여중"
+                binding.btnJoinChallenge.isEnabled = false
+            } else {
+                binding.btnJoinChallenge.text = "참여하기"
+                binding.btnJoinChallenge.isEnabled = true
+            }
 
             Glide.with(binding.ivChallengeBanner.context)
-                .load(challenge.challImg) // 이미지 URL
-                //.placeholder(R.drawable.loading_placeholder) // 로딩 중에 보여줄 이미지
-                //.error(R.drawable.error_placeholder)         // 에러 시 보여줄 이미지
-                .into(binding.ivChallengeBanner) // 이미지를 표시할 ImageView
+                .load(challenge.challImg)
+                .placeholder(R.drawable.bg_circle_default) // 기본 로딩 이미지
+                .into(binding.ivChallengeBanner)
         }
     }
 

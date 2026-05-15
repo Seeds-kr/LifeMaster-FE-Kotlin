@@ -32,6 +32,8 @@ import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
 import com.example.lifemaster.presentation.home.alarm.model.AlarmResponse
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.home.alarm.model.mapper.toPresentation
+import com.example.lifemaster.presentation.home.alarm.util.cancelAlarm
+import com.example.lifemaster.presentation.home.alarm.util.scheduleAlarm
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.lifemaster.network.NetworkService
@@ -155,8 +157,18 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                                 val isEnabled = resource.data
                                 if(isEnabled) {
                                     Toast.makeText(context, "알람이 켜졌습니다.", Toast.LENGTH_SHORT).show()
+                                    // 알람 매니저 등록
+                                    alarmId?.let { id ->
+                                        alarmAdapter.currentList.find { it.id == id }?.let { alarm ->
+                                            scheduleAlarm(requireContext(), alarm)
+                                        }
+                                    }
                                 } else {
                                     Toast.makeText(context, "알람이 꺼졌습니다.", Toast.LENGTH_SHORT).show()
+                                    // 알람 매니저 해제
+                                    alarmId?.let { id ->
+                                        cancelAlarm(requireContext(), id)
+                                    }
                                 }
                             }
                             is DataResource.Error -> { }
@@ -176,6 +188,7 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                             DataResource.Loading -> {}
                             is DataResource.Success -> {
                                 val deleteAlarmId = resource.data
+                                cancelAlarm(requireContext(), deleteAlarmId)
                                 val updatedList = alarmAdapter.currentList.filter { it.id != deleteAlarmId }
                                 alarmAdapter.submitList(updatedList.toList())
                                 Toast.makeText(context, "알람을 삭제했습니다.", Toast.LENGTH_SHORT).show()
@@ -192,6 +205,8 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                             is DataResource.Success -> {
                                 val newAlarmList = alarmAdapter.currentList.map { it.copy(switchOnOff = true) }
                                 alarmAdapter.submitList(newAlarmList)
+                                // 모든 알람 스케줄링
+                                newAlarmList.forEach { scheduleAlarm(requireContext(), it) }
                                 Toast.makeText(context, "전체 알람을 켰습니다.", Toast.LENGTH_SHORT).show()
                             }
                         }
@@ -206,6 +221,8 @@ class AlarmListFragment : Fragment(R.layout.fragment_alarm_list), ItemClickListe
                             is DataResource.Success -> {
                                 val newAlarmList = alarmAdapter.currentList.map { it.copy(switchOnOff = false) }
                                 alarmAdapter.submitList(newAlarmList)
+                                // 모든 알람 취소
+                                newAlarmList.forEach { cancelAlarm(requireContext(), it.id) }
                                 Toast.makeText(context, "전체 알람을 껐습니다.", Toast.LENGTH_SHORT).show()
                             }
                         }

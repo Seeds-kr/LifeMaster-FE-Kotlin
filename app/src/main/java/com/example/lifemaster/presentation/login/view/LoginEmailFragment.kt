@@ -151,10 +151,12 @@ class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
                 putString("loginEmail", loginEmail)
                 putString("email", me?.email ?: loginEmail)
 
-                val nick = me?.nickName
-                if (!nick.isNullOrBlank()) {
+                val nick = (me?.user?.nickName ?: me?.nickName)?.trim().orEmpty()
+                if (nick.isNotBlank() && nick != "null") {
+                    putString("nickname", nick)
                     putString("nickName", nick)
                 } else {
+                    remove("nickname")
                     remove("nickName")
                 }
 
@@ -163,6 +165,11 @@ class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
                     putLong("memberId", memberId)
                 } else {
                     remove("memberId")
+                }
+
+                val profileUrl = me?.profileImageUrl?.trim().orEmpty()
+                if (profileUrl.isNotBlank()) {
+                    putString("profileImageUrl", profileUrl)
                 }
             }
     }

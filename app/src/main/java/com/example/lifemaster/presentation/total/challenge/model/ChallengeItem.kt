@@ -11,5 +11,9 @@ data class ChallengeItem(
     val challTitle: String, // UI에 표시할 제목 (API의 challDesc를 여기에 매핑)
     val challImg: String,
     val challJoinCnt: Int,   // UI에 표시할 참여자 수 (API의 challCnt를 여기에 매핑)
-    val createdAt: String? = null  // 정렬을 위해 추가
+    val createdAt: String? = null,  // 정렬을 위해 추가
+    /** 현재 로그인 사용자의 참여 여부 (challMe 또는 /challenge/my 목록 기준) */
+    val isJoined: Boolean = false,
+    var isCompleted: Boolean = false,
+    var completionTime: String? = null
 )

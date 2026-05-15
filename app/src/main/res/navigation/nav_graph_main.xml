@@ -219,14 +219,23 @@
         android:label="fragment_total"
         tools:layout="@layout/fragment_total">
         <action
-            android:id="@+id/action_totalFragment_to_detoxFragment"
-            app:destination="@id/detoxFragment" />
+            android:id="@+id/action_totalFragment_to_alarmListFragment"
+            app:destination="@id/alarmListFragment" />
+        <action
+            android:id="@+id/action_totalFragment_to_sleepPlaylistDetailFragment"
+            app:destination="@id/sleepPlaylistDetailFragment" />
         <action
             android:id="@+id/action_totalFragment_to_introspectionFragment"
             app:destination="@id/introspectionFragment" />
         <action
             android:id="@+id/action_totalFragment_to_challengeFragment"
             app:destination="@id/challengeFragment" />
+        <action
+            android:id="@+id/action_totalFragment_to_groupFragment"
+            app:destination="@id/groupFragment" />
+        <action
+            android:id="@+id/action_totalFragment_to_communityFragment"
+            app:destination="@id/communityFragment" />
     </fragment>
     <fragment
         android:id="@+id/sleepPlaylistDetailFragment"

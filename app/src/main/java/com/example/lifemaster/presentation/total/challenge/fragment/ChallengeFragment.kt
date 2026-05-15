@@ -12,19 +12,21 @@ import android.widget.Toast
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeBinding
+import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest // Flow의 데이터를 수집
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import android.widget.PopupMenu
-import androidx.paging.PagingData
 
 data class MyChallenge(
     val imageRes: Int,
@@ -38,8 +40,7 @@ class ChallengeFragment : Fragment() {
     private var _binding: FragmentChallengeBinding? = null
     private val binding get() = _binding!!
 
-    // Hilt를 사용하여 ViewModel 생성
-    private val viewModel: ChallengeViewModel by viewModels()
+    private val viewModel: ChallengeViewModel by hiltNavGraphViewModels(R.id.nav_graph_main)
 
     private lateinit var challengeAdapter: ChallengeAdapter
 
@@ -56,25 +57,20 @@ class ChallengeFragment : Fragment() {
         setupMyChallenges()
         setupRecyclerView()
         observeViewModel()
-        setupSortListener()
         setupClickListeners()
-        setupSearchView()
-        observeChallengeData()
-        observeSearchResults()
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.loadChallenges()
-        }
     }
 
     private fun observeViewModel() {
-        viewModel.sortedChallengeList.observe(viewLifecycleOwner) { sortedList ->
-            if (sortedList != null) {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    challengeAdapter.submitData(PagingData.from(sortedList))
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.sortedChallengeList.collectLatest { sortedList ->
+                    challengeAdapter.submitList(sortedList)
+                    if (sortedList.isNotEmpty()) {
+                        Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${sortedList.size}개")
+                    } else {
+                        Log.d("ChallengeFragment", "표시할 챌린지가 없습니다.")
+                    }
                 }
-                Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${sortedList.size}개")
-            } else {
-                Log.e("ChallengeFragment", "ViewModel에서 정렬된 리스트가 null입니다.")
             }
         }
     }
@@ -101,16 +97,13 @@ class ChallengeFragment : Fragment() {
 
         imageView.setImageResource(challengeData.imageRes)
 
-        // 완료된 챌린지에 블러 효과 적용 및 완료 시간 표시
         if (challengeData.isCompleted) {
-            // 완료 시간 표시
             challengeData.completionTime?.let {
                 timeTextView.text = it
                 timeTextView.visibility = View.VISIBLE
             }
             checkmark.visibility = View.VISIBLE
 
-            // 블러 효과 적용
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val blurEffect = RenderEffect.createBlurEffect(20f, 20f, Shader.TileMode.CLAMP)
                 imageView.setRenderEffect(blurEffect)
@@ -125,69 +118,11 @@ class ChallengeFragment : Fragment() {
         }
     }
 
-    private fun setupSortListener() {
-        binding.tvFilter.setOnClickListener {
-            showSortPopupMenu(it)
-        }
-    }
-
-    private fun showSortPopupMenu(view: View) {
-        val popup = PopupMenu(requireContext(), view)
-        popup.menuInflater.inflate(R.menu.challenge_sort_menu, popup.menu)
-
-        popup.setOnMenuItemClickListener { menuItem ->
-            val newCriteria: String
-            val newText: String
-
-            when (menuItem.itemId) {
-                R.id.action_sort_latest -> {
-                    newCriteria = "latest"
-                    newText = "최신순"
-                }
-                R.id.action_sort_popularity -> {
-                    newCriteria = "popularity"
-                    newText = "참여자순"
-                }
-                else -> return@setOnMenuItemClickListener false
-            }
-            viewModel.sortChallenges(newCriteria)
-            binding.tvFilter.text = newText
-
-            true
-        }
-
-        popup.show()
-    }
-
     private fun setupRecyclerView() {
         challengeAdapter = ChallengeAdapter()
         binding.rvChallenges.apply {
             adapter = challengeAdapter
             layoutManager = LinearLayoutManager(context)
-        }
-    }
-
-    private fun observeChallengeData() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            // collectLatest: viewModel.challenges Flow에서
-            // 새로운 PagingData가 발행될 때마다 이전 작업을 취소하고 새 데이터로 블록을 실행
-            viewModel.challenges.collectLatest { pagingData ->
-                // 검색 모드가 아닐 때 일반 목록을 표시
-                if (!viewModel.isSearchMode.value) {
-                    challengeAdapter.submitData(pagingData)
-                }
-            }
-        }
-    }
-
-    private fun observeSearchResults() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.searchResults.collect { searchResults ->
-                if (viewModel.isSearchMode.value) {
-                    // 검색 결과를 PagingData로 Adapter에 제출
-                    challengeAdapter.submitData(searchResults)
-                }
-            }
         }
     }
 
@@ -200,83 +135,56 @@ class ChallengeFragment : Fragment() {
         }
 
         challengeAdapter.onJoinButtonClickListener = { challenge ->
-            val token = readAuthToken()
-            if (token != null) {
-                viewModel.joinChallenge(
-                    token = token,
-                    challId = challenge.challId,
-                    onSuccess = { message ->
-                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                    },
-                    onError = { errorMessage ->
-                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+            if (!challenge.isJoined) {
+                val token = readAuthToken()
+                if (token != null) {
+                    // Basic 유저는 챌린지 1개만 참여 가능
+                    val canJoin = if (!SubscriptionHelper.isPremium(requireContext())) {
+                        val currentParticipatingCount = viewModel.myParticipatingIds.value.size
+                        if (currentParticipatingCount >= 1) {
+                            SubscriptionHelper.checkPremiumAndRun(requireContext()) { }
+                            false
+                        } else true
+                    } else true
+
+                    if (canJoin) {
+                        viewModel.joinChallenge(
+                            token = token,
+                            challId = challenge.challId,
+                            onSuccess = { message ->
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                // 참여 성공 후 목록 갱신
+                                viewModel.loadChallenges(token)
+                            },
+                            onError = { errorMessage ->
+                                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                            }
+                        )
                     }
-                )
-            } else {
-                Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    // SearchView 설정, 검색 기능 연결
-    private fun setupSearchView() {
-        binding.svSearch.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                query?.let { searchQuery ->
-                    if (searchQuery.isNotBlank()) {
-                        performSearch(searchQuery)
-                    } else {
-                        // 검색어가 비어있으면 검색 모드 해제
-                        viewModel.clearSearch()
-                    }
+                } else {
+                    Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                 }
-                return true
             }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                // 실시간 검색이 필요하면 여기서 처리
-                // 현재는 검색 버튼 클릭 시에만 검색하도록 구현
-                if (newText.isNullOrBlank()) {
-                    // 검색어가 비어있으면 검색 모드 해제
-                    viewModel.clearSearch()
-                }
-                return false
-            }
-        })
-
-        // SearchView 닫기 버튼 클릭 시 검색 모드 해제
-        binding.svSearch.setOnCloseListener {
-            viewModel.clearSearch()
-            false
         }
     }
 
-    // 검색 수행
-    private fun performSearch(query: String) {
-        val token = readAuthToken()
-        if (token == null) {
-            Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        viewModel.searchChallenges(
-            token = token,
-            searchQuery = query,
-            onSuccess = {
-                // 검색 결과는 observeSearchResults에서 자동으로 처리됨
-            },
-            onError = { errorMessage ->
-                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-            }
-        )
-    }
-
-    // SharedPreferences에서 인증 토큰을 읽어옴
-    // @return Bearer 토큰 문자열 또는 null (로그인하지 않은 경우)
     private fun readAuthToken(): String? {
-        val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
-        if (raw.isBlank()) return null
-        return if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
+        return TokenProvider.getBearerToken(requireContext())
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (_binding == null || !::challengeAdapter.isInitialized) return
+        
+        val token = readAuthToken()
+        if (token != null) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.refreshMyParticipatingChallenges(token)
+            }
+            viewModel.loadChallenges(token)
+        } else {
+            Log.e("ChallengeFragment", "인증 토큰이 없습니다. 로그인이 필요합니다.")
+        }
     }
 
     override fun onDestroyView() {

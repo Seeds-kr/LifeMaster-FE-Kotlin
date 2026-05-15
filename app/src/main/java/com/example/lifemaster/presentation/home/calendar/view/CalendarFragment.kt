@@ -306,7 +306,7 @@ class CalendarFragment : Fragment() {
             t.contains("DETOX") || t.contains("디톡스") -> StarType.DETOX
             t.contains("INTROSPECTION") || t.contains("자아성찰") || t.contains("성찰")
                     || t.contains("DIARY") || t.contains("일기") -> StarType.INTROSPECTION
-            t.contains("CHALLENGE") || t.contains("챌린지") -> StarType.CHALLENGE
+            (t.contains("CHALLENGE") || t.contains("챌린지")) && t.contains("완료") -> StarType.CHALLENGE
             t.contains("TODO") || t.contains("할일") || t.contains("할 일") -> StarType.TODO
             else -> null
         }

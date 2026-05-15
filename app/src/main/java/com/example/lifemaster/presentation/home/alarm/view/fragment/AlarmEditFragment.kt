@@ -32,6 +32,8 @@ import com.example.lifemaster.presentation.home.alarm.util.formatRemainingTime
 import com.example.lifemaster.presentation.home.alarm.util.getRemainingDaysUntilAlarmRings
 import com.example.lifemaster.presentation.home.alarm.util.randomMissionLevelMapper
 import com.example.lifemaster.presentation.home.alarm.util.randomMissionTypeMapper
+import com.example.lifemaster.presentation.home.alarm.util.scheduleAlarm
+import com.example.lifemaster.presentation.home.alarm.util.cancelAlarm
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmRandomMissionDialog
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmSnoozeDialog
 import com.example.lifemaster.presentation.home.alarm.view.dialog.AlarmSnoozeLockDialog
@@ -317,6 +319,10 @@ class AlarmEditFragment : Fragment(R.layout.fragment_alarm_setting) {
                                 val updatedAlarmItem = resource.data
                                 val toastMessage = formatRemainingTime(updatedAlarmItem.formattedAlarmTime)
                                 Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
+                                
+                                // 알람 매니저 업데이트
+                                scheduleAlarm(requireContext(), updatedAlarmItem)
+
                                 findNavController().popBackStack()
                             }
                         }

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F0F4F5"
+    tools:context=".presentation.total.mypage.view.CouponUseActivity">
+
+    <include
+        android:id="@+id/includeBackButton"
+        layout="@layout/item_back_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/coupon_use_title"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="32dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_round_and_white"
+            android:padding="20dp"
+            android:elevation="2dp"
+            android:layout_marginBottom="32dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/coupon_label_code"
+                android:textSize="12sp"
+                android:textColor="#888888"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/tvCouponCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="XJSPE9MLWNC1RRHI"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="16dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#EEEEEE"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/coupon_label_type"
+                android:textSize="12sp"
+                android:textColor="#888888"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/tvCouponType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="UNLIMIT"
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/coupon_label_expiration"
+                android:textSize="12sp"
+                android:textColor="#888888"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/tvExpirationDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="9999-12-31 까지"
+                android:textSize="14sp"
+                android:textColor="@color/black"/>
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnUseCoupon"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_round_and_mint"
+            android:text="@string/coupon_use_button"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+</LinearLayout>

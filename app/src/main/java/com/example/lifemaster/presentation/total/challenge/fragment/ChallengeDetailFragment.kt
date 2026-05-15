@@ -4,21 +4,25 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import androidx.navigation.fragment.navArgs
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeDetailBinding
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
     private lateinit var binding: FragmentChallengeDetailBinding
 
-    // Hilt를 사용하여 ViewModel 생성
-    private val viewModel: ChallengeViewModel by viewModels()
+    private val viewModel: ChallengeViewModel by hiltNavGraphViewModels(R.id.nav_graph_main)
 
     private var challId: String = "0"
 
@@ -39,13 +43,16 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
 
         Log.d("ChallengeDetail", "전달받은 챌린지 ID: $challId")
 
-        if (challId != "0") {
-            loadChallengeDetail()
-        } else {
-            Toast.makeText(requireContext(), "챌린지 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
-        }
-
         initListeners()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            readAuthToken()?.let { viewModel.refreshMyParticipatingChallenges(it) }
+            if (challId != "0") {
+                loadChallengeDetail()
+            } else {
+                Toast.makeText(requireContext(), "챌린지 정보를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     // 서버에서 챌린지 상세 정보 로드
@@ -69,24 +76,59 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
     }
 
     // 챌린지 상세 정보로 UI를 업데이트
-    private fun updateUI(challengeDetail: com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto) {
-        // 챌린지 제목 설정
+    private fun updateUI(challengeDetail: ChallengeItemDto) {
         binding.tvChallengeTitle.text = challengeDetail.challName
 
-        // 챌린지 이미지 로드
         Glide.with(this)
             .load(challengeDetail.challImg)
             .into(binding.ivChallengeBanner)
 
-        // 챌린지 설명 설정
         binding.tvSection1Body.text = challengeDetail.challDesc
 
-        // 섹션 제목도 챌린지 이름으로 설정
         binding.tvSection1Title.text = challengeDetail.challName
+
+        val challIdLong = challId.toLongOrNull() ?: 0L
+        val joined = when (challengeDetail.challMe) {
+            true -> true
+            false -> false
+            null -> viewModel.isUserParticipating(challIdLong)
+        }
+        updateParticipationUi(joined)
+    }
+
+    private fun updateParticipationUi(isJoined: Boolean) {
+        val margin = (16 * resources.displayMetrics.density).toInt()
+        val joinLp = binding.btnJoin.layoutParams as ConstraintLayout.LayoutParams
+        val leaveLp = binding.btnLeave.layoutParams as ConstraintLayout.LayoutParams
+        if (isJoined) {
+            binding.tvParticipationStatus.text = "참여중"
+            binding.btnJoin.visibility = View.GONE
+            binding.btnLeave.visibility = View.VISIBLE
+            leaveLp.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+            leaveLp.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+            leaveLp.startToEnd = ConstraintLayout.LayoutParams.UNSET
+            leaveLp.marginStart = margin
+            leaveLp.marginEnd = margin
+            binding.btnLeave.layoutParams = leaveLp
+        } else {
+            binding.tvParticipationStatus.text = "참여 가능"
+            binding.btnJoin.visibility = View.VISIBLE
+            binding.btnLeave.visibility = View.GONE
+            joinLp.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+            joinLp.endToStart = R.id.btn_leave
+            joinLp.marginStart = margin
+            joinLp.marginEnd = margin / 2
+            binding.btnJoin.layoutParams = joinLp
+            leaveLp.startToEnd = R.id.btn_join
+            leaveLp.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+            leaveLp.startToStart = ConstraintLayout.LayoutParams.UNSET
+            leaveLp.marginStart = margin / 2
+            leaveLp.marginEnd = margin
+            binding.btnLeave.layoutParams = leaveLp
+        }
     }
 
     private fun initListeners() {
-        // '참여하기' 버튼(ID: btn_join)에 클릭 리스너 설정
         binding.btnJoin.setOnClickListener {
             val challIdAsLong = challId.toLongOrNull()
             if (challIdAsLong == null || challIdAsLong == 0L) {
@@ -100,19 +142,31 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
                 return@setOnClickListener
             }
 
-            viewModel.joinChallenge(
-                token = token,
-                challId = challIdAsLong,
-                onSuccess = { message ->
-                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                },
-                onError = { errorMessage ->
-                    Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+            // Basic 유저는 챌린지 1개만 참여 가능
+            var canJoin = true
+            if (!SubscriptionHelper.isPremium(requireContext())) {
+                val currentParticipatingCount = viewModel.myParticipatingIds.value.size
+                if (currentParticipatingCount >= 1) {
+                    SubscriptionHelper.checkPremiumAndRun(requireContext()) { }
+                    canJoin = false
                 }
-            )
+            }
+
+            if (canJoin) {
+                viewModel.joinChallenge(
+                    token = token,
+                    challId = challIdAsLong,
+                    onSuccess = { message ->
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                        updateParticipationUi(true)
+                    },
+                    onError = { errorMessage ->
+                        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
         }
 
-        // '참여 취소' 버튼(ID: btn_leave)에 클릭 리스너 설정
         binding.btnLeave.setOnClickListener {
             val challIdAsLong = challId.toLongOrNull()
             if (challIdAsLong == null || challIdAsLong == 0L) {
@@ -131,6 +185,7 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
                 challId = challIdAsLong,
                 onSuccess = { message ->
                     Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                    updateParticipationUi(false)
                 },
                 onError = { errorMessage ->
                     Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
@@ -139,8 +194,6 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
         }
     }
 
-    // SharedPreferences에서 인증 토큰을 읽어옴옴
-    // @return Bearer 토큰 문자열 또는 null (로그인하지 않은 경우)
     private fun readAuthToken(): String? {
         val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
         if (raw.isBlank()) return null

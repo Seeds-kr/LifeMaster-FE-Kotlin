@@ -8,6 +8,9 @@
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
@@ -69,10 +72,22 @@
             android:exported="false" />
 
         <activity
+            android:name=".presentation.total.TotalServicesEditActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".presentation.total.mypage.view.MyPageActivity"
             android:exported="false" />
         <activity
             android:name=".presentation.total.mypage.view.PremiumSubscribeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LifeMaster_XML" />
+        <activity
+            android:name=".presentation.total.mypage.view.CouponRegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LifeMaster_XML" />
+        <activity
+            android:name=".presentation.total.mypage.view.CouponUseActivity"
             android:exported="false"
             android:theme="@style/Theme.LifeMaster_XML" />
         <activity
@@ -81,6 +96,14 @@
             android:theme="@style/Theme.LifeMaster_XML" />
         <activity
             android:name=".presentation.total.mypage.view.RefundPolicyActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LifeMaster_XML" />
+        <activity
+            android:name=".presentation.total.mypage.view.LegalDocumentActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LifeMaster_XML" />
+        <activity
+            android:name=".presentation.total.FaqActivity"
             android:exported="false"
             android:theme="@style/Theme.LifeMaster_XML" />
 

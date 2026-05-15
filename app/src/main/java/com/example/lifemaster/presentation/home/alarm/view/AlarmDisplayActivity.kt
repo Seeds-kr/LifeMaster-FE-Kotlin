@@ -1,8 +1,8 @@
 package com.example.lifemaster.presentation.home.alarm.view
 
 import android.app.KeyguardManager
-import android.content.Context
 import android.os.Build
+import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
@@ -13,7 +13,9 @@ import androidx.navigation.fragment.NavHostFragment
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ActivityAlarmDisplayBinding
 import com.example.lifemaster.presentation.home.alarm.model.AlarmModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AlarmDisplayActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAlarmDisplayBinding
@@ -30,7 +32,17 @@ class AlarmDisplayActivity : AppCompatActivity() {
             insets
         }
 
-        val alarmItem = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        setupNavigationWithAlarm(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        setupNavigationWithAlarm(intent)
+    }
+
+    private fun setupNavigationWithAlarm(intent: Intent) {
+        val alarmItem = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra("ALARM_DATA", AlarmModel::class.java)
         } else {
             intent.getParcelableExtra<AlarmModel>("ALARM_DATA")
@@ -49,9 +61,10 @@ class AlarmDisplayActivity : AppCompatActivity() {
      * 잠금 화면 위로 액티비티를 띄우기 위한 설정
      */
     private fun showOnLockScreen() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
             keyguardManager.requestDismissKeyguard(this, null) // Q. 설명 필요
         } else {

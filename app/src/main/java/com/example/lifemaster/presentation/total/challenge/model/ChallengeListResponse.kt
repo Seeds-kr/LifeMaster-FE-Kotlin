@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName
  */
 data class ChallengeListResponse(
     @SerializedName("content")
-    val content: List<ChallengeItemDto>,
+    val content: List<ChallengeItemDto>? = null,
     @SerializedName("pageable")
     val pageable: PageableDto? = null,
     @SerializedName("last")

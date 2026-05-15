@@ -211,6 +211,7 @@ interface NetworkService {
     // 챌린지 목록 조회
     @GET("/challenge")
     suspend fun getChallenges(
+        @Header("Authorization") token: String,
         @Query("page") page: Int,
         @Query("size") size: Int
     ): Response<ChallengeListResponse>
@@ -235,14 +236,6 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Path("challId") challId: Long
     ): Response<com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto>
-
-    // 챌린지 검색
-    @GET("/challenge/search")
-    suspend fun searchChallenges(
-        @Header("Authorization") token: String,
-        @Query("name") name: String,
-        @Query("page") page: Int = 0
-    ): ChallengeListResponse
 
     // 내 챌린지 목록 조회
     @GET("/challenge/my")
@@ -735,4 +728,24 @@ interface NetworkService {
     suspend fun deleteTimeLockItem(
         @Path("id") id: Long
     ): Response<Unit>
+
+    /**
+     * Coupon API
+     */
+    @POST("/coupon/register")
+    suspend fun registerCoupon(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, String>
+    ): Response<ResponseBody>
+
+    @GET("/coupon")
+    suspend fun getMyCoupons(
+        @Header("Authorization") token: String
+    ): Response<List<com.example.lifemaster.presentation.total.mypage.model.CouponResponse>>
+
+    @POST("/coupon/use")
+    suspend fun useCoupon(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, String>
+    ): Response<ResponseBody>
 }

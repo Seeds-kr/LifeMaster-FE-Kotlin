@@ -50,7 +50,8 @@ class PremiumSubscribeActivity : AppCompatActivity() {
         updateSelection()
 
         findViewById<TextView>(R.id.tvCouponEnter).setOnClickListener {
-            // 쿠폰 입력 기능 추후 구현
+            val intent = android.content.Intent(this, CouponRegisterActivity::class.java)
+            startActivity(intent)
         }
 
         findViewById<Button>(R.id.btnProceedPayment).setOnClickListener {

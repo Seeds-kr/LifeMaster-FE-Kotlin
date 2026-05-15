@@ -272,11 +272,10 @@ class AlarmCreateFragment : Fragment(R.layout.fragment_alarm_setting) {
                                 val newAlarm = resource.data
                                 val toastMessage = formatRemainingTime(newAlarm.formattedAlarmTime)
                                 Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
-//                                scheduleAlarm(
-//                                    context = requireContext(),
-//                                    alarm = newAlarm
-//                                )
-//                              alarmGenerateViewModel.resetAlarmData() // 필요하면 쓰기
+                                scheduleAlarm(
+                                    context = requireContext(),
+                                    alarm = newAlarm
+                                )
                                 findNavController().popBackStack()
                             }
 
