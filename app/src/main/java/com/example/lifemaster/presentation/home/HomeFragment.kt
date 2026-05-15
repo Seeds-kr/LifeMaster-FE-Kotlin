@@ -23,6 +23,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentHomeBinding
 import com.example.lifemaster.network.NetworkService
@@ -192,15 +193,19 @@ class HomeFragment : Fragment() {
         }
 
         binding.cardSleep.setOnClickListener {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.sleep_feature_in_development),
-                Toast.LENGTH_SHORT
-            ).show()
+            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.sleep_feature_in_development),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
 
         binding.cardDetox.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+            }
         }
 
         binding.cardGroup.setOnClickListener {
@@ -231,7 +236,9 @@ class HomeFragment : Fragment() {
         btnDetox = binding.root.findViewById(R.id.btn_detox)
 
         btnDetox?.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+            }
         }
     }
 
@@ -336,16 +343,20 @@ class HomeFragment : Fragment() {
         }
 
         tvHomeEdit.setOnClickListener {
-            val intent = Intent(requireContext(), HomeEditActivity::class.java)
-            startActivity(intent)
+            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                val intent = Intent(requireContext(), HomeEditActivity::class.java)
+                startActivity(intent)
+            }
         }
 
         itemSleepPreview.btnSleepReport.setOnClickListener {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.sleep_feature_in_development),
-                Toast.LENGTH_SHORT
-            ).show()
+            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.sleep_feature_in_development),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
     }
 

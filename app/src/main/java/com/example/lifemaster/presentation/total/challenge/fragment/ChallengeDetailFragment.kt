@@ -10,6 +10,7 @@ import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import androidx.navigation.fragment.navArgs
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeDetailBinding
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItemDto
@@ -141,17 +142,29 @@ class ChallengeDetailFragment : Fragment(R.layout.fragment_challenge_detail) {
                 return@setOnClickListener
             }
 
-            viewModel.joinChallenge(
-                token = token,
-                challId = challIdAsLong,
-                onSuccess = { message ->
-                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                    updateParticipationUi(true)
-                },
-                onError = { errorMessage ->
-                    Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+            // Basic 유저는 챌린지 1개만 참여 가능
+            var canJoin = true
+            if (!SubscriptionHelper.isPremium(requireContext())) {
+                val currentParticipatingCount = viewModel.myParticipatingIds.value.size
+                if (currentParticipatingCount >= 1) {
+                    SubscriptionHelper.checkPremiumAndRun(requireContext()) { }
+                    canJoin = false
                 }
-            )
+            }
+
+            if (canJoin) {
+                viewModel.joinChallenge(
+                    token = token,
+                    challId = challIdAsLong,
+                    onSuccess = { message ->
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                        updateParticipationUi(true)
+                    },
+                    onError = { errorMessage ->
+                        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
         }
 
         binding.btnLeave.setOnClickListener {

@@ -9,21 +9,36 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.core.graphics.toColorInt
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentTotalBinding
+import com.example.lifemaster.network.NetworkService
+import com.example.lifemaster.network.TokenManager
+import com.example.lifemaster.presentation.total.mypage.model.MeResponse
 import com.example.lifemaster.presentation.total.mypage.view.LegalDocumentActivity
 import com.example.lifemaster.presentation.total.mypage.view.MyPageActivity
 import com.example.lifemaster.presentation.total.mypage.view.RefundPolicyActivity
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class TotalFragment : Fragment(R.layout.fragment_total) {
 
     private lateinit var binding: FragmentTotalBinding
+
+    @Inject lateinit var tokenManager: TokenManager
+    @Inject lateinit var networkService: NetworkService
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -35,18 +50,27 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
         super.onResume()
         refreshProfile()
         bindServiceRows()
+        refreshMeFromServer()
     }
 
     private fun refreshProfile() {
+        if (!isAdded) return
         val prefs = requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE)
-        val nick = prefs.getString("nickname", null)
-            ?.takeIf { it.isNotBlank() }
-            ?: prefs.getString("nickName", null)?.takeIf { it.isNotBlank() }
+        val nick = prefs.getString("nickname", null)?.trim()?.takeIf { it.isNotBlank() && it != "null" }
+            ?: prefs.getString("nickName", null)?.trim()?.takeIf { it.isNotBlank() && it != "null" }
+            ?: run {
+                val email = prefs.getString("email", null)?.trim()
+                    ?: prefs.getString("loginEmail", null)?.trim()
+                if (!email.isNullOrBlank() && email.contains("@") && !email.contains("example@test.com")) {
+                    email.substringBefore("@")
+                } else null
+            }
             ?: getString(R.string.mypage_nickname_sample)
+
         binding.tvUserName.text = nick
 
         val url = prefs.getString("profileImageUrl", null)?.trim().orEmpty()
-        if (url.isBlank()) {
+        if (url.isBlank() || url == "null") {
             Glide.with(this).clear(binding.ivProfile)
             binding.ivProfile.setImageDrawable(null)
             binding.ivProfilePlaceholder.visibility = View.VISIBLE
@@ -56,6 +80,48 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
                 .load(url)
                 .circleCrop()
                 .into(binding.ivProfile)
+        }
+    }
+
+    private fun refreshMeFromServer() {
+        val bearer = tokenManager.getBearerToken() ?: return
+        lifecycleScope.launch {
+            val me = withContext(Dispatchers.IO) {
+                runCatching { networkService.getMe(bearer) }.getOrNull()
+            }?.takeIf { it.isSuccessful }?.body() ?: return@launch
+
+            persistMe(me)
+            withContext(Dispatchers.Main) {
+                refreshProfile()
+            }
+        }
+    }
+
+    private fun persistMe(me: MeResponse) {
+        if (!isAdded) return
+        requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE).edit {
+            val nick = (me.user?.nickName ?: me.nickName)?.trim().orEmpty()
+            if (nick.isNotBlank() && nick != "null") {
+                putString("nickname", nick)
+                putString("nickName", nick)
+            }
+            val em = (me.user?.email ?: me.email)?.trim().orEmpty()
+            if (em.isNotBlank() && em != "null") {
+                putString("email", em)
+            }
+            val memberId = me.user?.id ?: me.id
+            if (memberId > 0L) {
+                putLong("memberId", memberId)
+            }
+            val url = (me.user?.profileImageUrl ?: me.profileImageUrl)?.trim().orEmpty()
+            if (url.isNotBlank() && url != "null") {
+                putString("profileImageUrl", url)
+            }
+            val plan = (me.user?.subscriptionPlan ?: me.subscriptionPlan)?.trim().orEmpty()
+            if (plan.isNotBlank()) putString("subscriptionPlan", plan)
+            
+            val exp = (me.user?.expirationDate ?: me.expirationDate)?.trim().orEmpty()
+            if (exp.isNotBlank()) putString("expirationDate", exp)
         }
     }
 
@@ -86,11 +152,13 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
                 findNavController().navigate(R.id.action_totalFragment_to_alarmListFragment)
             }
             TotalServicesConfig.KEY_SLEEP -> ServiceRowContent(getString(R.string.sleep)) {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.sleep_feature_in_development),
-                    Toast.LENGTH_SHORT
-                ).show()
+                SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.sleep_feature_in_development),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
             TotalServicesConfig.KEY_CHALLENGE -> ServiceRowContent(getString(R.string.challenge)) {
                 Toast.makeText(
@@ -129,7 +197,9 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
         }
 
         binding.tvEditHome.setOnClickListener {
-            startActivity(Intent(requireContext(), TotalServicesEditActivity::class.java))
+            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                startActivity(Intent(requireContext(), TotalServicesEditActivity::class.java))
+            }
         }
 
         binding.btnFaq.setOnClickListener {

@@ -10,9 +10,13 @@ import androidx.lifecycle.lifecycleScope
 import com.example.lifemaster.R
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.network.TokenManager
+import com.example.lifemaster.presentation.total.mypage.MyPageLocalStore
 import com.example.lifemaster.presentation.total.mypage.model.CouponResponse
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -73,6 +77,10 @@ class CouponUseActivity : AppCompatActivity() {
                 )
                 if (response.isSuccessful) {
                     Toast.makeText(this@CouponUseActivity, getString(R.string.coupon_use_success), Toast.LENGTH_SHORT).show()
+                    
+                    // 로컬 스토어에 구독 정보 및 결제 내역 업데이트
+                    saveCouponUsageLocally()
+
                     setResult(RESULT_OK)
                     finish()
                 } else {
@@ -82,5 +90,21 @@ class CouponUseActivity : AppCompatActivity() {
                 Toast.makeText(this@CouponUseActivity, getString(R.string.server_error_message), Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun saveCouponUsageLocally() {
+        val today = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA).format(Date())
+        // 1. 구독 정보를 Premium으로 변경
+        MyPageLocalStore.setSubscriptionSummary(
+            context = this,
+            title = "Premium",
+            detail = "$today 쿠폰으로 활성화됨"
+        )
+        // 2. 결제 내역에 추가
+        MyPageLocalStore.appendPayment(
+            context = this,
+            description = "Premium 쿠폰 사용 (${coupon?.couponCode})",
+            amountLabel = "0원"
+        )
     }
 }

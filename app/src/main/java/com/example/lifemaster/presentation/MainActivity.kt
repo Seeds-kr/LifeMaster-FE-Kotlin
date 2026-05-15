@@ -29,6 +29,12 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.lifecycle.lifecycleScope
+import com.example.lifemaster.presentation.total.mypage.model.MeResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.core.content.edit
 import com.example.lifemaster.R
 import com.example.lifemaster.Utils.getDailyUsageStats
 import com.example.lifemaster.databinding.ActivityMainBinding
@@ -127,8 +133,47 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermission()
 
         getUserSleepInfo()
+        fetchMe()
 
 //        requestAccessibilityPermission(this)
+    }
+
+    private fun fetchMe() {
+        val bearer = tokenManager.getBearerToken() ?: return
+        lifecycleScope.launch {
+            val me = withContext(Dispatchers.IO) {
+                runCatching { networkService.getMe(bearer) }.getOrNull()
+            }?.takeIf { it.isSuccessful }?.body() ?: return@launch
+
+            persistMeLocally(me)
+        }
+    }
+
+    private fun persistMeLocally(me: MeResponse) {
+        getSharedPreferences("auth", Context.MODE_PRIVATE).edit {
+            val nick = (me.user?.nickName ?: me.nickName)?.trim().orEmpty()
+            if (nick.isNotBlank() && nick != "null") {
+                putString("nickname", nick)
+                putString("nickName", nick)
+            }
+            val em = (me.user?.email ?: me.email)?.trim().orEmpty()
+            if (em.isNotBlank() && em != "null") {
+                putString("email", em)
+            }
+            val memberId = me.user?.id ?: me.id
+            if (memberId > 0L) {
+                putLong("memberId", memberId)
+            }
+            val url = (me.user?.profileImageUrl ?: me.profileImageUrl)?.trim().orEmpty()
+            if (url.isNotBlank() && url != "null") {
+                putString("profileImageUrl", url)
+            }
+            val plan = (me.user?.subscriptionPlan ?: me.subscriptionPlan)?.trim().orEmpty()
+            if (plan.isNotBlank()) putString("subscriptionPlan", plan)
+            
+            val exp = (me.user?.expirationDate ?: me.expirationDate)?.trim().orEmpty()
+            if (exp.isNotBlank()) putString("expirationDate", exp)
+        }
     }
 
     // 사용자의 전날 수면 정보를 가져오는 함수

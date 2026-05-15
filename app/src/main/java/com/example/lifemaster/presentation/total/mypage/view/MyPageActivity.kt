@@ -89,7 +89,7 @@ class MyPageActivity : AppCompatActivity() {
     }
 
     private fun applyLocalAuthToUi() {
-        val prefs = getSharedPreferences("auth", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("auth", MODE_PRIVATE)
         findViewById<TextView>(R.id.tvNickname).text = resolveNickname(prefs)
         findViewById<TextView>(R.id.tvEmail).text = resolveEmail(prefs)
         showProfileImage(prefs.getString("profileImageUrl", null))
@@ -97,11 +97,15 @@ class MyPageActivity : AppCompatActivity() {
     }
 
     private fun resolveNickname(prefs: android.content.SharedPreferences): String {
-        val n = prefs.getString("nickname", null)?.trim().orEmpty()
-            .ifBlank { prefs.getString("nickName", null)?.trim().orEmpty() }
-        if (n.isNotBlank()) return n
+        val n = prefs.getString("nickname", null)?.trim()?.takeIf { it.isNotBlank() && it != "null" }
+            ?: prefs.getString("nickName", null)?.trim()?.takeIf { it.isNotBlank() && it != "null" }
+        
+        if (n != null) return n
+        
         val email = resolveEmail(prefs)
-        if (email.contains("@")) return email.substringBefore("@")
+        if (email.contains("@") && email != getString(R.string.mypage_email_sample)) {
+            return email.substringBefore("@")
+        }
         return getString(R.string.mypage_nickname_sample)
     }
 
@@ -123,7 +127,7 @@ class MyPageActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 findViewById<TextView>(R.id.tvNickname).text = displayNick(me)
                 findViewById<TextView>(R.id.tvEmail).text = displayEmail(me)
-                val url = me.profileImageUrl?.trim()?.takeIf { it.isNotEmpty() }
+                val url = (me.user?.profileImageUrl ?: me.profileImageUrl)?.trim()?.takeIf { it.isNotEmpty() }
                     ?: getSharedPreferences("auth", Context.MODE_PRIVATE).getString("profileImageUrl", null)
                 showProfileImage(url)
                 applySubscriptionCard(me)
@@ -133,41 +137,54 @@ class MyPageActivity : AppCompatActivity() {
     }
 
     private fun displayNick(me: MeResponse): String {
-        val n = me.nickName?.trim().orEmpty()
-        if (n.isNotBlank()) return n
+        val n = (me.user?.nickName ?: me.nickName)?.trim()
+            ?.takeIf { it.isNotBlank() && it != "null" }
+        if (n != null) return n
+
+        val email = (me.user?.email ?: me.email)?.trim()
+        if (!email.isNullOrBlank() && email.contains("@") && email != getString(R.string.mypage_email_sample)) {
+            return email.substringBefore("@")
+        }
+
         return resolveNickname(getSharedPreferences("auth", Context.MODE_PRIVATE))
     }
 
     private fun displayEmail(me: MeResponse): String {
-        val e = me.email?.trim().orEmpty()
+        val e = (me.user?.email ?: me.email)?.trim().orEmpty()
         if (e.isNotBlank()) return e
         return resolveEmail(getSharedPreferences("auth", Context.MODE_PRIVATE))
     }
 
     private fun persistMe(me: MeResponse) {
         getSharedPreferences("auth", Context.MODE_PRIVATE).edit {
-            val nick = me.nickName?.trim().orEmpty()
-            if (nick.isNotBlank()) {
+            val nick = (me.user?.nickName ?: me.nickName)?.trim().orEmpty()
+            if (nick.isNotBlank() && nick != "null") {
                 putString("nickname", nick)
                 putString("nickName", nick)
             }
-            val em = me.email?.trim().orEmpty()
-            if (em.isNotBlank()) {
+            val em = (me.user?.email ?: me.email)?.trim().orEmpty()
+            if (em.isNotBlank() && em != "null") {
                 putString("email", em)
             }
-            if (me.id > 0L) {
-                putLong("memberId", me.id)
+            val memberId = me.user?.id ?: me.id
+            if (memberId > 0L) {
+                putLong("memberId", memberId)
             }
-            val url = me.profileImageUrl?.trim().orEmpty()
-            if (url.isNotBlank()) {
+            val url = (me.user?.profileImageUrl ?: me.profileImageUrl)?.trim().orEmpty()
+            if (url.isNotBlank() && url != "null") {
                 putString("profileImageUrl", url)
             }
+            val plan = (me.user?.subscriptionPlan ?: me.subscriptionPlan)?.trim().orEmpty()
+            if (plan.isNotBlank()) putString("subscriptionPlan", plan)
+            
+            val exp = (me.user?.expirationDate ?: me.expirationDate)?.trim().orEmpty()
+            if (exp.isNotBlank()) putString("expirationDate", exp)
         }
     }
 
     private fun showProfileImage(url: String?) {
         val u = url?.trim().orEmpty()
-        if (u.isBlank()) {
+        if (u.isBlank() || u == "null") {
             Glide.with(this).clear(ivProfile)
             ivProfile.setImageDrawable(null)
             ivProfilePlaceholder.visibility = View.VISIBLE
@@ -183,24 +200,52 @@ class MyPageActivity : AppCompatActivity() {
     private fun applySubscriptionCard(me: MeResponse?) {
         val typeTv = findViewById<TextView>(R.id.tvSubscriptionType)
         val dateTv = findViewById<TextView>(R.id.tvSubscriptionDate)
+        val btnSubscribe = findViewById<Button>(R.id.btnSubscribePremium)
 
-        val apiPlan = me?.subscriptionPlan?.trim().orEmpty()
-        val apiDesc = me?.subscriptionDescription?.trim().orEmpty()
-        if (apiPlan.isNotBlank()) {
-            typeTv.text = apiPlan
-            dateTv.text = apiDesc.ifBlank { getString(R.string.mypage_subscription_basic_detail) }
-            return
+        val apiPlan = (me?.user?.subscriptionPlan ?: me?.subscriptionPlan)?.trim().orEmpty()
+        val apiDesc = (me?.user?.subscriptionDescription ?: me?.subscriptionDescription ?: me?.user?.expirationDate ?: me?.expirationDate)?.trim().orEmpty()
+        val expirationDateStr = (me?.user?.expirationDate ?: me?.expirationDate)?.trim().orEmpty()
+
+        // 1. 서버 데이터가 PREMIUM인지 확인하고, 만료 기한 체크
+        if (apiPlan.equals("PREMIUM", ignoreCase = true)) {
+            val isExpired = checkIfExpired(expirationDateStr)
+            
+            if (!isExpired) {
+                typeTv.text = getString(R.string.mypage_premium)
+                dateTv.text = apiDesc.ifBlank { "프리미엄 혜택 이용 중" }
+                btnSubscribe.visibility = View.GONE
+                return
+            }
         }
 
+        // 2. 로컬 스토리지에 저장된 쿠폰 사용 정보 확인 (즉시 반영용)
         val local = MyPageLocalStore.readSubscriptionSummary(this)
         if (local != null) {
-            typeTv.text = local.first.ifBlank { getString(R.string.mypage_premium) }
+            // 로컬 정보도 만료 체크가 필요할 수 있으나, 일단 서버 데이터가 최우선
+            typeTv.text = local.first.ifBlank { "Premium" }
             dateTv.text = local.second.ifBlank { getString(R.string.mypage_subscription_basic_detail) }
+            btnSubscribe.visibility = View.GONE
             return
         }
 
+        // 3. 기본 상태 (Basic)
         typeTv.text = getString(R.string.mypage_basic_plan_title)
         dateTv.text = getString(R.string.mypage_subscription_basic_detail)
+        btnSubscribe.visibility = View.VISIBLE
+    }
+
+    private fun checkIfExpired(dateStr: String?): Boolean {
+        if (dateStr.isNullOrBlank()) return true // 날짜 없으면 만료로 간주
+        if (dateStr == "9999-12-31") return false // 무제한
+        
+        return try {
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.KOREA)
+            val expirationDate = sdf.parse(dateStr)
+            val today = java.util.Date()
+            expirationDate?.before(today) ?: true
+        } catch (_: Exception) {
+            false // 파싱 실패 시 일단 활성 상태로 유지
+        }
     }
 
     private fun bindPaymentHistory() {

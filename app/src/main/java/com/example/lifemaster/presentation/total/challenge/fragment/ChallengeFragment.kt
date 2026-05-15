@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeBinding
 import com.example.lifemaster.network.TokenProvider
@@ -137,18 +138,29 @@ class ChallengeFragment : Fragment() {
             if (!challenge.isJoined) {
                 val token = readAuthToken()
                 if (token != null) {
-                    viewModel.joinChallenge(
-                        token = token,
-                        challId = challenge.challId,
-                        onSuccess = { message ->
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            // 참여 성공 후 목록 갱신
-                            viewModel.loadChallenges(token)
-                        },
-                        onError = { errorMessage ->
-                            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                        }
-                    )
+                    // Basic 유저는 챌린지 1개만 참여 가능
+                    val canJoin = if (!SubscriptionHelper.isPremium(requireContext())) {
+                        val currentParticipatingCount = viewModel.myParticipatingIds.value.size
+                        if (currentParticipatingCount >= 1) {
+                            SubscriptionHelper.checkPremiumAndRun(requireContext()) { }
+                            false
+                        } else true
+                    } else true
+
+                    if (canJoin) {
+                        viewModel.joinChallenge(
+                            token = token,
+                            challId = challenge.challId,
+                            onSuccess = { message ->
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                // 참여 성공 후 목록 갱신
+                                viewModel.loadChallenges(token)
+                            },
+                            onError = { errorMessage ->
+                                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
                 } else {
                     Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                 }

@@ -30,7 +30,7 @@ object MyPageLocalStore {
         context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
 
     private fun memberSuffix(context: Context): String {
-        val id = TokenProvider.getMemberId(context)
+        val id = TokenProvider.getMemberId(context) ?: TokenProvider.getJoinTargetId(context)
         return if (id != null && id > 0L) id.toString() else "0"
     }
 
@@ -49,12 +49,27 @@ object MyPageLocalStore {
         for (i in 0 until keep) {
             next.put(arr.getJSONObject(i))
         }
-        sp(context).edit().putString(key, next.toString()).apply()
+        sp(context).edit().putString(key, next.toString()).commit() // 즉시 반영을 위해 commit 사용
     }
 
     fun readPayments(context: Context): List<PaymentLine> {
-        val key = PAYMENTS_PREFIX + memberSuffix(context)
+        val suffix = memberSuffix(context)
+        val key = PAYMENTS_PREFIX + suffix
         val raw = sp(context).getString(key, "[]") ?: "[]"
+        val list = parsePayments(raw)
+
+        // 만약 특정 ID로 저장된 게 없고, "0"에 데이터가 있다면 합쳐서 보여줌 (ID가 뒤늦게 설정된 경우 대응)
+        if (suffix != "0") {
+            val fallbackRaw = sp(context).getString(PAYMENTS_PREFIX + "0", "[]") ?: "[]"
+            val fallbackList = parsePayments(fallbackRaw)
+            if (fallbackList.isNotEmpty()) {
+                return (list + fallbackList).distinctBy { it.atMillis }.sortedByDescending { it.atMillis }
+            }
+        }
+        return list
+    }
+
+    private fun parsePayments(raw: String): List<PaymentLine> {
         return runCatching {
             val arr = JSONArray(raw)
             buildList {
@@ -68,7 +83,7 @@ object MyPageLocalStore {
                         ),
                     )
                 }
-            }.sortedByDescending { it.atMillis }
+            }
         }.getOrElse { emptyList() }
     }
 
@@ -77,13 +92,20 @@ object MyPageLocalStore {
         sp(context).edit()
             .putString(SUB_TITLE_PREFIX + s, title)
             .putString(SUB_DETAIL_PREFIX + s, detail)
-            .apply()
+            .commit() // 즉시 반영을 위해 commit 사용
     }
 
     fun readSubscriptionSummary(context: Context): Pair<String, String>? {
         val s = memberSuffix(context)
-        val title = sp(context).getString(SUB_TITLE_PREFIX + s, null)?.trim().orEmpty()
-        val detail = sp(context).getString(SUB_DETAIL_PREFIX + s, null)?.trim().orEmpty()
+        var title = sp(context).getString(SUB_TITLE_PREFIX + s, null)?.trim().orEmpty()
+        var detail = sp(context).getString(SUB_DETAIL_PREFIX + s, null)?.trim().orEmpty()
+        
+        // 특정 ID로 데이터가 없고, "0"에 데이터가 있는 경우 가져옴
+        if (title.isBlank() && detail.isBlank() && s != "0") {
+            title = sp(context).getString(SUB_TITLE_PREFIX + "0", null)?.trim().orEmpty()
+            detail = sp(context).getString(SUB_DETAIL_PREFIX + "0", null)?.trim().orEmpty()
+        }
+
         if (title.isBlank() && detail.isBlank()) return null
         return title to detail
     }
