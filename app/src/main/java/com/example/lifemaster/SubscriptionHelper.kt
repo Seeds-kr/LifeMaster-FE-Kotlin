@@ -17,8 +17,16 @@ object SubscriptionHelper {
     private const val KEY_EXPIRATION = "expirationDate"
     private const val UNLIMITED_DATE = "9999-12-31"
 
-    fun resolvePlan(me: MeResponse): String =
-        (me.user?.subscriptionPlan ?: me.subscriptionPlan)?.trim().orEmpty()
+    fun resolvePlan(me: MeResponse): String {
+        val plan = (me.user?.subscriptionPlan ?: me.subscriptionPlan)?.trim().orEmpty()
+        if (plan.isNotBlank()) return plan
+        
+        // paymentStatus가 PAID면 PREMIUM으로 간주하는 fallback
+        val status = (me.user?.paymentStatus ?: me.paymentStatus)?.trim().orEmpty()
+        if (status.equals("PAID", ignoreCase = true)) return "PREMIUM"
+        
+        return ""
+    }
 
     fun resolveExpirationDate(me: MeResponse): String =
         (me.user?.expirationDate ?: me.expirationDate
@@ -30,7 +38,13 @@ object SubscriptionHelper {
         val plan = resolvePlan(me)
         val exp = resolveExpirationDate(me)
         context.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE).edit {
-            if (plan.isNotBlank()) putString(KEY_PLAN, plan)
+            if (plan.isNotBlank()) {
+                putString(KEY_PLAN, plan)
+                // 플랜이 PREMIUM인데 만료일이 없으면 기존 만료일 제거 (무제한 혹은 서버 신뢰)
+                if (isPremiumPlan(plan) && exp.isBlank()) {
+                    remove(KEY_EXPIRATION)
+                }
+            }
             if (exp.isNotBlank()) putString(KEY_EXPIRATION, exp)
         }
     }
@@ -88,9 +102,9 @@ object SubscriptionHelper {
         val plan = prefs.getString(KEY_PLAN, null)?.trim().orEmpty()
         if (!isPremiumPlan(plan)) return false
 
-        val expDate = prefs.getString(KEY_EXPIRATION, null)?.trim().orEmpty()
-        if (expDate.isBlank()) return true
-        return !isExpired(expDate)
+        // 플랜이 PREMIUM인 경우, 서버가 명시적으로 BASIC으로 내리기 전까지는 프리미엄으로 간주합니다.
+        // 만료일 체크는 UI에서 안내용으로만 사용하도록 정책 변경 (유저 보고 내용 반영)
+        return true
     }
 
     private fun hasLocalPremiumSummary(context: Context): Boolean {
