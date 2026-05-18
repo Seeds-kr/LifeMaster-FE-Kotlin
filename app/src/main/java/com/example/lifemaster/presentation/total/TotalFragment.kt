@@ -157,11 +157,7 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
                 }
             }
             TotalServicesConfig.KEY_CHALLENGE -> ServiceRowContent(getString(R.string.challenge)) {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.challenge_feature_in_development),
-                    Toast.LENGTH_SHORT
-                ).show()
+                findNavController().navigate(R.id.action_totalFragment_to_challengeFragment)
             }
             TotalServicesConfig.KEY_INTROSPECTION_DIARY -> ServiceRowContent(getString(R.string.total_menu_diary)) {
                 goIntrospection("TODAY")
