@@ -36,6 +36,7 @@ import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
 import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import com.example.lifemaster.presentation.home.group.adapter.HomeGroupPreviewAdapter
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroModel
 import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
@@ -73,7 +74,7 @@ class HomeFragment : Fragment() {
 
     // 할일 관련 변수
     private val toDoViewModel: ToDoViewModel by activityViewModels()
-    private val todoAddDialog = ToDoDialog(origin = TODO.ADD)
+    private lateinit var todoAddDialog: ToDoDialog
     private lateinit var todoEditDialog: ToDoDialog
 
     // 포모도로 관련 변수
@@ -85,6 +86,7 @@ class HomeFragment : Fragment() {
     }
     private val calendarVM: CalendarViewModel by activityViewModels()
 
+    private val todoDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
     private var tvAlarmDate: TextView? = null
     private var tvAlarmTime: TextView? = null
     private var btnAlarmSetting: View? = null
@@ -108,6 +110,10 @@ class HomeFragment : Fragment() {
 
     private var challengePreviewContainer: LinearLayout? = null
     private var challengePreviewScrollView: View? = null
+
+    private fun LocalDate.toTodoApiDate(): String {
+        return this.format(todoDateFormatter)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -182,6 +188,7 @@ class HomeFragment : Fragment() {
         fetchMyChallengePreviewList()
 
         val currentDate = calendarVM.selectedDate.value ?: LocalDate.now()
+        toDoViewModel.getTodoItemsByDate(currentDate.toTodoApiDate())
         loadAlarmPreviewForDate(currentDate)
         loadSleepPreviewForDate(currentDate)
         showDetoxPreview()
@@ -203,9 +210,12 @@ class HomeFragment : Fragment() {
         }
 
         binding.cardDetox.setOnClickListener {
-            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
-                findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
-            }
+            //findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+            Toast.makeText(
+                requireContext(),
+                "디톡스는 현재 준비 중입니다.",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         binding.cardGroup.setOnClickListener {
@@ -232,9 +242,12 @@ class HomeFragment : Fragment() {
         btnDetox = binding.root.findViewById(R.id.btn_detox)
 
         btnDetox?.setOnClickListener {
-            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
-                findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
-            }
+            //findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
+            Toast.makeText(
+                requireContext(),
+                "디톡스는 현재 준비 중입니다.",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -265,8 +278,17 @@ class HomeFragment : Fragment() {
     }
 
     private fun fetchRemoteData() {
-        toDoViewModel.getTodoItems()
+        val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
+        toDoViewModel.getTodoItemsByDate(selectedDate.toTodoApiDate())
         pomodoroViewModel.getPomodoroAllItems()
+    }
+
+    private fun refreshCalendarFragment() {
+        binding.containerCalendar.post {
+            childFragmentManager.beginTransaction()
+                .replace(R.id.container_calendar, CalendarFragment())
+                .commit()
+        }
     }
 
     private fun loadHomeConfiguration(): Pair<Set<String>, List<String>> {
@@ -335,6 +357,11 @@ class HomeFragment : Fragment() {
 
     private fun initListeners() = with(binding) {
         btnAddTodoItem.setOnClickListener {
+            val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
+            todoAddDialog = ToDoDialog(
+                origin = TODO.ADD,
+                selectedDate = selectedDate.toTodoApiDate()
+            )
             todoAddDialog.show(childFragmentManager, ToDoDialog.TAG)
         }
 
@@ -369,13 +396,12 @@ class HomeFragment : Fragment() {
                             DataResource.Loading -> {}
                             is DataResource.Success<TodoModel> -> {
                                 Toast.makeText(context, "할일이 추가되었습니다.", Toast.LENGTH_SHORT).show()
-                                todoAddDialog.dismiss()
-                                val newItem = resource.data
-                                val oldList = (binding.todoRecyclerview.adapter as ToDoAdapter).currentList
-                                val newList = oldList.toMutableList().apply {
-                                    add(newItem)
+                                if (::todoAddDialog.isInitialized) {
+                                    todoAddDialog.dismiss()
                                 }
-                                (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(newList)
+                                val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
+                                toDoViewModel.getTodoItemsByDate(selectedDate.toTodoApiDate())
+                                refreshCalendarFragment()
                             }
                         }
                     }
@@ -385,25 +411,42 @@ class HomeFragment : Fragment() {
                     toDoViewModel.currentItems.combine(pomodoroViewModel.allPomodoroItems) { todoRes, pomoRes ->
                         todoRes to pomoRes
                     }.collect { (todoRes, pomoRes) ->
-                        if (todoRes is DataResource.Success && pomoRes is DataResource.Success) {
-                            val todoItems = todoRes.data
-                            val allPomodoroItems = pomoRes.data
+                        when (todoRes) {
+                            is DataResource.Success<List<TodoModel>> -> {
+                                val todoItems = todoRes.data
 
-                            val pomodoroTodoItems = todoItems.map { todoItem ->
-                                val pomodoroItems = allPomodoroItems.filter { it.todo.id == todoItem.id }
-                                val timer25Number = pomodoroItems.count { it.focusTime == 25 }
-                                val timer50Number = pomodoroItems.count { it.focusTime == 50 }
-                                todoItem.copy(timer25Number = timer25Number, timer50Number = timer50Number)
+                                val allPomodoroItems: List<PomodoroModel> =
+                                    if (pomoRes is DataResource.Success) {
+                                        pomoRes.data
+                                    } else {
+                                        emptyList()
+                                    }
+                                val pomodoroTodoItems = todoItems.map { todoItem ->
+                                    val pomodoroItems = allPomodoroItems.filter { it.todo.id == todoItem.id }
+                                    val timer25Number = pomodoroItems.count { it.focusTime == 25 }
+                                    val timer50Number = pomodoroItems.count { it.focusTime == 50 }
+
+                                    todoItem.copy(
+                                        timer25Number = timer25Number,
+                                        timer50Number = timer50Number
+                                    )
+                                }
+                                todoRecyclerview.adapter?.let {
+                                    (it as ToDoAdapter).submitList(pomodoroTodoItems)
+                                }
+                                cachedDetoxTimeMillis =
+                                    allPomodoroItems.sumOf { (it.focusTime.coerceAtLeast(0)) * 60_000L }
+                                showDetoxPreview()
                             }
-                            (binding.todoRecyclerview.adapter as ToDoAdapter).submitList(pomodoroTodoItems)
-
-                            cachedDetoxTimeMillis =
-                                allPomodoroItems.sumOf { (it.focusTime.coerceAtLeast(0)) * 60_000L }
-                            showDetoxPreview()
-                        } else if (todoRes is DataResource.Error) {
-                            Toast.makeText(context, "할일 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                            is DataResource.Error -> {
+                                todoRecyclerview.adapter?.let {
+                                    (it as ToDoAdapter).submitList(emptyList())
+                                }
+                                Toast.makeText(context, "할일 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            DataResource.Idle -> {}
+                            DataResource.Loading -> {}
                         }
-
                         if (pomoRes is DataResource.Error) {
                             cachedDetoxTimeMillis = 0L
                             showNoDetox()
@@ -420,10 +463,8 @@ class HomeFragment : Fragment() {
                             DataResource.Idle -> {}
                             DataResource.Loading -> {}
                             is DataResource.Success<Int> -> {
-                                val deletedAlarmId = resource.data
-                                val oldList = (todoRecyclerview.adapter as ToDoAdapter).currentList
-                                val updatedList = oldList.toMutableList().filterNot { it.id == deletedAlarmId }
-                                (todoRecyclerview.adapter as ToDoAdapter).submitList(updatedList)
+                                val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
+                                toDoViewModel.getTodoItemsByDate(selectedDate.toTodoApiDate())
                                 Toast.makeText(context, "할일이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
                             }
                         }
@@ -439,11 +480,9 @@ class HomeFragment : Fragment() {
                             DataResource.Idle -> {}
                             DataResource.Loading -> {}
                             is DataResource.Success<TodoModel> -> {
-                                val updateItem = resource.data
-                                val oldList = (todoRecyclerview.adapter as ToDoAdapter).currentList
-                                val updatedList = oldList.map { if (it.id == updateItem.id) updateItem else it }
-                                (todoRecyclerview.adapter as ToDoAdapter).submitList(updatedList)
                                 todoEditDialog.dismiss()
+                                val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
+                                toDoViewModel.getTodoItemsByDate(selectedDate.toTodoApiDate())
                                 Toast.makeText(context, "할일이 수정되었습니다.", Toast.LENGTH_SHORT).show()
                             }
                         }
@@ -460,9 +499,8 @@ class HomeFragment : Fragment() {
                             DataResource.Loading -> {}
                             is DataResource.Success<TodoModel> -> {
                                 val data = resource.data
-                                val oldList = (todoRecyclerview.adapter as ToDoAdapter).currentList
-                                val newList = oldList.map { if (it.id == data.id) data else it }
-                                (todoRecyclerview.adapter as ToDoAdapter).submitList(newList)
+                                val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
+                                toDoViewModel.getTodoItemsByDate(selectedDate.toTodoApiDate())
                                 if (data.isCompleted) {
                                     Toast.makeText(context, "할일이 체크되었습니다.", Toast.LENGTH_SHORT).show()
                                 } else {
@@ -599,6 +637,7 @@ class HomeFragment : Fragment() {
             updateSelectedDateText(mode, date)
             loadAlarmPreviewForDate(date)
             loadSleepPreviewForDate(date)
+            toDoViewModel.getTodoItemsByDate(date.toTodoApiDate())
         }
 
         calendarVM.mode.observe(viewLifecycleOwner) { mode ->
@@ -642,9 +681,7 @@ class HomeFragment : Fragment() {
 
     private fun weekOfMonth(date: LocalDate): Int = ((date.dayOfMonth - 1) / 7) + 1
 
-    // -------------------------------
     // 알람 미리보기
-    // -------------------------------
     private fun fetchAlarmPreviewList() {
         viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
@@ -718,9 +755,7 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // -------------------------------
     // 수면 미리보기
-    // -------------------------------
     private fun fetchSleepPreviewList() {
         val raw = TokenProvider.getBearerToken(requireContext())
         if (raw.isNullOrBlank()) {
@@ -781,9 +816,7 @@ class HomeFragment : Fragment() {
         binding.itemSleepPreview.tvAlarmTime.text = "수면 기록 없음"
     }
 
-    // -------------------------------
     // 디톡스 미리보기
-    // -------------------------------
     private fun showDetoxPreview() {
         if (cachedDetoxTimeMillis <= 0L) {
             showNoDetox()
@@ -804,9 +837,7 @@ class HomeFragment : Fragment() {
         return "${hour}시간 ${minute}분"
     }
 
-    // -------------------------------
     // 챌린지 미리보기
-    // -------------------------------
     private fun fetchMyChallengePreviewList() {
         val raw = TokenProvider.getBearerToken(requireContext())
         if (raw.isNullOrBlank()) {

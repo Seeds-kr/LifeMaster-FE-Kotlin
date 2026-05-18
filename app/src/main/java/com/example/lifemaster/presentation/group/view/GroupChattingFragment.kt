@@ -86,8 +86,18 @@ class GroupChattingFragment : Fragment(R.layout.fragment_group_chatting) {
         tvMemberCount.text = if (args.memberCount > 0) "${args.memberCount}명 참여 중" else ""
         tvChatDate.text = buildTodayLabel()
 
+        includeBackButton = view.findViewById(R.id.include_back_button)
+
         includeBackButton.setOnClickListener {
-            findNavController().popBackStack()
+            if (!findNavController().popBackStack()) {
+                findNavController().navigate(R.id.groupFragment)
+            }
+        }
+
+        includeBackButton.findViewById<View>(R.id.btn_back)?.setOnClickListener {
+            if (!findNavController().popBackStack()) {
+                findNavController().navigate(R.id.groupFragment)
+            }
         }
 
         btnChatClose.setOnClickListener {

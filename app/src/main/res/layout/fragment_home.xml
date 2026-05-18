@@ -110,11 +110,12 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="18dp"
+                        android:layout_height="17.2dp"
+                        android:layout_margin="6dp"
                         android:layout_marginEnd="8dp"
                         android:src="@drawable/ic_logo_star"
-                        app:tint="@color/todo_primary"/>
+                        app:tint="#5C76C3" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -127,13 +128,13 @@
 
                     <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btn_add_todo_item"
-                        android:layout_width="52dp"
-                        android:layout_height="32dp"
-                        android:background="@drawable/bg_round_radius_12dp"
+                        android:layout_width="45dp"
+                        android:layout_height="25dp"
+                        android:background="@drawable/bg_round_radius_8dp"
                         android:backgroundTint="@color/todo_primary"
                         android:text="추가"
                         android:textColor="@color/white"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <androidx.recyclerview.widget.RecyclerView
@@ -372,6 +373,7 @@
                         android:src="@drawable/ic_logo_star"
                         app:tint="#8DB83F" />
 
+                    <!--
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="22dp"
@@ -380,6 +382,38 @@
                         android:textColor="@color/black"
                         android:textSize="16sp"
                         android:textStyle="bold" />
+                    -->
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tv_detox_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="22dp"
+                            android:text="디톡스"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_round_input"
+                            android:backgroundTint="#1AB4D775"
+                            android:gravity="center"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="3dp"
+                            android:text="준비 중"
+                            android:textColor="#8DB83F"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <include

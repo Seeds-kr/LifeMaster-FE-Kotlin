@@ -2,19 +2,20 @@ package com.example.lifemaster.presentation.group.view
 
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -30,12 +31,18 @@ import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.group.model.GroupAchievementHeatmapItem
 import com.example.lifemaster.presentation.group.model.GroupGoalProgressResponseItem
 import com.example.lifemaster.presentation.group.model.GroupRankingItem
-import com.example.lifemaster.presentation.group.model.GroupSleepStatsResponse
 import com.example.lifemaster.presentation.group.util.ChartStyle
+import com.example.lifemaster.presentation.total.mypage.view.PremiumSubscribeActivity
 import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.MarkerView
-import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.CombinedData
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.MPPointF
 import dagger.hilt.android.AndroidEntryPoint
@@ -82,6 +89,12 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     private lateinit var btnMore: TextView
     private lateinit var ivMoreArrow: ImageView
 
+    private lateinit var tvRecentAchieveTitle: TextView
+    private lateinit var layoutRankingHeader: View
+    private lateinit var layoutPremiumLocked: View
+    private lateinit var btnPremiumInfo: TextView
+    private lateinit var layoutRankingSection: View
+
     private var heatmapAdapter: RecentAchieveHeatmapAdapter? = null
     private var tooltipDismissRunnable: Runnable? = null
 
@@ -90,6 +103,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     private var rankingAllItems: List<GroupRankingItem> = emptyList()
     private var rankingMyItem: GroupRankingItem? = null
     private var isRankingLoading: Boolean = false
+    private var isPremiumLocked: Boolean = false
 
     private var isMember: Boolean = false
     private var ownerLeaveBlocked: Boolean = false
@@ -136,6 +150,17 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         btnMore = view.findViewById(R.id.btn_more)
         ivMoreArrow = view.findViewById(R.id.iv_more_arrow)
 
+        tvRecentAchieveTitle = view.findViewById(R.id.tv_recent_achieve_title)
+        layoutRankingHeader = view.findViewById(R.id.layout_ranking_header)
+        layoutRankingSection = view.findViewById(R.id.layout_ranking_section)
+
+        layoutPremiumLocked = view.findViewById(R.id.layout_premium_locked)
+        btnPremiumInfo = view.findViewById(R.id.btn_premium_info)
+
+        btnPremiumInfo.setOnClickListener {
+            startActivity(Intent(requireContext(), PremiumSubscribeActivity::class.java))
+        }
+
         rvRecentAchieve.layoutManager = GridLayoutManager(requireContext(), 10)
         rvRecentAchieve.setHasFixedSize(false)
         rvRecentAchieve.isNestedScrollingEnabled = false
@@ -149,10 +174,16 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         updateRankingTabUi(immediate = true)
 
         btnJoin.setOnClickListener {
+            if (isPremiumLocked) {
+                showPremiumLockedUi()
+                return@setOnClickListener
+            }
+
             if (isMember) {
                 Toast.makeText(requireContext(), "이미 가입된 그룹이에요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             showJoinDialog()
         }
 
@@ -161,10 +192,16 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 Toast.makeText(requireContext(), "아직 가입되지 않은 그룹이에요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             showLeaveConfirmDialog()
         }
 
         btnChat.setOnClickListener {
+            if (isPremiumLocked) {
+                showPremiumLockedUi()
+                return@setOnClickListener
+            }
+
             if (!isMember) {
                 Toast.makeText(requireContext(), "그룹에 가입한 후 채팅할 수 있어요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -176,11 +213,24 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                     groupName = args.groupName,
                     memberCount = memberCount
                 )
+
             findNavController().navigate(action)
         }
 
         btnToggleWeek.setOnClickListener {
-            if (currentRankingScope == "WEEKLY" || isRankingLoading) return@setOnClickListener
+            if (isPremiumLocked) {
+                return@setOnClickListener
+            }
+
+            if (!isMember) {
+                showRankingJoinToastIfNeeded()
+                return@setOnClickListener
+            }
+
+            if (currentRankingScope == "WEEKLY" || isRankingLoading) {
+                return@setOnClickListener
+            }
+
             currentRankingScope = "WEEKLY"
             isRankingExpanded = false
             updateRankingTabUi()
@@ -188,7 +238,19 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         btnToggleAll.setOnClickListener {
-            if (currentRankingScope == "TOTAL" || isRankingLoading) return@setOnClickListener
+            if (isPremiumLocked) {
+                return@setOnClickListener
+            }
+
+            if (!isMember) {
+                showRankingJoinToastIfNeeded()
+                return@setOnClickListener
+            }
+
+            if (currentRankingScope == "TOTAL" || isRankingLoading) {
+                return@setOnClickListener
+            }
+
             currentRankingScope = "TOTAL"
             isRankingExpanded = false
             updateRankingTabUi()
@@ -196,8 +258,22 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         layoutMore.setOnClickListener {
+            if (isPremiumLocked) return@setOnClickListener
+            if (!isMember) {
+                showRankingJoinToastIfNeeded()
+                return@setOnClickListener
+            }
+
             isRankingExpanded = !isRankingExpanded
             bindRankingList()
+        }
+
+        layoutRankingHeader.setOnClickListener {
+            showRankingJoinToastIfNeeded()
+        }
+
+        layoutRankingSection.setOnClickListener {
+            showRankingJoinToastIfNeeded()
         }
 
         layoutRecentAchieveRoot.setOnTouchListener { _, event ->
@@ -212,21 +288,34 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     }
 
     private fun applyMembershipUi() {
+        if (isPremiumLocked) {
+            btnJoin.visibility = View.GONE
+            btnLeave.visibility = View.GONE
+            return
+        }
+
+        btnJoin.visibility = View.VISIBLE
+
         if (isMember) {
             btnJoin.text = "가입완료"
             btnJoin.isEnabled = false
             btnJoin.alpha = 0.6f
-            btnLeave.visibility = if (ownerLeaveBlocked) View.GONE else View.VISIBLE
+
+            btnLeave.visibility =
+                if (ownerLeaveBlocked) View.GONE else View.VISIBLE
+
         } else {
             btnJoin.text = getString(R.string.group_join)
             btnJoin.isEnabled = true
             btnJoin.alpha = 1f
+
             btnLeave.visibility = View.GONE
         }
     }
 
     private fun refreshMembershipStateAndLoadStats() {
         val token = TokenProvider.getBearerToken(requireContext())
+
         if (token.isNullOrBlank()) {
             isMember = false
             applyMembershipUi()
@@ -239,9 +328,18 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         val groupId = args.groupId
 
         lifecycleScope.launch {
-            val myGroups = withContext(Dispatchers.IO) {
-                runCatching { networkService.getMyGroups(token) }.getOrElse { emptyList() }
+            val myGroupsResult = withContext(Dispatchers.IO) {
+                runCatching { networkService.getMyGroups(token) }
             }
+
+            val myGroupsError = myGroupsResult.exceptionOrNull()
+
+            if (myGroupsError is retrofit2.HttpException && myGroupsError.code() == 403) {
+                showPremiumLockedUi()
+                return@launch
+            }
+
+            val myGroups = myGroupsResult.getOrElse { emptyList() }
 
             val allGroups = withContext(Dispatchers.IO) {
                 runCatching { networkService.getAllGroups(token) }.getOrElse { emptyList() }
@@ -258,7 +356,22 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             tvGroupMemberCount.text = if (memberCount > 0) "${memberCount}명 참여 중" else ""
 
             loadStats(token, groupId)
-            loadRanking()
+
+            if (isMember) {
+                loadRanking()
+            } else {
+                rankingAllItems = emptyList()
+                rankingMyItem = null
+                bindRankingList()
+
+                if (!isPremiumLocked) {
+                    Toast.makeText(
+                        requireContext(),
+                        "그룹 가입 후 랭킹을 확인할 수 있어요.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
     }
 
@@ -268,6 +381,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         btnToggleWeek.setTextColor(
             if (isWeekly) Color.WHITE else ContextCompat.getColor(requireContext(), R.color.black_30)
         )
+
         btnToggleAll.setTextColor(
             if (isWeekly) ContextCompat.getColor(requireContext(), R.color.black_30) else Color.WHITE
         )
@@ -288,8 +402,35 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
     }
 
+    private fun showRankingJoinToastIfNeeded() {
+        if (isPremiumLocked) return
+
+        if (!isMember) {
+            Toast.makeText(
+                requireContext(),
+                "그룹 가입 후 랭킹을 확인할 수 있어요.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
     private fun loadRanking() {
+        if (isPremiumLocked) {
+            rankingAllItems = emptyList()
+            rankingMyItem = null
+            bindRankingList()
+            return
+        }
+
+        if (!isMember) {
+            rankingAllItems = emptyList()
+            rankingMyItem = null
+            bindRankingList()
+            return
+        }
+
         val token = TokenProvider.getBearerToken(requireContext())
+
         if (token.isNullOrBlank()) {
             rankingAllItems = emptyList()
             rankingMyItem = null
@@ -311,6 +452,10 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 }
 
                 if (resp.isSuccessful) {
+                    if (!isPremiumLocked) {
+                        hidePremiumLockedUi()
+                    }
+
                     val body = resp.body()
                     rankingAllItems = body?.items.orEmpty()
 
@@ -326,12 +471,25 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 } else {
                     rankingAllItems = emptyList()
                     rankingMyItem = null
-                    Toast.makeText(requireContext(), "랭킹 조회 실패: ${resp.code()}", Toast.LENGTH_SHORT).show()
+
+                    if (resp.code() == 403) {
+                        showPremiumLockedUi()
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "랭킹 조회 실패: ${resp.code()}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             } catch (e: Exception) {
                 rankingAllItems = emptyList()
                 rankingMyItem = null
-                Toast.makeText(requireContext(), "랭킹 표시 오류: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "랭킹 표시 오류: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             } finally {
                 isRankingLoading = false
                 bindRankingList()
@@ -340,6 +498,13 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     }
 
     private fun bindRankingList() {
+        if (isPremiumLocked) {
+            layoutRankingList.removeAllViews()
+            layoutRankingList.visibility = View.GONE
+            layoutMore.visibility = View.GONE
+            return
+        }
+
         layoutRankingList.removeAllViews()
 
         val myItem = rankingMyItem
@@ -411,6 +576,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         btnCancel.setOnClickListener { dialog.dismiss() }
+
         btnJoinInDialog.setOnClickListener {
             tvWrong.visibility = View.INVISIBLE
             val pw = etPassword.text?.toString()?.trim().orEmpty()
@@ -423,6 +589,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun requestJoinGroup(passwordOrBlank: String) {
         val token = TokenProvider.getBearerToken(requireContext())
+
         if (token.isNullOrBlank()) {
             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
             return
@@ -441,6 +608,11 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
             if (!resp.isSuccessful) {
                 val err = safeBodyString(resp.errorBody())
+
+                if (resp.code() == 403) {
+                    showPremiumLockedUi()
+                    return@launch
+                }
 
                 if (resp.code() == 400 && err.contains("password", ignoreCase = true)) {
                     Toast.makeText(requireContext(), "비밀번호가 필요하거나 올바르지 않습니다.", Toast.LENGTH_LONG).show()
@@ -477,6 +649,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun requestLeaveGroup() {
         val token = TokenProvider.getBearerToken(requireContext())
+
         if (token.isNullOrBlank()) {
             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
             return
@@ -521,17 +694,17 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
             val sleepDeferred = async(Dispatchers.IO) {
                 runCatching { networkService.getGroupSleepStats(token, groupId) }
-                    .getOrElse { Response.success(GroupSleepStatsResponse()) }
+                    .getOrNull()
             }
 
             val goalsDeferred = async(Dispatchers.IO) {
                 runCatching { networkService.getGroupGoalsProgress(token, groupId) }
-                    .getOrElse { Response.success(emptyList()) }
+                    .getOrNull()
             }
 
             val heatmapDeferred = async(Dispatchers.IO) {
                 runCatching { networkService.getGoalHeatmap(token, groupId) }
-                    .getOrElse { Response.success(emptyList()) }
+                    .getOrNull()
             }
 
             val myEmail = meDeferred.await()?.body()?.email
@@ -539,19 +712,72 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             val goalsResp = goalsDeferred.await()
             val heatmapResp = heatmapDeferred.await()
 
-            val sleepBody = sleepResp.body()
+            if (sleepResp?.code() == 403 || goalsResp?.code() == 403 || heatmapResp?.code() == 403) {
+                showPremiumLockedUi()
+                return@launch
+            }
+
+            if (!isPremiumLocked) {
+                hidePremiumLockedUi()
+            }
+
+            val sleepBody = sleepResp?.body()
             val userSleepMinutes = sleepBody?.userSleepDurations.orEmpty()
             val groupSleepMinutes = sleepBody?.groupAverageSleepDurations.orEmpty()
 
             bindDynamicGoalCharts(
-                goals = goalsResp.body().orEmpty(),
+                goals = goalsResp?.body().orEmpty(),
                 userSleepMinutes = userSleepMinutes,
                 groupSleepMinutes = groupSleepMinutes,
                 myEmail = myEmail
             )
 
-            bindHeatmap(heatmapResp.body().orEmpty())
+            bindHeatmap(heatmapResp?.body().orEmpty())
         }
+    }
+
+    private fun showPremiumLockedUi() {
+        isPremiumLocked = true
+
+        layoutPremiumLocked.visibility = View.VISIBLE
+
+        layoutGoalChartContainer.removeAllViews()
+        layoutGoalChartContainer.visibility = View.GONE
+
+        tvRecentAchieveTitle.visibility = View.GONE
+        layoutRecentAchieveRoot.visibility = View.GONE
+
+        layoutRankingHeader.visibility = View.GONE
+        layoutRankingSection.visibility = View.GONE
+
+        layoutRankingList.removeAllViews()
+        layoutRankingList.visibility = View.GONE
+
+        layoutMore.visibility = View.GONE
+        btnChat.visibility = View.GONE
+
+        rankingAllItems = emptyList()
+        rankingMyItem = null
+
+        applyMembershipUi()
+    }
+
+    private fun hidePremiumLockedUi() {
+        if (isPremiumLocked) return
+
+        layoutPremiumLocked.visibility = View.GONE
+
+        layoutGoalChartContainer.visibility = View.VISIBLE
+
+        tvRecentAchieveTitle.visibility = View.VISIBLE
+        layoutRecentAchieveRoot.visibility = View.VISIBLE
+
+        layoutRankingHeader.visibility = View.VISIBLE
+        layoutRankingSection.visibility = View.VISIBLE
+
+        layoutRankingList.visibility = View.VISIBLE
+
+        btnChat.visibility = View.VISIBLE
     }
 
     private fun bindDynamicGoalCharts(
@@ -560,6 +786,8 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         groupSleepMinutes: List<Int>,
         myEmail: String?
     ) {
+        if (isPremiumLocked) return
+
         layoutGoalChartContainer.removeAllViews()
 
         goals.firstOrNull { it.goalName.contains("수면") }?.let {
@@ -574,13 +802,33 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             if (layoutGoalChartContainer.childCount > 0) View.VISIBLE else View.GONE
     }
 
-    private fun bindExternalXAxisLabels(container: View, labels: List<String>, isBarChart: Boolean, chart: View) {
-        val labelContainerId = if (isBarChart) R.id.layout_bar_x_labels else R.id.layout_line_x_labels
+    private fun bindExternalXAxisLabels(
+        container: View,
+        labels: List<String>,
+        isBarChart: Boolean,
+        chart: View
+    ) {
+        val labelContainerId =
+            if (isBarChart) R.id.layout_bar_x_labels else R.id.layout_line_x_labels
 
         val visibleIds = if (isBarChart) {
-            listOf(R.id.tv_bar_x_1, R.id.tv_bar_x_2, R.id.tv_bar_x_3, R.id.tv_bar_x_4, R.id.tv_bar_x_5, R.id.tv_bar_x_6)
+            listOf(
+                R.id.tv_bar_x_1,
+                R.id.tv_bar_x_2,
+                R.id.tv_bar_x_3,
+                R.id.tv_bar_x_4,
+                R.id.tv_bar_x_5,
+                R.id.tv_bar_x_6
+            )
         } else {
-            listOf(R.id.tv_line_x_1, R.id.tv_line_x_2, R.id.tv_line_x_3, R.id.tv_line_x_4, R.id.tv_line_x_5, R.id.tv_line_x_6)
+            listOf(
+                R.id.tv_line_x_1,
+                R.id.tv_line_x_2,
+                R.id.tv_line_x_3,
+                R.id.tv_line_x_4,
+                R.id.tv_line_x_5,
+                R.id.tv_line_x_6
+            )
         }
 
         val labelContainer = container.findViewById<LinearLayout>(labelContainerId)
@@ -792,7 +1040,10 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             }
         }
 
-        chart.data = if (pointSet != null) LineData(groupSet, userSet, pointSet) else LineData(groupSet, userSet)
+        chart.data =
+            if (pointSet != null) LineData(groupSet, userSet, pointSet)
+            else LineData(groupSet, userSet)
+
         chart.xAxis.axisMinimum = -0.5f
         chart.xAxis.axisMaximum = 5.5f
         chart.marker = SleepMarkerView(requireContext(), participantCount, avgHour)
@@ -867,6 +1118,8 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     }
 
     private fun bindHeatmap(items: List<GroupAchievementHeatmapItem>) {
+        if (isPremiumLocked) return
+
         val safeItems = if (items.isNotEmpty()) {
             items.takeLast(30)
         } else {
@@ -927,7 +1180,11 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun hideHeatmapTooltip(clearSelection: Boolean = true) {
         layoutHeatmapTooltip.visibility = View.GONE
-        if (clearSelection) heatmapAdapter?.clearSelection()
+
+        if (clearSelection) {
+            heatmapAdapter?.clearSelection()
+        }
+
         tooltipDismissRunnable?.let { layoutHeatmapTooltip.removeCallbacks(it) }
         tooltipDismissRunnable = null
     }

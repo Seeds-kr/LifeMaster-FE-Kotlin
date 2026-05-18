@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="start"
         android:layout_marginTop="36dp"
-        android:text="총 15개의 문장을 따라 써주세요"
+        android:text="총 6개의 문장을 따라 써주세요"
         android:textColor="@color/todo_primary"
         android:textStyle="bold" />
 
@@ -185,7 +185,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_round_radius_8dp"
         android:backgroundTint="@color/todo_primary"
-        android:text="0/15 진행 중"
+        android:text="0/6 진행 중"
         android:textColor="@color/white"
         android:textSize="12sp" />
 </androidx.appcompat.widget.LinearLayoutCompat>

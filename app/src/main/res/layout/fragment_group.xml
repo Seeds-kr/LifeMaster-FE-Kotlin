@@ -38,7 +38,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- 검색 -->
             <FrameLayout
                 android:id="@+id/et_group_search"
                 android:layout_width="0dp"
@@ -71,7 +70,6 @@
                     android:importantForAccessibility="no" />
             </FrameLayout>
 
-            <!-- 새 그룹 생성 -->
             <TextView
                 android:id="@+id/create_group"
                 android:layout_width="82dp"
@@ -135,14 +133,35 @@
                 android:id="@+id/include_joined_groups_list"
                 layout="@layout/dialog_group_joined_groups" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="@string/my_stats"
-                android:textColor="@color/black"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/my_stats"
+                    android:textColor="@color/black"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_round_input"
+                    android:backgroundTint="@color/purple_30"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="준비 중"
+                    android:textColor="@color/purple_dark"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <include
                 android:id="@+id/include_my_stats"

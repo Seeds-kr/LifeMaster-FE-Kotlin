@@ -23,6 +23,14 @@ class TodoRepository @Inject constructor(private val networkService: NetworkServ
         Result.failure(e)
     }
 
+    // 날짜별 할일 조회
+    suspend fun getTodoItemsByDate(date: String): Result<List<TodoResponse>> = try {
+        val response = networkService.getTodoItemsByDate(date = date)
+        Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     // 할일 삭제
     suspend fun deleteTodoItem(deleteId: Int): Result<Int> = try {
         networkService.deleteTodoItem(id = deleteId)

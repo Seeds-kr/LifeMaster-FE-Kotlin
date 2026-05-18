@@ -22,11 +22,13 @@ import java.time.format.DateTimeFormatter
 @AndroidEntryPoint
 class ToDoDialog(
     private val origin: TODO,
-    private val item: TodoModel? = null
+    private val item: TodoModel? = null,
+    private val selectedDate: String? = null
 ) : DialogFragment(R.layout.dialog_todo) {
 
     private lateinit var binding: DialogTodoBinding
     private val toDoViewModel: ToDoViewModel by activityViewModels()
+    private val todoDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return Dialog(requireContext()).apply {
@@ -70,7 +72,7 @@ class ToDoDialog(
                         ).show()
                     } else {
                         val request = TodoRequest(
-                            date = getTodayDate(),
+                            date = getRequestDate(),
                             title = title
                         )
                         toDoViewModel.addTodoItem(request = request)
@@ -89,11 +91,11 @@ class ToDoDialog(
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
-                       toDoViewModel.updateItem(
-                           id = item.id,
-                           date = getTodayDate(),
-                           title = title
-                       )
+                        toDoViewModel.updateItem(
+                            id = item.id,
+                            date = normalizeDateForApi(item.date),
+                            title = title
+                        )
                     }
                 }
             }
@@ -102,13 +104,20 @@ class ToDoDialog(
         btnCancel.setOnClickListener {
             dismiss()
         }
-
     }
 
-    private fun getTodayDate(): String {
-        val today = LocalDate.now()
-        val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
-        return today.format(formatter)
+    private fun getRequestDate(): String {
+        return selectedDate ?: LocalDate.now().format(todoDateFormatter)
+    }
+
+    private fun normalizeDateForApi(date: String): String {
+        return when {
+            date.contains("-") -> {
+                LocalDate.parse(date).format(todoDateFormatter)
+            }
+
+            else -> date
+        }
     }
 
     companion object {
