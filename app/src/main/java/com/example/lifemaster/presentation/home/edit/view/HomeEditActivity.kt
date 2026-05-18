@@ -112,10 +112,11 @@ class HomeEditActivity : AppCompatActivity(), HomeEditOnStartDragListener {
         serviceList.clear()
         allFeaturesList.clear()
 
+        val visibleKeys = visible ?: HomeConfig.DEFAULT_VISIBLE
         for (key in order) {
             val name = HomeConfig.KEY_TO_NAME[key]
             if (name != null) {
-                if (visible?.contains(key) == true) {
+                if (visibleKeys.contains(key)) {
                     serviceList.add(name)
                 } else {
                     allFeaturesList.add(name)
