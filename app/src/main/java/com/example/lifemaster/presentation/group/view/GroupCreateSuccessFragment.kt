@@ -7,8 +7,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
@@ -27,32 +29,11 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
         val tvDesc = view.findViewById<TextView>(R.id.tv_group_desc)
         val tvInvite = view.findViewById<TextView>(R.id.tv_invite_code)
 
-        val tvGoalNum1 = view.findViewById<TextView>(R.id.tv_goal_num)
-        val tvGoal1 = view.findViewById<TextView>(R.id.tv_goal)
-        val tvGoalNum2 = view.findViewById<TextView>(R.id.tv_goal_num2)
-        val tvGoal2 = view.findViewById<TextView>(R.id.tv_goal2)
-
         tvName.text = groupName
         tvDesc.text = if (groupDesc.isBlank()) " " else groupDesc
         tvInvite.text = if (inviteCode.isBlank()) "-" else inviteCode
 
-        if (goalLines.isNotEmpty()) {
-            tvGoalNum1.text = "최소목표 1"
-            tvGoal1.text = goalLines.getOrNull(0).orEmpty()
-        } else {
-            tvGoalNum1.text = "최소목표 1"
-            tvGoal1.text = "-"
-        }
-
-        if (goalLines.size >= 2) {
-            tvGoalNum2.visibility = View.VISIBLE
-            tvGoal2.visibility = View.VISIBLE
-            tvGoalNum2.text = "최소목표 2"
-            tvGoal2.text = goalLines.getOrNull(1).orEmpty()
-        } else {
-            tvGoalNum2.visibility = View.GONE
-            tvGoal2.visibility = View.GONE
-        }
+        bindGoals(view, goalLines)
 
         view.findViewById<ImageButton>(R.id.btn_copy).setOnClickListener {
             if (inviteCode.isBlank()) {
@@ -85,6 +66,50 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
         }
     }
 
+    private fun bindGoals(view: View, goalLines: List<String>) {
+        val layoutGoals = view.findViewById<LinearLayout>(R.id.layout_goals)
+        layoutGoals.removeAllViews()
+
+        val goals = if (goalLines.isEmpty()) listOf("-") else goalLines
+
+        goals.forEachIndexed { index, goalText ->
+            val row = LinearLayout(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    if (index > 0) topMargin = 12.dp
+                }
+                orientation = LinearLayout.HORIZONTAL
+            }
+
+            val tvGoalNum = TextView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+                text = "최소목표 ${index + 1}"
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+                textSize = 12f
+            }
+
+            val tvGoal = TextView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                text = goalText
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+                textSize = 12f
+            }
+
+            row.addView(tvGoalNum)
+            row.addView(tvGoal)
+            layoutGoals.addView(row)
+        }
+    }
+
     private fun shareText(text: String) {
         if (text.isBlank()) return
         val intent = Intent(Intent.ACTION_SEND).apply {
@@ -93,4 +118,7 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
         }
         startActivity(Intent.createChooser(intent, "공유"))
     }
+
+    private val Int.dp: Int
+        get() = (this * resources.displayMetrics.density).toInt()
 }

@@ -189,8 +189,10 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
     }
 
     private fun validateGoals(goals: List<GoalRow>): Boolean {
+        val selectedGoalTypes = mutableSetOf<String>()
         for ((index, goal) in goals.withIndex()) {
-            if (goal.type.isBlank()) {
+            val normalizedType = normalizeGoalType(goal.type)
+            if (normalizedType.isBlank()) {
                 Toast.makeText(
                     requireContext(),
                     "${index + 1}번째 목표 종류를 선택해주세요.",
@@ -198,6 +200,17 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                 ).show()
                 return false
             }
+
+            if (selectedGoalTypes.contains(normalizedType)) {
+                Toast.makeText(
+                    requireContext(),
+                    "동일한 종류의 목표는 추가할 수 없습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return false
+            }
+
+            selectedGoalTypes.add(normalizedType)
 
             if (parseGoalValue(goal.count) <= 0) {
                 Toast.makeText(
@@ -208,7 +221,22 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                 return false
             }
         }
+
         return true
+    }
+
+    private fun normalizeGoalType(type: String): String {
+        val trimmed = type.trim()
+
+        return when {
+            trimmed.contains("수면") -> "수면"
+            trimmed.contains("뽀모도로") -> "뽀모도로"
+            trimmed.contains("폰") || trimmed.contains("디톡스") -> "디톡스"
+            trimmed.contains("감사일기") -> "감사일기"
+            trimmed.contains("자아성찰") -> "자아성찰"
+            trimmed.contains("챌린지") -> "챌린지"
+            else -> trimmed
+        }
     }
 
     private fun getAuthTokenOrNull(): String? {
@@ -259,7 +287,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                     Log.e("GroupCreate", "createGroup fail code=${response.code()} err=$err")
                     Toast.makeText(
                         requireContext(),
-                        "그룹 생성 실패: ${response.code()}",
+                        "그룹 생성에 실패했습니다.",
                         Toast.LENGTH_SHORT
                     ).show()
                     return
@@ -289,11 +317,6 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                     if (!goalsOk) {
                         isSubmitting = false
                         btnDone.isEnabled = true
-                        Toast.makeText(
-                            requireContext(),
-                            "목표 추가에 실패했습니다.",
-                            Toast.LENGTH_LONG
-                        ).show()
                         return@launch
                     }
 
@@ -332,7 +355,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                 Log.e("GroupCreate", "createGroup network error", t)
                 Toast.makeText(
                     requireContext(),
-                    "네트워크 오류: ${t.message}",
+                    "네트워크 오류가 발생했습니다.",
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -376,7 +399,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                     if (isAdded) {
                         Toast.makeText(
                             requireContext(),
-                            "목표 추가 실패: ${resp.code()}",
+                            getGoalAddErrorMessage(resp.code(), err),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -386,6 +409,18 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         }
 
         true
+    }
+
+    private fun getGoalAddErrorMessage(code: Int, errorBody: String?): String {
+        val error = errorBody.orEmpty()
+
+        return when {
+            code == 409 -> "동일한 종류의 목표는 추가할 수 없습니다."
+            code == 400 && error.contains("duplicate", ignoreCase = true) -> "동일한 종류의 목표는 추가할 수 없습니다."
+            code == 500 && error.contains("duplicate", ignoreCase = true) -> "동일한 종류의 목표는 추가할 수 없습니다."
+            code == 500 -> "목표 추가에 실패했습니다. 동일한 종류의 목표가 있는지 확인해주세요."
+            else -> "목표 추가에 실패했습니다."
+        }
     }
 
     private fun buildGoalRequest(goal: GoalRow): GroupGoalCreateRequest {

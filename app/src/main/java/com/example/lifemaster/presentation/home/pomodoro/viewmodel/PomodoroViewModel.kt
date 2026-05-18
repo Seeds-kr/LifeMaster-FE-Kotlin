@@ -26,6 +26,19 @@ class PomodoroViewModel @Inject constructor(private val repository: PomodoroRepo
     var pomodoroStatus: PomodoroButtonStatus = PomodoroButtonStatus.TODO
     var pomodoroTimeType: PomodoroTimeType = PomodoroTimeType.NONE
 
+    var restEndTimeMillis: Long = 0L
+    var restFocusTime: Int = 0
+
+    fun startRestTimerState(focusTime: Int, restSeconds: Int) {
+        restFocusTime = focusTime
+        restEndTimeMillis = System.currentTimeMillis() + restSeconds * 1000L
+    }
+
+    fun clearRestTimerState() {
+        restFocusTime = 0
+        restEndTimeMillis = 0L
+    }
+
     private val _newPomodoroItem = MutableSharedFlow<DataResource<PomodoroModel>>()
     val newPomodoroItem = _newPomodoroItem.asSharedFlow()
 

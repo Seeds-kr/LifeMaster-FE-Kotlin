@@ -13,7 +13,7 @@ data class MeResponse(
     val profileImageUrl: String? = null,
     @SerializedName(value = "subscriptionPlan", alternate = ["plan", "subscription", "membership"])
     val subscriptionPlan: String? = null,
-    @SerializedName(value = "subscriptionDescription", alternate = ["subscriptionExpirationDate", "expirationDate"])
+    @SerializedName(value = "subscriptionDescription", alternate = ["subscriptionExpirationDate"])
     val subscriptionDescription: String? = null,
     val expirationDate: String? = null
 )
@@ -27,7 +27,7 @@ data class UserData(
     val profileImageUrl: String? = null,
     @SerializedName(value = "subscriptionPlan", alternate = ["plan", "subscription", "membership"])
     val subscriptionPlan: String? = null,
-    @SerializedName(value = "subscriptionExpirationDate", alternate = ["expirationDate"])
+    @SerializedName(value = "subscriptionExpirationDate")
     val subscriptionDescription: String? = null,
     val expirationDate: String? = null
 )

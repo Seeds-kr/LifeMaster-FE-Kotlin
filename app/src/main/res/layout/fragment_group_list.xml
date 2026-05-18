@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="#F0F4F5"
     android:paddingHorizontal="16dp"
+    android:paddingBottom="20dp"
     android:orientation="vertical"
     tools:context=".presentation.group.view.GroupListFragment">
 
@@ -35,7 +36,6 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- 검색 -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
@@ -66,66 +66,17 @@
             android:contentDescription="@null" />
     </FrameLayout>
 
-
-    <!-- 검색 아래 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_group_list"
         android:layout_width="match_parent"
-        android:layout_height="516dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:paddingHorizontal="12dp"
         android:paddingVertical="4dp"
         android:background="@drawable/bg_round_and_white"
         android:overScrollMode="never"
+        android:clipToPadding="false"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_group_list" />
 
-    <!-- 페이지네이션 -->
-    <LinearLayout
-        android:id="@+id/layout_pagination"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:baselineAligned="false">
-
-        <ImageView
-            android:id="@+id/btn_page_prev"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:src="@drawable/ic_page_left"
-            android:contentDescription="@null" />
-
-        <TextView
-            android:id="@+id/tv_page_current"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:text="@string/prev_page_num"
-            android:textColor="@color/purple_100"
-            android:textSize="12sp" />
-
-        <ImageView
-            android:id="@+id/iv_page_slash"
-            android:layout_width="5dp"
-            android:layout_height="14dp"
-            android:src="@drawable/ic_page_slash"
-            android:contentDescription="@null" />
-
-        <TextView
-            android:id="@+id/tv_page_total"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:text="@string/next_page_num"
-            android:textColor="@color/black"
-            android:textSize="12sp" />
-
-        <ImageView
-            android:id="@+id/btn_page_next"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:src="@drawable/ic_page_right"
-            android:contentDescription="@null" />
-    </LinearLayout>
 </LinearLayout>

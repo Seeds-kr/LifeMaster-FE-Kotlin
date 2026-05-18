@@ -2,6 +2,8 @@ package com.example.lifemaster.presentation.login.view
 
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -32,7 +34,9 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
+import kotlin.math.min
 
 @AndroidEntryPoint
 class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
@@ -52,6 +56,9 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
     private var nickCheckRunnable: Runnable? = null
     private var lastCall: Call<NicknameCheckResponse>? = null
     private var lastQueryText: String = ""
+
+    private val maxImageSizeBytes = 5 * 1024 * 1024
+    private val maxImageLength = 1080
 
     private val pickImage =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -183,14 +190,22 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
         val nickPart: RequestBody = nickname.toRequestBody(text)
 
         val imagePart: MultipartBody.Part? = imageUri?.let { uri ->
-            val temp = File(requireContext().cacheDir, "profile_${System.currentTimeMillis()}.jpg")
-            requireContext().contentResolver.openInputStream(uri)?.use { input ->
-                temp.outputStream().use { output -> input.copyTo(output) }
+            val imageFile = convertImageUriToJpegFile(uri)
+
+            if (imageFile == null) {
+                toast("이미지 업로드에 실패했어요. 다른 이미지를 선택해주세요.")
+                return
             }
+
+            if (imageFile.length() > maxImageSizeBytes) {
+                toast("이미지 파일이 너무 커요. 다른 이미지를 선택해주세요.")
+                return
+            }
+
             MultipartBody.Part.createFormData(
                 "image",
-                temp.name,
-                temp.asRequestBody("image/*".toMediaType())
+                imageFile.name,
+                imageFile.asRequestBody("image/jpeg".toMediaType())
             )
         }
 
@@ -199,14 +214,20 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
                 override fun onResponse(call: Call<RegNickResponse>, res: Response<RegNickResponse>) {
                     val body = res.body()
                     if (!res.isSuccessful || body == null) {
-                        toast(res.errorBody()?.string()?.take(150) ?: "닉네임 등록 실패(${res.code()})")
+                        val errorMessage = res.errorBody()?.string()?.take(150)
+
+                        if (res.code() == 413) {
+                            toast("이미지 파일이 너무 커요. 다른 이미지를 선택해주세요.")
+                        } else {
+                            toast(errorMessage ?: "닉네임 등록 실패(${res.code()})")
+                        }
                         return
                     }
 
+                    val mid = body.memberId.toString()
                     requireContext().getSharedPreferences("auth", 0).edit {
-                        val mid = body.memberId.toString()
                         putString("memberId", mid)
-                        putString("userId",  mid) 
+                        putString("userId", mid)
                         // 가입 시 입력한 닉네임 미리 저장
                         putString("nickname", nickname)
                         putString("nickName", nickname)
@@ -214,10 +235,72 @@ class RegisterProfileFragment : Fragment(R.layout.fragment_register_profile) {
 
                     autoLoginThenGoHome()
                 }
+
                 override fun onFailure(call: Call<RegNickResponse>, t: Throwable) {
-                    toast("네트워크 오류: ${t.message}")
+                    val message = t.message.orEmpty()
+
+                    if (
+                        message.contains("stream was reset", ignoreCase = true) ||
+                        message.contains("INTERNAL_ERROR", ignoreCase = true)
+                    ) {
+                        toast("이미지 업로드 중 오류가 발생했어요. 다른 이미지를 선택해주세요.")
+                    } else {
+                        toast("네트워크 오류: ${t.message}")
+                    }
                 }
             })
+    }
+
+    private fun convertImageUriToJpegFile(uri: Uri): File? {
+        return try {
+            val originalBitmap = requireContext().contentResolver.openInputStream(uri)?.use { input ->
+                BitmapFactory.decodeStream(input)
+            } ?: return null
+
+            val resizedBitmap = resizeBitmapIfNeeded(originalBitmap)
+
+            if (resizedBitmap != originalBitmap) {
+                originalBitmap.recycle()
+            }
+
+            val file = File(
+                requireContext().cacheDir,
+                "profile_${System.currentTimeMillis()}.jpg"
+            )
+
+            var quality = 90
+
+            do {
+                FileOutputStream(file).use { output ->
+                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, output)
+                }
+
+                quality -= 10
+            } while (file.length() > maxImageSizeBytes && quality >= 50)
+
+            resizedBitmap.recycle()
+
+            file
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun resizeBitmapIfNeeded(bitmap: Bitmap): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val longestSide = maxOf(width, height)
+
+        if (longestSide <= maxImageLength) {
+            return bitmap
+        }
+
+        val scale = maxImageLength.toFloat() / longestSide.toFloat()
+        val resizedWidth = (width * scale).toInt()
+        val resizedHeight = (height * scale).toInt()
+
+        return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, true)
     }
 
     private fun autoLoginThenGoHome() {

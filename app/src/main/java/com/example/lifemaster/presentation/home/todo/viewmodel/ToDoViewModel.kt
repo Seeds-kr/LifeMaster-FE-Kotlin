@@ -50,6 +50,19 @@ class ToDoViewModel @Inject constructor(private val repository: TodoRepository) 
         }
     }
 
+    fun getTodoItemsByDate(date: String) {
+        viewModelScope.launch {
+            _currentItems.value = DataResource.Loading
+            val result: Result<List<TodoResponse>> = repository.getTodoItemsByDate(date = date)
+            result.onSuccess { remoteItems ->
+                val todoItems = remoteItems.map { it.toPresentation() }
+                _currentItems.value = DataResource.Success(todoItems)
+            }.onFailure { error ->
+                _currentItems.value = DataResource.Error(error)
+            }
+        }
+    }
+
     private val _deletionState = MutableSharedFlow<DataResource<Int>>()
     val deletionState = _deletionState.asSharedFlow()
 
@@ -94,5 +107,4 @@ class ToDoViewModel @Inject constructor(private val repository: TodoRepository) 
             }
         }
     }
-
 }

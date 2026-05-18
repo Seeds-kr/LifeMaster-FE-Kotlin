@@ -43,7 +43,7 @@
                 android:layout_gravity="center"
                 android:contentDescription="@null"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_clock"
+                android:src="@drawable/ic_clock_sleep"
                 app:tint="@color/black" />
         </FrameLayout>
 
