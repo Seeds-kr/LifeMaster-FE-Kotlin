@@ -23,6 +23,6 @@ object HomeConfig {
         "챌린지" to "challenge"
     )
     val KEY_TO_NAME = SERVICE_KEY_MAP.entries.associate { it.value to it.key }
-    val DEFAULT_VISIBLE = setOf("sleep", "group", "introspection")
+    val DEFAULT_VISIBLE = setOf("sleep", "group", "introspection","sleep", "detox", "group", "introspection", "alarm", "challenge")
     val DEFAULT_ORDER = listOf("sleep", "detox", "group", "introspection", "alarm", "challenge")
 }
