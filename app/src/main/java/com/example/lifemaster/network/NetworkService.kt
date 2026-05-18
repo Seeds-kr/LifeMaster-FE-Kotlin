@@ -681,6 +681,13 @@ interface NetworkService {
         @Path("orderId") orderId: String
     ): Response<ResponseBody>
 
+    // 결제 내역 조회
+    @GET("/user/{id}/payments")
+    suspend fun getPaymentHistory(
+        @Header("Authorization") token: String,
+        @Path("id") userId: Long
+    ): Response<List<com.example.lifemaster.presentation.total.mypage.model.PaymentHistoryResponse>>
+
     // 5x5 클릭 그리드 생성 API
     @GET("/time/alarm/mission/follow-click")
     suspend fun generateFollowClickProblem(

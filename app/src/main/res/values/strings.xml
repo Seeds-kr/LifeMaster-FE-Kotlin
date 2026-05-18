@@ -98,6 +98,7 @@
     <string name="mypage_subscription_premium_paid_detail">%1$s 결제 완료</string>
     <string name="mypage_withdrawal_button_text">회원 탈퇴</string>
     <string name="mypage_logout_button_text">로그아웃</string>
+    <string name="mypage_my_coupons">내 쿠폰</string>
 
     <!-- Premium Subscribe (결제 페이지) -->
     <string name="premium_subscribe_title">Premium 구독</string>
@@ -312,7 +313,7 @@
     <string name="coupon_label_type">쿠폰 종류</string>
     <string name="coupon_label_expiration">사용 기한</string>
     <string name="coupon_use_button">쿠폰 사용하기</string>
-    <string name="coupon_use_success">쿠폰이 성공적으로 사용되었습니다.</string>
+    <string name="coupon_use_success">쿠폰 사용 완료</string>
     <string name="coupon_use_fail">쿠폰 사용에 실패했습니다.</string>
     <string name="coupon_error_load">쿠폰 정보를 불러올 수 없습니다.</string>
     <string name="coupon_expiration_format">%1$s 까지</string>

@@ -91,6 +91,7 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
         codeCacheDir.setReadOnly()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -280,6 +281,7 @@ class MainActivity : AppCompatActivity() {
         foregroundStartTime = SystemClock.elapsedRealtime() // 앱이 포그라운드로 전환된 시간 기록
         updateUsageStats()
         handler.post(updateRunnable)
+        fetchMe()
     }
 
     override fun onPause() {
