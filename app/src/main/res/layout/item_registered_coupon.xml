@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -37,6 +38,17 @@
             android:textColor="#666666"
             android:textSize="12sp"
             android:text="UNLIMIT"/>
+
+        <TextView
+            android:id="@+id/tvCouponDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#A0A0A0"
+            android:textSize="11sp"
+            android:layout_marginTop="2dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="2026.05.18 사용"/>
     </LinearLayout>
 
     <TextView

@@ -11,5 +11,7 @@ data class CouponResponse(
     val couponType: String,
     val couponStatus: String,
     val createdAt: String?,
-    val updatedAt: String?
+    val updatedAt: String?,
+    @SerializedName("user")
+    val user: UserData? = null
 ) : Serializable

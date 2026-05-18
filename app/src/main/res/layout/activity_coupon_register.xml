@@ -73,15 +73,21 @@
         android:paddingHorizontal="16dp"
         app:layout_constraintTop_toBottomOf="@id/btnRegisterCoupon"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvMyCoupons"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="12dp"
-        android:paddingHorizontal="16dp"
-        android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/tvMyCouponTitle"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:listitem="@layout/item_registered_coupon"/>
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMyCoupons"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="16dp"
+            android:clipToPadding="false"
+            tools:listitem="@layout/item_registered_coupon"/>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

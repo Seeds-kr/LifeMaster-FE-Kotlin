@@ -43,6 +43,7 @@ class MyPageActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
         setContentView(R.layout.activity_my_page)
 
         ivProfile = findViewById(R.id.ivProfile)
@@ -53,6 +54,8 @@ class MyPageActivity : AppCompatActivity() {
         val btnSubscribePremium = findViewById<Button>(R.id.btnSubscribePremium)
         val tvLogout = findViewById<TextView>(R.id.tvLogout)
         val tvWithdrawal = findViewById<TextView>(R.id.tvWithdrawal)
+        val tvCouponLabel = findViewById<TextView>(R.id.tvCouponLabel)
+        val ivCouponArrow = findViewById<ImageView>(R.id.ivCouponArrow)
 
         val rootView = findViewById<ViewGroup>(android.R.id.content)
         backgroundDimmer = View(this).apply {
@@ -78,14 +81,20 @@ class MyPageActivity : AppCompatActivity() {
         }
 
         tvWithdrawal.setOnClickListener {
-            showWithdrawalDialog()
+            // 서버 연동 전 임시 토스트 (임의의 탈퇴 기능 연동 원복)
+            Toast.makeText(this, "회원 탈퇴는 고객센터에 문의해주세요.", Toast.LENGTH_SHORT).show()
         }
+
+        val openCoupons = View.OnClickListener {
+            startActivity(Intent(this, CouponRegisterActivity::class.java))
+        }
+        tvCouponLabel.setOnClickListener(openCoupons)
+        ivCouponArrow.setOnClickListener(openCoupons)
     }
 
     override fun onResume() {
         super.onResume()
         applyLocalAuthToUi()
-        bindPaymentHistory()
         refreshMeFromServer()
     }
 
@@ -94,7 +103,8 @@ class MyPageActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvNickname).text = resolveNickname(prefs)
         findViewById<TextView>(R.id.tvEmail).text = resolveEmail(prefs)
         showProfileImage(prefs.getString("profileImageUrl", null))
-        applySubscriptionCard(me = null)
+        // 로컬 상태 UI 반영 시에도 쿠폰 목록 정보가 없으면 기본으로 설정 (refreshMeFromServer에서 서버 체크 수행)
+        applySubscriptionCard(null, null)
     }
 
     private fun resolveNickname(prefs: android.content.SharedPreferences): String {
@@ -120,19 +130,33 @@ class MyPageActivity : AppCompatActivity() {
     private fun refreshMeFromServer() {
         val bearer = tokenManager.getBearerToken() ?: return
         lifecycleScope.launch {
-            val me = withContext(Dispatchers.IO) {
-                runCatching { networkService.getMe(bearer) }.getOrNull()
-            }?.takeIf { it.isSuccessful }?.body() ?: return@launch
+            // 1. 서버에서 데이터 3종 실시간 조회 (진실의 원천)
+            val meRes = withContext(Dispatchers.IO) { runCatching { networkService.getMe(bearer) }.getOrNull() }
+            val paymentRes = withContext(Dispatchers.IO) {
+                val memberId = meRes?.body()?.let { it.user?.id ?: it.id } ?: tokenManager.getMemberId() ?: 0L
+                runCatching { networkService.getPaymentHistory(bearer, memberId) }.getOrNull()
+            }
+            val couponRes = withContext(Dispatchers.IO) { runCatching { networkService.getMyCoupons(bearer) }.getOrNull() }
 
-            persistMe(me)
+            val me = meRes?.body()?.takeIf { meRes.isSuccessful }
+            val serverPayments = if (paymentRes?.isSuccessful == true) paymentRes.body() else null
+            val serverCoupons = if (couponRes?.isSuccessful == true) couponRes.body() else null
+
             withContext(Dispatchers.Main) {
-                findViewById<TextView>(R.id.tvNickname).text = displayNick(me)
-                findViewById<TextView>(R.id.tvEmail).text = displayEmail(me)
-                val url = (me.user?.profileImageUrl ?: me.profileImageUrl)?.trim()?.takeIf { it.isNotEmpty() }
-                    ?: getSharedPreferences("auth", Context.MODE_PRIVATE).getString("profileImageUrl", null)
-                showProfileImage(url)
-                applySubscriptionCard(me)
-                bindPaymentHistory()
+                if (me != null) {
+                    persistMe(me)
+                    findViewById<TextView>(R.id.tvNickname).text = displayNick(me)
+                    findViewById<TextView>(R.id.tvEmail).text = displayEmail(me)
+                    showProfileImage((me.user?.profileImageUrl ?: me.profileImageUrl))
+                } else {
+                    applyLocalAuthToUi()
+                }
+                
+                // 오직 이번에 서버에서 받아온 데이터(me, serverCoupons)로만 구독 상태를 결정함 (로컬 캐시 무시)
+                applySubscriptionCard(me, serverCoupons)
+                
+                // 오직 서버 데이터(결제 내역 + 쿠폰 목록)로만 리스트 구성
+                bindPaymentHistory(serverPayments, serverCoupons)
             }
         }
     }
@@ -194,100 +218,98 @@ class MyPageActivity : AppCompatActivity() {
             .into(ivProfile)
     }
 
-    private fun applySubscriptionCard(me: MeResponse?) {
+    private fun applySubscriptionCard(me: MeResponse?, serverCoupons: List<com.example.lifemaster.presentation.total.mypage.model.CouponResponse>?) {
         val typeTv = findViewById<TextView>(R.id.tvSubscriptionType)
         val dateTv = findViewById<TextView>(R.id.tvSubscriptionDate)
         val btnSubscribe = findViewById<Button>(R.id.btnSubscribePremium)
 
-        // 서버 응답(me)에서 프리미엄 여부 확인
-        val mePlan = me?.let { SubscriptionHelper.resolvePlan(it) }
-        val meIsPremium = mePlan?.let { SubscriptionHelper.isPremiumPlan(it) } ?: false
+        // 로컬 데이터는 무시하고, 이번에 서버에서 받아온 데이터들 중 가장 신뢰할 수 있는 정보를 찾음
+        val planFromMe = me?.let { SubscriptionHelper.resolvePlan(it) }.orEmpty()
+        val planFromCoupons = serverCoupons?.firstOrNull { it.user != null }?.user?.subscriptionPlan.orEmpty()
+        val statusFromCoupons = serverCoupons?.firstOrNull { it.user != null }?.user?.paymentStatus.orEmpty()
+        
+        val isPremium = SubscriptionHelper.isPremiumPlan(planFromMe) || 
+                         SubscriptionHelper.isPremiumPlan(planFromCoupons) ||
+                         statusFromCoupons.equals("PAID", ignoreCase = true)
 
-        if (meIsPremium || SubscriptionHelper.isPremium(this)) {
-            // 서버 플랜이 PREMIUM이면 해당 정보를 우선 표시
-            if (meIsPremium) {
-                val apiDesc = (me.user?.subscriptionDescription ?: me.subscriptionDescription
-                    ?: me.user?.expirationDate ?: me.expirationDate)?.trim().orEmpty()
-                typeTv.text = getString(R.string.mypage_premium)
-                dateTv.text = apiDesc.ifBlank { "프리미엄 혜택 이용 중" }
-            } else {
-                // 서버 응답이 없거나 PREMIUM이 아니지만, 로컬 캐시/결제 내역이 있는 경우
-                val local = MyPageLocalStore.readSubscriptionSummary(this)
-                typeTv.text = local?.first?.ifBlank { getString(R.string.mypage_premium) }
-                    ?: getString(R.string.mypage_premium)
-                dateTv.text = local?.second?.ifBlank { "프리미엄 혜택 이용 중" }
-                    ?: "프리미엄 혜택 이용 중"
-            }
+        if (isPremium) {
+            val finalPlan = if (SubscriptionHelper.isPremiumPlan(planFromMe)) planFromMe else "PREMIUM"
+            val expDate = me?.let { SubscriptionHelper.resolveExpirationDate(it) } ?: 
+                           serverCoupons?.firstOrNull { it.user != null }?.user?.expirationDate ?: ""
+            
+            typeTv.text = finalPlan.takeIf { it != "PAID" } ?: getString(R.string.mypage_premium)
+            dateTv.text = expDate.ifBlank { "프리미엄 혜택 이용 중" }
             btnSubscribe.visibility = View.GONE
-            return
+        } else {
+            typeTv.text = getString(R.string.mypage_basic_plan_title)
+            dateTv.text = getString(R.string.mypage_subscription_basic_detail)
+            btnSubscribe.visibility = View.VISIBLE
         }
-
-        typeTv.text = getString(R.string.mypage_basic_plan_title)
-        dateTv.text = getString(R.string.mypage_subscription_basic_detail)
-        btnSubscribe.visibility = View.VISIBLE
     }
 
-    private fun bindPaymentHistory() {
+    private fun bindPaymentHistory(
+        serverPayments: List<com.example.lifemaster.presentation.total.mypage.model.PaymentHistoryResponse>?,
+        serverCoupons: List<com.example.lifemaster.presentation.total.mypage.model.CouponResponse>?
+    ) {
         llPaymentHistory.removeAllViews()
-        val items = MyPageLocalStore.readPayments(this)
-        if (items.isEmpty()) {
-            llPaymentHistory.addView(
-                TextView(this).apply {
-                    text = getString(R.string.mypage_payment_empty)
-                    setTextColor(0xFFA0A0A0.toInt())
-                    textSize = 14f
-                }
-            )
+        
+        val combinedList = mutableListOf<MyPageLocalStore.PaymentLine>()
+
+        // 1. 서버 결제 내역 추가
+        serverPayments?.forEach { s ->
+            val at = parseDateToMillis(s.paymentDate)
+            combinedList.add(MyPageLocalStore.PaymentLine(at, s.description ?: "프리미엄 구독", s.amount ?: ""))
+        }
+        
+        // 2. 서버 쿠폰 목록을 "등록 내역"으로 변환하여 추가 (로컬 데이터 대체)
+        serverCoupons?.forEach { c ->
+            val at = parseDateToMillis(c.createdAt ?: c.updatedAt)
+            val st = c.couponStatus.trim().uppercase()
+            val statusLabel = if (st == "USE" || st == "USED") "사용 완료" else "등록 완료"
+            combinedList.add(MyPageLocalStore.PaymentLine(at, "쿠폰 $statusLabel (${c.couponCode})", "확인"))
+        }
+
+        val sorted = combinedList
+            .distinctBy { it.atMillis.toString() + it.description }
+            .sortedByDescending { it.atMillis }
+
+        if (sorted.isEmpty()) {
+            llPaymentHistory.addView(TextView(this).apply {
+                text = getString(R.string.mypage_payment_empty)
+                setTextColor(0xFFA0A0A0.toInt())
+                textSize = 14f
+            })
             return
         }
+        
         val inflater = LayoutInflater.from(this)
-        for (line in items) {
+        for (line in sorted) {
             val row = inflater.inflate(R.layout.item_payment_history_row, llPaymentHistory, false)
-            row.findViewById<TextView>(R.id.tvPaymentDate).text =
-                MyPageLocalStore.formatPaymentRowDate(line.atMillis)
+            row.findViewById<TextView>(R.id.tvPaymentDate).text = MyPageLocalStore.formatPaymentRowDate(line.atMillis)
             row.findViewById<TextView>(R.id.tvPaymentDesc).text = line.description
             row.findViewById<TextView>(R.id.tvPaymentAmount).text = line.amountLabel
             llPaymentHistory.addView(row)
         }
     }
 
+    private fun parseDateToMillis(dateStr: String?): Long {
+        if (dateStr.isNullOrBlank()) return 0L
+        return runCatching {
+            java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.KOREA).parse(dateStr)?.time ?: 0L
+        }.getOrElse {
+            runCatching {
+                java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.KOREA).parse(dateStr.take(10))?.time ?: 0L
+            }.getOrDefault(0L)
+        }
+    }
+
     private fun logout() {
         tokenManager.clear()
-
         Toast.makeText(this, "로그아웃되었습니다.", Toast.LENGTH_SHORT).show()
-
         val intent = Intent(this, LoginActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         startActivity(intent)
         finish()
-    }
-
-    private fun showWithdrawalDialog() {
-        val builder = AlertDialog.Builder(this)
-        val customLayout = layoutInflater.inflate(R.layout.dialog_confirm_withdrawal, null)
-        builder.setView(customLayout)
-        builder.setCancelable(false)
-
-        alertDialog = builder.create()
-        alertDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-        val btnCancelDialog = customLayout.findViewById<Button>(R.id.btnCancelDialog)
-        val btnWithdrawalDialog = customLayout.findViewById<Button>(R.id.btnWithdrawalDialog)
-
-        btnCancelDialog.setOnClickListener {
-            alertDialog?.dismiss()
-            backgroundDimmer.visibility = View.GONE
-        }
-
-        btnWithdrawalDialog.setOnClickListener {
-            alertDialog?.dismiss()
-            backgroundDimmer.visibility = View.GONE
-            Toast.makeText(this, "탈퇴 처리가 완료되었습니다.", Toast.LENGTH_SHORT).show()
-            logout()
-        }
-
-        backgroundDimmer.visibility = View.VISIBLE
-        alertDialog?.show()
     }
 }

@@ -18,6 +18,7 @@ class CouponAdapter(private val coupons: List<CouponResponse>) :
         val tvCode: TextView = view.findViewById(R.id.tvCouponCode)
         val tvType: TextView = view.findViewById(R.id.tvCouponType)
         val tvStatus: TextView = view.findViewById(R.id.tvCouponStatus)
+        val tvDate: TextView = view.findViewById(R.id.tvCouponDate)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CouponViewHolder {
@@ -31,19 +32,34 @@ class CouponAdapter(private val coupons: List<CouponResponse>) :
         holder.tvCode.text = coupon.couponCode
         holder.tvType.text = coupon.couponType
 
-        if (coupon.couponStatus == "USE") {
-            holder.tvStatus.text = "사용 중"
-            holder.tvStatus.setTextColor(Color.parseColor("#00796B")) // 사용 가능할 때와 같은 색상 혹은 강조색
+        // 서버에서 내려온 쿠폰 상태값 확인 (대소문자 무시 및 USED 포함)
+        val status = coupon.couponStatus.trim().uppercase()
+        if (status == "USE" || status == "USED") {
+            holder.tvStatus.text = "사용 완료"
+            holder.tvStatus.setTextColor(Color.parseColor("#00796B"))
+            
+            val dateStr = coupon.updatedAt?.take(10)?.replace("-", ".") ?: ""
+            if (dateStr.isNotBlank()) {
+                holder.tvDate.text = "$dateStr 사용"
+                holder.tvDate.visibility = View.VISIBLE
+            } else {
+                holder.tvDate.visibility = View.GONE
+            }
+            
+            holder.itemView.setOnClickListener(null)
+            holder.itemView.isClickable = false
         } else {
             holder.tvStatus.text = "사용 가능"
-            holder.tvStatus.setTextColor(Color.parseColor("#888888")) // 사용 전을 오히려 연하게 표시하거나 기호에 맞게 조정
-        }
-
-        holder.itemView.setOnClickListener {
-            val intent = Intent(holder.itemView.context, CouponUseActivity::class.java).apply {
-                putExtra("coupon", coupon)
+            holder.tvStatus.setTextColor(Color.parseColor("#888888"))
+            holder.tvDate.visibility = View.GONE
+            
+            holder.itemView.isClickable = true
+            holder.itemView.setOnClickListener {
+                val intent = Intent(holder.itemView.context, CouponUseActivity::class.java).apply {
+                    putExtra("coupon", coupon)
+                }
+                holder.itemView.context.startActivity(intent)
             }
-            holder.itemView.context.startActivity(intent)
         }
     }
 

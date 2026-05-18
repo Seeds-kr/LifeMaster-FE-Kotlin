@@ -18,12 +18,12 @@ object SubscriptionHelper {
     private const val UNLIMITED_DATE = "9999-12-31"
 
     fun resolvePlan(me: MeResponse): String {
-        val plan = (me.user?.subscriptionPlan ?: me.subscriptionPlan)?.trim().orEmpty()
-        if (plan.isNotBlank()) return plan
-        
-        // paymentStatus가 PAID면 PREMIUM으로 간주하는 fallback
+        // paymentStatus가 PAID면 무조건 PREMIUM으로 간주 (최우선순위)
         val status = (me.user?.paymentStatus ?: me.paymentStatus)?.trim().orEmpty()
         if (status.equals("PAID", ignoreCase = true)) return "PREMIUM"
+
+        val plan = (me.user?.subscriptionPlan ?: me.subscriptionPlan)?.trim().orEmpty()
+        if (plan.isNotBlank()) return plan
         
         return ""
     }
@@ -37,10 +37,21 @@ object SubscriptionHelper {
     fun persistFromMe(context: Context, me: MeResponse) {
         val plan = resolvePlan(me)
         val exp = resolveExpirationDate(me)
+        persistLocal(context, plan, exp)
+    }
+
+    fun persistFromUserData(context: Context, userData: com.example.lifemaster.presentation.total.mypage.model.UserData) {
+        val plan = userData.subscriptionPlan?.trim().orEmpty().ifBlank { 
+            if (userData.paymentStatus?.trim().equals("PAID", ignoreCase = true)) "PREMIUM" else ""
+        }
+        val exp = (userData.expirationDate ?: userData.subscriptionDescription)?.trim().orEmpty()
+        persistLocal(context, plan, exp)
+    }
+
+    private fun persistLocal(context: Context, plan: String, exp: String) {
         context.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE).edit {
             if (plan.isNotBlank()) {
                 putString(KEY_PLAN, plan)
-                // 플랜이 PREMIUM인데 만료일이 없으면 기존 만료일 제거 (무제한 혹은 서버 신뢰)
                 if (isPremiumPlan(plan) && exp.isBlank()) {
                     remove(KEY_EXPIRATION)
                 }
@@ -73,7 +84,8 @@ object SubscriptionHelper {
     fun isPremiumPlan(plan: String?): Boolean {
         val normalized = plan?.trim().orEmpty()
         return normalized.equals("PREMIUM", ignoreCase = true) ||
-            normalized.equals("Premium", ignoreCase = true)
+            normalized.equals("Premium", ignoreCase = true) ||
+            normalized.equals("PAID", ignoreCase = true)
     }
 
     fun isExpired(dateStr: String?): Boolean {
