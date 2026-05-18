@@ -9,9 +9,9 @@ object HomeConfig {
         "디톡스" to "#B4D775",
         "그룹 바로가기" to "#AC87CC",
         "자아성찰 바로가기" to "#FFB943",
-        "챌린지" to "#6DABD9",
+        "챌린지" to "#84CAE2",
         "알람" to "#BBAB94",
-        "커뮤니티" to "#333333"
+        "커뮤니티" to "#EA9F95"
     )
 
     val SERVICE_KEY_MAP = mapOf(
