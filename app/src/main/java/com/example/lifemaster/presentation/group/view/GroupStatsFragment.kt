@@ -2,6 +2,7 @@ package com.example.lifemaster.presentation.group.view
 
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -15,7 +16,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import android.content.Intent
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -31,7 +31,6 @@ import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.group.model.GroupAchievementHeatmapItem
 import com.example.lifemaster.presentation.group.model.GroupGoalProgressResponseItem
 import com.example.lifemaster.presentation.group.model.GroupRankingItem
-import com.example.lifemaster.presentation.group.model.GroupSleepStatsResponse
 import com.example.lifemaster.presentation.group.util.ChartStyle
 import com.example.lifemaster.presentation.total.mypage.view.PremiumSubscribeActivity
 import com.github.mikephil.charting.charts.CombinedChart
@@ -193,6 +192,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 Toast.makeText(requireContext(), "아직 가입되지 않은 그룹이에요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             showLeaveConfirmDialog()
         }
 
@@ -213,12 +213,24 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                     groupName = args.groupName,
                     memberCount = memberCount
                 )
+
             findNavController().navigate(action)
         }
 
         btnToggleWeek.setOnClickListener {
-            if (isPremiumLocked) return@setOnClickListener
-            if (currentRankingScope == "WEEKLY" || isRankingLoading) return@setOnClickListener
+            if (isPremiumLocked) {
+                return@setOnClickListener
+            }
+
+            if (!isMember) {
+                showRankingJoinToastIfNeeded()
+                return@setOnClickListener
+            }
+
+            if (currentRankingScope == "WEEKLY" || isRankingLoading) {
+                return@setOnClickListener
+            }
+
             currentRankingScope = "WEEKLY"
             isRankingExpanded = false
             updateRankingTabUi()
@@ -226,8 +238,19 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         btnToggleAll.setOnClickListener {
-            if (isPremiumLocked) return@setOnClickListener
-            if (currentRankingScope == "TOTAL" || isRankingLoading) return@setOnClickListener
+            if (isPremiumLocked) {
+                return@setOnClickListener
+            }
+
+            if (!isMember) {
+                showRankingJoinToastIfNeeded()
+                return@setOnClickListener
+            }
+
+            if (currentRankingScope == "TOTAL" || isRankingLoading) {
+                return@setOnClickListener
+            }
+
             currentRankingScope = "TOTAL"
             isRankingExpanded = false
             updateRankingTabUi()
@@ -236,8 +259,21 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
         layoutMore.setOnClickListener {
             if (isPremiumLocked) return@setOnClickListener
+            if (!isMember) {
+                showRankingJoinToastIfNeeded()
+                return@setOnClickListener
+            }
+
             isRankingExpanded = !isRankingExpanded
             bindRankingList()
+        }
+
+        layoutRankingHeader.setOnClickListener {
+            showRankingJoinToastIfNeeded()
+        }
+
+        layoutRankingSection.setOnClickListener {
+            showRankingJoinToastIfNeeded()
         }
 
         layoutRecentAchieveRoot.setOnTouchListener { _, event ->
@@ -279,6 +315,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun refreshMembershipStateAndLoadStats() {
         val token = TokenProvider.getBearerToken(requireContext())
+
         if (token.isNullOrBlank()) {
             isMember = false
             applyMembershipUi()
@@ -326,6 +363,14 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 rankingAllItems = emptyList()
                 rankingMyItem = null
                 bindRankingList()
+
+                if (!isPremiumLocked) {
+                    Toast.makeText(
+                        requireContext(),
+                        "그룹 가입 후 랭킹을 확인할 수 있어요.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
@@ -357,6 +402,18 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
     }
 
+    private fun showRankingJoinToastIfNeeded() {
+        if (isPremiumLocked) return
+
+        if (!isMember) {
+            Toast.makeText(
+                requireContext(),
+                "그룹 가입 후 랭킹을 확인할 수 있어요.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
     private fun loadRanking() {
         if (isPremiumLocked) {
             rankingAllItems = emptyList()
@@ -369,17 +426,11 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             rankingAllItems = emptyList()
             rankingMyItem = null
             bindRankingList()
-
-            Toast.makeText(
-                requireContext(),
-                "그룹 가입 후 랭킹을 확인할 수 있어요.",
-                Toast.LENGTH_SHORT
-            ).show()
-
             return
         }
 
         val token = TokenProvider.getBearerToken(requireContext())
+
         if (token.isNullOrBlank()) {
             rankingAllItems = emptyList()
             rankingMyItem = null
@@ -525,6 +576,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         btnCancel.setOnClickListener { dialog.dismiss() }
+
         btnJoinInDialog.setOnClickListener {
             tvWrong.visibility = View.INVISIBLE
             val pw = etPassword.text?.toString()?.trim().orEmpty()
@@ -537,6 +589,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun requestJoinGroup(passwordOrBlank: String) {
         val token = TokenProvider.getBearerToken(requireContext())
+
         if (token.isNullOrBlank()) {
             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
             return
@@ -596,6 +649,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun requestLeaveGroup() {
         val token = TokenProvider.getBearerToken(requireContext())
+
         if (token.isNullOrBlank()) {
             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
             return
@@ -700,7 +754,6 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         layoutRankingList.visibility = View.GONE
 
         layoutMore.visibility = View.GONE
-
         btnChat.visibility = View.GONE
 
         rankingAllItems = emptyList()
@@ -708,7 +761,6 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
         applyMembershipUi()
     }
-
 
     private fun hidePremiumLockedUi() {
         if (isPremiumLocked) return
@@ -750,13 +802,33 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             if (layoutGoalChartContainer.childCount > 0) View.VISIBLE else View.GONE
     }
 
-    private fun bindExternalXAxisLabels(container: View, labels: List<String>, isBarChart: Boolean, chart: View) {
-        val labelContainerId = if (isBarChart) R.id.layout_bar_x_labels else R.id.layout_line_x_labels
+    private fun bindExternalXAxisLabels(
+        container: View,
+        labels: List<String>,
+        isBarChart: Boolean,
+        chart: View
+    ) {
+        val labelContainerId =
+            if (isBarChart) R.id.layout_bar_x_labels else R.id.layout_line_x_labels
 
         val visibleIds = if (isBarChart) {
-            listOf(R.id.tv_bar_x_1, R.id.tv_bar_x_2, R.id.tv_bar_x_3, R.id.tv_bar_x_4, R.id.tv_bar_x_5, R.id.tv_bar_x_6)
+            listOf(
+                R.id.tv_bar_x_1,
+                R.id.tv_bar_x_2,
+                R.id.tv_bar_x_3,
+                R.id.tv_bar_x_4,
+                R.id.tv_bar_x_5,
+                R.id.tv_bar_x_6
+            )
         } else {
-            listOf(R.id.tv_line_x_1, R.id.tv_line_x_2, R.id.tv_line_x_3, R.id.tv_line_x_4, R.id.tv_line_x_5, R.id.tv_line_x_6)
+            listOf(
+                R.id.tv_line_x_1,
+                R.id.tv_line_x_2,
+                R.id.tv_line_x_3,
+                R.id.tv_line_x_4,
+                R.id.tv_line_x_5,
+                R.id.tv_line_x_6
+            )
         }
 
         val labelContainer = container.findViewById<LinearLayout>(labelContainerId)
@@ -968,7 +1040,10 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             }
         }
 
-        chart.data = if (pointSet != null) LineData(groupSet, userSet, pointSet) else LineData(groupSet, userSet)
+        chart.data =
+            if (pointSet != null) LineData(groupSet, userSet, pointSet)
+            else LineData(groupSet, userSet)
+
         chart.xAxis.axisMinimum = -0.5f
         chart.xAxis.axisMaximum = 5.5f
         chart.marker = SleepMarkerView(requireContext(), participantCount, avgHour)
@@ -1105,7 +1180,11 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun hideHeatmapTooltip(clearSelection: Boolean = true) {
         layoutHeatmapTooltip.visibility = View.GONE
-        if (clearSelection) heatmapAdapter?.clearSelection()
+
+        if (clearSelection) {
+            heatmapAdapter?.clearSelection()
+        }
+
         tooltipDismissRunnable?.let { layoutHeatmapTooltip.removeCallbacks(it) }
         tooltipDismissRunnable = null
     }
