@@ -18,21 +18,17 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentChallengeBinding
 import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-
-data class MyChallenge(
-    val imageRes: Int,
-    val isCompleted: Boolean,
-    val completionTime: String? = null
-)
 
 @AndroidEntryPoint
 class ChallengeFragment : Fragment() {
@@ -54,7 +50,6 @@ class ChallengeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupMyChallenges()
         setupRecyclerView()
         observeViewModel()
         setupClickListeners()
@@ -63,42 +58,59 @@ class ChallengeFragment : Fragment() {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.sortedChallengeList.collectLatest { sortedList ->
-                    challengeAdapter.submitList(sortedList)
-                    if (sortedList.isNotEmpty()) {
-                        Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${sortedList.size}개")
-                    } else {
-                        Log.d("ChallengeFragment", "표시할 챌린지가 없습니다.")
+                launch {
+                    viewModel.sortedChallengeList.collectLatest { sortedList ->
+                        challengeAdapter.submitList(sortedList)
+                        if (sortedList.isNotEmpty()) {
+                            Log.d("ChallengeFragment", "챌린지 목록 UI 업데이트: ${sortedList.size}개")
+                        } else {
+                            Log.d("ChallengeFragment", "표시할 챌린지가 없습니다.")
+                        }
+                    }
+                }
+                launch {
+                    viewModel.myParticipatingChallenges.collectLatest { myChallenges ->
+                        updateMyChallengesUI(myChallenges)
                     }
                 }
             }
         }
     }
 
-    private fun setupMyChallenges() {
-        val myChallenge1 = MyChallenge(
-            imageRes = R.drawable.ic_cold_shower,
-            isCompleted = true,
-            completionTime = "9:12am"
-        )
-        val myChallenge2 = MyChallenge(
-            imageRes = R.drawable.ic_stretching,
-            isCompleted = false
-        )
+    private fun updateMyChallengesUI(challenges: List<ChallengeItem>) {
+        if (challenges.isEmpty()) {
+            binding.myChallenge1.root.visibility = View.GONE
+            binding.myChallenge2.root.visibility = View.GONE
+            return
+        }
 
-        setupMyChallengeView(binding.myChallenge1.root, myChallenge1)
-        setupMyChallengeView(binding.myChallenge2.root, myChallenge2)
+        binding.myChallenge1.root.visibility = View.VISIBLE
+        setupMyChallengeView(binding.myChallenge1.root, challenges[0])
+
+        if (challenges.size > 1) {
+            binding.myChallenge2.root.visibility = View.VISIBLE
+            setupMyChallengeView(binding.myChallenge2.root, challenges[1])
+        } else {
+            binding.myChallenge2.root.visibility = View.GONE
+        }
     }
 
-    private fun setupMyChallengeView(challengeView: View, challengeData: MyChallenge) {
+    private fun setupMyChallengeView(challengeView: View, challenge: ChallengeItem) {
         val imageView = challengeView.findViewById<ImageView>(R.id.iv_challenge_image)
         val checkmark = challengeView.findViewById<ImageView>(R.id.iv_checkmark)
         val timeTextView = challengeView.findViewById<TextView>(R.id.tv_completion_time)
 
-        imageView.setImageResource(challengeData.imageRes)
+        if (challenge.challImg.isNotBlank()) {
+            Glide.with(this)
+                .load(challenge.challImg)
+                .circleCrop()
+                .into(imageView)
+        } else {
+            imageView.setImageResource(R.drawable.ic_cold_shower) // fallback
+        }
 
-        if (challengeData.isCompleted) {
-            challengeData.completionTime?.let {
+        if (challenge.isCompleted) {
+            challenge.completionTime?.let {
                 timeTextView.text = it
                 timeTextView.visibility = View.VISIBLE
             }
@@ -116,6 +128,13 @@ class ChallengeFragment : Fragment() {
                 imageView.setRenderEffect(null)
             }
         }
+
+        challengeView.setOnClickListener {
+            val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(
+                challenge.challId
+            )
+            findNavController().navigate(action)
+        }
     }
 
     private fun setupRecyclerView() {
@@ -129,7 +148,7 @@ class ChallengeFragment : Fragment() {
     private fun setupClickListeners() {
         challengeAdapter.onItemClickListener = { challenge ->
             val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(
-                challenge.challId.toLong()
+                challenge.challId
             )
             findNavController().navigate(action)
         }
@@ -178,9 +197,6 @@ class ChallengeFragment : Fragment() {
         
         val token = readAuthToken()
         if (token != null) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.refreshMyParticipatingChallenges(token)
-            }
             viewModel.loadChallenges(token)
         } else {
             Log.e("ChallengeFragment", "인증 토큰이 없습니다. 로그인이 필요합니다.")

@@ -22,6 +22,9 @@ class ChallengeViewModel @Inject constructor(
     private val _myParticipatingIds = MutableStateFlow<Set<Long>>(emptySet())
     val myParticipatingIds: StateFlow<Set<Long>> = _myParticipatingIds.asStateFlow()
 
+    private val _myParticipatingChallenges = MutableStateFlow<List<ChallengeItem>>(emptyList())
+    val myParticipatingChallenges: StateFlow<List<ChallengeItem>> = _myParticipatingChallenges.asStateFlow()
+
     private val _catalogDtos = MutableStateFlow<List<ChallengeItemDto>>(emptyList())
 
     fun isUserParticipating(challId: Long): Boolean = challId in _myParticipatingIds.value
@@ -31,6 +34,7 @@ class ChallengeViewModel @Inject constructor(
             apiService.getMyChallengeList(token)
         }.onSuccess { list ->
             _myParticipatingIds.value = list.map { it.challId }.toSet()
+            _myParticipatingChallenges.value = list.map { mapDtoToItem(it) }
             rebuildCatalogFromCache()
         }.onFailure { e ->
             Log.e("ChallengeViewModel", "내 챌린지 목록 로드 실패", e)
@@ -124,6 +128,9 @@ class ChallengeViewModel @Inject constructor(
         Log.d("ChallengeViewModel", "챌린지 API 호출 시작 (Token: ${token.take(15)}...)")
         viewModelScope.launch {
             try {
+                // 먼저 내 참여 목록을 확실히 갱신
+                refreshMyParticipatingChallenges(token)
+
                 val response = apiService.getChallenges(token, page = 0, size = 20)
 
                 if (response.isSuccessful) {

@@ -213,11 +213,7 @@ class HomeFragment : Fragment() {
         }
 
         binding.cardChallenge.setOnClickListener {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.challenge_feature_in_development),
-                Toast.LENGTH_SHORT
-            ).show()
+            findNavController().navigate(R.id.action_homeFragment_to_challengeFragment)
         }
     }
 
