@@ -15,7 +15,8 @@ data class MeResponse(
     val subscriptionPlan: String? = null,
     @SerializedName(value = "subscriptionDescription", alternate = ["subscriptionExpirationDate", "expirationDate"])
     val subscriptionDescription: String? = null,
-    val expirationDate: String? = null
+    val expirationDate: String? = null,
+    val paymentStatus: String? = null
 )
 
 data class UserData(
@@ -29,5 +30,6 @@ data class UserData(
     val subscriptionPlan: String? = null,
     @SerializedName(value = "subscriptionExpirationDate", alternate = ["expirationDate"])
     val subscriptionDescription: String? = null,
-    val expirationDate: String? = null
+    val expirationDate: String? = null,
+    val paymentStatus: String? = null
 )

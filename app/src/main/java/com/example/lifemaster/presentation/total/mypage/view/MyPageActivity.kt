@@ -199,18 +199,19 @@ class MyPageActivity : AppCompatActivity() {
         val dateTv = findViewById<TextView>(R.id.tvSubscriptionDate)
         val btnSubscribe = findViewById<Button>(R.id.btnSubscribePremium)
 
-        if (SubscriptionHelper.isPremium(this)) {
-            val apiPlan = me?.let { SubscriptionHelper.resolvePlan(it) }.orEmpty()
-            val serverPremiumActive = me != null &&
-                SubscriptionHelper.isPremiumPlan(apiPlan) &&
-                !SubscriptionHelper.isExpired(SubscriptionHelper.resolveExpirationDate(me))
+        // 서버 응답(me)에서 프리미엄 여부 확인
+        val mePlan = me?.let { SubscriptionHelper.resolvePlan(it) }
+        val meIsPremium = mePlan?.let { SubscriptionHelper.isPremiumPlan(it) } ?: false
 
-            if (serverPremiumActive) {
+        if (meIsPremium || SubscriptionHelper.isPremium(this)) {
+            // 서버 플랜이 PREMIUM이면 해당 정보를 우선 표시
+            if (meIsPremium) {
                 val apiDesc = (me.user?.subscriptionDescription ?: me.subscriptionDescription
                     ?: me.user?.expirationDate ?: me.expirationDate)?.trim().orEmpty()
                 typeTv.text = getString(R.string.mypage_premium)
                 dateTv.text = apiDesc.ifBlank { "프리미엄 혜택 이용 중" }
             } else {
+                // 서버 응답이 없거나 PREMIUM이 아니지만, 로컬 캐시/결제 내역이 있는 경우
                 val local = MyPageLocalStore.readSubscriptionSummary(this)
                 typeTv.text = local?.first?.ifBlank { getString(R.string.mypage_premium) }
                     ?: getString(R.string.mypage_premium)
