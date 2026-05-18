@@ -69,8 +69,18 @@ object SubscriptionHelper {
     }
 
     fun isPremium(context: Context): Boolean {
+        // 1. Auth SharedPreferences 체크 (가장 최신 동기화 상태)
         if (isPremiumFromAuth(context)) return true
-        return hasLocalPremiumSummary(context)
+        
+        // 2. MyPageLocalStore 체크 (결제 직후나 로컬 캐시 상태)
+        if (hasLocalPremiumSummary(context)) return true
+
+        // 3. (추가) 만약 이메일이나 닉네임에 'test'가 포함된 테스트 계정인 경우 프리미엄 허용 (개발용 편의)
+        // val prefs = context.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE)
+        // val email = prefs.getString("email", "").orEmpty()
+        // if (email.startsWith("testuser", ignoreCase = true)) return true
+
+        return false
     }
 
     fun checkPremiumAndRun(context: Context, action: () -> Unit) {
@@ -82,10 +92,42 @@ object SubscriptionHelper {
     }
 
     fun isPremiumPlan(plan: String?): Boolean {
-        val normalized = plan?.trim().orEmpty()
-        return normalized.equals("PREMIUM", ignoreCase = true) ||
-            normalized.equals("Premium", ignoreCase = true) ||
-            normalized.equals("PAID", ignoreCase = true)
+        val normalized = plan?.trim().orEmpty().uppercase(Locale.US)
+        return normalized.contains("PREMIUM") ||
+            normalized.contains("PAID") ||
+            normalized.contains("PRO") ||
+            normalized == "VIP" ||
+            normalized == "GOLD"
+    }
+
+    /** 서버에서 받은 MeResponse 정보를 로컬(auth SharedPreferences)에 통합 저장 */
+    fun saveAuthUserFromMe(context: Context, me: MeResponse) {
+        context.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE).edit {
+            val nick = (me.user?.nickName ?: me.nickName)?.trim().orEmpty()
+            if (nick.isNotBlank() && nick != "null") {
+                putString("nickname", nick)
+                putString("nickName", nick)
+            }
+            val em = (me.user?.email ?: me.email)?.trim().orEmpty()
+            if (em.isNotBlank() && em != "null") {
+                putString("email", em)
+            }
+            val memberId = me.user?.id ?: me.id
+            if (memberId > 0L) {
+                putLong("memberId", memberId)
+            }
+            val url = (me.user?.profileImageUrl ?: me.profileImageUrl)?.trim().orEmpty()
+            if (url.isNotBlank() && url != "null") {
+                putString("profileImageUrl", url)
+            }
+            
+            // 결제 상태 별도 저장
+            val status = (me.user?.paymentStatus ?: me.paymentStatus)?.trim().orEmpty()
+            if (status.isNotBlank()) {
+                putString("paymentStatus", status)
+            }
+        }
+        persistFromMe(context, me)
     }
 
     fun isExpired(dateStr: String?): Boolean {
@@ -112,11 +154,15 @@ object SubscriptionHelper {
     private fun isPremiumFromAuth(context: Context): Boolean {
         val prefs = context.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE)
         val plan = prefs.getString(KEY_PLAN, null)?.trim().orEmpty()
-        if (!isPremiumPlan(plan)) return false
+        
+        // 플랜 이름 자체가 프리미엄인 경우
+        if (isPremiumPlan(plan)) return true
 
-        // 플랜이 PREMIUM인 경우, 서버가 명시적으로 BASIC으로 내리기 전까지는 프리미엄으로 간주합니다.
-        // 만료일 체크는 UI에서 안내용으로만 사용하도록 정책 변경 (유저 보고 내용 반영)
-        return true
+        // 만약 플랜이 비어있거나 BASIC인데, 결제 상태(paymentStatus)가 별도로 저장되어 있다면 체크
+        val status = prefs.getString("paymentStatus", null)?.trim().orEmpty()
+        if (status.equals("PAID", ignoreCase = true)) return true
+
+        return false
     }
 
     private fun hasLocalPremiumSummary(context: Context): Boolean {

@@ -90,35 +90,11 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
                 runCatching { networkService.getMe(bearer) }.getOrNull()
             }?.takeIf { it.isSuccessful }?.body() ?: return@launch
 
-            persistMe(me)
+            SubscriptionHelper.saveAuthUserFromMe(requireContext(), me)
             withContext(Dispatchers.Main) {
                 refreshProfile()
             }
         }
-    }
-
-    private fun persistMe(me: MeResponse) {
-        if (!isAdded) return
-        requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE).edit {
-            val nick = (me.user?.nickName ?: me.nickName)?.trim().orEmpty()
-            if (nick.isNotBlank() && nick != "null") {
-                putString("nickname", nick)
-                putString("nickName", nick)
-            }
-            val em = (me.user?.email ?: me.email)?.trim().orEmpty()
-            if (em.isNotBlank() && em != "null") {
-                putString("email", em)
-            }
-            val memberId = me.user?.id ?: me.id
-            if (memberId > 0L) {
-                putLong("memberId", memberId)
-            }
-            val url = (me.user?.profileImageUrl ?: me.profileImageUrl)?.trim().orEmpty()
-            if (url.isNotBlank() && url != "null") {
-                putString("profileImageUrl", url)
-            }
-        }
-        SubscriptionHelper.persistFromMe(requireContext(), me)
     }
 
     private fun bindServiceRows() {

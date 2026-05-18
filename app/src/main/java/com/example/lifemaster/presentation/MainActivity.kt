@@ -146,35 +146,30 @@ class MainActivity : AppCompatActivity() {
     private fun fetchMe() {
         val bearer = tokenManager.getBearerToken() ?: return
         lifecycleScope.launch {
-            val me = withContext(Dispatchers.IO) {
-                runCatching { networkService.getMe(bearer) }.getOrNull()
-            }?.takeIf { it.isSuccessful }?.body() ?: return@launch
+            val meRes = withContext(Dispatchers.IO) { runCatching { networkService.getMe(bearer) } }
+            val couponRes = withContext(Dispatchers.IO) { runCatching { networkService.getMyCoupons(bearer) } }
 
-            persistMeLocally(me)
-        }
-    }
-
-    private fun persistMeLocally(me: MeResponse) {
-        getSharedPreferences("auth", Context.MODE_PRIVATE).edit {
-            val nick = (me.user?.nickName ?: me.nickName)?.trim().orEmpty()
-            if (nick.isNotBlank() && nick != "null") {
-                putString("nickname", nick)
-                putString("nickName", nick)
-            }
-            val em = (me.user?.email ?: me.email)?.trim().orEmpty()
-            if (em.isNotBlank() && em != "null") {
-                putString("email", em)
-            }
-            val memberId = me.user?.id ?: me.id
-            if (memberId > 0L) {
-                putLong("memberId", memberId)
-            }
-            val url = (me.user?.profileImageUrl ?: me.profileImageUrl)?.trim().orEmpty()
-            if (url.isNotBlank() && url != "null") {
-                putString("profileImageUrl", url)
+            meRes.onSuccess { response ->
+                if (response.isSuccessful) {
+                    val me = response.body()
+                    if (me != null) {
+                        SubscriptionHelper.saveAuthUserFromMe(this@MainActivity, me)
+                        
+                        couponRes.onSuccess { cRes ->
+                            if (cRes.isSuccessful) {
+                                val coupons = cRes.body()
+                                val isPremiumByCoupon = coupons?.any { 
+                                    it.user != null && SubscriptionHelper.isPremiumPlan(it.user.subscriptionPlan) 
+                                } ?: false
+                                if (isPremiumByCoupon) {
+                                    SubscriptionHelper.markPremiumActive(this@MainActivity)
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-        SubscriptionHelper.persistFromMe(this, me)
     }
 
     // 사용자의 전날 수면 정보를 가져오는 함수
