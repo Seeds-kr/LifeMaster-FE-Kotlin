@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.databinding.FragmentLoginEmailBinding
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.network.TokenManager
@@ -160,18 +161,19 @@ class LoginEmailFragment : Fragment(R.layout.fragment_login_email) {
                     remove("nickName")
                 }
 
-                val memberId = me?.id
+                val memberId = me?.user?.id ?: me?.id
                 if (memberId != null && memberId > 0L) {
                     putLong("memberId", memberId)
                 } else {
                     remove("memberId")
                 }
 
-                val profileUrl = me?.profileImageUrl?.trim().orEmpty()
+                val profileUrl = (me?.user?.profileImageUrl ?: me?.profileImageUrl)?.trim().orEmpty()
                 if (profileUrl.isNotBlank()) {
                     putString("profileImageUrl", profileUrl)
                 }
             }
+        me?.let { SubscriptionHelper.persistFromMe(requireContext(), it) }
     }
 
     private fun moveToMain(token: String) {

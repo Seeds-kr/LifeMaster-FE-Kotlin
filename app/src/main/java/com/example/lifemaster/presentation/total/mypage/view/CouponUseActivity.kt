@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.lifecycle.lifecycleScope
 import com.example.lifemaster.R
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.total.mypage.MyPageLocalStore
@@ -106,5 +107,6 @@ class CouponUseActivity : AppCompatActivity() {
             description = "Premium 쿠폰 사용 (${coupon?.couponCode})",
             amountLabel = "0원"
         )
+        SubscriptionHelper.markPremiumActive(this)
     }
 }

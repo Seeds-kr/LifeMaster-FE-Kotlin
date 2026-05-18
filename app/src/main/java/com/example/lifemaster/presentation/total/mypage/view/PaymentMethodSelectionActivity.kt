@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.lifemaster.R
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.network.RetrofitInstance
 import com.example.lifemaster.presentation.total.mypage.MyPageLocalStore
 import com.example.lifemaster.presentation.total.mypage.model.PayPalCreateOrderResponse
@@ -281,6 +282,7 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
             getString(R.string.mypage_premium),
             getString(R.string.mypage_subscription_premium_paid_detail, today),
         )
+        SubscriptionHelper.markPremiumActive(this)
     }
 
     companion object {
