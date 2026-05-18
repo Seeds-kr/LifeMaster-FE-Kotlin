@@ -30,6 +30,7 @@ import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.lifecycle.lifecycleScope
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.presentation.total.mypage.model.MeResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -171,12 +172,8 @@ class MainActivity : AppCompatActivity() {
             if (url.isNotBlank() && url != "null") {
                 putString("profileImageUrl", url)
             }
-            val plan = (me.user?.subscriptionPlan ?: me.subscriptionPlan)?.trim().orEmpty()
-            if (plan.isNotBlank()) putString("subscriptionPlan", plan)
-            
-            val exp = (me.user?.expirationDate ?: me.expirationDate)?.trim().orEmpty()
-            if (exp.isNotBlank()) putString("expirationDate", exp)
         }
+        SubscriptionHelper.persistFromMe(this, me)
     }
 
     // 사용자의 전날 수면 정보를 가져오는 함수

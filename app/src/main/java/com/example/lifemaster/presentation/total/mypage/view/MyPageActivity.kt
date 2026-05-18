@@ -17,6 +17,7 @@ import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.lifemaster.R
+import com.example.lifemaster.SubscriptionHelper
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.login.view.LoginActivity
@@ -174,12 +175,8 @@ class MyPageActivity : AppCompatActivity() {
             if (url.isNotBlank() && url != "null") {
                 putString("profileImageUrl", url)
             }
-            val plan = (me.user?.subscriptionPlan ?: me.subscriptionPlan)?.trim().orEmpty()
-            if (plan.isNotBlank()) putString("subscriptionPlan", plan)
-            
-            val exp = (me.user?.expirationDate ?: me.expirationDate)?.trim().orEmpty()
-            if (exp.isNotBlank()) putString("expirationDate", exp)
         }
+        SubscriptionHelper.persistFromMe(this, me)
     }
 
     private fun showProfileImage(url: String?) {
@@ -202,50 +199,31 @@ class MyPageActivity : AppCompatActivity() {
         val dateTv = findViewById<TextView>(R.id.tvSubscriptionDate)
         val btnSubscribe = findViewById<Button>(R.id.btnSubscribePremium)
 
-        val apiPlan = (me?.user?.subscriptionPlan ?: me?.subscriptionPlan)?.trim().orEmpty()
-        val apiDesc = (me?.user?.subscriptionDescription ?: me?.subscriptionDescription ?: me?.user?.expirationDate ?: me?.expirationDate)?.trim().orEmpty()
-        val expirationDateStr = (me?.user?.expirationDate ?: me?.expirationDate)?.trim().orEmpty()
+        if (SubscriptionHelper.isPremium(this)) {
+            val apiPlan = me?.let { SubscriptionHelper.resolvePlan(it) }.orEmpty()
+            val serverPremiumActive = me != null &&
+                SubscriptionHelper.isPremiumPlan(apiPlan) &&
+                !SubscriptionHelper.isExpired(SubscriptionHelper.resolveExpirationDate(me))
 
-        // 1. 서버 데이터가 PREMIUM인지 확인하고, 만료 기한 체크
-        if (apiPlan.equals("PREMIUM", ignoreCase = true)) {
-            val isExpired = checkIfExpired(expirationDateStr)
-            
-            if (!isExpired) {
+            if (serverPremiumActive) {
+                val apiDesc = (me.user?.subscriptionDescription ?: me.subscriptionDescription
+                    ?: me.user?.expirationDate ?: me.expirationDate)?.trim().orEmpty()
                 typeTv.text = getString(R.string.mypage_premium)
                 dateTv.text = apiDesc.ifBlank { "프리미엄 혜택 이용 중" }
-                btnSubscribe.visibility = View.GONE
-                return
+            } else {
+                val local = MyPageLocalStore.readSubscriptionSummary(this)
+                typeTv.text = local?.first?.ifBlank { getString(R.string.mypage_premium) }
+                    ?: getString(R.string.mypage_premium)
+                dateTv.text = local?.second?.ifBlank { "프리미엄 혜택 이용 중" }
+                    ?: "프리미엄 혜택 이용 중"
             }
-        }
-
-        // 2. 로컬 스토리지에 저장된 쿠폰 사용 정보 확인 (즉시 반영용)
-        val local = MyPageLocalStore.readSubscriptionSummary(this)
-        if (local != null) {
-            // 로컬 정보도 만료 체크가 필요할 수 있으나, 일단 서버 데이터가 최우선
-            typeTv.text = local.first.ifBlank { "Premium" }
-            dateTv.text = local.second.ifBlank { getString(R.string.mypage_subscription_basic_detail) }
             btnSubscribe.visibility = View.GONE
             return
         }
 
-        // 3. 기본 상태 (Basic)
         typeTv.text = getString(R.string.mypage_basic_plan_title)
         dateTv.text = getString(R.string.mypage_subscription_basic_detail)
         btnSubscribe.visibility = View.VISIBLE
-    }
-
-    private fun checkIfExpired(dateStr: String?): Boolean {
-        if (dateStr.isNullOrBlank()) return true // 날짜 없으면 만료로 간주
-        if (dateStr == "9999-12-31") return false // 무제한
-        
-        return try {
-            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.KOREA)
-            val expirationDate = sdf.parse(dateStr)
-            val today = java.util.Date()
-            expirationDate?.before(today) ?: true
-        } catch (_: Exception) {
-            false // 파싱 실패 시 일단 활성 상태로 유지
-        }
     }
 
     private fun bindPaymentHistory() {
