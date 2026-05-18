@@ -144,7 +144,7 @@ class MyPageActivity : AppCompatActivity() {
 
             withContext(Dispatchers.Main) {
                 if (me != null) {
-                    persistMe(me)
+                    SubscriptionHelper.saveAuthUserFromMe(this@MyPageActivity, me)
                     findViewById<TextView>(R.id.tvNickname).text = displayNick(me)
                     findViewById<TextView>(R.id.tvEmail).text = displayEmail(me)
                     showProfileImage((me.user?.profileImageUrl ?: me.profileImageUrl))
@@ -180,29 +180,6 @@ class MyPageActivity : AppCompatActivity() {
         return resolveEmail(getSharedPreferences("auth", Context.MODE_PRIVATE))
     }
 
-    private fun persistMe(me: MeResponse) {
-        getSharedPreferences("auth", Context.MODE_PRIVATE).edit {
-            val nick = (me.user?.nickName ?: me.nickName)?.trim().orEmpty()
-            if (nick.isNotBlank() && nick != "null") {
-                putString("nickname", nick)
-                putString("nickName", nick)
-            }
-            val em = (me.user?.email ?: me.email)?.trim().orEmpty()
-            if (em.isNotBlank() && em != "null") {
-                putString("email", em)
-            }
-            val memberId = me.user?.id ?: me.id
-            if (memberId > 0L) {
-                putLong("memberId", memberId)
-            }
-            val url = (me.user?.profileImageUrl ?: me.profileImageUrl)?.trim().orEmpty()
-            if (url.isNotBlank() && url != "null") {
-                putString("profileImageUrl", url)
-            }
-        }
-        SubscriptionHelper.persistFromMe(this, me)
-    }
-
     private fun showProfileImage(url: String?) {
         val u = url?.trim().orEmpty()
         if (u.isBlank() || u == "null") {
@@ -233,10 +210,13 @@ class MyPageActivity : AppCompatActivity() {
                          statusFromCoupons.equals("PAID", ignoreCase = true)
 
         if (isPremium) {
+            // 프리미엄 상태를 로컬에도 동기화하여 다른 화면에서도 즉시 반영되도록 함
             val finalPlan = if (SubscriptionHelper.isPremiumPlan(planFromMe)) planFromMe else "PREMIUM"
             val expDate = me?.let { SubscriptionHelper.resolveExpirationDate(it) } ?: 
                            serverCoupons?.firstOrNull { it.user != null }?.user?.expirationDate ?: ""
             
+            SubscriptionHelper.markPremiumActive(this, expDate.ifBlank { "9999-12-31" })
+
             typeTv.text = finalPlan.takeIf { it != "PAID" } ?: getString(R.string.mypage_premium)
             dateTv.text = expDate.ifBlank { "프리미엄 혜택 이용 중" }
             btnSubscribe.visibility = View.GONE
