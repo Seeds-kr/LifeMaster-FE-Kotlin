@@ -32,6 +32,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
         // 로그인 상태 유지 확인: 저장된 토큰이 있고, 딥링크(콜백)로 들어온 것이 아닐 때 메인으로 이동하기 전 갱신
         val token = tokenManager.getBearerToken()
