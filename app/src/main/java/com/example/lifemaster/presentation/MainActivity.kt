@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN)
         codeCacheDir.setReadOnly()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
