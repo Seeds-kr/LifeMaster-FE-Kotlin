@@ -35,7 +35,7 @@ class DetoxRepeatLockSettingDialog(
         binding.ivSelectTargetApp.visibility = View.VISIBLE
     }
 
-    private fun initListeners() = with(binding)  {
+    private fun initListeners() = with(binding) {
         tvSelectTargetApp.setOnClickListener {
             openTargetAppDialog()
         }
@@ -55,31 +55,27 @@ class DetoxRepeatLockSettingDialog(
         }
 
         btnUseTimeHour.setOnClickListener {
-            dismiss()
-            val dialog = SelectTimeDialog("useTime")
-            dialog.isCancelable = false
-            dialog.show(parentFragmentManager, SelectTimeDialog.TAG)
+            openSelectTimeDialog("useTime")
         }
 
         btnUseTimeMinutes.setOnClickListener {
-            dismiss()
-            val dialog = DetoxRepeatLockTestDialog("useTime")
-            dialog.isCancelable = false
-            dialog.show(parentFragmentManager, DetoxRepeatLockTestDialog.TAG)
+            openSelectTimeDialog("useTime")
+        }
+
+        btnLockTimeHour.setOnClickListener {
+            openSelectTimeDialog("lockTime")
         }
 
         btnLockTimeMinutes.setOnClickListener {
-            dismiss()
-            val dialog = DetoxRepeatLockTestDialog("lockTime")
-            dialog.isCancelable = false
-            dialog.show(parentFragmentManager, DetoxRepeatLockTestDialog.TAG)
+            openSelectTimeDialog("lockTime")
+        }
+
+        btnMaxTimeHour.setOnClickListener {
+            openSelectTimeDialog("maxUseTime")
         }
 
         btnMaxTimeMinutes.setOnClickListener {
-            dismiss()
-            val dialog = DetoxRepeatLockTestDialog("maxUseTime")
-            dialog.isCancelable = false
-            dialog.show(parentFragmentManager, DetoxRepeatLockTestDialog.TAG)
+            openSelectTimeDialog("maxUseTime")
         }
 
         btnCancel.setOnClickListener {
@@ -94,10 +90,29 @@ class DetoxRepeatLockSettingDialog(
                 return@setOnClickListener
             }
 
-            val useTime = btnUseTimeMinutes.text.toString().toInt()
-            val lockTime = btnLockTimeMinutes.text.toString().toInt()
-            val maxUseTime = btnMaxTimeMinutes.text.toString().toInt()
+            val useTimeHour = btnUseTimeHour.text.toString().toIntOrNull() ?: 0
+            val useTimeMinutes = btnUseTimeMinutes.text.toString().toIntOrNull() ?: 0
+
+            val lockTimeHour = btnLockTimeHour.text.toString().toIntOrNull() ?: 0
+            val lockTimeMinutes = btnLockTimeMinutes.text.toString().toIntOrNull() ?: 0
+
+            val maxUseTimeHour = btnMaxTimeHour.text.toString().toIntOrNull() ?: 0
+            val maxUseTimeMinutes = btnMaxTimeMinutes.text.toString().toIntOrNull() ?: 0
+
+            val useTime = useTimeHour * 60 + useTimeMinutes
+            val lockTime = lockTimeHour * 60 + lockTimeMinutes
+            val maxUseTime = maxUseTimeHour * 60 + maxUseTimeMinutes
             val isMaxTimeLimitSet = maxUseTime != 0
+
+            if (useTime == 0) {
+                Toast.makeText(context, "사용 시간을 설정해주세요!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (lockTime == 0) {
+                Toast.makeText(context, "잠금 시간을 설정해주세요!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
             val repeatLockItem = DetoxRepeatLockItem(
                 selectedApp.appIcon,
@@ -127,35 +142,32 @@ class DetoxRepeatLockSettingDialog(
         dialog.show(parentFragmentManager, DetoxRepeatLockTargetDialog.TAG)
     }
 
+    private fun openSelectTimeDialog(type: String) {
+        dismiss()
+        val dialog = SelectTimeDialog(type)
+        dialog.isCancelable = false
+        dialog.show(parentFragmentManager, SelectTimeDialog.TAG)
+    }
+
     private fun initObservers() {
         viewModel.repeatLockTargetApp.observe(viewLifecycleOwner) {
             targetApp = it
             bindSelectedTargetApp()
         }
+
         viewModel.useTime.observe(viewLifecycleOwner) { useTime ->
-//            binding.btnUseTimeHour.text = "${useTime.first}"
+            binding.btnUseTimeHour.text = "${useTime.first}"
             binding.btnUseTimeMinutes.text = "${useTime.second}"
         }
+
         viewModel.lockTime.observe(viewLifecycleOwner) { lockTime ->
-//            binding.btnLockTimeHour.text = "${lockTime.first}"
+            binding.btnLockTimeHour.text = "${lockTime.first}"
             binding.btnLockTimeMinutes.text = "${lockTime.second}"
         }
-        viewModel.maxUseTime.observe(viewLifecycleOwner) { maxUseTime ->
-//            binding.btnMaxTimeHour.text = "${maxUseTime.first}"
-            binding.btnMaxTimeMinutes.text = "${maxUseTime.second}"
-            binding.llMaxTimeClose.visibility = View.GONE
-            binding.llMaxTimeOpen.visibility = View.VISIBLE
-        }
 
-        // test 용
-        viewModel.tempUseTime.observe(viewLifecycleOwner) { useTime ->
-            binding.btnUseTimeMinutes.text = "$useTime"
-        }
-        viewModel.tempLockTime.observe(viewLifecycleOwner) { lockTime ->
-            binding.btnLockTimeMinutes.text = "$lockTime"
-        }
-        viewModel.tempMaxUseTime.observe(viewLifecycleOwner) { maxUseTime ->
-            binding.btnMaxTimeMinutes.text = "$maxUseTime"
+        viewModel.maxUseTime.observe(viewLifecycleOwner) { maxUseTime ->
+            binding.btnMaxTimeHour.text = "${maxUseTime.first}"
+            binding.btnMaxTimeMinutes.text = "${maxUseTime.second}"
             binding.llMaxTimeClose.visibility = View.GONE
             binding.llMaxTimeOpen.visibility = View.VISIBLE
         }
