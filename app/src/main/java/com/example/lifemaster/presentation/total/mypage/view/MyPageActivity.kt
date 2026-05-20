@@ -200,20 +200,30 @@ class MyPageActivity : AppCompatActivity() {
         val dateTv = findViewById<TextView>(R.id.tvSubscriptionDate)
         val btnSubscribe = findViewById<Button>(R.id.btnSubscribePremium)
 
-        // 로컬 데이터는 무시하고, 이번에 서버에서 받아온 데이터들 중 가장 신뢰할 수 있는 정보를 찾음
+        // 1. 서버 데이터에서 프리미엄 여부 확인
         val planFromMe = me?.let { SubscriptionHelper.resolvePlan(it) }.orEmpty()
         val planFromCoupons = serverCoupons?.firstOrNull { it.user != null }?.user?.subscriptionPlan.orEmpty()
         val statusFromCoupons = serverCoupons?.firstOrNull { it.user != null }?.user?.paymentStatus.orEmpty()
         
-        val isPremium = SubscriptionHelper.isPremiumPlan(planFromMe) || 
+        var isPremium = SubscriptionHelper.isPremiumPlan(planFromMe) || 
                          SubscriptionHelper.isPremiumPlan(planFromCoupons) ||
                          statusFromCoupons.equals("PAID", ignoreCase = true)
+
+        // 2. 서버 데이터가 베이직이더라도, 로컬 캐시(방금 결제/쿠폰사용)가 프리미엄이면 인정
+        if (!isPremium && SubscriptionHelper.isPremium(this)) {
+            isPremium = true
+        }
 
         if (isPremium) {
             // 프리미엄 상태를 로컬에도 동기화하여 다른 화면에서도 즉시 반영되도록 함
             val finalPlan = if (SubscriptionHelper.isPremiumPlan(planFromMe)) planFromMe else "PREMIUM"
-            val expDate = me?.let { SubscriptionHelper.resolveExpirationDate(it) } ?: 
-                           serverCoupons?.firstOrNull { it.user != null }?.user?.expirationDate ?: ""
+            
+            // 만약 서버에서 준 날짜가 없으면 로컬 캐시에서라도 가져옴
+            val localSummary = MyPageLocalStore.readSubscriptionSummary(this)
+            val expDate = me?.let { SubscriptionHelper.resolveExpirationDate(it) } 
+                           ?: serverCoupons?.firstOrNull { it.user != null }?.user?.expirationDate 
+                           ?: localSummary?.second 
+                           ?: ""
             
             SubscriptionHelper.markPremiumActive(this, expDate.ifBlank { "9999-12-31" })
 
@@ -233,7 +243,8 @@ class MyPageActivity : AppCompatActivity() {
     ) {
         llPaymentHistory.removeAllViews()
         
-        val combinedList = mutableListOf<MyPageLocalStore.PaymentLine>()
+        // 로컬에 저장된 내역을 기본으로 가져옴 (결제/쿠폰 사용 직후 서버 미반영 시 대응)
+        val combinedList = MyPageLocalStore.readPayments(this).toMutableList()
 
         // 1. 서버 결제 내역 추가
         serverPayments?.forEach { s ->
@@ -241,7 +252,7 @@ class MyPageActivity : AppCompatActivity() {
             combinedList.add(MyPageLocalStore.PaymentLine(at, s.description ?: "프리미엄 구독", s.amount ?: ""))
         }
         
-        // 2. 서버 쿠폰 목록을 "등록 내역"으로 변환하여 추가 (로컬 데이터 대체)
+        // 2. 서버 쿠폰 목록을 "등록 내역"으로 변환하여 추가
         serverCoupons?.forEach { c ->
             val at = parseDateToMillis(c.createdAt ?: c.updatedAt)
             val st = c.couponStatus.trim().uppercase()
@@ -250,7 +261,7 @@ class MyPageActivity : AppCompatActivity() {
         }
 
         val sorted = combinedList
-            .distinctBy { it.atMillis.toString() + it.description }
+            .distinctBy { (it.atMillis / 1000).toString() + it.description } // 초 단위까지 같고 설명이 같으면 중복 제거
             .sortedByDescending { it.atMillis }
 
         if (sorted.isEmpty()) {

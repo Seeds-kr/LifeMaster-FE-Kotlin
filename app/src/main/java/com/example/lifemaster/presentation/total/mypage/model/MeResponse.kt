@@ -1,6 +1,7 @@
 package com.example.lifemaster.presentation.total.mypage.model
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
 data class MeResponse(
     @SerializedName("user")
@@ -20,7 +21,7 @@ data class MeResponse(
     val expirationDate: String? = null,
     @SerializedName(value = "paymentStatus", alternate = ["payment_status", "is_paid", "paid"])
     val paymentStatus: String? = null
-)
+) : Serializable
 
 data class UserData(
     val id: Long,
@@ -37,4 +38,4 @@ data class UserData(
     val expirationDate: String? = null,
     @SerializedName(value = "paymentStatus", alternate = ["payment_status", "is_paid", "paid"])
     val paymentStatus: String? = null
-)
+) : Serializable
