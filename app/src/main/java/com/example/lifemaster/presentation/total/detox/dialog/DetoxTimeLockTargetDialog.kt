@@ -3,7 +3,6 @@ package com.example.lifemaster.presentation.total.detox.dialog
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.lifemaster.R
@@ -14,7 +13,7 @@ import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
 
 class DetoxTimeLockTargetDialog(
     selectedApp: DetoxTargetApp? = null
-): DialogFragment(R.layout.dialog_detox_target_app) {
+): RoundedDialogFragment(R.layout.dialog_detox_target_app) {
 
     private lateinit var binding: DialogDetoxTargetAppBinding
     private val viewModel: DetoxViewModel by activityViewModels()

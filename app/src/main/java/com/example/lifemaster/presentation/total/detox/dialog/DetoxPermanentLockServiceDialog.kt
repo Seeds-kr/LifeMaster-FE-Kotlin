@@ -3,7 +3,6 @@ package com.example.lifemaster.presentation.total.detox.dialog
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -20,7 +19,7 @@ import kotlinx.coroutines.launch
 
 class DetoxPermanentLockServiceDialog(
     private val permanentLockedPackageNames: Set<String>? = null
-): DialogFragment(R.layout.dialog_detox_target_app) {
+): RoundedDialogFragment(R.layout.dialog_detox_target_app) {
     private lateinit var binding: DialogDetoxTargetAppBinding
     private val repeatLockViewModel: DetoxRepeatLockViewModel by activityViewModels()
     private val viewModel: DetoxViewModel by activityViewModels()

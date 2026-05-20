@@ -1,12 +1,28 @@
 package com.example.lifemaster.presentation.total.detox.viewmodel
 
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.lifemaster.R
+import com.example.lifemaster.network.NetworkService
+import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLock
+import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockResponseItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DetoxRepeatLockViewModel: ViewModel() {
+@HiltViewModel
+class DetoxRepeatLockViewModel @Inject constructor(
+    private val networkService: NetworkService,
+    @ApplicationContext private val context: Context
+) : ViewModel() {
 
     var blockServiceApplications = arrayListOf<DetoxTargetApp>()
 
@@ -38,6 +54,52 @@ class DetoxRepeatLockViewModel: ViewModel() {
         val currentList = _repeatLockApp.value ?: arrayListOf()
         currentList.add(repeatLockApp)
         _repeatLockApp.value = currentList
+    }
+
+    fun generateRepeatLock(request: DetoxRepeatLock) {
+        viewModelScope.launch {
+            try {
+                val response = networkService.generateRepeatLock(request)
+
+                if (response.isSuccessful) {
+                    fetchRepeatLockItems()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun fetchRepeatLockItems() {
+        viewModelScope.launch {
+            try {
+                val response = networkService.fetchRepeatLockItems()
+
+                if (response.isSuccessful) {
+                    val items = response.body()?.lockedApps.orEmpty().map { item ->
+                        item.toRepeatLockItem()
+                    }
+
+                    _repeatLockApp.value = ArrayList(items)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun deleteRepeatLockItem(id: Long) {
+        viewModelScope.launch {
+            try {
+                val response = networkService.deleteRepeatLockItem(id)
+
+                if (response.isSuccessful) {
+                    fetchRepeatLockItems()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     // 반복 잠금 아이템 시간(사용 시간)
@@ -88,5 +150,34 @@ class DetoxRepeatLockViewModel: ViewModel() {
 
     fun setTempMaxUseTime(tempUseTime: Int) {
         _tempMaxUseTime.value = tempUseTime
+    }
+
+    private fun DetoxRepeatLockResponseItem.toRepeatLockItem(): DetoxRepeatLockItem {
+        val appInfo = getAppInfo(lockedApp)
+
+        return DetoxRepeatLockItem(
+            id = id,
+            appIcon = appInfo.first,
+            appName = appInfo.second,
+            appPackageName = lockedApp,
+            useTime = sessionUsageLimit,
+            lockTime = lockDuration,
+            maxTime = dailyMaxUsageLimit,
+            accumulatedTime = 0L,
+            isMaxTimeLimitSet = dailyMaxUsageLimit != 0
+        )
+    }
+
+    private fun getAppInfo(packageName: String): Pair<android.graphics.drawable.Drawable, String> {
+        return try {
+            val packageManager = context.packageManager
+            val appInfo = packageManager.getApplicationInfo(packageName, 0)
+            val icon = packageManager.getApplicationIcon(appInfo)
+            val name = packageManager.getApplicationLabel(appInfo).toString()
+            Pair(icon, name)
+        } catch (e: PackageManager.NameNotFoundException) {
+            val defaultIcon = ContextCompat.getDrawable(context, R.mipmap.ic_launcher)!!
+            Pair(defaultIcon, packageName)
+        }
     }
 }

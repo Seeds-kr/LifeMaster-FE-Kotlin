@@ -27,6 +27,7 @@ data class DetoxTargetApp(
 
 @Parcelize
 data class DetoxRepeatLockItem(
+    val id: Long = 0L,
     val appIcon: @RawValue Drawable,
     val appName: String,
     val appPackageName: String,
