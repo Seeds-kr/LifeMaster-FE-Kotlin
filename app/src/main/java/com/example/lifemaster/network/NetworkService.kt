@@ -730,8 +730,13 @@ interface NetworkService {
     // 반복 잠금 전체 목록 조회
     @GET("/detox/repeat")
     suspend fun fetchRepeatLockItems(
-
     ): Response<DetoxRepeatLockResponse>
+
+    // 반복 잠금 목록 삭제
+    @DELETE("/detox/repeat/{id}")
+    suspend fun deleteRepeatLockItem(
+        @Path("id") id: Long
+    ): Response<Unit>
 
     // 시간 잠금 특정 목록 생성
     @POST("/detox/time")
