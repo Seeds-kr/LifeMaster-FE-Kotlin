@@ -74,7 +74,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:text="오늘 앱 사용 시간" />
+            android:text="오늘 앱 사용 시간"
+            android:textSize="14dp"/>
 
         <TextView
             android:id="@+id/tv_accumulated_time_of_day"
@@ -90,7 +91,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="20dp"
-        android:background="#DADEDF" />
+        android:background="@color/black_10" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -119,7 +120,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="52dp"
+        android:layout_height="56dp"
         android:layout_marginTop="20dp"
         android:background="@drawable/bg_round_radius_8dp"
         android:backgroundTint="@color/white"
