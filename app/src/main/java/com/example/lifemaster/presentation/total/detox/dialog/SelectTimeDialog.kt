@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class SelectTimeDialog(private val type: String) :
-    DialogFragment(R.layout.dialog_select_times) {
+    RoundedDialogFragment(R.layout.dialog_select_times) {
     private lateinit var binding: DialogSelectTimesBinding
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by activityViewModels()
 
