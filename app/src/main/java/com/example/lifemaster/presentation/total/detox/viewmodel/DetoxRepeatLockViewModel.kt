@@ -88,6 +88,20 @@ class DetoxRepeatLockViewModel @Inject constructor(
         }
     }
 
+    fun deleteRepeatLockItem(id: Long) {
+        viewModelScope.launch {
+            try {
+                val response = networkService.deleteRepeatLockItem(id)
+
+                if (response.isSuccessful) {
+                    fetchRepeatLockItems()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     // 반복 잠금 아이템 시간(사용 시간)
     private val _useTime: MutableLiveData<Pair<Int,Int>> = MutableLiveData()
     val useTime: LiveData<Pair<Int,Int>> get() = _useTime
@@ -142,6 +156,7 @@ class DetoxRepeatLockViewModel @Inject constructor(
         val appInfo = getAppInfo(lockedApp)
 
         return DetoxRepeatLockItem(
+            id = id,
             appIcon = appInfo.first,
             appName = appInfo.second,
             appPackageName = lockedApp,

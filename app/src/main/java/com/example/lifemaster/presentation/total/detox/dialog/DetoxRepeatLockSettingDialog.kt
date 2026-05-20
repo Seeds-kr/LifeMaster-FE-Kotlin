@@ -116,6 +116,7 @@ class DetoxRepeatLockSettingDialog(
             }
 
             val repeatLockItem = DetoxRepeatLockItem(
+                id = 0L,
                 selectedApp.appIcon,
                 selectedApp.appName,
                 selectedApp.appPackageName,
