@@ -6,7 +6,6 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.core.view.isVisible
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -22,7 +21,7 @@ import com.example.lifemaster.presentation.total.detox.model.TimeLockRepeatPerio
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
 import kotlinx.coroutines.launch
 
-class DetoxTimeLockDialog: DialogFragment(R.layout.dialog_detox_time_lock) {
+class DetoxTimeLockDialog: RoundedDialogFragment(R.layout.dialog_detox_time_lock) {
 
     private lateinit var binding: DialogDetoxTimeLockBinding
     private val viewModel: DetoxViewModel by activityViewModels()

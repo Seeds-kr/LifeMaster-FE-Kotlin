@@ -3,13 +3,12 @@ package com.example.lifemaster.presentation.total.detox.dialog
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogDetoxRepeatLockTestBinding
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 
-class DetoxRepeatLockTestDialog(private val type: String) : DialogFragment(R.layout.dialog_detox_repeat_lock_test) {
+class DetoxRepeatLockTestDialog(private val type: String) : RoundedDialogFragment(R.layout.dialog_detox_repeat_lock_test) {
 
     private lateinit var binding: DialogDetoxRepeatLockTestBinding
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by activityViewModels()
