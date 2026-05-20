@@ -10,6 +10,7 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.DialogDetoxRepeatLockSettingBinding
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockItem
 import com.example.lifemaster.presentation.total.detox.model.DetoxTargetApp
+import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLock
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 
 class DetoxRepeatLockSettingDialog(
@@ -125,7 +126,14 @@ class DetoxRepeatLockSettingDialog(
                 isMaxTimeLimitSet
             )
 
-            viewModel.addRepeatLockApp(repeatLockItem)
+            val request = DetoxRepeatLock(
+                lockedApp = selectedApp.appPackageName,
+                sessionUsageLimit = useTime,
+                lockDuration = lockTime,
+                dailyMaxUsageLimit = maxUseTime
+            )
+
+            viewModel.generateRepeatLock(request)
 
             val intent = Intent("com.example.lifemaster.BROADCAST_RECEIVER")
             intent.putExtra("TEMPORARY_BLOCK_APP", repeatLockItem)

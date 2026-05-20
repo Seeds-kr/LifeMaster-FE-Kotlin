@@ -63,6 +63,7 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     private fun fetchData() {
         detoxViewModel.fetchPermanentLockItems() // 영구 잠금 리스트 항목 가져오기
         detoxViewModel.fetchTimeLockItems() // 시간 잠금 리스트 항목 가져오기
+        detoxRepeatLockViewModel.fetchRepeatLockItems() // 반복 잠금 리스트 항목 가져오기
     }
 
     private fun initViews() {

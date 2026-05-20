@@ -52,6 +52,7 @@ import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLock
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLock
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
+import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockResponse
 import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
 import com.example.lifemaster.presentation.total.mypage.model.MeResponse
 import com.example.lifemaster.presentation.total.mypage.model.PayPalCreateOrderResponse
@@ -725,6 +726,12 @@ interface NetworkService {
     suspend fun generateRepeatLock(
         @Body request: DetoxRepeatLock
     ): Response<Unit>
+
+    // 반복 잠금 전체 목록 조회
+    @GET("/detox/repeat")
+    suspend fun fetchRepeatLockItems(
+
+    ): Response<DetoxRepeatLockResponse>
 
     // 시간 잠금 특정 목록 생성
     @POST("/detox/time")
