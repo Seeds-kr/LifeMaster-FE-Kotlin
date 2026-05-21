@@ -288,6 +288,7 @@
                 </LinearLayout>
 
                 <include
+                    android:id="@+id/layout_introspection_preview"
                     layout="@layout/item_introspection_preview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -336,6 +337,7 @@
                 </LinearLayout>
 
                 <include
+                    android:id="@+id/layout_challenge_preview"
                     layout="@layout/item_challenge_preview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -417,6 +419,7 @@
                 </LinearLayout>
 
                 <include
+                    android:id="@+id/layout_detox_preview"
                     layout="@layout/item_detox_preview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -119,68 +119,12 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                 is Result.Success -> {
                     Toast.makeText(context, "오늘의 기분이 업데이트 되었습니다!", Toast.LENGTH_SHORT).show()
                     val updatedSleepRecord = result.data
-                    val todayMoods = listOf(
-                        ivSleepReportTodayMoodVeryBad,
-                        ivSleepReportTodayMoodBad,
-                        ivSleepReportTodayMoodGood,
-                        ivSleepReportTodayMoodVeryGood
-                    )
-
-                    // 1. 오늘의 기분 UI 업데이트
-                    todayMoods.forEach { it.clearColorFilter() }
-                    when (updatedSleepRecord.sleepMood) {
-                        VERY_BAD -> changeSelectedMoodColor(ivSleepReportTodayMoodVeryBad)
-                        BAD -> changeSelectedMoodColor(ivSleepReportTodayMoodBad)
-                        GOOD -> changeSelectedMoodColor(ivSleepReportTodayMoodGood)
-                        VERY_GOOD -> changeSelectedMoodColor(ivSleepReportTodayMoodVeryGood)
+                    
+                    // 전체 리스트에서 해당 기록을 찾아 업데이트하고 UI를 다시 초기화합니다.
+                    remoteUserSleepRecordList = remoteUserSleepRecordList.map {
+                        if (it.sleepId == updatedSleepRecord.sleepId) updatedSleepRecord else it
                     }
-
-                    // 2. 차트 UI 업데이트
-                    yValues[yValues.lastIndex] = updatedSleepRecord.sleepScore
-
-                    userSleepDataPoints[userSleepDataPoints.lastIndex] = Entry(
-                        yValues.lastIndex.toFloat(), updatedSleepRecord.sleepScore
-                    )
-
-                    dailySleepScores[dailySleepScores.lastIndex] = updatedSleepRecord.sleepScore
-
-                    val updatedMoodIcon = when(updatedSleepRecord.sleepMood) {
-                        VERY_BAD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_very_bad)
-                        BAD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_bad)
-                        GOOD -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_mood_good)
-                        VERY_GOOD -> AppCompatResources.getDrawable(requireContext() ,R.drawable.ic_mood_very_good)
-                        else -> AppCompatResources.getDrawable(requireContext(), R.drawable.ic_alert)
-                    }
-
-                    val updatedPair = yValues.lastIndex.toFloat() to updatedMoodIcon
-                    userMoodDataPoints[userMoodDataPoints.lastIndex] = updatedPair
-
-                    lineChartSleepReportGraph.invalidate()
-
-                    // 3. 평균 비교 UI 업데이트
-                    val todayUpdatedSleepScore = updatedSleepRecord.sleepScore.toInt()
-                    tvSleepReportAnalysisSleepScoreValue.text = "${todayUpdatedSleepScore}점"
-
-                    val pastUserSleepRecordList = remoteUserSleepRecordList.filter { it.sleepDate != LocalDate.now().toString() }
-                    var pastUserSleepScoreSum = 0f
-
-                    for(pastUserSleepRecord in pastUserSleepRecordList) {
-                        val sleepScore = pastUserSleepRecord.sleepScore
-                        pastUserSleepScoreSum += sleepScore
-                    }
-
-                    var pastUserSleepScoreAverage = (pastUserSleepScoreSum/pastUserSleepRecordList.size).toInt()
-
-                    tvSleepReportAnalysisSleepScoreGapValue.text = "${abs(todayUpdatedSleepScore - pastUserSleepScoreAverage)}"
-                    if(todayUpdatedSleepScore > pastUserSleepScoreAverage) {
-                        ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
-                    } else if(todayUpdatedSleepScore == pastUserSleepScoreAverage) {
-                        ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_average)
-                    } else {
-                        ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
-                        ivSleepReportAnalysisSleepScoreChangeIndicator.rotation = 180f
-                    }
-
+                    initRemoteUI(remoteUserSleepRecordList)
                 }
                 is Result.Error -> {
                     Toast.makeText(context, "서버 에러: ${result.throwable}", Toast.LENGTH_SHORT).show()
@@ -205,7 +149,23 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         dailyAlarmDurations.clear()
         dailySleepScores.clear()
 
-        val todaySleepRecord = remoteUserSleepRecordList.find { it.sleepDate == selectedDate.toString() }
+        // UI 초기 상태 설정 (데이터가 없을 경우를 대비)
+        tvSleepReportAnalysisSleepTimeValue.text = "미측정"
+        tvSleepReportAnalysisSleepScoreValue.text = "미측정"
+        tvSleepReportAnalysisAlarmDurationValue.text = "기록 없음"
+        tvSleepReportAnalysisWakeupDelayTimeValue.text = "기록 없음"
+        cvSleepReportAnalysisSleepTimeCompare.isVisible = false
+        cvSleepReportAnalysisSleepScoreCompare.isVisible = false
+        cvSleepReportAnalysisWakeupDelayTimeCompare.isVisible = false
+
+        val todaySleepRecord = remoteUserSleepRecordList.find {
+            try {
+                val dateStr = if (it.sleepDate.contains("T")) it.sleepDate.substringBefore("T") else it.sleepDate
+                LocalDate.parse(dateStr) == selectedDate
+            } catch (e: Exception) {
+                it.sleepDate == selectedDate.toString()
+            }
+        }
 
         if(todaySleepRecord == null && sleepViewModel.isMeasured == true && selectedDate == LocalDate.now()) {
             sleepViewModel.registerUserSleepInfo(
@@ -220,8 +180,8 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
                     )
                 )
             )
-            sleepViewModel.getUserSleepInfo(userId = memberId)
-            return@with
+            // 등록 중임을 표시하거나, 로컬 데이터를 임시로 보여줄 수 있습니다.
+            tvSleepReportTitle.text = "수면 데이터를 등록 중입니다..."
         }
 
         if(todaySleepRecord?.alarmInfo?.isWakeUpAlarmSet == false) {
@@ -252,6 +212,13 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         }
 
         // 금일 기분 UI
+        listOf(
+            ivSleepReportTodayMoodVeryBad,
+            ivSleepReportTodayMoodBad,
+            ivSleepReportTodayMoodGood,
+            ivSleepReportTodayMoodVeryGood
+        ).forEach { it.clearColorFilter() }
+
         when (todaySleepRecord?.sleepMood) {
             VERY_BAD -> changeSelectedMoodColor(ivSleepReportTodayMoodVeryBad)
             BAD -> changeSelectedMoodColor(ivSleepReportTodayMoodBad)
@@ -260,14 +227,30 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         }
 
         // 통계 UI
-        // 날짜 중복 제거 (같은 날짜의 기록이 여러 개일 경우 마지막 기록 사용)
+        // 날짜 중복 제거 및 정렬 (서버에서 날짜 포맷이 일관되지 않을 수 있으므로 LocalDate로 변환하여 처리)
         val filteredRecords = remoteUserSleepRecordList
-            .groupBy { it.sleepDate }
+            .groupBy {
+                try {
+                    val dateStr = if (it.sleepDate.contains("T")) it.sleepDate.substringBefore("T") else it.sleepDate
+                    LocalDate.parse(dateStr)
+                } catch (e: Exception) {
+                    it.sleepDate
+                }
+            }
             .map { it.value.last() }
-            .sortedBy { it.sleepDate }
+            .sortedBy {
+                try {
+                    val dateStr = if (it.sleepDate.contains("T")) it.sleepDate.substringBefore("T") else it.sleepDate
+                    LocalDate.parse(dateStr)
+                } catch (e: Exception) {
+                    LocalDate.MIN
+                }
+            }
 
         filteredRecords.forEach { record ->
-            val sleepDayOfMonth = record.sleepDate.split("-")[2] // "2025-08-28" → "28"
+            val dateStr = if (record.sleepDate.contains("T")) record.sleepDate.substringBefore("T") else record.sleepDate
+            val date = try { LocalDate.parse(dateStr) } catch(e: Exception) { null }
+            val sleepDayOfMonth = date?.dayOfMonth?.toString() ?: record.sleepDate.split("-").last()
             xLabels.add(sleepDayOfMonth)
             yValues.add(record.sleepScore)
         }
@@ -318,10 +301,17 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
         }
 
         filteredRecords.forEach { record ->
-            val dateParts = record.sleepDate.split("-")
-            val month = dateParts[1].toInt()
-            val day = dateParts[2].toInt()
-            dailySleepDates.add("${month}월 ${day}일")
+            val dateStr = if (record.sleepDate.contains("T")) record.sleepDate.substringBefore("T") else record.sleepDate
+            val date = try { LocalDate.parse(dateStr) } catch(e: Exception) { null }
+            
+            if (date != null) {
+                dailySleepDates.add("${date.monthValue}월 ${date.dayOfMonth}일")
+            } else {
+                val dateParts = record.sleepDate.split("-")
+                val month = dateParts[1].toInt()
+                val day = dateParts[2].split("T")[0].toInt()
+                dailySleepDates.add("${month}월 ${day}일")
+            }
 
             dailySleepDurations.add(record.sleepDurationText)
             dailySleepScores.add(record.sleepScore)
@@ -375,48 +365,62 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             )
         }
 
-        // 평균 비교하기(수면 시간)
-        val pastSleepRecords = remoteUserSleepRecordList.filter { it.sleepDate != LocalDate.now().toString() }
-        var pastSleepTimeSum = 0
-        for(pastSleepRecord in pastSleepRecords) {
-            pastSleepTimeSum += pastSleepRecord.sleepDurationMinutes
+        // 평균 비교하기
+        if (todaySleepRecord != null) {
+            val pastSleepRecords = remoteUserSleepRecordList.filter { it.sleepDate != LocalDate.now().toString() }
+            
+            if (pastSleepRecords.isNotEmpty()) {
+                var pastSleepTimeSum = 0
+                for (pastSleepRecord in pastSleepRecords) {
+                    pastSleepTimeSum += pastSleepRecord.sleepDurationMinutes
+                }
+                val pastSleepTimeAverage = pastSleepTimeSum / (pastSleepRecords.size)
+
+                tvSleepReportAnalysisSleepTimeValue.text = "${todaySleepRecord.sleepDurationMinutes}분"
+                tvSleepReportAnalysisSleepTimeGapValue.text = "${abs(todaySleepRecord.sleepDurationMinutes - pastSleepTimeAverage)}"
+
+                if (todaySleepRecord.sleepDurationMinutes > pastSleepTimeAverage) {
+                    tvSleepReportAnalysisSleepTimeTitle.text = "평소보다 더 잤어요"
+                    ivSleepReportAnalysisSleepTimeChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
+                    ivSleepReportAnalysisSleepTimeChangeIndicator.rotation = 0f
+                } else if (todaySleepRecord.sleepDurationMinutes == pastSleepTimeAverage) {
+                    tvSleepReportAnalysisSleepTimeTitle.text = "평소처럼 잤어요"
+                    ivSleepReportAnalysisSleepTimeChangeIndicator.setImageResource(R.drawable.ic_average)
+                    ivSleepReportAnalysisSleepTimeChangeIndicator.rotation = 0f
+                } else {
+                    tvSleepReportAnalysisSleepTimeTitle.text = "평소보다 덜 잤어요"
+                    ivSleepReportAnalysisSleepTimeChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
+                    ivSleepReportAnalysisSleepTimeChangeIndicator.rotation = 180f
+                }
+
+                // 평균 비교하기(수면 점수)
+                var pastSleepScoreSum = 0f
+                for (pastSleepRecord in pastSleepRecords) {
+                    pastSleepScoreSum += pastSleepRecord.sleepScore
+                }
+                val pastSleepScoreAverage = pastSleepScoreSum / (pastSleepRecords.size)
+
+                tvSleepReportAnalysisSleepScoreValue.text = "${round(todaySleepRecord.sleepScore).toInt()}점"
+                tvSleepReportAnalysisSleepScoreGapValue.text = "${round(abs((todaySleepRecord.sleepScore - pastSleepScoreAverage))).toInt()}"
+
+                if (todaySleepRecord.sleepScore > pastSleepScoreAverage) {
+                    ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
+                    ivSleepReportAnalysisSleepScoreChangeIndicator.rotation = 0f
+                } else if (todaySleepRecord.sleepScore == pastSleepScoreAverage) {
+                    ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_average)
+                    ivSleepReportAnalysisSleepScoreChangeIndicator.rotation = 0f
+                } else {
+                    ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
+                    ivSleepReportAnalysisSleepScoreChangeIndicator.rotation = 180f
+                }
+            } else {
+                // 과거 기록이 없는 경우 처리
+                tvSleepReportAnalysisSleepTimeValue.text = "${todaySleepRecord.sleepDurationMinutes}분"
+                cvSleepReportAnalysisSleepTimeCompare.isVisible = false
+                tvSleepReportAnalysisSleepScoreValue.text = "${round(todaySleepRecord.sleepScore).toInt()}점"
+                cvSleepReportAnalysisSleepScoreCompare.isVisible = false
+            }
         }
-        val pastSleepTimeAverage = pastSleepTimeSum/(pastSleepRecords.size)
-
-        tvSleepReportAnalysisSleepTimeValue.text = "${todaySleepRecord?.sleepDurationMinutes}분"
-        tvSleepReportAnalysisSleepTimeGapValue.text = "${abs((todaySleepRecord?.sleepDurationMinutes ?: 0) - pastSleepTimeAverage)}"
-
-        if(todaySleepRecord?.sleepDurationMinutes!! > pastSleepTimeAverage) {
-            tvSleepReportAnalysisSleepTimeTitle.text = "평소보다 더 잤어요"
-            ivSleepReportAnalysisSleepTimeChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
-        } else if(todaySleepRecord.sleepDurationMinutes == pastSleepTimeAverage) {
-            tvSleepReportAnalysisSleepTimeTitle.text = "평소처럼 잤어요"
-            ivSleepReportAnalysisSleepTimeChangeIndicator.setImageResource(R.drawable.ic_average)
-        } else {
-            tvSleepReportAnalysisSleepTimeTitle.text = "평소보다 덜 잤어요"
-            ivSleepReportAnalysisSleepTimeChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
-            ivSleepReportAnalysisSleepTimeChangeIndicator.rotation = 180f
-        }
-
-        // 평균 비교하기(수면 점수)
-        var pastSleepScoreSum = 0f
-        for(pastSleepRecord in pastSleepRecords) {
-            pastSleepScoreSum += pastSleepRecord.sleepScore
-        }
-        val pastSleepScoreAverage = pastSleepScoreSum/(pastSleepRecords.size)
-
-        tvSleepReportAnalysisSleepScoreValue.text = "${round(todaySleepRecord.sleepScore).toInt()}점"
-        tvSleepReportAnalysisSleepScoreGapValue.text = "${round(abs((todaySleepRecord.sleepScore - pastSleepScoreAverage))).toInt()}"
-
-        if(todaySleepRecord.sleepScore > pastSleepScoreAverage) {
-            ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
-        } else if(todaySleepRecord.sleepScore == pastSleepScoreAverage) {
-            ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_average)
-        } else {
-            ivSleepReportAnalysisSleepScoreChangeIndicator.setImageResource(R.drawable.ic_arrow_up)
-            ivSleepReportAnalysisSleepScoreChangeIndicator.rotation = 180f
-        }
-
     }
 
     // 선택된 오늘의 기분 UI 색상을 변경하는 메소드
@@ -436,7 +440,14 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
             findNavController().navigate(R.id.action_sleepReportFragment_to_sleepPlaylistFragment)
         }
 
-        val todaySleepRecord = remoteUserSleepRecordList.find { it.sleepDate == selectedDate.toString() }
+        val todaySleepRecord = remoteUserSleepRecordList.find {
+            try {
+                val dateStr = if (it.sleepDate.contains("T")) it.sleepDate.substringBefore("T") else it.sleepDate
+                LocalDate.parse(dateStr) == selectedDate
+            } catch (e: Exception) {
+                it.sleepDate == selectedDate.toString()
+            }
+        }
 
         if(todaySleepRecord == null) {
             // TODO: 수면 기록이 측정되지 않은 경우 오늘의 기분 표시를 어떻게 할 것인가?

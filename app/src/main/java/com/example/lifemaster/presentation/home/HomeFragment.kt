@@ -224,9 +224,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun bindAlarmPreviewViews() {
-        tvAlarmDate = binding.root.findViewById(R.id.tv_alarm_date)
-        tvAlarmTime = binding.root.findViewById(R.id.tv_alarm_time)
-        btnAlarmSetting = binding.root.findViewById(R.id.btn_alarm_setting)
+        tvAlarmDate = binding.layoutAlarmPreview.tvAlarmDate
+        tvAlarmTime = binding.layoutAlarmPreview.tvAlarmTime
+        btnAlarmSetting = binding.layoutAlarmPreview.btnAlarmSetting
 
         btnAlarmSetting?.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
@@ -234,8 +234,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun bindDetoxPreviewViews() {
-        tvDetoxTime = binding.root.findViewById(R.id.tv_detox_time)
-        btnDetox = binding.root.findViewById(R.id.btn_detox)
+        tvDetoxTime = binding.layoutDetoxPreview.tvDetoxTime
+        btnDetox = binding.layoutDetoxPreview.btnDetox
 
         btnDetox?.setOnClickListener {
             //findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
@@ -248,18 +248,18 @@ class HomeFragment : Fragment() {
     }
 
     private fun bindChallengePreviewViews() {
-        challengePreviewScrollView = binding.root.findViewById(R.id.sv_challenge_preview)
-        challengePreviewContainer = binding.root.findViewById(R.id.layout_challenge_preview_container)
+        challengePreviewScrollView = binding.layoutChallengePreview.svChallengePreview
+        challengePreviewContainer = binding.layoutChallengePreview.layoutChallengePreviewContainer
     }
 
     private fun setupIntrospectionPreviewClicks() {
         binding.cardIntrospection.setOnClickListener { goIntrospection("TODAY") }
 
-        val todayCard = binding.cardIntrospection.findViewById<View>(R.id.card_go_today_diary)
-        val thanksCard = binding.cardIntrospection.findViewById<View>(R.id.card_go_thanks)
+        val todayCard = binding.layoutIntrospectionPreview.cardGoTodayDiary
+        val thanksCard = binding.layoutIntrospectionPreview.cardGoThanks
 
-        todayCard?.setOnClickListener { goIntrospection("TODAY") }
-        thanksCard?.setOnClickListener { goIntrospection("THANKS") }
+        todayCard.setOnClickListener { goIntrospection("TODAY") }
+        thanksCard.setOnClickListener { goIntrospection("THANKS") }
     }
 
     private fun goIntrospection(startTab: String) {
