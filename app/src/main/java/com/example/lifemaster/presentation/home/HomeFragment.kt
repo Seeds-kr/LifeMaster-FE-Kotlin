@@ -201,11 +201,7 @@ class HomeFragment : Fragment() {
 
         binding.cardSleep.setOnClickListener {
             SubscriptionHelper.checkPremiumAndRun(requireContext()) {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.sleep_feature_in_development),
-                    Toast.LENGTH_SHORT
-                ).show()
+                findNavController().navigate(R.id.action_homeFragment_to_sleepPlaylistDetailFragment)
             }
         }
 
@@ -374,11 +370,11 @@ class HomeFragment : Fragment() {
 
         itemSleepPreview.btnSleepReport.setOnClickListener {
             SubscriptionHelper.checkPremiumAndRun(requireContext()) {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.sleep_feature_in_development),
-                    Toast.LENGTH_SHORT
-                ).show()
+                val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
+                val args = Bundle().apply {
+                    putString("selectedDate", selectedDate.toString())
+                }
+                findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment, args)
             }
         }
     }
@@ -776,7 +772,7 @@ class HomeFragment : Fragment() {
                 val userId = me?.id
 
                 if (userId != null) {
-                    sleepViewModel.getUserSleepInfo(userId.toInt())
+                    sleepViewModel.getUserSleepInfo(userId.toLong())
                 } else {
                     cachedSleepList = emptyList()
                     showNoSleepForDate()

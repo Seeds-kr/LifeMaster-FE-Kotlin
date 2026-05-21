@@ -12,6 +12,16 @@
         android:padding="8dp">
 
         <TextView
+            android:id="@+id/tv_marker_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#927448"
+            android:textSize="10sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="5월 15일" />
+
+        <TextView
             android:id="@+id/tv_total_sleep_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -19,7 +29,7 @@
             android:textSize="12sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_marker_date"
             tools:text="6시간 28분 수면" />
 
         <TextView
@@ -29,7 +39,7 @@
             android:text="수면 점수"
             android:textSize="10sp"
             android:textColor="#686663"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_total_sleep_time"/>
 
@@ -41,7 +51,7 @@
             android:textSize="10sp"
             android:textStyle="bold"
             android:textColor="#927448"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_total_sleep_time"/>
 

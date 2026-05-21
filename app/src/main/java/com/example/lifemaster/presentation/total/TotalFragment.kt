@@ -125,11 +125,7 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
             }
             TotalServicesConfig.KEY_SLEEP -> ServiceRowContent(getString(R.string.sleep)) {
                 SubscriptionHelper.checkPremiumAndRun(requireContext()) {
-                    Toast.makeText(
-                        requireContext(),
-                        getString(R.string.sleep_feature_in_development),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    findNavController().navigate(R.id.action_totalFragment_to_sleepPlaylistDetailFragment)
                 }
             }
             TotalServicesConfig.KEY_CHALLENGE -> ServiceRowContent(getString(R.string.challenge)) {

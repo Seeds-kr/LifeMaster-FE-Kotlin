@@ -4,7 +4,7 @@ import java.time.Duration
 import java.time.Instant
 
 data class SleepRequest(
-    val userId: Int,
+    val userId: Long,
     val sleepId: Int = 0,
     val sleepDate: String, // "2025-08-26"
     val sleepStart: String, // "2025-08-26T22:04:35.513Z"
