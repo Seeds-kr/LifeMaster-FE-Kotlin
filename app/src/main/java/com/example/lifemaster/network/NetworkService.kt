@@ -744,8 +744,8 @@ interface NetworkService {
         @Body request: DetoxTimeLockRequest
     ): Response<Unit>
 
-    // 시간 잠금 전체 목록 조회
-    @GET("/detox/time")
+    // 내 시간 잠금 전체 목록 조회
+    @GET("/detox/time/me")
     suspend fun fetchTimeLockItems(): Response<List<DetoxTimeLockResponse>>
 
     // 특정 시간 잠금 목록 삭제
