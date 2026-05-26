@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".presentation.home.pomodoro.view.PomodoroFragment">
+
+    <ImageView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/ic_star_logo"
+        app:tint="#B4D775" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Detox"
+        android:textColor="@color/black"
+        android:textSize="48sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="49dp"
+        android:layout_marginTop="8dp"
+        app:cardCornerRadius="8dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="#B4D775">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="오늘 누적 시간"
+                android:textColor="#8DB83F"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_accumulated_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="06:01:00"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+
+    <com.example.lifemaster.presentation.total.detox.view.DetoxCircularTimerView
+        android:id="@+id/circularTimerView"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_marginTop="52dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="20dp" />
+
+    <TextView
+        android:id="@+id/tv_timer_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="4dp"
+        android:text="다음 휴식 시간까지"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/tv_minutes_and_seconds"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:text="@string/tv_pomodoro_timer_release"
+        android:textColor="@color/black"
+        android:textSize="60sp"
+        android:textStyle="bold" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_start_pomodoro"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_round_radius_12dp"
+        android:backgroundTint="#B4D775"
+        android:padding="16dp"
+        android:text="비상탈출"
+        android:textColor="@color/white" />
+</androidx.appcompat.widget.LinearLayoutCompat>
