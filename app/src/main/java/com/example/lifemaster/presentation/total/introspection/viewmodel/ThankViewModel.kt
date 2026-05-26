@@ -12,6 +12,7 @@ import com.example.lifemaster.presentation.total.introspection.model.ThankUpdate
 import com.example.lifemaster.presentation.total.introspection.model.DiaryRequest
 import com.example.lifemaster.presentation.total.introspection.model.SelfReflectionResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,6 +37,8 @@ class ThankViewModel @Inject constructor(
     // 날짜별 자아성찰(다이어리 + 5감사) 조회 결과
     private val _selfReflectionByDate = MutableLiveData<SelfReflectionResponse?>()
     val selfReflectionByDate: LiveData<SelfReflectionResponse?> get() = _selfReflectionByDate
+
+    private var loadJob: Job? = null
 
     //감사일기 작성 기능
     fun createThankEntry(
@@ -238,7 +241,10 @@ class ThankViewModel @Inject constructor(
 
     // 날짜별 자아성찰(다이어리 + 5감사) 조회 기능
     fun loadSelfReflectionByDate(token: String, date: String) {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        _selfReflectionByDate.value = null // 새 요청 시작 시 이전 데이터 초기화
+
+        loadJob = viewModelScope.launch {
             try {
                 val response = networkService.getSelfReflectionByDate("Bearer $token", date)
                 if (response.isSuccessful) {
