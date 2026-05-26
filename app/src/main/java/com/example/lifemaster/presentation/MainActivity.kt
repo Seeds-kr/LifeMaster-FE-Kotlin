@@ -174,6 +174,9 @@ class MainActivity : AppCompatActivity() {
 
     // 사용자의 전날 수면 정보를 가져오는 함수
     private fun getUserSleepInfo() {
+        lastUsageTimeBeforeSleep = 0L
+        firstUsageTimeAfterWake = null
+
         // 사용자가 잠든 시간 추적하기
         val usageStatsManager = getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager // 1. USAGE_STATS_SERVICE란? UsageStatsManager란?
         val sleepCalendar = Calendar.getInstance().apply {
@@ -203,6 +206,7 @@ class MainActivity : AppCompatActivity() {
         Log.e("SLEEP(NIGHT)", "잠든 시간: ${Date(lastUsageTimeBeforeSleep)}")
 
         // 사용자가 일어난 시간 추적하기 (화면을 킨 시점)
+        val now = Calendar.getInstance()
         val wakeUpCalendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 5)
             set(Calendar.MINUTE, 0)
@@ -213,6 +217,12 @@ class MainActivity : AppCompatActivity() {
 
         wakeUpCalendar.add(Calendar.HOUR_OF_DAY, 5) // 오전 10시
         val wakeTrackingEndTime = wakeUpCalendar.timeInMillis
+
+        // 만약 현재 시간이 오전 5시 이전이라면, 아직 기상 전이므로 오늘 날짜의 측정은 유효하지 않음
+        if (now.timeInMillis < wakeTrackingStartTime) {
+            Log.d("SLEEP", "기상 시간 측정 범위(05:00~10:00) 전입니다.")
+            return
+        }
 
         val wakeEvent = UsageEvents.Event()
         val wakeUsageEvents = usageStatsManager.queryEvents(
@@ -276,6 +286,7 @@ class MainActivity : AppCompatActivity() {
         foregroundStartTime = SystemClock.elapsedRealtime() // 앱이 포그라운드로 전환된 시간 기록
         updateUsageStats()
         handler.post(updateRunnable)
+        getUserSleepInfo()
         fetchMe()
     }
 

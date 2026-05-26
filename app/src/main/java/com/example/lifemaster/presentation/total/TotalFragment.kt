@@ -11,6 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.core.graphics.toColorInt
+import androidx.core.view.isVisible
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -23,6 +24,7 @@ import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.total.mypage.model.MeResponse
 import com.example.lifemaster.presentation.total.mypage.view.LegalDocumentActivity
+import com.example.lifemaster.presentation.home.sleep.SleepFeatureGate
 import com.example.lifemaster.presentation.total.mypage.view.MyPageActivity
 import com.example.lifemaster.presentation.total.mypage.view.RefundPolicyActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -124,12 +126,10 @@ class TotalFragment : Fragment(R.layout.fragment_total) {
                 findNavController().navigate(R.id.action_totalFragment_to_alarmListFragment)
             }
             TotalServicesConfig.KEY_SLEEP -> ServiceRowContent(getString(R.string.sleep)) {
-                SubscriptionHelper.checkPremiumAndRun(requireContext()) {
-                    Toast.makeText(
-                        requireContext(),
-                        getString(R.string.sleep_feature_in_development),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                SleepFeatureGate.runIfEnabled(requireContext()) {
+                    SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                        findNavController().navigate(R.id.action_totalFragment_to_sleepPlaylistDetailFragment)
+                    }
                 }
             }
             TotalServicesConfig.KEY_CHALLENGE -> ServiceRowContent(getString(R.string.challenge)) {

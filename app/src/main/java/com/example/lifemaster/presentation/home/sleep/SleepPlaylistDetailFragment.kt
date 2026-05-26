@@ -42,6 +42,11 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (!SleepFeatureGate.IS_ENABLED) {
+            SleepFeatureGate.showUnavailableToast(requireContext())
+            findNavController().popBackStack()
+            return
+        }
         binding = FragmentSleepPlaylistDetailBinding.bind(view)
 
         songAudioResource = arguments?.getInt("audio", -1) ?: -1

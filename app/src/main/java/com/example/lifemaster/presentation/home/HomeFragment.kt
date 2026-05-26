@@ -38,6 +38,7 @@ import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import com.example.lifemaster.presentation.home.group.adapter.HomeGroupPreviewAdapter
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroModel
 import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
+import com.example.lifemaster.presentation.home.sleep.SleepFeatureGate
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
@@ -200,12 +201,10 @@ class HomeFragment : Fragment() {
         }
 
         binding.cardSleep.setOnClickListener {
-            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.sleep_feature_in_development),
-                    Toast.LENGTH_SHORT
-                ).show()
+            SleepFeatureGate.runIfEnabled(requireContext()) {
+                SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                    findNavController().navigate(R.id.action_homeFragment_to_sleepPlaylistDetailFragment)
+                }
             }
         }
 
@@ -228,9 +227,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun bindAlarmPreviewViews() {
-        tvAlarmDate = binding.root.findViewById(R.id.tv_alarm_date)
-        tvAlarmTime = binding.root.findViewById(R.id.tv_alarm_time)
-        btnAlarmSetting = binding.root.findViewById(R.id.btn_alarm_setting)
+        tvAlarmDate = binding.layoutAlarmPreview.tvAlarmDate
+        tvAlarmTime = binding.layoutAlarmPreview.tvAlarmTime
+        btnAlarmSetting = binding.layoutAlarmPreview.btnAlarmSetting
 
         btnAlarmSetting?.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_alarmListFragment)
@@ -238,8 +237,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun bindDetoxPreviewViews() {
-        tvDetoxTime = binding.root.findViewById(R.id.tv_detox_time)
-        btnDetox = binding.root.findViewById(R.id.btn_detox)
+        tvDetoxTime = binding.layoutDetoxPreview.tvDetoxTime
+        btnDetox = binding.layoutDetoxPreview.btnDetox
 
         btnDetox?.setOnClickListener {
             //findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
@@ -252,18 +251,18 @@ class HomeFragment : Fragment() {
     }
 
     private fun bindChallengePreviewViews() {
-        challengePreviewScrollView = binding.root.findViewById(R.id.sv_challenge_preview)
-        challengePreviewContainer = binding.root.findViewById(R.id.layout_challenge_preview_container)
+        challengePreviewScrollView = binding.layoutChallengePreview.svChallengePreview
+        challengePreviewContainer = binding.layoutChallengePreview.layoutChallengePreviewContainer
     }
 
     private fun setupIntrospectionPreviewClicks() {
         binding.cardIntrospection.setOnClickListener { goIntrospection("TODAY") }
 
-        val todayCard = binding.cardIntrospection.findViewById<View>(R.id.card_go_today_diary)
-        val thanksCard = binding.cardIntrospection.findViewById<View>(R.id.card_go_thanks)
+        val todayCard = binding.layoutIntrospectionPreview.cardGoTodayDiary
+        val thanksCard = binding.layoutIntrospectionPreview.cardGoThanks
 
-        todayCard?.setOnClickListener { goIntrospection("TODAY") }
-        thanksCard?.setOnClickListener { goIntrospection("THANKS") }
+        todayCard.setOnClickListener { goIntrospection("TODAY") }
+        thanksCard.setOnClickListener { goIntrospection("THANKS") }
     }
 
     private fun goIntrospection(startTab: String) {
@@ -373,12 +372,14 @@ class HomeFragment : Fragment() {
         }
 
         itemSleepPreview.btnSleepReport.setOnClickListener {
-            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.sleep_feature_in_development),
-                    Toast.LENGTH_SHORT
-                ).show()
+            SleepFeatureGate.runIfEnabled(requireContext()) {
+                SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                    val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
+                    val args = Bundle().apply {
+                        putString("selectedDate", selectedDate.toString())
+                    }
+                    findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment, args)
+                }
             }
         }
     }
@@ -776,7 +777,7 @@ class HomeFragment : Fragment() {
                 val userId = me?.id
 
                 if (userId != null) {
-                    sleepViewModel.getUserSleepInfo(userId.toInt())
+                    sleepViewModel.getUserSleepInfo(userId.toLong())
                 } else {
                     cachedSleepList = emptyList()
                     showNoSleepForDate()

@@ -202,7 +202,8 @@
     <string name="thank_diary">감사일기</string>
     <string name="introspection">자아성찰</string>
     <string name="sleep">수면</string>
-    <string name="sleep_feature_in_development">개발 중입니다.</string>
+    <string name="sleep_feature_in_development">수면은 현재 개발 중입니다.</string>
+    <string name="badge_preparing">준비 중</string>
     <string name="group_join_title1">비공개 그룹 가입을 위해</string>
     <string name="group_join_title2">비밀번호를 입력해주세요</string>
     <string name="password_wrong">비밀번호가 일치하지 않습니다.</string>

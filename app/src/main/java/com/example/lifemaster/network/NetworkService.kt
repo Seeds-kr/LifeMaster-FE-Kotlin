@@ -499,7 +499,7 @@ interface NetworkService {
     // 유저의 수면 기록 조회
     @GET("/sleep/{userId}")
     suspend fun getUserSleepRecord(
-        @Path("userId") userId: Int
+        @Path("userId") userId: Long
     ): List<SleepResponse>
 
     // 유저의 수면 기록 생성

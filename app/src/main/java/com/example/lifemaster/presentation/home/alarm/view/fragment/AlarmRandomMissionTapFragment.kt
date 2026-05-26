@@ -15,6 +15,7 @@ import androidx.navigation.fragment.navArgs
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentAlarmRandomMissionTapBinding
 import com.example.lifemaster.network.NetworkService
+import com.example.lifemaster.network.TokenManager
 import com.example.lifemaster.presentation.Constants
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.home.alarm.util.dismissAlarmDisplayFlow
@@ -41,6 +42,7 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
     private lateinit var binding: FragmentAlarmRandomMissionTapBinding
 
     @Inject lateinit var networkService: NetworkService
+    @Inject lateinit var tokenManager: TokenManager
 
     private val alarmViewModel: AlarmViewModel by activityViewModels(
         factoryProducer = { AlarmViewModelFactory(networkService) }
@@ -234,11 +236,12 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                     alarmViewModel.alarmDismissedAt = System.currentTimeMillis()
                     val data = result.data
                     val todayRecord = data.find { it.sleepDate == LocalDate.now().toString() }
+                    val memberId = tokenManager.getMemberId() ?: Constants.USER_ID.toLong()
                     if (todayRecord == null) {
                         // TODO: POST
                         sleepViewModel.registerUserSleepInfo(
                             sleepRequest = SleepRequest(
-                                userId = Constants.USER_ID,
+                                userId = memberId,
                                 sleepDate = LocalDate.now().toString(),
                                 sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L)
                                     .toString(),
@@ -260,7 +263,7 @@ class AlarmRandomMissionTapFragment : Fragment(R.layout.fragment_alarm_random_mi
                         // TODO: PATCH
                         sleepViewModel.updateUserSleepInfo(
                             sleepRequest = SleepRequest(
-                                userId = Constants.USER_ID,
+                                userId = memberId,
                                 sleepDate = LocalDate.now().toString(),
                                 sleepStart = Instant.ofEpochMilli(sleepViewModel.rawSleepTime ?: 0L)
                                     .toString(),

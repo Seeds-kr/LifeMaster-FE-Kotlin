@@ -95,10 +95,6 @@ class IntrospectionFragment : Fragment() {
             // 수정 모드에서는 탭 전환을 막아 혼동을 방지
             binding.btnToday.isEnabled = false
             binding.btnThanks.isEnabled = false
-
-            // 기존 데이터 불러오기
-            val token = "YOUR_TOKEN" // TODO: 실제 토큰으로 교체
-            thankId?.let { viewModel.loadThankEntry(token, it) }
         }
 
         // 초기 화면 설정

@@ -37,7 +37,7 @@ class SleepViewModel @Inject constructor(
     val userSleepUpdatedRecord: LiveData<Result<SleepResponse>> get() = _userSleepUpdatedRecord
 
     // 유저의 수면 기록 조회
-    fun getUserSleepInfo(userId: Int) {
+    fun getUserSleepInfo(userId: Long) {
         viewModelScope.launch {
             _userSleepRecordList.value = Result.Loading
             try {
