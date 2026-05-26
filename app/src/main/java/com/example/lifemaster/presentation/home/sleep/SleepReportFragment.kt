@@ -71,6 +71,11 @@ class SleepReportFragment : Fragment(R.layout.fragment_sleep_report) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (!SleepFeatureGate.IS_ENABLED) {
+            SleepFeatureGate.showUnavailableToast(requireContext())
+            findNavController().popBackStack()
+            return
+        }
         binding = FragmentSleepReportBinding.bind(view)
         memberId = tokenManager.getMemberId() ?: Constants.USER_ID.toLong()
         val selectedDateArg = arguments?.getString("selectedDate")

@@ -26,6 +26,11 @@ class SleepPlaylistFragment : Fragment(R.layout.fragment_sleep_playlist) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (!SleepFeatureGate.IS_ENABLED) {
+            SleepFeatureGate.showUnavailableToast(requireContext())
+            findNavController().popBackStack()
+            return
+        }
         binding = FragmentSleepPlaylistBinding.bind(view)
         initViews()
         initListeners()

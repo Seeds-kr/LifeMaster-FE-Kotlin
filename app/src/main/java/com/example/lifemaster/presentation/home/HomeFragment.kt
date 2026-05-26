@@ -38,6 +38,7 @@ import com.example.lifemaster.presentation.home.edit.view.HomeEditActivity
 import com.example.lifemaster.presentation.home.group.adapter.HomeGroupPreviewAdapter
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroModel
 import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
+import com.example.lifemaster.presentation.home.sleep.SleepFeatureGate
 import com.example.lifemaster.presentation.home.sleep.model.Result
 import com.example.lifemaster.presentation.home.sleep.model.SleepResponse
 import com.example.lifemaster.presentation.home.sleep.viewmodel.SleepViewModel
@@ -200,8 +201,10 @@ class HomeFragment : Fragment() {
         }
 
         binding.cardSleep.setOnClickListener {
-            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
-                findNavController().navigate(R.id.action_homeFragment_to_sleepPlaylistDetailFragment)
+            SleepFeatureGate.runIfEnabled(requireContext()) {
+                SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                    findNavController().navigate(R.id.action_homeFragment_to_sleepPlaylistDetailFragment)
+                }
             }
         }
 
@@ -369,12 +372,14 @@ class HomeFragment : Fragment() {
         }
 
         itemSleepPreview.btnSleepReport.setOnClickListener {
-            SubscriptionHelper.checkPremiumAndRun(requireContext()) {
-                val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
-                val args = Bundle().apply {
-                    putString("selectedDate", selectedDate.toString())
+            SleepFeatureGate.runIfEnabled(requireContext()) {
+                SubscriptionHelper.checkPremiumAndRun(requireContext()) {
+                    val selectedDate = calendarVM.selectedDate.value ?: LocalDate.now()
+                    val args = Bundle().apply {
+                        putString("selectedDate", selectedDate.toString())
+                    }
+                    findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment, args)
                 }
-                findNavController().navigate(R.id.action_homeFragment_to_sleepReportFragment, args)
             }
         }
     }
