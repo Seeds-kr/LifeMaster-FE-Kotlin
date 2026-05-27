@@ -28,6 +28,11 @@ class CalendarViewModel : ViewModel() {
         _introspectionDates.value = current + date
     }
 
+    fun removeIntrospectionDate(date: LocalDate) {
+        val current = _introspectionDates.value ?: emptySet()
+        _introspectionDates.value = current - date
+    }
+
     fun setIntrospectionDates(dates: Set<LocalDate>) {
         _introspectionDates.value = dates
     }

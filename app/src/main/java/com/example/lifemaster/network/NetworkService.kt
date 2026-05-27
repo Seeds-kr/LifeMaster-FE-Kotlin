@@ -285,6 +285,13 @@ interface NetworkService {
         @Body request: DiaryRequest
     ): Response<DiaryResponse>
 
+    // 다이어리 상세 조회
+    @GET("/schedule/self-reflection/diary/{diary-id}")
+    suspend fun getDiary(
+        @Header("Authorization") token: String,
+        @Path("diary-id") diaryId: Long
+    ): Response<com.example.lifemaster.presentation.total.introspection.model.DiaryDetailResponse>
+
     // 다이어리 수정
     @PUT("/schedule/self-reflection/diary/{diary-id}")
     suspend fun updateDiary(

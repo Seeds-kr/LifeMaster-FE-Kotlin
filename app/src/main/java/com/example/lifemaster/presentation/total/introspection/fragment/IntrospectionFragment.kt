@@ -17,6 +17,8 @@ import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentIntrospectionBinding
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import com.example.lifemaster.network.TokenManager
+import javax.inject.Inject
 import com.example.lifemaster.presentation.home.calendar.view.CalendarFragment
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarMode
 import com.example.lifemaster.presentation.home.calendar.viewmodel.CalendarViewModel
@@ -27,6 +29,9 @@ import java.util.Locale
 
 @AndroidEntryPoint
 class IntrospectionFragment : Fragment() {
+
+    @Inject
+    lateinit var tokenManager: TokenManager
 
     private var _binding: FragmentIntrospectionBinding? = null
     private val binding get() = _binding!!
@@ -75,17 +80,22 @@ class IntrospectionFragment : Fragment() {
 
         //수정 모드일 경우 UI 설정
         if (isEditMode) {
+            binding.btnSubmit.text = "수정하기"
             // 다이어리 수정 모드인지 감사일기 수정 모드인지 확인
             when {
                 diaryId != null -> {
                     currentMode = Mode.TODAY
-                    // 다이어리 수정 모드에서는 조회 API가 필요하지만, 일단 수정 기능만 연결
-                    // TODO: 다이어리 조회 API 추가 필요
+                    // 기존 데이터 불러오기
+                    tokenManager.accessToken?.let { token ->
+                        diaryId?.let { viewModel.loadDiaryEntry(token, it) }
+                    } ?: run {
+                        Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                    }
                 }
                 thankId != null -> {
                     currentMode = Mode.THANKS
                     // 기존 데이터 불러오기
-                    readAuthToken()?.let { token ->
+                    tokenManager.accessToken?.let { token ->
                         thankId?.let { viewModel.loadThankEntry(token, it) }
                     } ?: run {
                         Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
@@ -119,12 +129,9 @@ class IntrospectionFragment : Fragment() {
             }
         }
 
-        // 수정 모드일 때 제출 버튼을 길게 누르면 삭제 다이얼로그 표시
-        if (isEditMode) {
-            binding.btnSubmit.setOnLongClickListener {
-                showDeleteConfirmDialog()
-                true
-            }
+        // 삭제 버튼 클릭 이벤트 (상단 전용 버튼)
+        binding.btnDeleteTop.setOnClickListener {
+            showDeleteConfirmDialog()
         }
 
         binding.btnSubmit.setOnClickListener {
@@ -136,12 +143,12 @@ class IntrospectionFragment : Fragment() {
                     } else {
                         // 달력에서 선택한 날짜 사용 (선택 없으면 오늘)
                         val selectedDateStr = formatSelectedDateForApi(calendarVM.selectedDate.value)
-                        val token = readAuthToken() ?: run {
+                        val token = tokenManager.accessToken ?: run {
                             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                             return@setOnClickListener
                         }
 
-                        if (isEditMode && diaryId != null) {
+                        if (diaryId != null && diaryId!! > 0) {
                             viewModel.updateDiaryEntry(
                                 token = token,
                                 diaryId = diaryId!!,
@@ -174,12 +181,12 @@ class IntrospectionFragment : Fragment() {
 
                     if (thanksList.any { it.isNotBlank() }) {
                         val selectedDateStr = formatSelectedDateForApi(calendarVM.selectedDate.value)
-                        val token = readAuthToken() ?: run {
+                        val token = tokenManager.accessToken ?: run {
                             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
                             return@setOnClickListener
                         }
 
-                        if (isEditMode && thankId != null) {
+                        if (thankId != null && thankId!! > 0) {
                             viewModel.updateThankEntry(
                                 token = token,
                                 thankId = thankId!!,
@@ -231,8 +238,14 @@ class IntrospectionFragment : Fragment() {
                 )
                 // 선택한 날짜에 데이터가 없으면 UI도 비워줍니다.
                 if (!isEditMode) {
+                    diaryId = null
+                    thankId = null
                     binding.etDiary.setText("")
                     clearThankYouFields()
+                    updateDeleteButtonVisibility()
+
+                    // 데이터가 없으므로 달력의 별 표시(기록 표시) 제거
+                    calendarVM.removeIntrospectionDate(date)
                 }
                 return@observe
             }
@@ -249,6 +262,13 @@ class IntrospectionFragment : Fragment() {
                 binding.etThanks3.setText(data.thankThree ?: "")
                 binding.etThanks4.setText(data.thankFour ?: "")
                 binding.etThanks5.setText(data.thankFive ?: "")
+
+                // 불러온 데이터의 ID를 저장하여 이후 '작성하기' 클릭 시 '수정' API가 호출되도록 함
+                diaryId = data.diaryId
+                thankId = data.thankId
+
+                // 현재 모드에 맞춰 삭제 버튼 가시성 업데이트
+                updateDeleteButtonVisibility()
             }
 
             val hasDiary = !data.diaryContent.isNullOrBlank()
@@ -262,6 +282,8 @@ class IntrospectionFragment : Fragment() {
 
             if (hasDiary || hasThanks) {
                 calendarVM.addIntrospectionDate(date)
+            } else {
+                calendarVM.removeIntrospectionDate(date)
             }
         }
 
@@ -271,22 +293,17 @@ class IntrospectionFragment : Fragment() {
 
             when (state) {
                 is UiState.Success -> {
-                    // 삭제 성공 여부를 확인하기 위해 상태를 구분해야 하지만,
-                    // 현재는 Success로 통일되어 있으므로 메시지만 표시
+                    Toast.makeText(requireContext(), "완료되었습니다.", Toast.LENGTH_SHORT).show()
                     if (!isEditMode) {
-                        Toast.makeText(requireContext(), "저장되었습니다.", Toast.LENGTH_SHORT).show()
-                        clearThankYouFields() // 입력창 초기화 (수정 모드가 아닐 때만)
+                        // 저장/삭제 성공 후 데이터를 다시 불러와서 UI와 ID를 동기화
+                        val token = tokenManager.accessToken
+                        val dateStr = formatSelectedDateForApi(calendarVM.selectedDate.value)
+                        if (token != null) {
+                            viewModel.loadSelfReflectionByDate(token, dateStr)
+                        }
                     } else {
-                        // 수정 모드에서는 저장/삭제 성공 후 Fragment 닫기
-                        Toast.makeText(requireContext(), "완료되었습니다.", Toast.LENGTH_SHORT).show()
                         parentFragmentManager.popBackStack()
                     }
-                    Toast.makeText(requireContext(), "저장되었습니다.", Toast.LENGTH_SHORT).show()
-                    if (!isEditMode) {
-                        clearThankYouFields() // 입력창 초기화 (수정 모드가 아닐 때만)
-                    }
-                    // TODO: 저장이 완료되면 현재 Fragment를 닫는 로직 추가 (필요시)
-                    // 예: parentFragmentManager.popBackStack()
                 }
 
                 is UiState.Error -> {
@@ -303,7 +320,10 @@ class IntrospectionFragment : Fragment() {
         binding.etDiary.visibility = if (currentMode == Mode.TODAY) View.VISIBLE else View.GONE
         binding.scrollThanksContainer.visibility = if (currentMode == Mode.THANKS) View.VISIBLE else View.GONE
 
-        // 2. 토글 버튼 애니메이션 및 색상 변경을 위한 목표 버튼 설정
+        // 2. 삭제 버튼 가시성 업데이트 (현재 선택된 탭에 기록이 있을 때만 노출)
+        updateDeleteButtonVisibility()
+
+        // 3. 토글 버튼 애니메이션 및 색상 변경을 위한 목표 버튼 설정
         val targetButton = if (currentMode == Mode.TODAY) binding.btnToday else binding.btnThanks
 
         // 3. ConstraintSet을 이용한 배경 뷰 애니메이션
@@ -320,6 +340,14 @@ class IntrospectionFragment : Fragment() {
         // 4. 텍스트 색상 변경
         binding.btnToday.setTextColor(ContextCompat.getColor(requireContext(), if (currentMode == Mode.TODAY) R.color.white else R.color.black))
         binding.btnThanks.setTextColor(ContextCompat.getColor(requireContext(), if (currentMode == Mode.THANKS) R.color.white else R.color.black))
+    }
+
+    private fun updateDeleteButtonVisibility() {
+        val hasData = when (currentMode) {
+            Mode.TODAY -> diaryId != null && diaryId!! > 0
+            Mode.THANKS -> thankId != null && thankId!! > 0
+        }
+        binding.btnDeleteTop.visibility = if (hasData) View.VISIBLE else View.GONE
     }
 
     private fun clearThankYouFields() {
@@ -366,8 +394,17 @@ class IntrospectionFragment : Fragment() {
             val mode = calendarVM.mode.value ?: CalendarMode.MONTH
             updateIntrospectionSelectedDateText(mode, date)
 
+            // 날짜가 변경될 때 기존 입력값과 ID 초기화 (다른 날짜 데이터 혼선 방지)
+            if (!isEditMode) {
+                diaryId = null
+                thankId = null
+                binding.etDiary.setText("")
+                clearThankYouFields()
+                updateDeleteButtonVisibility()
+            }
+
             // 날짜별 자아성찰 조회 → 있으면 홈/자아성찰 달력 모두에 별 표시
-            val token = readAuthToken()
+            val token = tokenManager.accessToken
             if (token != null) {
                 val dateStr = formatSelectedDateForApi(date)
                 viewModel.loadSelfReflectionByDate(token, dateStr)
@@ -409,7 +446,7 @@ class IntrospectionFragment : Fragment() {
     /** API 요청용 날짜 문자열 (yyyy-MM-dd). null이면 오늘. */
     private fun formatSelectedDateForApi(date: LocalDate?): String {
         val d = date ?: LocalDate.now()
-        return d.format(DateTimeFormatter.ISO_LOCAL_DATE)
+        return d.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
     }
 
     override fun onDestroyView() {
@@ -421,41 +458,39 @@ class IntrospectionFragment : Fragment() {
         TODAY, THANKS
     }
 
-    private fun readAuthToken(): String? {
-        val raw = requireContext().getSharedPreferences("auth", 0).getString("token", null).orEmpty()
-        if (raw.isBlank()) return null
-        // ViewModel에서 "Bearer "를 추가하므로 순수 토큰만 반환
-        return if (raw.startsWith("Bearer ")) raw.substring(7) else raw
-    }
-
     private fun showDeleteConfirmDialog() {
-        when {
-            thankId != null -> {
-                AlertDialog.Builder(requireContext())
-                    .setMessage("감사일기를 삭제할까요?")
-                    .setNegativeButton("취소", null)
-                    .setPositiveButton("삭제") { _, _ ->
-                        deleteThankEntry()
-                    }
-                    .show()
+        when (currentMode) {
+            Mode.TODAY -> {
+                if (diaryId != null && diaryId!! > 0) {
+                    AlertDialog.Builder(requireContext())
+                        .setMessage("오늘의 일기를 삭제할까요?")
+                        .setNegativeButton("취소", null)
+                        .setPositiveButton("삭제") { _, _ ->
+                            deleteDiaryEntry()
+                        }
+                        .show()
+                } else {
+                    Toast.makeText(requireContext(), "삭제할 일기가 없습니다.", Toast.LENGTH_SHORT).show()
+                }
             }
-            diaryId != null -> {
-                AlertDialog.Builder(requireContext())
-                    .setMessage("다이어리를 삭제할까요?")
-                    .setNegativeButton("취소", null)
-                    .setPositiveButton("삭제") { _, _ ->
-                        deleteDiaryEntry()
-                    }
-                    .show()
-            }
-            else -> {
-                Toast.makeText(requireContext(), "삭제할 항목이 없습니다.", Toast.LENGTH_SHORT).show()
+            Mode.THANKS -> {
+                if (thankId != null && thankId!! > 0) {
+                    AlertDialog.Builder(requireContext())
+                        .setMessage("5감사를 삭제할까요?")
+                        .setNegativeButton("취소", null)
+                        .setPositiveButton("삭제") { _, _ ->
+                            deleteThankEntry()
+                        }
+                        .show()
+                } else {
+                    Toast.makeText(requireContext(), "삭제할 5감사가 없습니다.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
     private fun deleteThankEntry() {
-        val token = readAuthToken() ?: run {
+        val token = tokenManager.accessToken ?: run {
             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
             return
         }
@@ -468,7 +503,7 @@ class IntrospectionFragment : Fragment() {
     }
 
     private fun deleteDiaryEntry() {
-        val token = readAuthToken() ?: run {
+        val token = tokenManager.accessToken ?: run {
             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
             return
         }

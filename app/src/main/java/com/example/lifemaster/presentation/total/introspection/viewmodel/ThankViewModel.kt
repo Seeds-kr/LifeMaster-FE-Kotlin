@@ -222,6 +222,33 @@ class ThankViewModel @Inject constructor(
         }
     }
 
+    // 다이어리 상세 조회 기능
+    fun loadDiaryEntry(token: String, diaryId: Long) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val response = networkService.getDiary("Bearer $token", diaryId)
+                if (response.isSuccessful) {
+                    val detail = response.body()
+                    // UI 표시를 위해 SelfReflectionResponse 형태로 변환하여 전달 (기존 관찰 로직 재사용)
+                    _selfReflectionByDate.value = SelfReflectionResponse(
+                        diaryId = diaryId,
+                        thankId = null,
+                        diaryContent = detail?.diaryContent,
+                        thankOne = null, thankTwo = null, thankThree = null, thankFour = null, thankFive = null
+                    )
+                    _uiState.value = UiState.Success
+                } else if (response.code() == 404) {
+                    _uiState.value = UiState.Error("접근 권한이 없거나 존재하지 않는 일기입니다.")
+                } else {
+                    _uiState.value = UiState.Error("오류: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다.")
+            }
+        }
+    }
+
     // 다이어리 삭제 기능
     fun deleteDiaryEntry(token: String, diaryId: Long) {
         viewModelScope.launch {
