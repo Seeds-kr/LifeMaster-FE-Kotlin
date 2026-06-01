@@ -54,6 +54,7 @@ import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockReques
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockResponse
 import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
+import com.example.lifemaster.presentation.total.detox.model.RepeatEscapeVerifyResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatLockDetailResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatLockStatusResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatPhraseResponse
@@ -760,7 +761,7 @@ interface NetworkService {
     suspend fun verifyRepeatEscapePhrase(
         @Query("id") id: Long,
         @Query("phrase") phrase: String
-    ): Response<Boolean>
+    ): Response<RepeatEscapeVerifyResponse>
 
     // 시간 잠금 특정 목록 생성
     @POST("/detox/time")

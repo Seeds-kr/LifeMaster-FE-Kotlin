@@ -69,6 +69,7 @@ class DetoxBlockActivity : AppCompatActivity() {
         val todayUsedMinutes = intent.getIntExtra("todayUsedMinutes", 0)
         val remainingUnlockMinutes = intent.getIntExtra("remainingUnlockMinutes", 0)
         val exceededDailyLimit = intent.getBooleanExtra("exceededDailyLimit", false)
+        val escapeAvailable = intent.getBooleanExtra("escapeAvailable", true)
 
         btnStartPomodoro.text = "비상탈출"
 
@@ -78,15 +79,20 @@ class DetoxBlockActivity : AppCompatActivity() {
         if (exceededDailyLimit) {
             tvTimerTitle.text = "하루 최대 사용 시간에 도달했어요"
             tvMinutesAndSeconds.text = "00:00:00"
+            btnStartPomodoro.isEnabled = false
             return
+        }
+
+        if (!escapeAvailable) {
+            btnStartPomodoro.isEnabled = false
         }
 
         tvTimerTitle.text = "다음 사용 가능 시간까지"
 
         val remainingMillis = remainingUnlockMinutes * 60L * 1000L
 
-
         if (remainingMillis <= 0L) {
+            tvMinutesAndSeconds.text = "00:00:00"
             return
         }
 

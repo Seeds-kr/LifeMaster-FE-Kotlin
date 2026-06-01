@@ -36,3 +36,13 @@ data class RepeatLockDetailResponse(
 data class RepeatPhraseResponse(
     val phrase: String
 )
+
+data class RepeatEscapeVerifyResponse(
+    val success: Boolean,
+    val skippedLock: Boolean,
+    val disabledToday: Boolean,
+    val todayUsedSeconds: Int?,
+    val remainingLockSeconds: Int?,
+    val nextAvailableSeconds: Int?,
+    val isDailyLimitReached: Boolean?
+)

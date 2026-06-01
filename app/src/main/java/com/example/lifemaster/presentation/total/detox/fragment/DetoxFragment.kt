@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentDetoxBinding
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
+import com.example.lifemaster.presentation.total.detox.DetoxRepeatLockLocalManager
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxPermanentLockAdapter
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxRepeatLockAdapter
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxTimeLockAdapter
@@ -79,6 +80,11 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         initViews()
         initListeners()
         initObservers()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        detoxRepeatLockViewModel.fetchRepeatLockItems()
     }
 
     private fun fetchData() {
@@ -286,17 +292,28 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         }
 
         detoxRepeatLockViewModel.repeatLockApp.observe(viewLifecycleOwner) {
-            if (it.isNotEmpty()) {
+            val updatedList = it.map { item ->
+                val todayUsedMinutes = DetoxRepeatLockLocalManager.getTodayUsedMinutes(
+                    requireContext(),
+                    item.appPackageName
+                )
+
+                item.copy(
+                    accumulatedTime = todayUsedMinutes * 60L * 1000L
+                )
+            }
+
+            if (updatedList.isNotEmpty()) {
                 binding.recyclerviewRepeatLock.visibility = View.VISIBLE
                 binding.llRepeatLockListEmpty.visibility = View.GONE
             } else {
                 binding.recyclerviewRepeatLock.visibility = View.GONE
                 binding.llRepeatLockListEmpty.visibility = View.VISIBLE
             }
-            repeatLockAdapter.submitList(it.toList())
+            repeatLockAdapter.submitList(updatedList.toList())
 
             val repeatLockInfos = ArrayList(
-                it.map { item ->
+                updatedList.map { item ->
                     "${item.id}|${item.appPackageName}|${item.useTime}|${item.lockTime}|${item.maxTime}"
                 }
             )
