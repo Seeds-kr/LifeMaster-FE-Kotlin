@@ -19,10 +19,12 @@ import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroButtonSta
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroModel
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroTimeType
+import com.example.lifemaster.presentation.home.pomodoro.util.PomodoroLockManager
 import com.example.lifemaster.presentation.home.pomodoro.viewmodel.PomodoroViewModel
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.view.SelectTodoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -59,7 +61,40 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
     private fun initViews() = with(binding) {
         currentTodoItem = args.todoItem
         tvTodoItemTitle.text = currentTodoItem.title
-        updateTodoSelectionEnabled(pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.TODO)
+        updatePomodoroBlockingUi(pomodoroViewModel.pomodoroStatus == PomodoroButtonStatus.ESCAPE)
+    }
+
+    private fun updatePomodoroBlockingUi(isBlocking: Boolean) = with(binding) {
+        requireActivity()
+            .findViewById<BottomNavigationView>(R.id.bottomNavigation)
+            .isVisible = !isBlocking
+
+        rb25Minutes.isEnabled = !isBlocking
+        rb50Minutes.isEnabled = !isBlocking
+        rgTimer.isEnabled = !isBlocking
+
+        updateTodoSelectionEnabled(!isBlocking)
+
+        btnStartPomodoro.isEnabled = true
+    }
+
+    private fun startPomodoroScreenPinning() {
+        try {
+            requireActivity().startLockTask()
+        } catch (e: Exception) {
+            Toast.makeText(
+                requireContext(),
+                "화면 고정 설정이 필요합니다.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun stopPomodoroScreenPinning() {
+        try {
+            requireActivity().stopLockTask()
+        } catch (e: Exception) {
+        }
     }
 
     private fun restoreRestTimerIfNeeded() = with(binding) {
@@ -142,7 +177,9 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
                     when (pomodoroViewModel.pomodoroTimeType) {
                         PomodoroTimeType.TIMER_25 -> {
                             pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.ESCAPE
-                            updateTodoSelectionEnabled(false)
+                            PomodoroLockManager.lock(context = requireContext(), totalSeconds = TIMER_25)
+                            updatePomodoroBlockingUi(isBlocking = true)
+                            startPomodoroScreenPinning()
                             tvTimerTitle.text = "다음 휴식 시간까지"
                             btnStartPomodoro.text = "비상 탈출"
                             startTimer(TIMER_25)
@@ -150,7 +187,9 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
 
                         PomodoroTimeType.TIMER_50 -> {
                             pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.ESCAPE
-                            updateTodoSelectionEnabled(false)
+                            PomodoroLockManager.lock(context = requireContext(), totalSeconds = TIMER_50)
+                            updatePomodoroBlockingUi(isBlocking = true)
+                            startPomodoroScreenPinning()
                             tvTimerTitle.text = "다음 휴식 시간까지"
                             btnStartPomodoro.text = "비상 탈출"
                             startTimer(TIMER_50)
@@ -164,8 +203,6 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
 
                 PomodoroButtonStatus.ESCAPE -> {
                     findNavController().navigate(R.id.action_pomodoroFragment_to_pomodoroEscapeFragment)
-                    timerJob?.cancel()
-                    timerJob = null
                 }
 
                 PomodoroButtonStatus.REST -> {
@@ -227,6 +264,10 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
     }
 
     private fun onTimerTodoFinished(focusTotalSeconds: Int) = with(binding) {
+        PomodoroLockManager.unlock(requireContext())
+        updatePomodoroBlockingUi(isBlocking = false)
+        stopPomodoroScreenPinning()
+
         pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.REST
         tvTimerTitle.text = "휴식을 취하세요"
         btnStartPomodoro.text = "휴식하기"
@@ -265,6 +306,14 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
     override fun onDestroyView() {
         super.onDestroyView()
         timerJob?.cancel()
+
+        if (pomodoroViewModel.pomodoroStatus != PomodoroButtonStatus.ESCAPE) {
+            stopPomodoroScreenPinning()
+
+            requireActivity()
+                .findViewById<BottomNavigationView>(R.id.bottomNavigation)
+                .isVisible = true
+        }
     }
 
     private fun initObservers() = with(binding) {

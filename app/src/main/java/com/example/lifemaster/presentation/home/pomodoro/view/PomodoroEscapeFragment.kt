@@ -111,7 +111,7 @@ class PomodoroEscapeFragment : Fragment(R.layout.fragment_pomodoro_escape) {
 
             when {
                 isCorrect -> {
-                    if (currentPage < 2) {
+                    if (currentPage < 5) {
                         val action =
                             PomodoroEscapeFragmentDirections.actionPomodoroEscapeFragmentSelf(
                                 currentPageNum = currentPage + 1
@@ -119,6 +119,12 @@ class PomodoroEscapeFragment : Fragment(R.layout.fragment_pomodoro_escape) {
                         findNavController().navigate(action)
                     } else {
                         Toast.makeText(context, "비상 탈출을 완료했습니다!", Toast.LENGTH_SHORT).show()
+
+                        try {
+                            requireActivity().stopLockTask()
+                        } catch (e: Exception) {
+                        }
+
                         pomodoroViewModel.clearData()
                         pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.TODO
                         pomodoroViewModel.pomodoroTimeType = PomodoroTimeType.NONE
@@ -230,12 +236,14 @@ class PomodoroEscapeFragment : Fragment(R.layout.fragment_pomodoro_escape) {
     override fun onDestroyView() {
         super.onDestroyView()
 
-        requireActivity()
-            .findViewById<BottomNavigationView>(R.id.bottomNavigation)
-            .isVisible = true
+        if (pomodoroViewModel.pomodoroStatus != PomodoroButtonStatus.ESCAPE) {
+            requireActivity()
+                .findViewById<BottomNavigationView>(R.id.bottomNavigation)
+                .isVisible = true
+        }
     }
 
     companion object {
-        private const val TOTAL_SENTENCE_COUNT = 6
+        private const val TOTAL_SENTENCE_COUNT = 15
     }
 }
