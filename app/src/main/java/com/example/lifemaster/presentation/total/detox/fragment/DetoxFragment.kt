@@ -1,6 +1,7 @@
 package com.example.lifemaster.presentation.total.detox.fragment
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -18,6 +19,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -210,6 +212,30 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                             when (dataResource) {
                                 is DataResource.Success -> {
                                     val timeLockItems = dataResource.data
+
+                                    val activeTimeLockItems = timeLockItems.filter { !it.disabledToday }
+
+                                    val timeLockedPackages = ArrayList(
+                                        activeTimeLockItems
+                                            .map { it.lockedAppPackageName }
+                                            .filter { it.isNotBlank() }
+                                    )
+
+                                    val timeLockInfos = ArrayList(
+                                        activeTimeLockItems
+                                            .map { item ->
+                                                "${item.lockedAppPackageName}|${item.startTime}|${item.endTime}"
+                                            }
+                                            .filter { it.isNotBlank() }
+                                    )
+
+                                    val intent = Intent("com.example.lifemaster.BROADCAST_RECEIVER").apply {
+                                        putStringArrayListExtra("TIME_BLOCK_SERVICE_APPLICATIONS", timeLockedPackages)
+                                        putStringArrayListExtra("TIME_BLOCK_SERVICE_INFOS", timeLockInfos)
+                                    }
+
+                                    LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
+
                                     if (timeLockItems.isNotEmpty()) {
                                         binding.recyclerviewTimeLock.visibility = View.VISIBLE
                                         binding.tvTimeLockListEmpty.visibility = View.GONE
@@ -268,6 +294,18 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                 binding.llRepeatLockListEmpty.visibility = View.VISIBLE
             }
             repeatLockAdapter.submitList(it.toList())
+
+            val repeatLockInfos = ArrayList(
+                it.map { item ->
+                    "${item.id}|${item.appPackageName}|${item.useTime}|${item.lockTime}|${item.maxTime}"
+                }
+            )
+
+            val intent = Intent("com.example.lifemaster.BROADCAST_RECEIVER").apply {
+                putStringArrayListExtra("REPEAT_BLOCK_SERVICE_INFOS", repeatLockInfos)
+            }
+
+            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
         }
     }
 

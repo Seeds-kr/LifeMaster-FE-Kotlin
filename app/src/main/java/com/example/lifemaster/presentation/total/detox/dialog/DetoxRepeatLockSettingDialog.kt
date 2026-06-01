@@ -105,6 +105,8 @@ class DetoxRepeatLockSettingDialog(
             val maxUseTime = maxUseTimeHour * 60 + maxUseTimeMinutes
             val isMaxTimeLimitSet = maxUseTime != 0
 
+            val oneDayMinutes = 24 * 60
+
             if (useTime == 0) {
                 Toast.makeText(context, "사용 시간을 설정해주세요!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -115,17 +117,32 @@ class DetoxRepeatLockSettingDialog(
                 return@setOnClickListener
             }
 
-            val repeatLockItem = DetoxRepeatLockItem(
-                id = 0L,
-                selectedApp.appIcon,
-                selectedApp.appName,
-                selectedApp.appPackageName,
-                useTime,
-                lockTime,
-                maxUseTime,
-                selectedApp.accumulatedTime,
-                isMaxTimeLimitSet
-            )
+            if (useTime + lockTime > oneDayMinutes) {
+                Toast.makeText(
+                    context,
+                    "사용 시간과 잠금 시간의 합은 24시간을 넘을 수 없습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            if (isMaxTimeLimitSet && maxUseTime > oneDayMinutes) {
+                Toast.makeText(
+                    context,
+                    "하루 최대 사용 시간은 24시간을 넘을 수 없습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            if (isMaxTimeLimitSet && maxUseTime < useTime) {
+                Toast.makeText(
+                    context,
+                    "하루 최대 사용 시간은 1회 사용 시간보다 짧을 수 없습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
 
             val request = DetoxRepeatLock(
                 lockedApp = selectedApp.appPackageName,
@@ -135,10 +152,6 @@ class DetoxRepeatLockSettingDialog(
             )
 
             viewModel.generateRepeatLock(request)
-
-            val intent = Intent("com.example.lifemaster.BROADCAST_RECEIVER")
-            intent.putExtra("TEMPORARY_BLOCK_APP", repeatLockItem)
-            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
 
             dismiss()
         }

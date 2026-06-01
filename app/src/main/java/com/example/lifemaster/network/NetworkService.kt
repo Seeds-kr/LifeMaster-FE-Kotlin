@@ -54,6 +54,9 @@ import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockReques
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockResponse
 import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
+import com.example.lifemaster.presentation.total.detox.model.RepeatLockDetailResponse
+import com.example.lifemaster.presentation.total.detox.model.RepeatLockStatusResponse
+import com.example.lifemaster.presentation.total.detox.model.RepeatPhraseResponse
 import com.example.lifemaster.presentation.total.mypage.model.MeResponse
 import com.example.lifemaster.presentation.total.mypage.model.PayPalCreateOrderResponse
 import okhttp3.MultipartBody
@@ -738,6 +741,27 @@ interface NetworkService {
         @Path("id") id: Long
     ): Response<Unit>
 
+    // 반복 잠금 상태 조회
+    @GET("/detox/repeat/lock-status")
+    suspend fun fetchRepeatLockStatus(): Response<List<RepeatLockStatusResponse>>
+
+    // 반복 잠금 상세 조회
+    @GET("/detox/repeat/{id}")
+    suspend fun fetchRepeatLockDetail(
+        @Path("id") id: Long
+    ): Response<RepeatLockDetailResponse>
+
+    // 반복 잠금 비상탈출 문장 생성
+    @GET("/detox/repeat/generate-phrase")
+    suspend fun generateRepeatEscapePhrase(): Response<RepeatPhraseResponse>
+
+    // 반복 잠금 비상탈출 문장 검증
+    @POST("/detox/repeat/verify-phrase")
+    suspend fun verifyRepeatEscapePhrase(
+        @Query("id") id: Long,
+        @Query("phrase") phrase: String
+    ): Response<Boolean>
+
     // 시간 잠금 특정 목록 생성
     @POST("/detox/time")
     suspend fun generateTimeLock(
@@ -752,6 +776,16 @@ interface NetworkService {
     @DELETE("/detox/time/{id}")
     suspend fun deleteTimeLockItem(
         @Path("id") id: Long
+    ): Response<Unit>
+
+    // 디톡스 비상탈출 문장 생성
+    @GET("/detox/time/generate-phrase")
+    suspend fun generateDetoxEscapePhrase(): Response<String>
+
+    // 디톡스 비상탈출 문장 검증
+    @POST("/detox/time/verify-phrase")
+    suspend fun verifyDetoxEscapePhrase(
+        @Body phrase: String
     ): Response<Unit>
 
     /**

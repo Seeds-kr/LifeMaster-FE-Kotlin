@@ -96,6 +96,15 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        if (intent.getBooleanExtra("openDetox", false)) {
+            binding.root.post {
+                val navController =
+                    (supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment).navController
+
+                binding.bottomNavigation.selectedItemId = R.id.action_total
+                navController.navigate(R.id.detoxFragment)
+            }
+        }
 
         // 여기서 로그인 API를 다시 호출하면 안 됨
         // LoginEmailFragment에서 저장한 토큰을 그대로 사용해야 함
@@ -140,7 +149,7 @@ class MainActivity : AppCompatActivity() {
         getUserSleepInfo()
         fetchMe()
 
-//        requestAccessibilityPermission(this)
+        requestAccessibilityPermission(this)
     }
 
     private fun fetchMe() {

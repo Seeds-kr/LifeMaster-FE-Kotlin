@@ -27,7 +27,8 @@ data class DetoxTimeLockResponse(
     val startTime: String,
     val endTime: String,
     @SerializedName("lockedApps")
-    val lockedAppsRaw: String // packageName
+    val lockedAppsRaw: String,
+    val disabledToday: Boolean = false
 ) {
     val startHour: Int get() {
         val hour = startTime.split(":")[0].toInt()
@@ -37,9 +38,7 @@ data class DetoxTimeLockResponse(
             else -> hour
         }
     }
-    val startMinutes: Int get() {
-        return startTime.split(":")[1].toInt()
-    }
+    val startMinutes: Int get() = startTime.split(":")[1].toInt()
     val startAmPm: String get() {
         val hour = startTime.split(":")[0].toInt()
         return if(hour < 12) "AM" else "PM"
@@ -52,9 +51,8 @@ data class DetoxTimeLockResponse(
             else -> hour
         }
     }
-    val endMinutes: Int get() {
-        return endTime.split(":")[1].toInt()
-    }
+    val endMinutes: Int get() = endTime.split(":")[1].toInt()
+
     val endAmPm: String get() {
         val hour = endTime.split(":")[0].toInt()
         return if(hour < 12) "AM" else "PM"
@@ -64,6 +62,9 @@ data class DetoxTimeLockResponse(
             .removePrefix("[")
             .removeSuffix("]")
             .replace("\"", "")
-            .trim()
+            .split(",")
+            .firstOrNull()
+            ?.trim()
+            .orEmpty()
 }
 

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp">
+
+    <TextView
+        android:id="@+id/tv_pomodoro_escape_typing_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="90dp"
+        android:textColor="#8DB83F"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        tools:text="2026년 5월 29일" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_pomodoro_escape_typing_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#131313"
+            android:textSize="80sp"
+            android:textStyle="bold"
+            tools:text="13:01" />
+
+        <TextView
+            android:id="@+id/tv_pomodoro_escape_typing_am_pm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:textColor="#131313"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            tools:text="pm" />
+    </LinearLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.3" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:text="총 15개의 문장을 따라 써주세요"
+        android:textColor="#8DB83F"
+        android:textStyle="bold" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#F8FBF2"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:contentPadding="12dp">
+
+        <TextView
+            android:id="@+id/tv_pomodoro_escape_question_first"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#8DB83F"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="The harder you work for something, the greater you'll feel when you achieve it." />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv_pomodoro_escape_sentence_first"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="18dp"
+        android:backgroundTint="@color/light_gray_100"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:contentPadding="12dp">
+
+        <EditText
+            android:id="@+id/et_pomodoro_escape_answer_first"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:hint="여기에 따라 입력하세요"
+            android:textColor="@color/black_800"
+            android:textColorHint="@color/edit_text_hint"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#F8FBF2"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:contentPadding="12dp">
+
+        <TextView
+            android:id="@+id/tv_pomodoro_escape_question_second"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#8DB83F"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="The key to success is to focus on goals, not obstacles." />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv_pomodoro_escape_sentence_second"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="18dp"
+        android:backgroundTint="@color/light_gray_100"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:contentPadding="12dp">
+
+        <EditText
+            android:id="@+id/et_pomodoro_escape_answer_second"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:hint="여기에 따라 입력하세요"
+            android:textColor="@color/black_800"
+            android:textColorHint="@color/edit_text_hint"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#F8FBF2"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:contentPadding="12dp">
+
+        <TextView
+            android:id="@+id/tv_pomodoro_escape_question_third"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#8DB83F"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="Push yourself, because no one else is going to do it for you." />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv_pomodoro_escape_sentence_third"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/light_gray_100"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:contentPadding="12dp">
+
+        <EditText
+            android:id="@+id/et_pomodoro_escape_answer_third"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:hint="여기에 따라 입력하세요"
+            android:textColor="@color/black_800"
+            android:textColorHint="@color/edit_text_hint"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_pomodoro_escape_typing_next_page"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="70dp"
+        android:background="@drawable/bg_round_radius_8dp"
+        android:backgroundTint="#B4D775"
+        android:padding="14dp"
+        android:text="0/6 진행 중"
+        android:textColor="@color/white"
+        android:textSize="12sp" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>
