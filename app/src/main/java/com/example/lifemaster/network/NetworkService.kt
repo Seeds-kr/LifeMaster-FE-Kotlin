@@ -54,6 +54,8 @@ import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockReques
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockResponse
 import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeCompleteRequest
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeCompleteResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatEscapeVerifyResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatLockDetailResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatLockStatusResponse
@@ -253,6 +255,18 @@ interface NetworkService {
     suspend fun getMyChallengeList(
         @Header("Authorization") token: String
     ): List<ChallengeItemDto>
+
+    // 챌린지 완료 조회
+    @GET("/challenge/complete")
+    suspend fun getTodayCompletedChallenges(
+        @Header("Authorization") token: String
+    ): List<ChallengeCompleteResponse>
+
+    @POST("/challenge/complete")
+    suspend fun completeChallenge(
+        @Header("Authorization") token: String,
+        @Body request: ChallengeCompleteRequest
+    ): Response<ChallengeCompleteResponse>
 
     // 감사일기 생성
     @POST("/schedule/self-reflection/thank")

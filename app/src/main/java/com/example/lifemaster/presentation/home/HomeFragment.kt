@@ -48,6 +48,7 @@ import com.example.lifemaster.presentation.home.todo.model.TODO
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
+import com.example.lifemaster.presentation.total.challenge.model.ChallengeCompleteRequest
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.presentation.total.challenge.model.toPresentation as toChallengePresentation
 import dagger.hilt.android.AndroidEntryPoint
@@ -59,6 +60,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.OffsetDateTime
 import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.os.Build
@@ -841,13 +843,27 @@ class HomeFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 withContext(Dispatchers.IO) {
-                    networkService.getMyChallengeList(token)
+                    val myChallenges = networkService.getMyChallengeList(token)
+                    val completedList = networkService.getTodayCompletedChallenges(token)
+
+                    myChallenges to completedList
                 }
-            }.onSuccess { response ->
-                val myIds = response.map { it.challId }.toSet()
-                cachedChallengeList = response.map { it.toChallengePresentation(myIds) }
+            }.onSuccess { (myChallenges, completedList) ->
+                val myIds = myChallenges.map { it.challId }.toSet()
+                val completedMap = completedList.associateBy { it.challId }
+
+                cachedChallengeList = myChallenges.map { dto ->
+                    val completed = completedMap[dto.challId]
+
+                    dto.toChallengePresentation(myIds).copy(
+                        isCompleted = completed?.completed == true,
+                        completionTime = completed?.completedAt?.toChallengePreviewTime()
+                    )
+                }
+
                 renderChallengePreview(cachedChallengeList)
-            }.onFailure {
+            }.onFailure { e ->
+                Log.e("HomeFragment", "챌린지 미리보기 로드 실패", e)
                 cachedChallengeList = emptyList()
                 renderChallengePreview(emptyList())
             }
@@ -904,37 +920,96 @@ class HomeFragment : Fragment() {
             }
 
             val toggleComplete = {
-                if (!challenge.isCompleted) {
-                    challenge.isCompleted = true
-                    val now = LocalTime.now()
-                    val formatter = DateTimeFormatter.ofPattern("h:mma", Locale.ENGLISH)
-                    challenge.completionTime = now.format(formatter).lowercase(Locale.ENGLISH)
-                    updateChallengeItemUI(challenge, icon, overlay, checkmark, timeText)
-                    Toast.makeText(requireContext(), "${challenge.challName} 완료!", Toast.LENGTH_SHORT).show()
+                if (challenge.isCompleted) {
+                    Toast.makeText(requireContext(), "이미 오늘 완료한 챌린지입니다.", Toast.LENGTH_SHORT).show()
+                } else {
+                    val raw = TokenProvider.getBearerToken(requireContext())
 
-                    // 달력에 별 추가 (챌린지 완료 이벤트)
-                    val token = TokenProvider.getBearerToken(requireContext())
-                    if (!token.isNullOrBlank()) {
-                        val bearerToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
+                    if (raw.isNullOrBlank()) {
+                        Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val token = if (raw.startsWith("Bearer ")) raw else "Bearer $raw"
+                        val request = ChallengeCompleteRequest(
+                            challId = challenge.challId
+                        )
+
+                        Log.d("ChallengeComplete", "POST /challenge/complete challId=${request.challId}")
+
+                        root.isEnabled = false
+                        frame.isEnabled = false
+                        itemView.isEnabled = false
+
                         viewLifecycleOwner.lifecycleScope.launch {
-                            try {
-                                val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                            runCatching {
                                 withContext(Dispatchers.IO) {
-                                    networkService.createEvents(todayStr, listOf("챌린지 완료"), bearerToken)
+                                    networkService.completeChallenge(
+                                        token = token,
+                                        request = request
+                                    )
                                 }
-                                // 달력 갱신 트리거
-                                calendarVM.addIntrospectionDate(LocalDate.now())
-                            } catch (e: Exception) {
-                                Log.e("HomeFragment", "챌린지 완료 이벤트 추가 실패", e)
+                            }.onSuccess { response ->
+                                if (response.isSuccessful) {
+                                    val body = response.body()
+
+                                    challenge.isCompleted = true
+                                    challenge.completionTime =
+                                        body?.completedAt?.toChallengePreviewTime()
+                                            ?: LocalTime.now()
+                                                .format(DateTimeFormatter.ofPattern("h:mma", Locale.ENGLISH))
+                                                .lowercase(Locale.ENGLISH)
+
+                                    cachedChallengeList = cachedChallengeList.map {
+                                        if (it.challId == challenge.challId) {
+                                            it.copy(
+                                                isCompleted = true,
+                                                completionTime = challenge.completionTime
+                                            )
+                                        } else {
+                                            it
+                                        }
+                                    }
+
+                                    updateChallengeItemUI(
+                                        challenge = challenge,
+                                        icon = icon,
+                                        overlay = overlay,
+                                        checkmark = checkmark,
+                                        timeText = timeText
+                                    )
+
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "${challenge.challName} 완료!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    val errorBody = response.errorBody()?.string()
+                                    Log.e(
+                                        "ChallengeComplete",
+                                        "complete failed code=${response.code()}, body=$errorBody"
+                                    )
+
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "챌린지 완료 실패 (${response.code()})",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }.onFailure { e ->
+                                Log.e("ChallengeComplete", "complete error", e)
+
+                                Toast.makeText(
+                                    requireContext(),
+                                    "네트워크 오류가 발생했습니다.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
+
+                            root.isEnabled = true
+                            frame.isEnabled = true
+                            itemView.isEnabled = true
                         }
                     }
-                } else {
-                    Toast.makeText(
-                        requireContext(),
-                        getString(R.string.challenge_feature_in_development),
-                        Toast.LENGTH_SHORT
-                    ).show()
                 }
             }
 
@@ -990,6 +1065,17 @@ class HomeFragment : Fragment() {
             key.contains("샤워") || key.contains("찬물") -> R.drawable.ic_shower
             key.contains("스트레칭") -> R.drawable.ic_stretching
             else -> R.drawable.ic_shower
+        }
+    }
+
+    private fun String.toChallengePreviewTime(): String {
+        return runCatching {
+            OffsetDateTime.parse(this)
+                .toLocalTime()
+                .format(DateTimeFormatter.ofPattern("h:mma", Locale.ENGLISH))
+                .lowercase(Locale.ENGLISH)
+        }.getOrElse {
+            this
         }
     }
 }
