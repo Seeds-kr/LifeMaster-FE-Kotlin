@@ -12,49 +12,68 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.lifemaster.R
+import com.example.lifemaster.network.RetrofitInstance
+import com.example.lifemaster.network.TokenProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_success) {
+
+    private var currentInviteCode: String = ""
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val groupName = arguments?.getString("groupName").orEmpty()
         val groupDesc = arguments?.getString("groupDesc").orEmpty()
-        val inviteCode = arguments?.getString("inviteCode").orEmpty()
+        val rawInviteCode = arguments?.getString("inviteCode").orEmpty()
         val goalLines = arguments?.getStringArrayList("goalLines") ?: arrayListOf()
+
+        val groupId = arguments?.getLong("groupId")
+            ?: rawInviteCode.substringBefore(":").toLongOrNull()
+            ?: -1L
 
         val tvName = view.findViewById<TextView>(R.id.tv_group_name)
         val tvDesc = view.findViewById<TextView>(R.id.tv_group_desc)
         val tvInvite = view.findViewById<TextView>(R.id.tv_invite_code)
 
+        currentInviteCode = cleanInviteCode(rawInviteCode)
+
         tvName.text = groupName
         tvDesc.text = if (groupDesc.isBlank()) " " else groupDesc
-        tvInvite.text = if (inviteCode.isBlank()) "-" else inviteCode
+        tvInvite.text = if (currentInviteCode.isBlank()) "-" else currentInviteCode
 
         bindGoals(view, goalLines)
 
+        if (groupId > 0L) {
+            fetchInviteCode(groupId, tvInvite)
+        }
+
         view.findViewById<ImageButton>(R.id.btn_copy).setOnClickListener {
-            if (inviteCode.isBlank()) {
+            if (currentInviteCode.isBlank()) {
                 Toast.makeText(requireContext(), "초대코드가 없습니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            cm.setPrimaryClip(ClipData.newPlainText("inviteCode", inviteCode))
+            cm.setPrimaryClip(ClipData.newPlainText("inviteCode", currentInviteCode))
             Toast.makeText(requireContext(), "초대코드가 복사되었습니다.", Toast.LENGTH_SHORT).show()
         }
 
         view.findViewById<ImageButton>(R.id.btn_etc).setOnClickListener {
-            shareText("[LifeMaster] 그룹 초대코드: $inviteCode")
+            shareInviteCode()
         }
 
         view.findViewById<ImageButton>(R.id.btn_instagram).setOnClickListener {
-            shareText("[LifeMaster] 그룹 초대코드: $inviteCode")
+            shareInviteCode()
         }
 
         view.findViewById<ImageButton>(R.id.btn_x).setOnClickListener {
-            shareText("[LifeMaster] 그룹 초대코드: $inviteCode")
+            shareInviteCode()
         }
 
         view.findViewById<TextView>(R.id.btn_back_group).setOnClickListener {
@@ -64,6 +83,53 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
         view.findViewById<View?>(R.id.includeBackButton)?.setOnClickListener {
             findNavController().popBackStack()
         }
+    }
+
+    private fun fetchInviteCode(groupId: Long, tvInvite: TextView) {
+        val token = TokenProvider.getBearerToken(requireContext())
+
+        if (token.isNullOrBlank()) {
+            return
+        }
+
+        lifecycleScope.launch {
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitInstance.networkService.getGroupInviteCode(token, groupId)
+                }
+
+                if (response.isSuccessful) {
+                    val inviteCode = response.body()?.string().orEmpty().trim()
+
+                    if (inviteCode.isNotBlank()) {
+                        currentInviteCode = cleanInviteCode(inviteCode)
+                        tvInvite.text = currentInviteCode
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun cleanInviteCode(rawCode: String): String {
+        val trimmed = rawCode.trim()
+        if (trimmed.isBlank()) return ""
+
+        return if (trimmed.contains(":")) {
+            trimmed.substringAfter(":").trim()
+        } else {
+            trimmed
+        }
+    }
+
+    private fun shareInviteCode() {
+        if (currentInviteCode.isBlank()) {
+            Toast.makeText(requireContext(), "초대코드가 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        shareText("[LifeMaster] 그룹 초대코드: $currentInviteCode")
     }
 
     private fun bindGoals(view: View, goalLines: List<String>) {
@@ -84,11 +150,7 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
             }
 
             val tvGoalNum = TextView(requireContext()).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    0,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    1f
-                )
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 text = "최소목표 ${index + 1}"
                 setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
                 textSize = 12f
