@@ -35,7 +35,8 @@ data class DetoxRepeatLockItem(
     val lockTime: Int = 0,
     val maxTime: Int = 0,
     val accumulatedTime: Long = 0L, // 사용 시간 (unit: milliseconds)
-    val isMaxTimeLimitSet: Boolean = false
+    val isMaxTimeLimitSet: Boolean = false,
+    val disabledToday: Boolean = false
 ): Parcelable
 
 data class TestItem(

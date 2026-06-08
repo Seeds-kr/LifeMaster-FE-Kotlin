@@ -60,6 +60,7 @@ import com.example.lifemaster.presentation.total.detox.model.RepeatEscapeVerifyR
 import com.example.lifemaster.presentation.total.detox.model.RepeatLockDetailResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatLockStatusResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatPhraseResponse
+import com.example.lifemaster.presentation.total.detox.model.RepeatUsageRequest
 import com.example.lifemaster.presentation.total.mypage.model.MeResponse
 import com.example.lifemaster.presentation.total.mypage.model.PayPalCreateOrderResponse
 import okhttp3.MultipartBody
@@ -783,6 +784,14 @@ interface NetworkService {
         @Query("id") id: Long,
         @Query("phrase") phrase: String
     ): Response<RepeatEscapeVerifyResponse>
+
+    // 누적 사용시간
+    @PATCH("/detox/repeat/{id}/usage")
+    suspend fun syncRepeatUsage(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long,
+        @Body request: RepeatUsageRequest
+    ): Response<Unit>
 
     // 시간 잠금 특정 목록 생성
     @POST("/detox/time")

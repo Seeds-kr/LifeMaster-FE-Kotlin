@@ -46,3 +46,7 @@ data class RepeatEscapeVerifyResponse(
     val nextAvailableSeconds: Int?,
     val isDailyLimitReached: Boolean?
 )
+
+data class RepeatUsageRequest(
+    val todayUsedMinutes: Int
+)

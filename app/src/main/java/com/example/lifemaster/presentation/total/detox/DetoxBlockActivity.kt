@@ -36,6 +36,18 @@ class DetoxBlockActivity : AppCompatActivity() {
 
                 if (blockType == "REPEAT") {
                     putExtra("repeatLockId", intent.getLongExtra("repeatLockId", -1L))
+                    putExtra(
+                        "currentLockThresholdMinutes",
+                        intent.getIntExtra("currentLockThresholdMinutes", 0)
+                    )
+                    putExtra(
+                        "isLastLockSection",
+                        intent.getBooleanExtra("isLastLockSection", false)
+                    )
+                    putExtra(
+                        "isDailyLimitLock",
+                        intent.getBooleanExtra("isDailyLimitLock", false)
+                    )
                 }
             }
 
@@ -77,17 +89,12 @@ class DetoxBlockActivity : AppCompatActivity() {
         tvAccumulatedTime.text = formatMinutesToHourMinute(todayUsedMinutes)
 
         if (exceededDailyLimit) {
-            tvTimerTitle.text = "하루 최대 사용 시간에 도달했어요"
-            tvMinutesAndSeconds.text = "00:00:00"
-            btnStartPomodoro.isEnabled = false
-            return
+            tvTimerTitle.text = "오늘 사용 가능 시간을 모두 사용했어요"
+            btnStartPomodoro.isEnabled = escapeAvailable
+        } else {
+            tvTimerTitle.text = "다음 사용 가능 시간까지"
+            btnStartPomodoro.isEnabled = escapeAvailable
         }
-
-        if (!escapeAvailable) {
-            btnStartPomodoro.isEnabled = false
-        }
-
-        tvTimerTitle.text = "다음 사용 가능 시간까지"
 
         val remainingMillis = remainingUnlockMinutes * 60L * 1000L
 

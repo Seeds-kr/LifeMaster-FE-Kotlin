@@ -2,10 +2,13 @@ package com.example.lifemaster.presentation.total.detox.adapter
 
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.lifemaster.R
 import com.example.lifemaster.databinding.ItemDetoxRepeatLockItemBinding
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockItem
 import java.util.concurrent.TimeUnit
@@ -31,8 +34,20 @@ class DetoxRepeatLockAdapter(
 
             binding.tvUseTime.text = "${item.useTime}분"
             binding.tvLockTime.text = "${item.lockTime}분"
-            binding.tvAccumulateTime.text =
-                "${TimeUnit.MILLISECONDS.toMinutes(item.accumulatedTime)}분"
+            if (item.disabledToday) {
+                binding.layoutAccumulateTime.visibility = View.GONE
+
+                binding.tvAccumulateTime.visibility = View.VISIBLE
+                binding.tvAccumulateTime.text = "오늘 잠금 해제됨"
+                binding.tvAccumulateTime.setTextColor(
+                    ContextCompat.getColor(binding.root.context, R.color.red_100)
+                )
+                binding.tvAccumulateTime.textSize = 12f
+            } else {
+                binding.layoutAccumulateTime.visibility = View.VISIBLE
+                binding.tvAccumulateTime.text =
+                    "${TimeUnit.MILLISECONDS.toMinutes(item.accumulatedTime)}분"
+            }
 
             binding.tvMaxUseTime.text = if (item.isMaxTimeLimitSet) {
                 "최대 ${item.maxTime}분 사용 가능"
@@ -48,7 +63,6 @@ class DetoxRepeatLockAdapter(
                 val revealPx = 72f * view.resources.displayMetrics.density
 
                 when (event.action) {
-
                     MotionEvent.ACTION_DOWN -> {
                         if (openedForeground != null && openedForeground != view) {
                             openedForeground?.animate()
@@ -74,18 +88,14 @@ class DetoxRepeatLockAdapter(
 
                     MotionEvent.ACTION_UP,
                     MotionEvent.ACTION_CANCEL -> {
-
                         if (view.translationX <= -revealPx / 2) {
-
                             view.animate()
                                 .translationX(-revealPx)
                                 .setDuration(150)
                                 .start()
 
                             openedForeground = view
-
                         } else {
-
                             view.animate()
                                 .translationX(0f)
                                 .setDuration(150)

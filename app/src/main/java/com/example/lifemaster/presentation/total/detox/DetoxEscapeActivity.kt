@@ -29,6 +29,10 @@ class DetoxEscapeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDetoxEscapeBinding
     private var currentPage = 1
 
+    private val blockType by lazy {
+        intent.getStringExtra("blockType") ?: "TIME"
+    }
+
     private val questionList by lazy {
         listOf(
             binding.tvPomodoroEscapeQuestionFirst,
@@ -96,11 +100,19 @@ class DetoxEscapeActivity : AppCompatActivity() {
                 }
 
                 hasBlank -> {
-                    Toast.makeText(this@DetoxEscapeActivity, "아직 입력하지 않은 문장이 있습니다!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@DetoxEscapeActivity,
+                        "아직 입력하지 않은 문장이 있습니다!",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
                 else -> {
-                    Toast.makeText(this@DetoxEscapeActivity, "문장을 정확하게 입력해주세요!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@DetoxEscapeActivity,
+                        "문장을 정확하게 입력해주세요!",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
@@ -130,10 +142,14 @@ class DetoxEscapeActivity : AppCompatActivity() {
 
                     if (currentEditText.isEmpty()) {
                         parentCardView.strokeWidth = 0
-                        answerEditText.setTextColor(getColor(this@DetoxEscapeActivity, R.color.black_800))
+                        answerEditText.setTextColor(
+                            getColor(this@DetoxEscapeActivity, R.color.black_800)
+                        )
                     } else if (currentEditText.contentEquals(expectedText)) {
                         parentCardView.strokeWidth = 0
-                        answerEditText.setTextColor(getColor(this@DetoxEscapeActivity, R.color.black_800))
+                        answerEditText.setTextColor(
+                            getColor(this@DetoxEscapeActivity, R.color.black_800)
+                        )
                     } else {
                         parentCardView.strokeWidth =
                             resources.getDimensionPixelSize(R.dimen.text_watcher_error)
@@ -186,7 +202,10 @@ class DetoxEscapeActivity : AppCompatActivity() {
             runCatching { networkService.verifyDetoxEscapePhrase(input) }
                 .onSuccess { response ->
                     if (response.isSuccessful) {
-                        clearTimeBlockService()
+                        when (blockType) {
+                            "TIME" -> clearTimeBlockService()
+                            "REPEAT" -> escapeRepeatLock()
+                        }
 
                         Toast.makeText(
                             this@DetoxEscapeActivity,
@@ -213,6 +232,23 @@ class DetoxEscapeActivity : AppCompatActivity() {
         }
     }
 
+    private fun escapeRepeatLock() {
+        val repeatLockId = intent.getLongExtra("repeatLockId", -1L)
+        val currentLockThresholdMinutes =
+            intent.getIntExtra("currentLockThresholdMinutes", 0)
+        val isDailyLimitLock =
+            intent.getBooleanExtra("isDailyLimitLock", false)
+
+        if (repeatLockId == -1L || currentLockThresholdMinutes == 0) return
+
+        DetoxRepeatLockLocalManager.escapeRepeatLock(
+            context = this,
+            id = repeatLockId,
+            currentLockThresholdMinutes = currentLockThresholdMinutes,
+            isDailyLimitLock = isDailyLimitLock
+        )
+    }
+
     private fun clearTimeBlockService() {
         val intent = Intent("com.example.lifemaster.BROADCAST_RECEIVER").apply {
             putStringArrayListExtra("TIME_BLOCK_SERVICE_APPLICATIONS", arrayListOf())
@@ -234,7 +270,8 @@ class DetoxEscapeActivity : AppCompatActivity() {
         val completed = ((currentPage - 1) * 3 + answerList.count { it.text.isNotBlank() })
             .coerceAtMost(TOTAL_SENTENCE_COUNT)
 
-        binding.btnPomodoroEscapeTypingNextPage.text = "${completed}/${TOTAL_SENTENCE_COUNT} 진행 중"
+        binding.btnPomodoroEscapeTypingNextPage.text =
+            "${completed}/${TOTAL_SENTENCE_COUNT} 진행 중"
     }
 
     companion object {

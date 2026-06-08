@@ -2,17 +2,13 @@ package com.example.lifemaster.presentation.total.detox.fragment
 
 import android.app.AlertDialog
 import android.content.Intent
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
-import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -25,6 +21,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lifemaster.R
 import com.example.lifemaster.databinding.FragmentDetoxBinding
+import com.example.lifemaster.network.NetworkService
+import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
 import com.example.lifemaster.presentation.total.detox.DetoxRepeatLockLocalManager
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxPermanentLockAdapter
@@ -33,21 +31,35 @@ import com.example.lifemaster.presentation.total.detox.adapter.DetoxTimeLockAdap
 import com.example.lifemaster.presentation.total.detox.dialog.DetoxPermanentLockServiceDialog
 import com.example.lifemaster.presentation.total.detox.dialog.DetoxRepeatLockSettingDialog
 import com.example.lifemaster.presentation.total.detox.dialog.DetoxTimeLockDialog
+import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockItem
+import com.example.lifemaster.presentation.total.detox.model.RepeatUsageRequest
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxCommonViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxRepeatLockViewModel
 import com.example.lifemaster.presentation.total.detox.viewmodel.DetoxViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
+    @Inject
+    lateinit var networkService: NetworkService
+
     lateinit var binding: FragmentDetoxBinding
+
     private val detoxCommonViewModel: DetoxCommonViewModel by activityViewModels()
     private val detoxViewModel: DetoxViewModel by activityViewModels()
     private val detoxRepeatLockViewModel: DetoxRepeatLockViewModel by activityViewModels()
 
-    private var totalAccumulatedAppUsageTimes: Long =
-        0L // 앱의 총 누적 사용 시간(lifemaster 앱의 현재 포그라운드 상태에서의 누적된 시간 제외)
+    private var totalAccumulatedAppUsageTimes: Long = 0L
+    private var permanentLockedPackageNames: Set<String>? = null
+
+    private var isSyncingRepeatUsage = false
+    private val lastSyncedUsageMap = mutableMapOf<Long, Int>()
 
     private val permanentLockAdapter by lazy {
         DetoxPermanentLockAdapter()
@@ -71,15 +83,14 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
         }
     }
 
-    private var permanentLockedPackageNames: Set<String>? = null
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentDetoxBinding.bind(view)
-        fetchData()
+
         initViews()
         initListeners()
         initObservers()
+        fetchData()
     }
 
     override fun onResume() {
@@ -88,116 +99,119 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     }
 
     private fun fetchData() {
-        detoxViewModel.fetchPermanentLockItems() // 영구 잠금 리스트 항목 가져오기
-        detoxViewModel.fetchTimeLockItems() // 시간 잠금 리스트 항목 가져오기
-        detoxRepeatLockViewModel.fetchRepeatLockItems() // 반복 잠금 리스트 항목 가져오기
+        detoxViewModel.fetchPermanentLockItems()
+        detoxViewModel.fetchTimeLockItems()
+        detoxRepeatLockViewModel.fetchRepeatLockItems()
     }
 
-    private fun initViews() {
-        // 공통 - 라디오 버튼 관련 ui 뷰
-        binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
+    private fun initViews() = with(binding) {
+        radioGroup.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.rb_repeat_lock -> {
-                    binding.llRepeatLock.visibility = View.VISIBLE
-                    binding.llTimeLock.visibility = View.GONE
+                    llRepeatLock.visibility = View.VISIBLE
+                    llTimeLock.visibility = View.GONE
                 }
 
                 R.id.rb_time_lock -> {
-                    binding.llTimeLock.visibility = View.VISIBLE
-                    binding.llRepeatLock.visibility = View.GONE
+                    llTimeLock.visibility = View.VISIBLE
+                    llRepeatLock.visibility = View.GONE
                 }
             }
         }
 
-        // 영구 잠금
-        binding.recyclerviewPermanentLock.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        binding.recyclerviewPermanentLock.adapter = permanentLockAdapter
+        recyclerviewPermanentLock.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        recyclerviewPermanentLock.adapter = permanentLockAdapter
 
-        // 반복 잠금 - 아이템 리스트
-        binding.recyclerviewRepeatLock.layoutManager = LinearLayoutManager(context)
-        binding.recyclerviewRepeatLock.adapter = repeatLockAdapter
+        recyclerviewRepeatLock.layoutManager = LinearLayoutManager(context)
+        recyclerviewRepeatLock.adapter = repeatLockAdapter
 
-        // 시간 잠금 - 리스트 관련 뷰
-        binding.recyclerviewTimeLock.adapter = detoxTimeLockAdapter
-
+        recyclerviewTimeLock.adapter = detoxTimeLockAdapter
     }
 
-    private fun initListeners() {
-
-        binding.root.setOnClickListener {
+    private fun initListeners() = with(binding) {
+        root.setOnClickListener {
             repeatLockAdapter.closeOpenedItem()
         }
 
-        binding.etSearchApp.setOnClickListener {
+        etSearchApp.setOnClickListener {
             repeatLockAdapter.closeOpenedItem()
         }
 
-        binding.btnAddRepeatLockApp.setOnClickListener {
+        btnAddRepeatLockApp.setOnClickListener {
             repeatLockAdapter.closeOpenedItem()
         }
 
-        // 영구 차단할 앱 편집
-        binding.btnEditPermanentLockService.setOnClickListener {
+        btnEditPermanentLockService.setOnClickListener {
             val dialog = DetoxPermanentLockServiceDialog(permanentLockedPackageNames)
             dialog.isCancelable = false
             dialog.show(childFragmentManager, DetoxPermanentLockServiceDialog.TAG)
         }
 
-        // 반복 잠금 - 잠금 앱 추가
-        binding.btnAddRepeatLockApp.setOnClickListener {
+        btnAddRepeatLockApp.setOnClickListener {
             val dialog = DetoxRepeatLockSettingDialog()
             dialog.isCancelable = false
             dialog.show(childFragmentManager, DetoxRepeatLockSettingDialog.TAG)
         }
 
-        // 반복 잠금 - 검색 기능
-        binding.etSearchApp.setOnEditorActionListener(object : OnEditorActionListener {
-            override fun onEditorAction(v: TextView?, actionId: Int, event: KeyEvent?): Boolean {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    val searchAppName = binding.etSearchApp.text.toString()
-                    if (searchAppName.isBlank()) {
-                        Toast.makeText(requireContext(), "입력 값이 올바르지 않습니다!", Toast.LENGTH_SHORT)
-                            .show()
-                        return false
-                    } else {
-                        val currentListApps = detoxRepeatLockViewModel.repeatLockApp.value
-                        val searchApp = currentListApps?.find { it.appName == searchAppName }
-                        if (searchApp == null) {
-                            Toast.makeText(requireContext(), "해당 앱은 존재하지 않습니다!", Toast.LENGTH_SHORT)
-                                .show()
-                        } else {
-                            val singleValueList = arrayListOf(searchApp)
-                            repeatLockAdapter.submitList(singleValueList.toList())
-                        }
-                        return false // 왜 키보드가 안내려가지?
-                    }
-                } else {
-                    return true
-                }
-            }
-        })
+        etSearchApp.setOnEditorActionListener { _: TextView?, actionId: Int, _: KeyEvent? ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                val searchAppName = etSearchApp.text.toString()
 
-        // 시간 잠금 - 시간 잠금 설정
-        binding.btnTimeLockSetting.setOnClickListener {
-            val dialog = DetoxTimeLockDialog().apply { isCancelable = false }
+                if (searchAppName.isBlank()) {
+                    Toast.makeText(
+                        requireContext(),
+                        "입력 값이 올바르지 않습니다!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnEditorActionListener false
+                }
+
+                val currentListApps = detoxRepeatLockViewModel.repeatLockApp.value
+                val searchApp = currentListApps?.find { it.appName == searchAppName }
+
+                if (searchApp == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        "해당 앱은 존재하지 않습니다!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    repeatLockAdapter.submitList(listOf(searchApp))
+                }
+
+                false
+            } else {
+                true
+            }
+        }
+
+        btnTimeLockSetting.setOnClickListener {
+            val dialog = DetoxTimeLockDialog().apply {
+                isCancelable = false
+            }
             dialog.show(childFragmentManager, DetoxTimeLockDialog.TAG)
         }
     }
 
-    // 공통 - 오늘 사용한 앱의 총 누적 시간
     private fun initObservers() = with(binding) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    detoxViewModel.permanentLockItems.combine(detoxViewModel.installedApps) { resource, allApps -> resource to allApps }
+                    detoxViewModel.permanentLockItems
+                        .combine(detoxViewModel.installedApps) { resource, allApps ->
+                            resource to allApps
+                        }
                         .collect { (dataResource, allApps) ->
-                            when(dataResource) {
+                            when (dataResource) {
                                 is DataResource.Success<List<String>> -> {
                                     permanentLockedPackageNames = dataResource.data.toSet()
+
                                     val filteredApps = allApps.filter { app ->
-                                        permanentLockedPackageNames!!.contains(app.appPackageName)
+                                        permanentLockedPackageNames?.contains(app.appPackageName) == true
                                     }
-                                    if(filteredApps.isNotEmpty()) {
+
+                                    if (filteredApps.isNotEmpty()) {
                                         tvPermanentLockPlaceholder.isVisible = false
                                         recyclerviewPermanentLock.isVisible = true
                                         permanentLockAdapter.submitList(filteredApps.toList())
@@ -206,20 +220,26 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                                         recyclerviewPermanentLock.isVisible = false
                                     }
                                 }
-                                is DataResource.Error -> {}
-                                DataResource.Idle -> {}
-                                DataResource.Loading -> {}
+
+                                is DataResource.Error -> Unit
+                                DataResource.Idle -> Unit
+                                DataResource.Loading -> Unit
                             }
                         }
                 }
+
                 launch {
-                    detoxViewModel.timeLockItems.combine(detoxViewModel.installedApps) { resource, allApps -> resource to allApps }
+                    detoxViewModel.timeLockItems
+                        .combine(detoxViewModel.installedApps) { resource, allApps ->
+                            resource to allApps
+                        }
                         .collect { (dataResource, allApps) ->
                             when (dataResource) {
                                 is DataResource.Success -> {
                                     val timeLockItems = dataResource.data
-
-                                    val activeTimeLockItems = timeLockItems.filter { !it.disabledToday }
+                                    val activeTimeLockItems = timeLockItems.filter {
+                                        !it.disabledToday
+                                    }
 
                                     val timeLockedPackages = ArrayList(
                                         activeTimeLockItems
@@ -235,33 +255,43 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                                             .filter { it.isNotBlank() }
                                     )
 
-                                    val intent = Intent("com.example.lifemaster.BROADCAST_RECEIVER").apply {
-                                        putStringArrayListExtra("TIME_BLOCK_SERVICE_APPLICATIONS", timeLockedPackages)
-                                        putStringArrayListExtra("TIME_BLOCK_SERVICE_INFOS", timeLockInfos)
-                                    }
+                                    val intent =
+                                        Intent("com.example.lifemaster.BROADCAST_RECEIVER").apply {
+                                            putStringArrayListExtra(
+                                                "TIME_BLOCK_SERVICE_APPLICATIONS",
+                                                timeLockedPackages
+                                            )
+                                            putStringArrayListExtra(
+                                                "TIME_BLOCK_SERVICE_INFOS",
+                                                timeLockInfos
+                                            )
+                                        }
 
-                                    LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
+                                    LocalBroadcastManager
+                                        .getInstance(requireContext())
+                                        .sendBroadcast(intent)
 
                                     if (timeLockItems.isNotEmpty()) {
-                                        binding.recyclerviewTimeLock.visibility = View.VISIBLE
-                                        binding.tvTimeLockListEmpty.visibility = View.GONE
+                                        recyclerviewTimeLock.visibility = View.VISIBLE
+                                        tvTimeLockListEmpty.visibility = View.GONE
                                         detoxTimeLockAdapter.allAppList = allApps
                                         detoxTimeLockAdapter.submitList(timeLockItems.toList())
                                     } else {
-                                        binding.recyclerviewTimeLock.visibility = View.GONE
-                                        binding.tvTimeLockListEmpty.visibility = View.VISIBLE
+                                        recyclerviewTimeLock.visibility = View.GONE
+                                        tvTimeLockListEmpty.visibility = View.VISIBLE
                                     }
                                 }
-                                is DataResource.Error -> {}
-                                DataResource.Idle -> {}
-                                DataResource.Loading -> {}
-                            }
 
+                                is DataResource.Error -> Unit
+                                DataResource.Idle -> Unit
+                                DataResource.Loading -> Unit
+                            }
                         }
                 }
+
                 launch {
                     detoxViewModel.deleteTimeLockResult.collect { dataResource ->
-                        if(dataResource is DataResource.Success) {
+                        if (dataResource is DataResource.Success) {
                             detoxViewModel.fetchTimeLockItems()
                         }
                     }
@@ -269,60 +299,159 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
             }
         }
 
-        // lifemaster 앱이 포그라운드에 있을 때의 시간을 제외한 총 사용 누적 시간 -> 변수만 변경
         detoxCommonViewModel.totalAccumulatedAppUsageTimes.observe(viewLifecycleOwner) { updatedTime ->
             this@DetoxFragment.totalAccumulatedAppUsageTimes = updatedTime
         }
 
-        // lifemaster 앱이 포그라운드에 있을 때의 시간을 포함한 총 사용 누적 시간 -> UI 실시간 업데이트
         detoxCommonViewModel.tempElapsedForegroundTime.observe(viewLifecycleOwner) { elapsedForegroundTime ->
-            binding.tvAccumulatedTimeOfDay.text =
-                convertLongFormat(this@DetoxFragment.totalAccumulatedAppUsageTimes + elapsedForegroundTime)
+            tvAccumulatedTimeOfDay.text =
+                convertLongFormat(
+                    this@DetoxFragment.totalAccumulatedAppUsageTimes + elapsedForegroundTime
+                )
         }
 
         detoxRepeatLockViewModel.blockServices.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
-                binding.recyclerviewPermanentLock.visibility = View.VISIBLE
-                binding.tvPermanentLockPlaceholder.visibility = View.GONE
+                recyclerviewPermanentLock.visibility = View.VISIBLE
+                tvPermanentLockPlaceholder.visibility = View.GONE
             } else {
-                binding.recyclerviewPermanentLock.visibility = View.GONE
-                binding.tvPermanentLockPlaceholder.visibility = View.VISIBLE
+                recyclerviewPermanentLock.visibility = View.GONE
+                tvPermanentLockPlaceholder.visibility = View.VISIBLE
             }
+
             permanentLockAdapter.submitList(it.toList())
         }
 
-        detoxRepeatLockViewModel.repeatLockApp.observe(viewLifecycleOwner) {
-            val updatedList = it.map { item ->
+        detoxRepeatLockViewModel.repeatLockApp.observe(viewLifecycleOwner) { repeatLockItems ->
+            val localUsageList = repeatLockItems.map { item ->
                 val todayUsedMinutes = DetoxRepeatLockLocalManager.getTodayUsedMinutes(
-                    requireContext(),
-                    item.appPackageName
+                    context = requireContext(),
+                    id = item.id,
+                    packageName = item.appPackageName
+                )
+
+                Log.d(
+                    "RepeatUsage",
+                    "LOCAL today usage id=${item.id}, package=${item.appPackageName}, todayUsedMinutes=$todayUsedMinutes"
+                )
+
+                val disabledToday = DetoxRepeatLockLocalManager.isDisabledToday(
+                    context = requireContext(),
+                    id = item.id
                 )
 
                 item.copy(
-                    accumulatedTime = todayUsedMinutes * 60L * 1000L
+                    accumulatedTime = todayUsedMinutes * 60L * 1000L,
+                    disabledToday = disabledToday
                 )
             }
 
-            if (updatedList.isNotEmpty()) {
-                binding.recyclerviewRepeatLock.visibility = View.VISIBLE
-                binding.llRepeatLockListEmpty.visibility = View.GONE
+            bindRepeatLockList(localUsageList)
+            broadcastRepeatLockInfos(localUsageList)
+            syncRepeatUsageToServer(localUsageList)
+        }
+    }
+
+    private fun bindRepeatLockList(items: List<DetoxRepeatLockItem>) = with(binding) {
+        if (items.isNotEmpty()) {
+            recyclerviewRepeatLock.visibility = View.VISIBLE
+            llRepeatLockListEmpty.visibility = View.GONE
+        } else {
+            recyclerviewRepeatLock.visibility = View.GONE
+            llRepeatLockListEmpty.visibility = View.VISIBLE
+        }
+
+        repeatLockAdapter.submitList(items.toList())
+    }
+
+    private fun broadcastRepeatLockInfos(items: List<DetoxRepeatLockItem>) {
+        DetoxRepeatLockLocalManager.saveRepeatBlockInfos(
+            context = requireContext(),
+            infos = items.map { item ->
+                DetoxRepeatLockLocalManager.RepeatBlockInfo(
+                    id = item.id,
+                    packageName = item.appPackageName,
+                    sessionUsageLimit = item.useTime,
+                    lockDuration = item.lockTime,
+                    dailyMaxUsageLimit = item.maxTime
+                )
+            }
+        )
+
+        val repeatLockInfos = ArrayList(
+            items.map { item ->
+                "${item.id}|${item.appPackageName}|${item.useTime}|${item.lockTime}|${item.maxTime}"
+            }
+        )
+
+        val intent = Intent("com.example.lifemaster.BROADCAST_RECEIVER").apply {
+            putStringArrayListExtra("REPEAT_BLOCK_SERVICE_INFOS", repeatLockInfos)
+        }
+
+        LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
+    }
+
+    private fun syncRepeatUsageToServer(items: List<DetoxRepeatLockItem>) {
+        if (isSyncingRepeatUsage) return
+
+        val syncTargets = items.mapNotNull { item ->
+            val todayUsedMinutes = (item.accumulatedTime / 1000L / 60L).toInt()
+            val lastSyncedMinutes = lastSyncedUsageMap[item.id]
+
+            if (lastSyncedMinutes == todayUsedMinutes) {
+                null
             } else {
-                binding.recyclerviewRepeatLock.visibility = View.GONE
-                binding.llRepeatLockListEmpty.visibility = View.VISIBLE
+                item to todayUsedMinutes
             }
-            repeatLockAdapter.submitList(updatedList.toList())
+        }
 
-            val repeatLockInfos = ArrayList(
-                updatedList.map { item ->
-                    "${item.id}|${item.appPackageName}|${item.useTime}|${item.lockTime}|${item.maxTime}"
+        if (syncTargets.isEmpty()) return
+
+        isSyncingRepeatUsage = true
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val token = TokenProvider.getBearerToken(requireContext())
+
+            if (token.isNullOrBlank()) {
+                isSyncingRepeatUsage = false
+                return@launch
+            }
+
+            withContext(Dispatchers.IO) {
+                syncTargets.forEach { (item, todayUsedMinutes) ->
+                    runCatching {
+                        networkService.syncRepeatUsage(
+                            token = token,
+                            id = item.id,
+                            request = RepeatUsageRequest(
+                                todayUsedMinutes = todayUsedMinutes
+                            )
+                        )
+                    }.onSuccess { response ->
+                        if (response.isSuccessful) {
+                            lastSyncedUsageMap[item.id] = todayUsedMinutes
+
+                            Log.d(
+                                "RepeatUsage",
+                                "PATCH success id=${item.id}, todayUsedMinutes=$todayUsedMinutes"
+                            )
+                        } else {
+                            Log.e(
+                                "RepeatUsage",
+                                "PATCH failed id=${item.id}, code=${response.code()}, body=${response.errorBody()?.string()}"
+                            )
+                        }
+                    }.onFailure { throwable ->
+                        Log.e(
+                            "RepeatUsage",
+                            "PATCH error id=${item.id}",
+                            throwable
+                        )
+                    }
                 }
-            )
-
-            val intent = Intent("com.example.lifemaster.BROADCAST_RECEIVER").apply {
-                putStringArrayListExtra("REPEAT_BLOCK_SERVICE_INFOS", repeatLockInfos)
             }
 
-            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
+            isSyncingRepeatUsage = false
         }
     }
 
@@ -349,7 +478,8 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                     actionState: Int,
                     isCurrentlyActive: Boolean
                 ) {
-                    val holder = viewHolder as DetoxRepeatLockAdapter.DetoxRepeatLockViewHolder
+                    val holder =
+                        viewHolder as DetoxRepeatLockAdapter.DetoxRepeatLockViewHolder
 
                     if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
                         val limitedDx = dX.coerceIn(-revealWidth, 0f)
@@ -361,7 +491,8 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder
                 ) {
-                    val holder = viewHolder as DetoxRepeatLockAdapter.DetoxRepeatLockViewHolder
+                    val holder =
+                        viewHolder as DetoxRepeatLockAdapter.DetoxRepeatLockViewHolder
                     val currentX = holder.binding.swipeForeground.translationX
 
                     val targetX = if (currentX <= -revealWidth / 2) {
@@ -376,15 +507,21 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
                         .start()
                 }
 
-                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                    val holder = viewHolder as DetoxRepeatLockAdapter.DetoxRepeatLockViewHolder
+                override fun onSwiped(
+                    viewHolder: RecyclerView.ViewHolder,
+                    direction: Int
+                ) {
+                    val holder =
+                        viewHolder as DetoxRepeatLockAdapter.DetoxRepeatLockViewHolder
 
                     holder.binding.swipeForeground.animate()
                         .translationX(-revealWidth)
                         .setDuration(150)
                         .start()
 
-                    repeatLockAdapter.notifyItemChanged(viewHolder.bindingAdapterPosition)
+                    repeatLockAdapter.notifyItemChanged(
+                        viewHolder.bindingAdapterPosition
+                    )
                 }
 
                 override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder): Float {
