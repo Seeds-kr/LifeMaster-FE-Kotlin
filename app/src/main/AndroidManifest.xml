@@ -92,8 +92,15 @@
             android:theme="@style/Theme.LifeMaster_XML" />
         <activity
             android:name=".presentation.total.mypage.view.PaymentMethodSelectionActivity"
-            android:exported="false"
-            android:theme="@style/Theme.LifeMaster_XML" />
+            android:exported="true"
+            android:theme="@style/Theme.LifeMaster_XML">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="lifemaster" android:host="paypal" android:path="/return" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".presentation.total.mypage.view.RefundPolicyActivity"
             android:exported="false"

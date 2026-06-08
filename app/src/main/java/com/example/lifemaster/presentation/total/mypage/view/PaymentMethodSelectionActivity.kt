@@ -36,6 +36,8 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_payment_method_selection)
 
+        handleIntent(intent)
+
         val amount = intent.getStringExtra(EXTRA_AMOUNT).orEmpty()
         val period = intent.getStringExtra(EXTRA_PERIOD).orEmpty()
         selectedPlanType = intent.getStringExtra(EXTRA_PLAN_TYPE) ?: PLAN_MONTHLY
@@ -44,8 +46,8 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvPaymentPeriodValue).text = period
 
         val btnPaymentPaypal = findViewById<LinearLayout>(R.id.btnPaymentPaypal)
-        val btnPaymentGooglePlay = findViewById<LinearLayout>(R.id.btnPaymentGooglePlay)
-        val btnPaymentNaverPay = findViewById<LinearLayout>(R.id.btnPaymentNaverPay)
+        // val btnPaymentGooglePlay = findViewById<LinearLayout>(R.id.btnPaymentGooglePlay)
+        // val btnPaymentNaverPay = findViewById<LinearLayout>(R.id.btnPaymentNaverPay)
         btnPayNow = findViewById<Button>(R.id.btnPayNow)
         findViewById<TextView>(R.id.tvRefundPolicy).setOnClickListener {
             startActivity(Intent(this, RefundPolicyActivity::class.java))
@@ -55,7 +57,11 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
 
         fun updatePaymentMethodSelection(selectedId: Int) {
             selectedPaymentOptionId = selectedId
-            listOf(btnPaymentPaypal, btnPaymentGooglePlay, btnPaymentNaverPay).forEach { row ->
+            listOfNotNull(
+                btnPaymentPaypal,
+                // btnPaymentGooglePlay,
+                // btnPaymentNaverPay
+            ).forEach { row ->
                 row.setBackgroundResource(
                     if (row.id == selectedId) {
                         R.drawable.bg_payment_method_selected
@@ -67,8 +73,9 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
         }
 
         btnPaymentPaypal.setOnClickListener { updatePaymentMethodSelection(R.id.btnPaymentPaypal) }
-        btnPaymentGooglePlay.setOnClickListener { updatePaymentMethodSelection(R.id.btnPaymentGooglePlay) }
-        btnPaymentNaverPay.setOnClickListener { updatePaymentMethodSelection(R.id.btnPaymentNaverPay) }
+        // btnPaymentGooglePlay.setOnClickListener { updatePaymentMethodSelection(R.id.btnPaymentGooglePlay) }
+        // btnPaymentNaverPay.setOnClickListener { updatePaymentMethodSelection(R.id.btnPaymentNaverPay) }
+        /*
         billingManager = GoogleBillingManager(
             activity = this,
             listener = object : GoogleBillingManager.Listener {
@@ -93,18 +100,20 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
             }
         )
         billingManager.connect()
+        */
 
         btnPayNow.setOnClickListener {
             val selectedMethodText = when (selectedPaymentOptionId) {
                 R.id.btnPaymentPaypal -> getString(R.string.payment_method_paypal)
-                R.id.btnPaymentGooglePlay -> getString(R.string.payment_method_google_play)
-                R.id.btnPaymentNaverPay -> getString(R.string.payment_method_naver_pay)
+                // R.id.btnPaymentGooglePlay -> getString(R.string.payment_method_google_play)
+                // R.id.btnPaymentNaverPay -> getString(R.string.payment_method_naver_pay)
                 else -> {
                     Toast.makeText(this, R.string.payment_select_method_required, Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
             }
             when (selectedMethodText) {
+                /*
                 getString(R.string.payment_method_google_play) -> {
                     val productId = if (selectedPlanType == PLAN_ANNUAL) {
                         GOOGLE_SUBS_ANNUAL_PRODUCT_ID
@@ -113,6 +122,7 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
                     }
                     billingManager.launchSubscription(productId)
                 }
+                */
 
                 getString(R.string.payment_method_paypal),
                 // TODO: 네이버페이는 현재 "준비 중" 상태
@@ -195,6 +205,19 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.let { handleIntent(it) }
+    }
+
+    private fun handleIntent(intent: Intent) {
+        val data: Uri? = intent.data
+        if (data != null && data.scheme == "lifemaster" && data.host == "paypal" && data.path == "/return") {
+            // 딥링크를 통해 돌아온 경우, onResume에서 capture가 자동 수행되도록 플래그 설정
+            shouldCapturePaypalOnResume = true
+        }
+    }
+
     override fun onResume() {
         super.onResume()
 
@@ -230,22 +253,23 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
             try {
                 val res = RetrofitInstance.networkService.capturePaypalOrder(authHeader, orderId)
                 if (res.isSuccessful) {
-                    Toast.makeText(
-                        this@PaymentMethodSelectionActivity,
-                        R.string.payment_purchase_success,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    recordPremiumPurchase(
-                        getString(R.string.payment_method_paypal),
-                    )
-                    pendingPaypalOrderId = null
+                    handleCaptureSuccess()
+                } else if (res.code() == 500 || res.code() == 400) {
+                    // 이미 서버에서 capture가 완료되어 500이 뜨는 경우일 수 있음. 유저 정보 재확인.
+                    val meRes = RetrofitInstance.networkService.getMe(authHeader)
+                    if (meRes.isSuccessful) {
+                        val meBody = meRes.body()
+                        if (meBody != null && SubscriptionHelper.isPremiumPlan(SubscriptionHelper.resolvePlan(meBody))) {
+                            // 이미 프리미엄 상태라면 성공으로 간주
+                            handleCaptureSuccess()
+                        } else {
+                            showCaptureError(res.code())
+                        }
+                    } else {
+                        showCaptureError(res.code())
+                    }
                 } else {
-                    Toast.makeText(
-                        this@PaymentMethodSelectionActivity,
-                        "PayPal capture 실패: ${res.code()}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    // capture는 실패할 수 있음(승인 타이밍 등). 사용자가 다시 눌러 재시도할 수 있게 pending 값은 유지합니다.
+                    showCaptureError(res.code())
                 }
             } catch (e: Exception) {
                 Toast.makeText(
@@ -260,9 +284,31 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
         }
     }
 
+    private fun handleCaptureSuccess() {
+        Toast.makeText(
+            this@PaymentMethodSelectionActivity,
+            R.string.payment_purchase_success,
+            Toast.LENGTH_SHORT
+        ).show()
+        recordPremiumPurchase(
+            getString(R.string.payment_method_paypal),
+        )
+        pendingPaypalOrderId = null
+        shouldCapturePaypalOnResume = false
+    }
+
+    private fun showCaptureError(code: Int) {
+        Toast.makeText(
+            this@PaymentMethodSelectionActivity,
+            "PayPal capture 실패: $code",
+            Toast.LENGTH_SHORT
+        ).show()
+        // capture는 실패할 수 있음(승인 타이밍 등). 사용자가 다시 눌러 재시도할 수 있게 pending 값은 유지합니다.
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        billingManager.release()
+        // if (::billingManager.isInitialized) billingManager.release()
     }
 
     private fun planLabelForStore(): String =
