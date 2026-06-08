@@ -113,6 +113,9 @@
         <action
             android:id="@+id/action_groupFragment_to_groupStatsFragment"
             app:destination="@id/groupStatsFragment" />
+        <action
+            android:id="@+id/action_groupFragment_to_sleepReportFragment"
+            app:destination="@id/sleepReportFragment" />
     </fragment>
     <fragment
         android:id="@+id/groupListFragment"

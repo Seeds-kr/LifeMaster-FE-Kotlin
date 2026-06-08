@@ -28,6 +28,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import java.time.LocalDate
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -66,6 +67,19 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
 
         view.findViewById<View>(R.id.btn_all_groups_list)?.setOnClickListener {
             findNavController().navigate(R.id.action_groupFragment_to_groupListFragment)
+        }
+
+        view.findViewById<View>(R.id.btn_sleep_stats)?.setOnClickListener {
+            val today = LocalDate.now().toString()
+
+            val bundle = Bundle().apply {
+                putString("selectedDate", today)
+            }
+
+            findNavController().navigate(
+                R.id.action_groupFragment_to_sleepReportFragment,
+                bundle
+            )
         }
 
         btnCreateGroup.setOnClickListener {

@@ -164,8 +164,10 @@
             </LinearLayout>
 
             <include
-                android:id="@+id/include_my_stats"
-                layout="@layout/item_my_stats_box" />
+                android:id="@+id/btn_sleep_stats"
+                layout="@layout/item_my_stats_box"
+                android:clickable="true"
+                android:focusable="true" />
         </LinearLayout>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
