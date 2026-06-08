@@ -51,6 +51,7 @@ import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeCompleteRequest
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.presentation.total.challenge.model.toPresentation as toChallengePresentation
+import com.example.lifemaster.presentation.total.detox.DetoxRepeatLockLocalManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -94,7 +95,7 @@ class HomeFragment : Fragment() {
     private var tvAlarmTime: TextView? = null
     private var btnAlarmSetting: View? = null
 
-    private var tvDetoxTime: TextView? = null
+    private var tvDetoxBlockedCount: TextView? = null
     private var btnDetox: View? = null
 
     private lateinit var homeGroupAdapter: HomeGroupPreviewAdapter
@@ -104,9 +105,6 @@ class HomeFragment : Fragment() {
 
     // 수면 미리보기용 캐시
     private var cachedSleepList: List<SleepResponse> = emptyList()
-
-    // 디톡스 미리보기용 캐시(ms)
-    private var cachedDetoxTimeMillis: Long = 0L
 
     // 챌린지 미리보기용 캐시
     private var cachedChallengeList: List<ChallengeItem> = emptyList()
@@ -234,10 +232,12 @@ class HomeFragment : Fragment() {
     }
 
     private fun bindDetoxPreviewViews() {
-        tvDetoxTime = binding.layoutDetoxPreview.tvDetoxTime
+        binding.layoutDetoxPreview.tvDetoxInfo.text = "현재 차단 앱"
+        tvDetoxBlockedCount = binding.layoutDetoxPreview.tvDetoxTime
         btnDetox = binding.layoutDetoxPreview.btnDetox
 
         btnDetox?.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_detoxFragment)
         }
     }
 
@@ -426,22 +426,25 @@ class HomeFragment : Fragment() {
                                 todoRecyclerview.adapter?.let {
                                     (it as ToDoAdapter).submitList(pomodoroTodoItems)
                                 }
-                                cachedDetoxTimeMillis =
-                                    allPomodoroItems.sumOf { (it.focusTime.coerceAtLeast(0)) * 60_000L }
                                 showDetoxPreview()
                             }
                             is DataResource.Error -> {
                                 todoRecyclerview.adapter?.let {
                                     (it as ToDoAdapter).submitList(emptyList())
                                 }
-                                Toast.makeText(context, "할일 목록을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "할일 목록을 불러오지 못했습니다.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+
+                                showDetoxPreview()
                             }
                             DataResource.Idle -> {}
                             DataResource.Loading -> {}
                         }
                         if (pomoRes is DataResource.Error) {
-                            cachedDetoxTimeMillis = 0L
-                            showNoDetox()
+                            showDetoxPreview()
                         }
                     }
                 }
@@ -810,16 +813,8 @@ class HomeFragment : Fragment() {
 
     // 디톡스 미리보기
     private fun showDetoxPreview() {
-        if (cachedDetoxTimeMillis <= 0L) {
-            showNoDetox()
-            return
-        }
-
-        tvDetoxTime?.text = cachedDetoxTimeMillis.toDetoxTimeText()
-    }
-
-    private fun showNoDetox() {
-        tvDetoxTime?.text = "집중 기록 없음"
+        val blockedCount = calculateCurrentBlockedAppCount()
+        tvDetoxBlockedCount?.text = "${blockedCount}개"
     }
 
     private fun Long.toDetoxTimeText(): String {
@@ -1077,5 +1072,28 @@ class HomeFragment : Fragment() {
         }.getOrElse {
             this
         }
+    }
+
+    private fun calculateCurrentBlockedAppCount(): Int {
+        val repeatInfos = DetoxRepeatLockLocalManager.loadRepeatBlockInfos(requireContext())
+
+        val currentlyBlockedPackages = mutableSetOf<String>()
+
+        repeatInfos.forEach { (packageName, info) ->
+            val state = DetoxRepeatLockLocalManager.getRepeatLockState(
+                context = requireContext(),
+                id = info.id,
+                packageName = info.packageName,
+                sessionUsageLimit = info.sessionUsageLimit,
+                lockDuration = info.lockDuration,
+                dailyMaxUsageLimit = info.dailyMaxUsageLimit
+            )
+
+            if (state.locked) {
+                currentlyBlockedPackages.add(packageName)
+            }
+        }
+
+        return currentlyBlockedPackages.size
     }
 }

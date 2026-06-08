@@ -19,7 +19,7 @@
             android:id="@+id/tv_detox_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="누적 집중 시간"
+            android:text="현재 차단 앱"
             android:textColor="#8DB83F"
             android:textSize="12sp" />
 
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:text="8시간 12분"
+            android:text="0개"
             android:textColor="#131313"
             android:textSize="14sp" />
 
