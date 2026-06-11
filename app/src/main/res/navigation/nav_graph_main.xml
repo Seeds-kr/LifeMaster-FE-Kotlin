@@ -116,6 +116,9 @@
         <action
             android:id="@+id/action_groupFragment_to_sleepReportFragment"
             app:destination="@id/sleepReportFragment" />
+        <action
+            android:id="@+id/action_groupFragment_to_pomodoroReportFragment"
+            app:destination="@id/pomodoroReportFragment" />
     </fragment>
     <fragment
         android:id="@+id/groupListFragment"
@@ -302,6 +305,11 @@
             app:popUpTo="@id/pomodoroEscapeFragment"
             app:popUpToInclusive="true"/>
     </fragment>
+    <fragment
+        android:id="@+id/pomodoroReportFragment"
+        android:name="com.example.lifemaster.presentation.home.pomodoro.view.PomodoroReportFragment"
+        android:label="fragment_pomodoro_report"
+        tools:layout="@layout/fragment_pomodoro_report" />
     <fragment
         android:id="@+id/alarmCreateFragment"
         android:name="com.example.lifemaster.presentation.home.alarm.view.fragment.AlarmCreateFragment"

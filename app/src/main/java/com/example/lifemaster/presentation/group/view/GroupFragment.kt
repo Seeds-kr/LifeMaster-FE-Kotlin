@@ -69,6 +69,10 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
             findNavController().navigate(R.id.action_groupFragment_to_groupListFragment)
         }
 
+        view.findViewById<View>(R.id.btn_pomodoro_stats)?.setOnClickListener {
+            findNavController().navigate(R.id.action_groupFragment_to_pomodoroReportFragment)
+        }
+
         view.findViewById<View>(R.id.btn_sleep_stats)?.setOnClickListener {
             val today = LocalDate.now().toString()
 

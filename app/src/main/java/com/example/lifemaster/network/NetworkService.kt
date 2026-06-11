@@ -33,6 +33,9 @@ import com.example.lifemaster.presentation.home.calendar.model.CalendarEntry
 import com.example.lifemaster.presentation.home.calendar.model.EventBody
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroResponse
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRecentFocusListResponse
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroStatsResponse
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroFocusLevelRequest
 import com.example.lifemaster.presentation.home.todo.model.TodoModel
 import com.example.lifemaster.presentation.home.todo.model.TodoRequest
 import com.example.lifemaster.presentation.home.todo.model.TodoResponse
@@ -693,6 +696,25 @@ interface NetworkService {
         @Path("groupId") groupId: Long,
         @Query("scope") scope: String
     ): Response<GroupRankingResponse>
+
+    // 그룹 내 통계 뽀모도로
+    @GET("/time/pomodoro/focus/recent")
+    suspend fun getPomodoroRecentFocus(
+        @Header("Authorization") token: String,
+        @Query("endDate") endDate: String
+    ): Response<PomodoroRecentFocusListResponse>
+
+    @GET("/time/pomodoro/stats")
+    suspend fun getPomodoroStats(
+        @Header("Authorization") token: String,
+        @Query("date") date: String
+    ): Response<PomodoroStatsResponse>
+
+    @POST("/time/pomodoro/focus")
+    suspend fun savePomodoroFocusLevel(
+        @Header("Authorization") token: String,
+        @Body request: PomodoroFocusLevelRequest
+    ): Response<Unit>
 
     /**
      * PayPal 결제 API

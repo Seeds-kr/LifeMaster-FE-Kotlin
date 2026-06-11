@@ -29,6 +29,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @AndroidEntryPoint
 class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
@@ -271,7 +272,9 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
         pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.REST
         tvTimerTitle.text = "휴식을 취하세요"
         btnStartPomodoro.text = "휴식하기"
-        val restTotalSeconds = if(focusTotalSeconds == TIMER_25) TIMER_25_REST else TIMER_50_REST
+        updateTodoSelectionEnabled(false)
+        val restTotalSeconds =
+            if (focusTotalSeconds == TIMER_25) TIMER_25_REST else TIMER_50_REST
         updateTimerText(restTotalSeconds)
     }
 
@@ -284,7 +287,7 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
                     focusTime = 25,
                     breakTime = 5,
                     currentTimer = 1,
-                    date = currentTodoItem.date
+                    date = toServerDate(currentTodoItem.date)
                 )
                 pomodoroViewModel.registerPomodoroItem(pomodoroRequest = pomodoroModel)
             }
@@ -296,7 +299,7 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
                     focusTime = 50,
                     breakTime = 10,
                     currentTimer = 1,
-                    date = currentTodoItem.date
+                    date = toServerDate(currentTodoItem.date)
                 )
                 pomodoroViewModel.registerPomodoroItem(pomodoroRequest = pomodoroModel)
             }
@@ -341,12 +344,22 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
                                 tvMinutesAndSeconds.text = getString(R.string.tv_pomodoro_timer_release)
                                 pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.TODO
                                 pomodoroViewModel.pomodoroTimeType = PomodoroTimeType.NONE
+                                updateTodoSelectionEnabled(true)
+                                updatePomodoroBlockingUi(isBlocking = false)
                                 pomodoroViewModel.getPomodoroItemsByTodo(todoId = dataResource.data.todo.id)
-                                pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.TODO
-                                pomodoroViewModel.pomodoroTimeType = PomodoroTimeType.NONE
                             }
                             is DataResource.Error -> {
-                                Toast.makeText(context, getString(R.string.server_error_message), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    getString(R.string.server_error_message),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+
+                                updateTodoSelectionEnabled(true)
+                                updatePomodoroBlockingUi(isBlocking = false)
+
+                                pomodoroViewModel.pomodoroStatus = PomodoroButtonStatus.TODO
+                                pomodoroViewModel.pomodoroTimeType = PomodoroTimeType.NONE
                             }
                             else -> {}
                         }
@@ -376,9 +389,21 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
         }
     }
 
+    private fun toServerDate(rawDate: String): String {
+        val digits = rawDate.filter { it.isDigit() }
+
+        return when (digits.length) {
+            6 -> "20${digits.substring(0, 2)}-${digits.substring(2, 4)}-${digits.substring(4, 6)}"
+            8 -> "${digits.substring(0, 4)}-${digits.substring(4, 6)}-${digits.substring(6, 8)}"
+            else -> LocalDate.now().toString()
+        }
+    }
+
     private companion object {
-        const val TIMER_25 = 25 * 60
-        const val TIMER_25_REST = 5 * 60
+        //const val TIMER_25 = 25 * 60
+        //const val TIMER_25_REST = 5 * 60
+        const val TIMER_25 = 10
+        const val TIMER_25_REST = 5
         const val TIMER_50 = 50 * 60
         const val TIMER_50_REST = 10 * 60
     }

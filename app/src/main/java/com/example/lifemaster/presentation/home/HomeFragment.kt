@@ -414,7 +414,7 @@ class HomeFragment : Fragment() {
                                         emptyList()
                                     }
                                 val pomodoroTodoItems = todoItems.map { todoItem ->
-                                    val pomodoroItems = allPomodoroItems.filter { it.todo.id == todoItem.id }
+                                    val pomodoroItems = allPomodoroItems.filter { it.todo?.id == todoItem.id }
                                     val timer25Number = pomodoroItems.count { it.focusTime == 25 }
                                     val timer50Number = pomodoroItems.count { it.focusTime == 50 }
 

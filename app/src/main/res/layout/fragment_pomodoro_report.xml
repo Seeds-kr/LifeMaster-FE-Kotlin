@@ -55,32 +55,37 @@
                 android:layout_weight="1" />
 
             <TextView
+                android:id="@+id/tv_focus_level_low"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:alpha="0.35"
+                android:alpha="0.4"
                 android:text="😵"
                 android:textSize="20sp" />
 
             <TextView
+                android:id="@+id/tv_focus_level_normal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
-                android:alpha="0.35"
+                android:alpha="0.4"
                 android:text="😐"
                 android:textSize="20sp" />
 
             <TextView
+                android:id="@+id/tv_focus_level_good"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
-                android:alpha="0.35"
+                android:alpha="0.4"
                 android:text="🙂"
                 android:textSize="20sp" />
 
             <TextView
+                android:id="@+id/tv_focus_level_very_good"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
+                android:alpha="0.4"
                 android:text="🔥"
                 android:textSize="22sp" />
         </LinearLayout>
@@ -170,6 +175,7 @@
                         android:orientation="horizontal">
 
                         <TextView
+                            android:id="@+id/tv_pomodoro_report_focus_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="150분"
@@ -190,6 +196,7 @@
                             app:contentPaddingTop="2dp">
 
                             <TextView
+                                android:id="@+id/tv_pomodoro_report_focus_time_diff"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="+30분"
@@ -234,6 +241,7 @@
                         android:orientation="horizontal">
 
                         <TextView
+                            android:id="@+id/tv_pomodoro_report_complete_count"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="6회"
@@ -254,6 +262,7 @@
                             app:contentPaddingTop="2dp">
 
                             <TextView
+                                android:id="@+id/tv_pomodoro_report_complete_count_diff"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="+2회"
@@ -293,6 +302,7 @@
                         android:textSize="12sp" />
 
                     <TextView
+                        android:id="@+id/tv_pomodoro_report_weekly_focus_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
@@ -336,6 +346,7 @@
                         android:orientation="horizontal">
 
                         <TextView
+                            android:id="@+id/tv_pomodoro_report_average_focus_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="25분"
@@ -356,6 +367,7 @@
                             app:contentPaddingTop="2dp">
 
                             <TextView
+                                android:id="@+id/tv_pomodoro_report_average_focus_time_diff"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="+3분"

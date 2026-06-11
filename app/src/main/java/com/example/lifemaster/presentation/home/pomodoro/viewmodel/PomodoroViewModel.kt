@@ -8,6 +8,9 @@ import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroModel
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRequest
 import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroTimeType
 import com.example.lifemaster.presentation.home.pomodoro.model.toPresentation
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroRecentFocusResponse
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroStatsResponse
+import com.example.lifemaster.presentation.home.pomodoro.model.PomodoroFocusLevelRequest
 import com.example.lifemaster.presentation.home.pomodoro.repository.PomodoroRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
@@ -102,6 +105,15 @@ class PomodoroViewModel @Inject constructor(private val repository: PomodoroRepo
     private val _escapeSentences = MutableStateFlow<DataResource<List<String>>>(DataResource.Idle)
     val escapeSentences = _escapeSentences.asStateFlow()
 
+    private val _recentFocusItems = MutableStateFlow<DataResource<List<PomodoroRecentFocusResponse>>>(DataResource.Idle)
+    val recentFocusItems = _recentFocusItems.asStateFlow()
+
+    private val _pomodoroStats = MutableStateFlow<DataResource<PomodoroStatsResponse>>(DataResource.Idle)
+    val pomodoroStats = _pomodoroStats.asStateFlow()
+
+    private val _saveFocusLevelResult = MutableSharedFlow<DataResource<Unit>>()
+    val saveFocusLevelResult = _saveFocusLevelResult.asSharedFlow()
+
     fun getPomodoroEscapeSentence(count: Int) {
         viewModelScope.launch {
             _escapeSentences.value = DataResource.Loading
@@ -120,6 +132,51 @@ class PomodoroViewModel @Inject constructor(private val repository: PomodoroRepo
                 _escapeSentences.value = DataResource.Success(sentences)
             } catch (e: Exception) {
                 _escapeSentences.value = DataResource.Error(e)
+            }
+        }
+    }
+
+    fun getPomodoroRecentFocus(endDate: String) {
+        viewModelScope.launch {
+            _recentFocusItems.value = DataResource.Loading
+            val result = repository.getPomodoroRecentFocus(endDate = endDate)
+
+            result.onSuccess { response ->
+                _recentFocusItems.value = DataResource.Success(response)
+            }.onFailure { error ->
+                _recentFocusItems.value = DataResource.Error(error)
+            }
+        }
+    }
+
+    fun getPomodoroStats(date: String) {
+        viewModelScope.launch {
+            _pomodoroStats.value = DataResource.Loading
+            val result = repository.getPomodoroStats(date = date)
+
+            result.onSuccess { response ->
+                _pomodoroStats.value = DataResource.Success(response)
+            }.onFailure { error ->
+                _pomodoroStats.value = DataResource.Error(error)
+            }
+        }
+    }
+
+    fun savePomodoroFocusLevel(date: String, focusLevel: String) {
+        viewModelScope.launch {
+            _saveFocusLevelResult.emit(DataResource.Loading)
+
+            val request = PomodoroFocusLevelRequest(
+                date = date,
+                focusLevel = focusLevel
+            )
+
+            val result = repository.savePomodoroFocusLevel(request)
+
+            result.onSuccess {
+                _saveFocusLevelResult.emit(DataResource.Success(Unit))
+            }.onFailure { error ->
+                _saveFocusLevelResult.emit(DataResource.Error(error))
             }
         }
     }
