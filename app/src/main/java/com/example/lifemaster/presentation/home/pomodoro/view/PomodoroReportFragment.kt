@@ -1,7 +1,6 @@
 package com.example.lifemaster.presentation.home.pomodoro.view
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
@@ -85,7 +84,11 @@ class PomodoroReportFragment : Fragment(R.layout.fragment_pomodoro_report) {
                     pomodoroViewModel.recentFocusItems.collect { dataResource ->
                         when (dataResource) {
                             is DataResource.Success -> {
+                                view.findViewById<PomodoroRecentFocusGraphView>(R.id.view_pomodoro_recent_focus_graph)
+                                    .setItems(dataResource.data)
+
                                 val todayItem = dataResource.data.find { it.date == today }
+
                                 when (todayItem?.focusLevel?.trim()?.uppercase()) {
                                     "LOW" -> selectFocusLevel(view.findViewById(R.id.tv_focus_level_low))
                                     "NORMAL" -> selectFocusLevel(view.findViewById(R.id.tv_focus_level_normal))
@@ -94,9 +97,11 @@ class PomodoroReportFragment : Fragment(R.layout.fragment_pomodoro_report) {
                                     else -> clearFocusLevelSelection()
                                 }
                             }
+
                             is DataResource.Error -> {
                                 clearFocusLevelSelection()
                             }
+
                             else -> {}
                         }
                     }
