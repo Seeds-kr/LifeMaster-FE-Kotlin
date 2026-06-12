@@ -400,10 +400,8 @@ class PomodoroFragment : Fragment(R.layout.fragment_pomodoro) {
     }
 
     private companion object {
-        //const val TIMER_25 = 25 * 60
-        //const val TIMER_25_REST = 5 * 60
-        const val TIMER_25 = 10
-        const val TIMER_25_REST = 5
+        const val TIMER_25 = 25 * 60
+        const val TIMER_25_REST = 5 * 60
         const val TIMER_50 = 50 * 60
         const val TIMER_50_REST = 10 * 60
     }
