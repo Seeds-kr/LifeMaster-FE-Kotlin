@@ -275,7 +275,7 @@ class DetoxEscapeActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val TOTAL_SENTENCE_COUNT = 6
-        private const val TOTAL_PAGE_COUNT = 2
+        private const val TOTAL_SENTENCE_COUNT = 15
+        private const val TOTAL_PAGE_COUNT = 5
     }
 }
