@@ -56,6 +56,7 @@ import retrofit2.Response
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
 
@@ -219,18 +220,14 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         btnToggleWeek.setOnClickListener {
-            if (isPremiumLocked) {
-                return@setOnClickListener
-            }
+            if (isPremiumLocked) return@setOnClickListener
 
             if (!isMember) {
                 showRankingJoinToastIfNeeded()
                 return@setOnClickListener
             }
 
-            if (currentRankingScope == "WEEKLY" || isRankingLoading) {
-                return@setOnClickListener
-            }
+            if (currentRankingScope == "WEEKLY" || isRankingLoading) return@setOnClickListener
 
             currentRankingScope = "WEEKLY"
             isRankingExpanded = false
@@ -239,18 +236,14 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         btnToggleAll.setOnClickListener {
-            if (isPremiumLocked) {
-                return@setOnClickListener
-            }
+            if (isPremiumLocked) return@setOnClickListener
 
             if (!isMember) {
                 showRankingJoinToastIfNeeded()
                 return@setOnClickListener
             }
 
-            if (currentRankingScope == "TOTAL" || isRankingLoading) {
-                return@setOnClickListener
-            }
+            if (currentRankingScope == "TOTAL" || isRankingLoading) return@setOnClickListener
 
             currentRankingScope = "TOTAL"
             isRankingExpanded = false
@@ -301,15 +294,11 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             btnJoin.text = "가입완료"
             btnJoin.isEnabled = false
             btnJoin.alpha = 0.6f
-
-            btnLeave.visibility =
-                if (ownerLeaveBlocked) View.GONE else View.VISIBLE
-
+            btnLeave.visibility = if (ownerLeaveBlocked) View.GONE else View.VISIBLE
         } else {
             btnJoin.text = getString(R.string.group_join)
             btnJoin.isEnabled = true
             btnJoin.alpha = 1f
-
             btnLeave.visibility = View.GONE
         }
     }
@@ -416,14 +405,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     }
 
     private fun loadRanking() {
-        if (isPremiumLocked) {
-            rankingAllItems = emptyList()
-            rankingMyItem = null
-            bindRankingList()
-            return
-        }
-
-        if (!isMember) {
+        if (isPremiumLocked || !isMember) {
             rankingAllItems = emptyList()
             rankingMyItem = null
             bindRankingList()
@@ -453,9 +435,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 }
 
                 if (resp.isSuccessful) {
-                    if (!isPremiumLocked) {
-                        hidePremiumLockedUi()
-                    }
+                    if (!isPremiumLocked) hidePremiumLockedUi()
 
                     val body = resp.body()
                     rankingAllItems = body?.items.orEmpty()
@@ -717,9 +697,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 return@launch
             }
 
-            if (!isPremiumLocked) {
-                hidePremiumLockedUi()
-            }
+            if (!isPremiumLocked) hidePremiumLockedUi()
 
             bindDynamicGoalCharts(
                 goals = goalsResp?.body().orEmpty(),
@@ -866,7 +844,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         val barCard = itemView.findViewById<View>(R.id.card_bar_chart)
         val lineChart = itemView.findViewById<LineChart>(R.id.chart_line)
 
-        legend.visibility = View.VISIBLE
+        legend.visibility = View.GONE
         lineCard.visibility = View.VISIBLE
         barCard.visibility = View.GONE
 
@@ -877,30 +855,53 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         val userValues = normalizeToSix(stat.userValues)
         val groupValues = normalizeToSix(stat.groupAverageValues)
 
-        val userAvgHour = userValues
-            .filter { it > 0f }
-            .average()
-            .takeIf { !it.isNaN() }
-            ?: 0.0
+        val todayUserHour = userValues.lastOrNull() ?: 0f
+        val todayGroupHour = groupValues.lastOrNull() ?: 0f
 
-        tvGoalDesc.text = if (userAvgHour > 0.0) {
-            "최근 평균 수면: ${"%.1f".format(userAvgHour)}시간"
-        } else {
-            "최근 평균 수면 데이터가 없습니다"
-        }
+        tvGoalDesc.text = makeSleepCompareText(
+            todayUserHour = todayUserHour,
+            todayGroupHour = todayGroupHour
+        )
 
         renderSleepChart(
             chart = lineChart,
-            userValues = userValues,
             groupValues = groupValues,
             xLabels = xLabels,
             goalY = goal.goalValue.toFloat(),
-            avgHour = userAvgHour.toFloat(),
+            todayGroupHour = todayGroupHour,
             participantCount = memberCount
         )
 
         bindExternalXAxisLabels(itemView, xLabels, false, lineChart)
         layoutGoalChartContainer.addView(itemView)
+    }
+
+    private fun makeSleepCompareText(
+        todayUserHour: Float,
+        todayGroupHour: Float
+    ): String {
+        if (todayUserHour <= 0f) return "오늘 수면 데이터가 없습니다"
+        if (todayGroupHour <= 0f) return "오늘 그룹 평균 수면 데이터가 없습니다"
+
+        val diffMinutes = ((todayUserHour - todayGroupHour) * 60f).toInt()
+
+        if (diffMinutes == 0) {
+            return "나는 평균과 똑같이 잤어요!"
+        }
+
+        val directionText = if (diffMinutes > 0) "더" else "덜"
+        return "나는 평균보다 ${formatSleepDiff(abs(diffMinutes))} $directionText 잤어요!"
+    }
+
+    private fun formatSleepDiff(totalMinutes: Int): String {
+        val hours = totalMinutes / 60
+        val minutes = totalMinutes % 60
+
+        return when {
+            hours > 0 && minutes > 0 -> "${hours}시간 ${minutes}분"
+            hours > 0 -> "${hours}시간"
+            else -> "${minutes}분"
+        }
     }
 
     private fun addPomodoroItem(
@@ -925,7 +926,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         val minGoalValue = goal.goalValue.toFloat()
         val goalName = goal.goalName
 
-        tvMinGoalValue.text = "${goalName} ${formatGoalValue(stat.goalType, goal.goalValue)} 이상"
+        tvMinGoalValue.text = "$goalName 이상"
         tvGoalTitle.text = "${goalName} 통계"
         tvGoalDesc.text = "달성 횟수 통계"
 
@@ -987,33 +988,28 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun renderSleepChart(
         chart: LineChart,
-        userValues: List<Float>,
         groupValues: List<Float>,
         xLabels: List<String>,
         goalY: Float,
-        avgHour: Float,
+        todayGroupHour: Float,
         participantCount: Int
     ) {
-        val userEntries = userValues.mapIndexed { index, value -> Entry(index.toFloat(), value) }
-        val groupEntries = groupValues.mapIndexed { index, value -> Entry(index.toFloat(), value) }
+        val groupEntries = groupValues.mapIndexed { index, value ->
+            Entry(index.toFloat(), value)
+        }
 
-        val maxValue = max(max(userValues.maxOrNull() ?: 0f, groupValues.maxOrNull() ?: 0f), goalY)
-        val yMax = max(12f, ceil(maxValue + 1f))
+        val maxValue = max(groupValues.maxOrNull() ?: 0f, goalY)
+        val yMax = max(12f, ceil(maxValue + 2f))
 
         ChartStyle.applySleep(chart, xLabels, goalY, 0f, yMax)
 
+        chart.setExtraOffsets(0f, 16f, 0f, 8f)
+        chart.setClipToPadding(false)
+        chart.clipChildren = false
+        chart.clipToOutline = false
+
         val groupSet = LineDataSet(groupEntries, "").apply {
             color = ChartStyle.lineColor()
-            lineWidth = 2.2f
-            setDrawValues(false)
-            setDrawFilled(false)
-            setDrawCircles(false)
-            mode = LineDataSet.Mode.LINEAR
-            setDrawHighlightIndicators(false)
-        }
-
-        val userSet = LineDataSet(userEntries, "").apply {
-            color = ChartStyle.goalColor()
             lineWidth = 2.6f
             setDrawValues(false)
             setDrawFilled(false)
@@ -1022,32 +1018,36 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             setDrawHighlightIndicators(false)
         }
 
-        val lastUserEntry = userEntries.lastOrNull()
-        val pointSet = lastUserEntry?.let {
+        val lastGroupEntry = groupEntries.lastOrNull()
+
+        val pointSet = lastGroupEntry?.let {
             LineDataSet(listOf(it), "").apply {
-                color = ChartStyle.goalColor()
+                color = ChartStyle.lineColor()
                 lineWidth = 0f
                 setDrawValues(false)
                 setDrawFilled(false)
                 setDrawCircles(true)
                 circleRadius = 7f
                 circleHoleRadius = 3.6f
-                setCircleColor(ChartStyle.goalColor())
+                setCircleColor(ChartStyle.lineColor())
                 circleHoleColor = ChartStyle.circleHoleColor()
                 setDrawHighlightIndicators(false)
             }
         }
 
-        chart.data =
-            if (pointSet != null) LineData(groupSet, userSet, pointSet)
-            else LineData(groupSet, userSet)
+        chart.data = if (pointSet != null) {
+            LineData(groupSet, pointSet)
+        } else {
+            LineData(groupSet)
+        }
 
         chart.xAxis.axisMinimum = -0.5f
         chart.xAxis.axisMaximum = 5.5f
-        chart.marker = SleepMarkerView(requireContext(), participantCount, avgHour)
+        chart.marker = SleepMarkerView(requireContext(), todayGroupHour)
+        //chart.marker = SleepMarkerView(requireContext(), participantCount, todayGroupHour)
 
-        lastUserEntry?.let {
-            chart.highlightValue(it.x, it.y, 2)
+        lastGroupEntry?.let {
+            chart.highlightValue(it.x, it.y, 1)
         }
 
         chart.notifyDataSetChanged()
@@ -1197,8 +1197,8 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private inner class SleepMarkerView(
         context: Context,
-        private val participantCount: Int,
-        private val avgHour: Float
+        //private val participantCount: Int,
+        private val todayGroupHour: Float
     ) : MarkerView(context, android.R.layout.simple_list_item_1) {
 
         private val root: LinearLayout
@@ -1223,7 +1223,8 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             }
 
             sub = TextView(context).apply {
-                text = "${participantCount}명 참여   ${"%.1f".format(avgHour)}시간"
+                // text = "${participantCount}명 참여   ${"%.1f".format(todayGroupHour)}시간"
+                text = "${"%.1f".format(todayGroupHour)}시간"
                 setTextColor(ChartStyle.goalColor())
                 textSize = 11f
                 setPadding(0, dp(8), 0, 0)
@@ -1239,15 +1240,32 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         override fun getOffset(): MPPointF {
-            return MPPointF((-width - dp(12)).toFloat(), (-height - dp(12)).toFloat())
+            return MPPointF(
+                -width * 1.05f,
+                (-height - dp(14)).toFloat()
+            )
         }
 
-        override fun getOffsetForDrawingAtPoint(posX: Float, posY: Float): MPPointF {
-            val offsetY = -height - dp(12).toFloat()
-            var offsetX = -width - dp(12).toFloat()
+        override fun getOffsetForDrawingAtPoint(
+            posX: Float,
+            posY: Float
+        ): MPPointF {
+
+            var offsetX = -width * 1.15f
+            var offsetY = -height - dp(12).toFloat()
 
             if (posX + offsetX < dp(4)) {
-                offsetX = dp(12).toFloat()
+                offsetX = dp(4) - posX
+            }
+
+            if (chartView != null &&
+                posX + offsetX + width > chartView.width - dp(4)
+            ) {
+                offsetX = chartView.width - dp(4) - width - posX
+            }
+
+            if (posY + offsetY < dp(4)) {
+                offsetY = dp(10).toFloat()
             }
 
             return MPPointF(offsetX, offsetY)
