@@ -31,6 +31,7 @@ import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.group.model.GroupAchievementHeatmapItem
 import com.example.lifemaster.presentation.group.model.GroupGoalProgressResponseItem
 import com.example.lifemaster.presentation.group.model.GroupRankingItem
+import com.example.lifemaster.presentation.group.model.GroupRecentGoalStatisticsResponse
 import com.example.lifemaster.presentation.group.util.ChartStyle
 import com.example.lifemaster.presentation.total.mypage.view.PremiumSubscribeActivity
 import com.github.mikephil.charting.charts.CombinedChart
@@ -688,17 +689,13 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun loadStats(token: String, groupId: Long) {
         lifecycleScope.launch {
-            val meDeferred = async(Dispatchers.IO) {
-                runCatching { networkService.getMe(token) }.getOrNull()
-            }
-
-            val sleepDeferred = async(Dispatchers.IO) {
-                runCatching { networkService.getGroupSleepStats(token, groupId) }
+            val goalsDeferred = async(Dispatchers.IO) {
+                runCatching { networkService.getGroupGoalsProgress(token, groupId) }
                     .getOrNull()
             }
 
-            val goalsDeferred = async(Dispatchers.IO) {
-                runCatching { networkService.getGroupGoalsProgress(token, groupId) }
+            val recentGoalStatsDeferred = async(Dispatchers.IO) {
+                runCatching { networkService.getRecentGoalStatistics(token, groupId) }
                     .getOrNull()
             }
 
@@ -707,12 +704,15 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                     .getOrNull()
             }
 
-            val myEmail = meDeferred.await()?.body()?.email
-            val sleepResp = sleepDeferred.await()
             val goalsResp = goalsDeferred.await()
+            val recentGoalStatsResp = recentGoalStatsDeferred.await()
             val heatmapResp = heatmapDeferred.await()
 
-            if (sleepResp?.code() == 403 || goalsResp?.code() == 403 || heatmapResp?.code() == 403) {
+            if (
+                goalsResp?.code() == 403 ||
+                recentGoalStatsResp?.code() == 403 ||
+                heatmapResp?.code() == 403
+            ) {
                 showPremiumLockedUi()
                 return@launch
             }
@@ -721,15 +721,9 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 hidePremiumLockedUi()
             }
 
-            val sleepBody = sleepResp?.body()
-            val userSleepMinutes = sleepBody?.userSleepDurations.orEmpty()
-            val groupSleepMinutes = sleepBody?.groupAverageSleepDurations.orEmpty()
-
             bindDynamicGoalCharts(
                 goals = goalsResp?.body().orEmpty(),
-                userSleepMinutes = userSleepMinutes,
-                groupSleepMinutes = groupSleepMinutes,
-                myEmail = myEmail
+                recentGoalStats = recentGoalStatsResp?.body().orEmpty()
             )
 
             bindHeatmap(heatmapResp?.body().orEmpty())
@@ -782,20 +776,21 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun bindDynamicGoalCharts(
         goals: List<GroupGoalProgressResponseItem>,
-        userSleepMinutes: List<Int>,
-        groupSleepMinutes: List<Int>,
-        myEmail: String?
+        recentGoalStats: List<GroupRecentGoalStatisticsResponse>
     ) {
         if (isPremiumLocked) return
 
         layoutGoalChartContainer.removeAllViews()
 
-        goals.firstOrNull { it.goalName.contains("수면") }?.let {
-            addSleepItem(it, userSleepMinutes, groupSleepMinutes)
-        }
+        goals.forEach { goal ->
+            val stat = recentGoalStats.firstOrNull { stat ->
+                isSameGoalType(goal.goalName, stat.goalType)
+            } ?: return@forEach
 
-        goals.firstOrNull { it.goalName.contains("뽀모도로") }?.let {
-            addPomodoroItem(it, myEmail)
+            when (stat.goalType.uppercase()) {
+                "SLEEP" -> addSleepItem(goal, stat)
+                else -> addPomodoroItem(goal, stat)
+            }
         }
 
         layoutGoalChartContainer.visibility =
@@ -858,8 +853,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun addSleepItem(
         goal: GroupGoalProgressResponseItem,
-        userSleepMinutes: List<Int>,
-        groupSleepMinutes: List<Int>
+        stat: GroupRecentGoalStatisticsResponse
     ) {
         val itemView = LayoutInflater.from(requireContext())
             .inflate(R.layout.item_group_goal_chart, layoutGoalChartContainer, false)
@@ -879,36 +873,29 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         tvMinGoalValue.text = "수면 ${goal.goalValue}시간 이상"
         tvGoalTitle.text = "수면시간 통계"
 
-        if (userSleepMinutes.isEmpty() && groupSleepMinutes.isEmpty()) {
-            tvGoalDesc.text = "수면 데이터가 없습니다"
-            lineChart.clear()
-            layoutGoalChartContainer.addView(itemView)
-            return
-        }
-
         val xLabels = buildLast6DayLabels()
-        val userSleepHours = normalizeSleepMinutesToSixHours(userSleepMinutes)
-        val groupSleepHours = normalizeSleepMinutesToSixHours(groupSleepMinutes)
+        val userValues = normalizeToSix(stat.userValues)
+        val groupValues = normalizeToSix(stat.groupAverageValues)
 
-        val userAvgMinutes = userSleepMinutes.takeLast(6)
-            .filter { it > 0 }
+        val userAvgHour = userValues
+            .filter { it > 0f }
             .average()
             .takeIf { !it.isNaN() }
             ?: 0.0
 
-        tvGoalDesc.text = if (userAvgMinutes > 0.0) {
-            "최근 평균 수면: ${"%.1f".format(userAvgMinutes / 60.0)}시간"
+        tvGoalDesc.text = if (userAvgHour > 0.0) {
+            "최근 평균 수면: ${"%.1f".format(userAvgHour)}시간"
         } else {
             "최근 평균 수면 데이터가 없습니다"
         }
 
         renderSleepChart(
             chart = lineChart,
-            userValues = userSleepHours,
-            groupValues = groupSleepHours,
+            userValues = userValues,
+            groupValues = groupValues,
             xLabels = xLabels,
             goalY = goal.goalValue.toFloat(),
-            avgHour = (userAvgMinutes / 60.0).toFloat(),
+            avgHour = userAvgHour.toFloat(),
             participantCount = memberCount
         )
 
@@ -916,7 +903,10 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         layoutGoalChartContainer.addView(itemView)
     }
 
-    private fun addPomodoroItem(goal: GroupGoalProgressResponseItem, myEmail: String?) {
+    private fun addPomodoroItem(
+        goal: GroupGoalProgressResponseItem,
+        stat: GroupRecentGoalStatisticsResponse
+    ) {
         val itemView = LayoutInflater.from(requireContext())
             .inflate(R.layout.item_group_goal_chart, layoutGoalChartContainer, false)
 
@@ -933,32 +923,25 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         barCard.visibility = View.VISIBLE
 
         val minGoalValue = goal.goalValue.toFloat()
+        val goalName = goal.goalName
 
-        tvMinGoalValue.text = "뽀모도로 ${minGoalValue.toInt()}회 이상"
-        tvGoalTitle.text = "뽀모도로 통계"
+        tvMinGoalValue.text = "${goalName} ${formatGoalValue(stat.goalType, goal.goalValue)} 이상"
+        tvGoalTitle.text = "${goalName} 통계"
         tvGoalDesc.text = "달성 횟수 통계"
 
-        val rawValues = goal.userProgress.map { (it.progress ?: 0).toFloat() }
-
-        if (rawValues.isEmpty()) {
-            barChart.clear()
-            layoutGoalChartContainer.addView(itemView)
-            return
-        }
-
-        val myProgress = goal.userProgress
-            .firstOrNull { it.userEmail == myEmail }
-            ?.progress
-            ?.toFloat()
-            ?: rawValues.average().toFloat()
-
         val xLabels = buildLast6DayLabels()
-        val groupValues = normalizePomodoroToSixBars(rawValues, minGoalValue)
-        val myValues = normalizePomodoroLineToSix(groupValues, myProgress)
+        val myValues = normalizeToSix(stat.userValues)
+        val groupValues = normalizeToSix(stat.groupAverageValues)
 
-        renderPomodoroChart(barChart, groupValues, myValues, xLabels, minGoalValue)
+        renderPomodoroChart(
+            chart = barChart,
+            groupValues = groupValues,
+            myValues = myValues,
+            xLabels = xLabels,
+            goalY = minGoalValue
+        )
+
         bindExternalXAxisLabels(itemView, xLabels, true, barChart)
-
         layoutGoalChartContainer.addView(itemView)
     }
 
@@ -971,20 +954,35 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
     }
 
-    private fun normalizeSleepMinutesToSixHours(values: List<Int>): List<Float> {
-        val lastSix = values.takeLast(6).map { it / 60f }
-        return if (lastSix.size >= 6) lastSix else List(6 - lastSix.size) { 0f } + lastSix
+    private fun normalizeToSix(values: List<Float>): List<Float> {
+        val lastSix = values.takeLast(6)
+        return if (lastSix.size >= 6) {
+            lastSix
+        } else {
+            List(6 - lastSix.size) { 0f } + lastSix
+        }
     }
 
-    private fun normalizePomodoroToSixBars(values: List<Float>, goal: Float): List<Float> {
-        if (values.isEmpty()) return List(6) { 0f }
-
-        val actual = values.takeLast(6)
-        return if (actual.size >= 6) actual else List(6 - actual.size) { 0f } + actual
+    private fun isTimeGoal(goalType: String): Boolean {
+        return goalType.equals("SLEEP", ignoreCase = true) ||
+                goalType.equals("DETOX", ignoreCase = true)
     }
 
-    private fun normalizePomodoroLineToSix(groupValues: List<Float>, myProgress: Float): List<Float> {
-        return List(6) { myProgress }
+    private fun formatGoalValue(goalType: String, value: Int): String {
+        val unit = if (isTimeGoal(goalType)) "시간" else "회"
+        return "$value$unit"
+    }
+
+    private fun isSameGoalType(goalName: String, goalType: String): Boolean {
+        return when (goalType.uppercase()) {
+            "SLEEP" -> goalName.contains("수면")
+            "POMODORO" -> goalName.contains("뽀모도로")
+            "DETOX" -> goalName.contains("디톡스")
+            "CHALLENGE" -> goalName.contains("챌린지")
+            "GRATITUDE" -> goalName.contains("감사")
+            "INTROSPECTION" -> goalName.contains("자아") || goalName.contains("성찰")
+            else -> false
+        }
     }
 
     private fun renderSleepChart(

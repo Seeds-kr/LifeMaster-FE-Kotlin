@@ -40,3 +40,10 @@ data class GroupRankingItem(
     val profileImage: String? = null,
     val achieveCount: Int = 0
 )
+
+data class GroupRecentGoalStatisticsResponse(
+    val goalId: Long,
+    val goalType: String,
+    val userValues: List<Float>,
+    val groupAverageValues: List<Float>
+)

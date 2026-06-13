@@ -42,10 +42,10 @@ object ChartStyle {
             axisMaximum = yMax
 
             setDrawLabels(false)
-
             setDrawAxisLine(false)
             setDrawZeroLine(false)
             setDrawGridLines(true)
+
             gridColor = GRID
             gridLineWidth = 1f
             setLabelCount(3, true)
@@ -53,7 +53,12 @@ object ChartStyle {
             removeAllLimitLines()
 
             addLimitLine(yAxisLabelLine(yMax, yMax.toInt().toString()))
-            addLimitLine(yAxisLabelLine((yMin + yMax) / 2f, ((yMin + yMax) / 2f).toInt().toString()))
+            addLimitLine(
+                yAxisLabelLine(
+                    (yMin + yMax) / 2f,
+                    ((yMin + yMax) / 2f).toInt().toString()
+                )
+            )
             addLimitLine(yAxisLabelLine(yMin, yMin.toInt().toString()))
 
             addLimitLine(goalLine(goalY))
@@ -116,6 +121,16 @@ object ChartStyle {
             setLabelCount(3, true)
 
             removeAllLimitLines()
+
+            addLimitLine(yAxisLabelLine(yMax, yMax.toInt().toString()))
+            addLimitLine(
+                yAxisLabelLine(
+                    (yMin + yMax) / 2f,
+                    ((yMin + yMax) / 2f).toInt().toString()
+                )
+            )
+            addLimitLine(yAxisLabelLine(yMin, yMin.toInt().toString()))
+
             addLimitLine(goalLine(goalY))
         }
 
@@ -167,8 +182,10 @@ object ChartStyle {
 
         chart.minOffset = 0f
         chart.setExtraOffsets(0f, 0f, 0f, 0f)
-        chart.setViewPortOffsets(8f, 20f, 8f, 18f)
+
+        chart.setViewPortOffsets(30f, 20f, 8f, 18f)
     }
+
     private fun baseCombined(chart: CombinedChart) {
         chart.setTouchEnabled(false)
         chart.isDragEnabled = false
@@ -182,10 +199,9 @@ object ChartStyle {
         chart.setNoDataText("")
 
         chart.minOffset = 0f
-        chart.minOffset = 0f
         chart.setExtraOffsets(0f, 0f, 0f, 0f)
 
-        chart.setViewPortOffsets(0f, 12f, 0f, 0f)
+        chart.setViewPortOffsets(30f, 12f, 8f, 0f)
 
         chart.setDrawBarShadow(false)
         chart.isHighlightFullBarEnabled = false
@@ -229,8 +245,11 @@ object ChartStyle {
     }
 
     fun goalColor(): Int = PURPLE
+
     fun lineColor(): Int = PURPLE_DARK
+
     fun barColor(): Int = PURPLE_LIGHT
+
     fun circleHoleColor(): Int = WHITE
 
     fun makeMarkerBackground(): GradientDrawable {
@@ -257,6 +276,7 @@ object ChartStyle {
                     null,
                     Shader.TileMode.CLAMP
                 )
+
                 paint.shader = shader
                 super.draw(canvas)
             }

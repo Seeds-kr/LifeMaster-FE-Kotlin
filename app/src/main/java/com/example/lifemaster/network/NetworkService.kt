@@ -50,6 +50,7 @@ import com.example.lifemaster.presentation.group.model.GroupGoalProgressResponse
 import com.example.lifemaster.presentation.group.model.GroupAchievementHeatmapItem
 import com.example.lifemaster.presentation.group.model.GroupRankingResponse
 import com.example.lifemaster.presentation.group.model.GroupChatMessage
+import com.example.lifemaster.presentation.group.model.GroupRecentGoalStatisticsResponse
 import com.example.lifemaster.presentation.login.model.RegNickResponse
 import com.example.lifemaster.presentation.total.detox.model.DetoxPermanentLock
 import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLock
@@ -629,6 +630,7 @@ interface NetworkService {
     suspend fun addGoalToGroup(
         @Header("Authorization") token: String,
         @Path("groupId") groupId: Long,
+        @Field("goalType") goalType: String,
         @Field("name") name: String,
         @Field("goalCondition") goalCondition: String,
         @Field("value") value: Int,
@@ -696,6 +698,13 @@ interface NetworkService {
         @Path("groupId") groupId: Long,
         @Query("scope") scope: String
     ): Response<GroupRankingResponse>
+
+    // 그룹 통계
+    @GET("/group/{groupId}/goals/statistics/recent")
+    suspend fun getRecentGoalStatistics(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Long
+    ): Response<List<GroupRecentGoalStatisticsResponse>>
 
     // 그룹 내 통계 뽀모도로
     @GET("/time/pomodoro/focus/recent")

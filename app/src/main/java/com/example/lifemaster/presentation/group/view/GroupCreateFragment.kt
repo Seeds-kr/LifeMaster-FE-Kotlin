@@ -121,9 +121,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                 return@setOnClickListener
             }
 
-            if (!validateGoals(goals)) {
-                return@setOnClickListener
-            }
+            if (!validateGoals(goals)) return@setOnClickListener
 
             showPrivatePasswordDialog { password ->
                 if (isSubmitting) return@showPrivatePasswordDialog
@@ -190,8 +188,10 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
     private fun validateGoals(goals: List<GoalRow>): Boolean {
         val selectedGoalTypes = mutableSetOf<String>()
+
         for ((index, goal) in goals.withIndex()) {
             val normalizedType = normalizeGoalType(goal.type)
+
             if (normalizedType.isBlank()) {
                 Toast.makeText(
                     requireContext(),
@@ -229,13 +229,13 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         val trimmed = type.trim()
 
         return when {
-            trimmed.contains("수면") -> "수면"
-            trimmed.contains("뽀모도로") -> "뽀모도로"
-            trimmed.contains("폰") || trimmed.contains("디톡스") -> "디톡스"
-            trimmed.contains("감사일기") -> "감사일기"
-            trimmed.contains("자아성찰") -> "자아성찰"
-            trimmed.contains("챌린지") -> "챌린지"
-            else -> trimmed
+            trimmed.contains("수면") -> "SLEEP"
+            trimmed.contains("뽀모도로") -> "POMODORO"
+            trimmed.contains("디톡스") || trimmed.contains("폰") -> "DETOX"
+            trimmed.contains("감사") -> "GRATITUDE"
+            trimmed.contains("자아") || trimmed.contains("성찰") -> "REFLECTION"
+            trimmed.contains("챌린지") -> "CHALLENGE"
+            else -> trimmed.uppercase()
         }
     }
 
@@ -285,11 +285,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
                     val err = response.errorBody()?.string()
                     Log.e("GroupCreate", "createGroup fail code=${response.code()} err=$err")
-                    Toast.makeText(
-                        requireContext(),
-                        "그룹 생성에 실패했습니다.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(requireContext(), "그룹 생성에 실패했습니다.", Toast.LENGTH_SHORT).show()
                     return
                 }
 
@@ -297,11 +293,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                 if (created == null) {
                     isSubmitting = false
                     btnDone.isEnabled = true
-                    Toast.makeText(
-                        requireContext(),
-                        "그룹 생성 응답이 비어있습니다.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(requireContext(), "그룹 생성 응답이 비어있습니다.", Toast.LENGTH_SHORT).show()
                     return
                 }
 
@@ -353,11 +345,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                 isSubmitting = false
                 btnDone.isEnabled = true
                 Log.e("GroupCreate", "createGroup network error", t)
-                Toast.makeText(
-                    requireContext(),
-                    "네트워크 오류가 발생했습니다.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(requireContext(), "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -374,13 +362,15 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
             Log.e(
                 "GroupCreate",
                 "goal request idx=$idx name=${request.name}, " +
-                        "goalCondition=${request.goalCondition}, value=${request.value}, duration=${request.duration}"
+                        "goalType=${request.goalType}, goalCondition=${request.goalCondition}, " +
+                        "value=${request.value}, duration=${request.duration}"
             )
 
             val resp = networkService.addGoalToGroup(
                 token = token,
                 groupId = groupId,
                 name = request.name,
+                goalType = request.goalType,
                 goalCondition = request.goalCondition,
                 value = request.value,
                 duration = request.duration
@@ -391,8 +381,9 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                 Log.e(
                     "GroupCreate",
                     "addGoal fail idx=$idx code=${resp.code()} err=$err " +
-                            "name=${request.name}, goalCondition=${request.goalCondition}, " +
-                            "value=${request.value}, duration=${request.duration}"
+                            "name=${request.name}, goalType=${request.goalType}, " +
+                            "goalCondition=${request.goalCondition}, value=${request.value}, " +
+                            "duration=${request.duration}"
                 )
 
                 withContext(Dispatchers.Main) {
@@ -404,6 +395,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                         ).show()
                     }
                 }
+
                 return@withContext false
             }
         }
@@ -417,6 +409,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         return when {
             code == 409 -> "동일한 종류의 목표는 추가할 수 없습니다."
             code == 400 && error.contains("duplicate", ignoreCase = true) -> "동일한 종류의 목표는 추가할 수 없습니다."
+            code == 400 && error.contains("goalType", ignoreCase = true) -> "목표 타입 정보가 올바르지 않습니다."
             code == 500 && error.contains("duplicate", ignoreCase = true) -> "동일한 종류의 목표는 추가할 수 없습니다."
             code == 500 -> "목표 추가에 실패했습니다. 동일한 종류의 목표가 있는지 확인해주세요."
             else -> "목표 추가에 실패했습니다."
@@ -425,53 +418,60 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
     private fun buildGoalRequest(goal: GoalRow): GroupGoalCreateRequest {
         val value = parseGoalValue(goal.count)
-        val type = goal.type.trim()
+        val goalType = normalizeGoalType(goal.type)
 
-        return when {
-            type.contains("수면") -> GroupGoalCreateRequest(
+        return when (goalType) {
+            "SLEEP" -> GroupGoalCreateRequest(
                 name = "수면 ${value}시간",
+                goalType = "SLEEP",
                 goalCondition = GOAL_CONDITION_TIME,
                 value = value,
                 duration = GOAL_DURATION_DAILY
             )
 
-            type.contains("뽀모도로") -> GroupGoalCreateRequest(
+            "POMODORO" -> GroupGoalCreateRequest(
                 name = "뽀모도로 ${value}회",
+                goalType = "POMODORO",
                 goalCondition = GOAL_CONDITION_COUNT,
                 value = value,
                 duration = GOAL_DURATION_DAILY
             )
 
-            type.contains("폰") || type.contains("디톡스") -> GroupGoalCreateRequest(
+            "DETOX" -> GroupGoalCreateRequest(
                 name = "디톡스 ${value}시간",
+                goalType = "DETOX",
                 goalCondition = GOAL_CONDITION_TIME,
                 value = value,
                 duration = GOAL_DURATION_DAILY
             )
 
-            type.contains("감사일기") -> GroupGoalCreateRequest(
+            "GRATITUDE" -> GroupGoalCreateRequest(
                 name = "감사일기 ${value}회",
+                goalType = "GRATITUDE",
                 goalCondition = GOAL_CONDITION_COUNT,
                 value = value,
                 duration = GOAL_DURATION_DAILY
             )
 
-            type.contains("자아성찰") -> GroupGoalCreateRequest(
+            "REFLECTION" -> GroupGoalCreateRequest(
                 name = "자아성찰 ${value}회",
+                goalType = "REFLECTION",
                 goalCondition = GOAL_CONDITION_COUNT,
                 value = value,
                 duration = GOAL_DURATION_DAILY
             )
 
-            type.contains("챌린지") -> GroupGoalCreateRequest(
+            "CHALLENGE" -> GroupGoalCreateRequest(
                 name = "챌린지 ${value}회",
+                goalType = "CHALLENGE",
                 goalCondition = GOAL_CONDITION_COUNT,
                 value = value,
                 duration = GOAL_DURATION_DAILY
             )
 
             else -> GroupGoalCreateRequest(
-                name = "$type ${value}회",
+                name = "${goal.type} ${value}회",
+                goalType = goalType,
                 goalCondition = GOAL_CONDITION_COUNT,
                 value = value,
                 duration = GOAL_DURATION_DAILY
@@ -481,16 +481,16 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
     private fun buildGoalLine(goal: GoalRow): String {
         val value = parseGoalValue(goal.count)
-        val type = goal.type.trim()
+        val goalType = normalizeGoalType(goal.type)
 
-        return when {
-            type.contains("수면") -> "수면 ${value}시간"
-            type.contains("뽀모도로") -> "뽀모도로 ${value}회"
-            type.contains("폰") || type.contains("디톡스") -> "디톡스 ${value}시간"
-            type.contains("감사일기") -> "감사일기 ${value}회"
-            type.contains("자아성찰") -> "자아성찰 ${value}회"
-            type.contains("챌린지") -> "챌린지 ${value}회"
-            else -> "$type ${value}회"
+        return when (goalType) {
+            "SLEEP" -> "수면 ${value}시간"
+            "POMODORO" -> "뽀모도로 ${value}회"
+            "DETOX" -> "디톡스 ${value}시간"
+            "GRATITUDE" -> "감사일기 ${value}회"
+            "REFLECTION" -> "자아성찰 ${value}회"
+            "CHALLENGE" -> "챌린지 ${value}회"
+            else -> "${goal.type} ${value}회"
         }
     }
 
@@ -498,11 +498,9 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         return withContext(Dispatchers.IO) {
             runCatching {
                 val resp = networkService.getGroupInviteCode(token, groupId)
+
                 if (!resp.isSuccessful) {
-                    Log.e(
-                        "GroupCreate",
-                        "invite fail code=${resp.code()} err=${resp.errorBody()?.string()}"
-                    )
+                    Log.e("GroupCreate", "invite fail code=${resp.code()} err=${resp.errorBody()?.string()}")
                     return@runCatching ""
                 }
 

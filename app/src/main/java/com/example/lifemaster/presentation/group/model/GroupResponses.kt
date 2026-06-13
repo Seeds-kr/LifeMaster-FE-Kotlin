@@ -24,6 +24,7 @@ data class GroupGoalResponse(
 
 data class GroupGoalCreateRequest(
     val name: String,
+    val goalType: String,
     val goalCondition: String,
     val value: Int,
     val duration: String
