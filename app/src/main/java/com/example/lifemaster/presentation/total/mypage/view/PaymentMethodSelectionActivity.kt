@@ -212,9 +212,17 @@ class PaymentMethodSelectionActivity : AppCompatActivity() {
 
     private fun handleIntent(intent: Intent) {
         val data: Uri? = intent.data
-        if (data != null && data.scheme == "lifemaster" && data.host == "paypal" && data.path == "/return") {
-            // 딥링크를 통해 돌아온 경우, onResume에서 capture가 자동 수행되도록 플래그 설정
-            shouldCapturePaypalOnResume = true
+        if (data != null && data.scheme == "lifemaster" && data.host == "payment") {
+            when (data.path) {
+                "/success" -> {
+                    // 딥링크를 통해 돌아온 경우, onResume에서 capture가 자동 수행되도록 플래그 설정
+                    shouldCapturePaypalOnResume = true
+                }
+                "/fail", "/cancel" -> {
+                    shouldCapturePaypalOnResume = false
+                    Toast.makeText(this, "결제가 취소되었거나 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 

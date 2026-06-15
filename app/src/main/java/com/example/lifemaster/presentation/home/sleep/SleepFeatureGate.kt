@@ -5,11 +5,11 @@ import android.widget.Toast
 import com.example.lifemaster.R
 
 /**
- * 수면 기능 임시 차단. 재개 시 [IS_ENABLED]를 true로 변경한다.
+ * 수면 기능 활성화 여부.
  */
 object SleepFeatureGate {
 
-    const val IS_ENABLED = false
+    const val IS_ENABLED = true
 
     fun showUnavailableToast(context: Context) {
         Toast.makeText(

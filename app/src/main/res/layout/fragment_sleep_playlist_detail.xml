@@ -143,15 +143,31 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ll_sleep_main_playlist" />
 
-    <ImageView
-        android:id="@+id/iv_sleep_main_play_toggle"
+    <LinearLayout
+        android:id="@+id/ll_sleep_main_controls"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_play_no_background"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:layout_marginTop="12dp"
-        android:padding="12dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/progress_sleep_main"/>
+        app:layout_constraintTop_toBottomOf="@id/progress_sleep_main">
+
+        <ImageView
+            android:id="@+id/iv_sleep_main_play_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_play_no_background"
+            android:padding="12dp"/>
+
+        <ImageView
+            android:id="@+id/iv_sleep_main_loop"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_repeat"
+            android:padding="12dp"
+            app:tint="#BDBDBD" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
