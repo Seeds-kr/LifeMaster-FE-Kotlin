@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.lifemaster.R
@@ -14,6 +15,12 @@ import com.example.lifemaster.R
 class PremiumSubscribeActivity : AppCompatActivity() {
 
     private var isAnnualSelected = true
+
+    private val paymentLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            finish()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +66,7 @@ class PremiumSubscribeActivity : AppCompatActivity() {
             val amount = if (isAnnualSelected) getString(R.string.subscription_price_annual_main) else getString(R.string.subscription_price_monthly_main)
             val planType = if (isAnnualSelected) PaymentMethodSelectionActivity.PLAN_ANNUAL else PaymentMethodSelectionActivity.PLAN_MONTHLY
 
-            startActivity(
+            paymentLauncher.launch(
                 PaymentMethodSelectionActivity.newIntent(
                     context = this,
                     amount = amount,

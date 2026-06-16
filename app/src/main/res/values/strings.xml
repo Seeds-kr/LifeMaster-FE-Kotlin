@@ -105,8 +105,8 @@
     <string name="premium_subscribe_catchphrase">커피 한 잔 값으로 삶에 활력을 불어넣으세요!</string>
     <string name="premium_subscribe_benefits_title">프리미엄 혜택</string>
     <string name="premium_subscribe_start_button">PREMIUM 시작하기</string>
-    <string name="subscription_plan_annual">연간 구독</string>
-    <string name="subscription_plan_monthly">월간 구독</string>
+    <string name="subscription_plan_annual">연간 이용권</string>
+    <string name="subscription_plan_monthly">30일 이용권</string>
     <string name="subscription_badge_30_off">30% 할인</string>
     <string name="subscription_price_annual_main">₩41,200 / 년</string>
     <string name="subscription_price_annual_sub">월 ₩3,433</string>
@@ -129,7 +129,7 @@
     <string name="payment_refund_cancel_policy">환불 및 취소 정책</string>
     <string name="payment_select_method_required">결제 수단을 선택해 주세요.</string>
     <string name="payment_preparing_message">%1$s 연동 준비 중입니다.</string>
-    <string name="payment_purchase_success">결제가 완료되었습니다.</string>
+    <string name="payment_purchase_success">결제 완료!</string>
     <string name="payment_refund_cancel_policy_content">\n
 [프리미엄 구독]\n
 프리미엄 구독은 앱 스토어 또는 결제 플랫폼의 정책에 따라 결제 및 환불이 처리될 수 있습니다.\n
