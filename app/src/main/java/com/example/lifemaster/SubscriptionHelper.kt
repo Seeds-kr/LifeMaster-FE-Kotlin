@@ -15,6 +15,7 @@ object SubscriptionHelper {
     private const val AUTH_PREFS = "auth"
     private const val KEY_PLAN = "subscriptionPlan"
     private const val KEY_EXPIRATION = "expirationDate"
+    private const val KEY_LAST_PURCHASE_TIME = "lastPurchaseTimeMillis"
     private const val UNLIMITED_DATE = "9999-12-31"
 
     fun resolvePlan(me: MeResponse): String {
@@ -49,23 +50,49 @@ object SubscriptionHelper {
     }
 
     private fun persistLocal(context: Context, plan: String, exp: String) {
-        context.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE).edit {
+        val prefs = context.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE)
+        prefs.edit {
+            // 서버에서 Basic으로 오더라도 결제 직후(5분 이내)라면 Premium 플랜을 유지함
             if (plan.isNotBlank()) {
-                putString(KEY_PLAN, plan)
-                if (isPremiumPlan(plan) && exp.isBlank()) {
+                if (isPremiumPlan(plan) || !isRecentlyPurchased(context)) {
+                    putString(KEY_PLAN, plan)
+                }
+            }
+            
+            // 만료일 보호: 결제 직후라면 서버의 빈 날짜로 덮어쓰지 않음
+            if (exp.isNotBlank()) {
+                putString(KEY_EXPIRATION, exp)
+            } else {
+                val existingExp = prefs.getString(KEY_EXPIRATION, null)
+                if (existingExp.isNullOrBlank() || !isRecentlyPurchased(context)) {
                     remove(KEY_EXPIRATION)
                 }
             }
-            if (exp.isNotBlank()) putString(KEY_EXPIRATION, exp)
         }
     }
 
     /** 결제·쿠폰 등으로 프리미엄이 활성화된 직후 auth 캐시에도 반영 */
-    fun markPremiumActive(context: Context, expirationDate: String = UNLIMITED_DATE) {
+    fun markPremiumActive(context: Context, expirationDate: String? = null) {
+        val finalExp = expirationDate ?: run {
+            val cal = Calendar.getInstance(Locale.KOREA)
+            cal.add(Calendar.DAY_OF_YEAR, 30) // 결제일부터 30일 계산
+            SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).format(cal.time)
+        }
+        
         context.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE).edit {
             putString(KEY_PLAN, "PREMIUM")
-            putString(KEY_EXPIRATION, expirationDate)
+            putString(KEY_EXPIRATION, finalExp)
+            putLong(KEY_LAST_PURCHASE_TIME, System.currentTimeMillis())
         }
+    }
+
+    /** 최근 5분 이내에 결제 성공 기록이 있는지 확인 (서버 지연 대응용) */
+    fun isRecentlyPurchased(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE)
+        val lastTime = prefs.getLong(KEY_LAST_PURCHASE_TIME, 0L)
+        if (lastTime == 0L) return false
+        val diff = System.currentTimeMillis() - lastTime
+        return diff < 5 * 60 * 1000 // 5분
     }
 
     fun isPremium(context: Context): Boolean {
@@ -154,6 +181,13 @@ object SubscriptionHelper {
     private fun isPremiumFromAuth(context: Context): Boolean {
         val prefs = context.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE)
         val plan = prefs.getString(KEY_PLAN, null)?.trim().orEmpty()
+        val exp = prefs.getString(KEY_EXPIRATION, null)?.trim().orEmpty()
+
+        // 최근 결제 성공 기록이 있다면 무조건 프리미엄으로 간주
+        if (isRecentlyPurchased(context)) return true
+
+        // 만료 체크: 프리미엄 플랜이어도 날짜가 지났으면 false
+        if (isExpired(exp)) return false
         
         // 플랜 이름 자체가 프리미엄인 경우
         if (isPremiumPlan(plan)) return true

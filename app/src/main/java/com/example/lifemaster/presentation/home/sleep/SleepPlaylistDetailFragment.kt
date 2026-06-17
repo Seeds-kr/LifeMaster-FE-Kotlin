@@ -36,9 +36,8 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
     private var songAudioResource: Int = -1
     private var mediaPlayer: MediaPlayer? = null
     private var isAudioPlaying: Boolean = false
+    private var isLooping: Boolean = false
     private var songTotalTime: Int = 0
-    private var songCurrentStartTime = 0L
-    private var accumulatedPlaybackTime = 0L
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -81,10 +80,9 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
         handler = Handler(Looper.getMainLooper())
         updateProgressBarTask = object : Runnable {
             override fun run() {
-                val currentPlaybackTime =
-                    System.currentTimeMillis() - songCurrentStartTime + accumulatedPlaybackTime
-
-                progressSleepMain.setProgress(currentPlaybackTime.toInt(), true)
+                mediaPlayer?.let {
+                    progressSleepMain.setProgress(it.currentPosition, true)
+                }
                 handler.postDelayed(this, 100L)
             }
         }
@@ -107,6 +105,16 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
                 startAudio()
             }
         }
+
+        ivSleepMainLoop.setOnClickListener {
+            isLooping = !isLooping
+            mediaPlayer?.isLooping = isLooping
+            if (isLooping) {
+                ivSleepMainLoop.setColorFilter(resources.getColor(R.color.sleep_primary, null))
+            } else {
+                ivSleepMainLoop.setColorFilter(android.graphics.Color.parseColor("#BDBDBD"))
+            }
+        }
     }
 
     private fun startAudio() {
@@ -126,9 +134,12 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
                 mediaPlayer = createdPlayer
                 songTotalTime = createdPlayer.duration
                 progressSleepMain.max = songTotalTime
+                createdPlayer.isLooping = isLooping
 
                 createdPlayer.setOnCompletionListener {
-                    stopAndResetAudio()
+                    if (!isLooping) {
+                        stopAndResetAudio()
+                    }
                 }
             }
 
@@ -136,7 +147,6 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
                 mediaPlayer?.start()
                 isAudioPlaying = true
                 ivSleepMainPlayToggle.setImageResource(R.drawable.ic_pause)
-                songCurrentStartTime = System.currentTimeMillis()
                 handler.post(updateProgressBarTask)
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "음악 재생 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
@@ -150,7 +160,6 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
             mediaPlayer?.pause()
             isAudioPlaying = false
             ivSleepMainPlayToggle.setImageResource(R.drawable.ic_play_no_background)
-            accumulatedPlaybackTime += System.currentTimeMillis() - songCurrentStartTime
             handler.removeCallbacks(updateProgressBarTask)
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "음악 일시정지 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
@@ -175,8 +184,6 @@ class SleepPlaylistDetailFragment : Fragment(R.layout.fragment_sleep_playlist_de
         progressSleepMain.progress = 0
         ivSleepMainPlayToggle.setImageResource(R.drawable.ic_play_no_background)
         isAudioPlaying = false
-        songCurrentStartTime = 0L
-        accumulatedPlaybackTime = 0L
         songTotalTime = 0
     }
 

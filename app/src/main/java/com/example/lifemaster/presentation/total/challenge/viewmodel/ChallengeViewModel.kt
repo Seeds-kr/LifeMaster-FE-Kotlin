@@ -181,4 +181,14 @@ class ChallengeViewModel @Inject constructor(
             }
         }
     }
+
+    fun addChallengeCompleteEvent(token: String, date: String) {
+        viewModelScope.launch {
+            try {
+                apiService.createEvents(date, listOf("챌린지 완료"), token)
+            } catch (e: Exception) {
+                Log.e("ChallengeViewModel", "챌린지 완료 이벤트 추가 실패", e)
+            }
+        }
+    }
 }

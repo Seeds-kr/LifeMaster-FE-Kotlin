@@ -27,8 +27,14 @@ import com.example.lifemaster.presentation.total.challenge.fragment.adapter.Chal
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @AndroidEntryPoint
 class ChallengeFragment : Fragment() {
@@ -99,6 +105,7 @@ class ChallengeFragment : Fragment() {
         val imageView = challengeView.findViewById<ImageView>(R.id.iv_challenge_image)
         val checkmark = challengeView.findViewById<ImageView>(R.id.iv_checkmark)
         val timeTextView = challengeView.findViewById<TextView>(R.id.tv_completion_time)
+        val overlay = challengeView.findViewById<View>(R.id.view_overlay)
 
         if (challenge.challImg.isNotBlank()) {
             Glide.with(this)
@@ -115,25 +122,62 @@ class ChallengeFragment : Fragment() {
                 timeTextView.visibility = View.VISIBLE
             }
             checkmark.visibility = View.VISIBLE
+            overlay.visibility = View.VISIBLE
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val blurEffect = RenderEffect.createBlurEffect(20f, 20f, Shader.TileMode.CLAMP)
+                val blurEffect = RenderEffect.createBlurEffect(15f, 15f, Shader.TileMode.CLAMP)
                 imageView.setRenderEffect(blurEffect)
+            } else {
+                imageView.alpha = 0.5f
             }
         } else {
             checkmark.visibility = View.GONE
             timeTextView.visibility = View.GONE
+            overlay.visibility = View.GONE
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 imageView.setRenderEffect(null)
+            } else {
+                imageView.alpha = 1.0f
             }
         }
 
         challengeView.setOnClickListener {
-            val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(
-                challenge.challId
-            )
-            findNavController().navigate(action)
+            if (!challenge.isCompleted) {
+                challenge.isCompleted = true
+                val now = LocalTime.now()
+                val formatter = DateTimeFormatter.ofPattern("h:mma", Locale.ENGLISH)
+                challenge.completionTime = now.format(formatter).lowercase(Locale.ENGLISH)
+
+                // UI 즉시 업데이트
+                timeTextView.text = challenge.completionTime
+                timeTextView.visibility = View.VISIBLE
+                checkmark.visibility = View.VISIBLE
+                overlay.visibility = View.VISIBLE
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val blurEffect = RenderEffect.createBlurEffect(15f, 15f, Shader.TileMode.CLAMP)
+                    imageView.setRenderEffect(blurEffect)
+                } else {
+                    imageView.alpha = 0.5f
+                }
+
+                Toast.makeText(requireContext(), "${challenge.challName} 완료!", Toast.LENGTH_SHORT).show()
+
+                // API 연동 (HomeFragment와 동일)
+                val token = TokenProvider.getBearerToken(requireContext())
+                if (!token.isNullOrBlank()) {
+                    val bearerToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
+                    val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                    viewModel.addChallengeCompleteEvent(bearerToken, todayStr)
+                }
+            } else {
+                // 이미 완료된 경우 상세 화면으로 이동
+                val action = ChallengeFragmentDirections.actionChallengeFragmentToChallengeDetailFragment(
+                    challenge.challId
+                )
+                findNavController().navigate(action)
+            }
         }
     }
 

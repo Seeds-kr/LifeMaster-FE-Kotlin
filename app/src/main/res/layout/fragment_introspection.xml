@@ -125,7 +125,7 @@
         <View
             android:id="@+id/toggle_background"
             android:layout_width="120dp"
-            android:layout_height="48dp"
+            android:layout_height="36dp"
             android:background="@drawable/bg_toggle_selected"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -134,7 +134,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnToday"
             android:layout_width="120dp"
-            android:layout_height="48dp"
+            android:layout_height="36dp"
             android:text="오늘의 일기"
             android:textSize="12sp"
             android:gravity="center"
@@ -149,7 +149,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnThanks"
             android:layout_width="120dp"
-            android:layout_height="48dp"
+            android:layout_height="36dp"
             android:text="5감사"
             android:textSize="12sp"
             android:gravity="center"
