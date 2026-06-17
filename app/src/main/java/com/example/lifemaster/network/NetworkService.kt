@@ -60,6 +60,7 @@ import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLockResp
 import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeCompleteRequest
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeCompleteResponse
+import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockStatusResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatEscapeVerifyResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatLockDetailResponse
 import com.example.lifemaster.presentation.total.detox.model.RepeatLockStatusResponse
@@ -839,6 +840,11 @@ interface NetworkService {
     suspend fun deleteTimeLockItem(
         @Path("id") id: Long
     ): Response<Unit>
+
+    // 시간 잠금 잠긴 앱 목록
+    @GET("/detox/time/lock-status")
+    suspend fun fetchTimeLockStatus(
+    ): Response<DetoxTimeLockStatusResponse>
 
     // 디톡스 비상탈출 문장 생성
     @GET("/detox/time/generate-phrase")

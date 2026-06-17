@@ -813,8 +813,53 @@ class HomeFragment : Fragment() {
 
     // 디톡스 미리보기
     private fun showDetoxPreview() {
-        val blockedCount = calculateCurrentBlockedAppCount()
-        tvDetoxBlockedCount?.text = "${blockedCount}개"
+        viewLifecycleOwner.lifecycleScope.launch {
+            val blockedPackages = mutableSetOf<String>()
+
+            // 영구잠금: 서버
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    val response = networkService.fetchPermanentLockItems()
+                    val body = response.body()
+
+                    if (response.isSuccessful) {
+                        blockedPackages.addAll(body?.lockedAppPackageNames ?: emptyList())
+                    }
+                }
+            }
+
+            // 시간잠금: 서버 lock-status
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    val response = networkService.fetchTimeLockStatus()
+                    val body = response.body()
+
+                    if (response.isSuccessful && body?.locked == true) {
+                        blockedPackages.addAll(body.lockedApps)
+                    }
+                }
+            }
+
+            // 반복잠금: 로컬
+            val repeatInfos = DetoxRepeatLockLocalManager.loadRepeatBlockInfos(requireContext())
+
+            repeatInfos.forEach { (_, info) ->
+                val state = DetoxRepeatLockLocalManager.getRepeatLockState(
+                    context = requireContext(),
+                    id = info.id,
+                    packageName = info.packageName,
+                    sessionUsageLimit = info.sessionUsageLimit,
+                    lockDuration = info.lockDuration,
+                    dailyMaxUsageLimit = info.dailyMaxUsageLimit
+                )
+
+                if (state.locked) {
+                    blockedPackages.add(info.packageName)
+                }
+            }
+
+            tvDetoxBlockedCount?.text = "${blockedPackages.size}개"
+        }
     }
 
     private fun Long.toDetoxTimeText(): String {
@@ -1072,28 +1117,5 @@ class HomeFragment : Fragment() {
         }.getOrElse {
             this
         }
-    }
-
-    private fun calculateCurrentBlockedAppCount(): Int {
-        val repeatInfos = DetoxRepeatLockLocalManager.loadRepeatBlockInfos(requireContext())
-
-        val currentlyBlockedPackages = mutableSetOf<String>()
-
-        repeatInfos.forEach { (packageName, info) ->
-            val state = DetoxRepeatLockLocalManager.getRepeatLockState(
-                context = requireContext(),
-                id = info.id,
-                packageName = info.packageName,
-                sessionUsageLimit = info.sessionUsageLimit,
-                lockDuration = info.lockDuration,
-                dailyMaxUsageLimit = info.dailyMaxUsageLimit
-            )
-
-            if (state.locked) {
-                currentlyBlockedPackages.add(packageName)
-            }
-        }
-
-        return currentlyBlockedPackages.size
     }
 }

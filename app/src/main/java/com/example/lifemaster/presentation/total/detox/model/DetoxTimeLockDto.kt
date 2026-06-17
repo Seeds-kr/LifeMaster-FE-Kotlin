@@ -68,3 +68,7 @@ data class DetoxTimeLockResponse(
             .orEmpty()
 }
 
+data class DetoxTimeLockStatusResponse(
+    val lockedApps: List<String>,
+    val locked: Boolean
+)

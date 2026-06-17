@@ -13,6 +13,9 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.lifemaster.presentation.total.detox.DetoxBlockActivity
 import com.example.lifemaster.presentation.total.detox.DetoxPermanentBlockActivity
 import com.example.lifemaster.presentation.total.detox.DetoxRepeatLockLocalManager
+import java.time.Duration
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 class DetoxBlockService : AccessibilityService() {
 
@@ -28,36 +31,56 @@ class DetoxBlockService : AccessibilityService() {
     private val repeatHandler = Handler(Looper.getMainLooper())
     private var repeatCheckRunnable: Runnable? = null
 
+    private val timeHandler = Handler(Looper.getMainLooper())
+    private var timeCheckRunnable: Runnable? = null
+
     private var timeBlockInfoMap: Map<String, Pair<String, String>> = emptyMap()
     private var repeatBlockInfoMap: Map<String, RepeatBlockInfo> = emptyMap()
+
+    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 "com.example.lifemaster.BROADCAST_RECEIVER" -> {
-                    intent.getStringArrayListExtra("PERMANENT_BLOCK_SERVICE_APPLICATIONS")?.let {
-                        permanentBlockServicePackageNames = it
-                    }
+                    val permanentApps =
+                        intent.getStringArrayListExtra("PERMANENT_BLOCK_SERVICE_APPLICATIONS")
+                            ?: arrayListOf()
 
-                    intent.getStringArrayListExtra("TIME_BLOCK_SERVICE_APPLICATIONS")?.let {
-                        timeBlockServicePackageNames = it
-                    }
+                    val timeApps =
+                        intent.getStringArrayListExtra("TIME_BLOCK_SERVICE_APPLICATIONS")
+                            ?: arrayListOf()
 
-                    intent.getStringArrayListExtra("TIME_BLOCK_SERVICE_INFOS")?.let { infos ->
-                        timeBlockInfoMap = infos.mapNotNull { info ->
-                            val parts = info.split("|")
+                    val timeInfos =
+                        intent.getStringArrayListExtra("TIME_BLOCK_SERVICE_INFOS")
+                            ?: arrayListOf()
 
-                            if (parts.size == 3) {
-                                parts[0] to (parts[1] to parts[2])
-                            } else {
-                                null
-                            }
-                        }.toMap()
-                    }
+                    permanentBlockServicePackageNames = permanentApps
+                    timeBlockServicePackageNames = timeApps
 
-                    intent.getStringArrayListExtra("REPEAT_BLOCK_SERVICE_INFOS")?.let { infos ->
-                        applyRepeatBlockInfos(infos)
-                    }
+                    timeBlockInfoMap = timeInfos.mapNotNull { info ->
+                        val parts = info.split("|")
+
+                        if (parts.size == 3) {
+                            parts[0] to (parts[1] to parts[2])
+                        } else {
+                            null
+                        }
+                    }.toMap()
+
+                    getSharedPreferences("detox_pref", Context.MODE_PRIVATE)
+                        .edit()
+                        .clear()
+                        .putStringSet("PERMANENT_BLOCK_SERVICE_APPLICATIONS", permanentApps.toSet())
+                        .putStringSet("TIME_BLOCK_SERVICE_APPLICATIONS", timeApps.toSet())
+                        .putStringSet("TIME_BLOCK_SERVICE_INFOS", timeInfos.toSet())
+                        .apply()
+
+                    val repeatInfos =
+                        intent.getStringArrayListExtra("REPEAT_BLOCK_SERVICE_INFOS")
+                            ?: arrayListOf()
+
+                    applyRepeatBlockInfos(repeatInfos)
                 }
             }
         }
@@ -86,6 +109,7 @@ class DetoxBlockService : AccessibilityService() {
         if (currentPackageName == packageName) return
 
         cancelRepeatCheck()
+        cancelTimeCheck()
 
         if (permanentBlockServicePackageNames?.contains(currentPackageName) == true) {
             preventUsingPermanentBlockApp(currentPackageName)
@@ -93,7 +117,7 @@ class DetoxBlockService : AccessibilityService() {
         }
 
         if (timeBlockServicePackageNames?.contains(currentPackageName) == true) {
-            preventUsingTimeBlockApp(currentPackageName)
+            handleTimeBlockApp(currentPackageName)
             return
         }
 
@@ -101,6 +125,124 @@ class DetoxBlockService : AccessibilityService() {
             handleRepeatBlockApp(currentPackageName)
             return
         }
+    }
+
+    private fun handleTimeBlockApp(blockedPackageName: String) {
+        val timeInfo = timeBlockInfoMap[blockedPackageName]
+
+        if (timeInfo == null) {
+            Log.d("DetoxBlockService", "시간잠금 정보 없음 package=$blockedPackageName")
+            return
+        }
+
+        val startTime = runCatching {
+            LocalTime.parse(timeInfo.first, timeFormatter)
+        }.getOrNull()
+
+        val endTime = runCatching {
+            LocalTime.parse(timeInfo.second, timeFormatter)
+        }.getOrNull()
+
+        if (startTime == null || endTime == null) {
+            Log.d(
+                "DetoxBlockService",
+                "시간잠금 시간 파싱 실패 package=$blockedPackageName, start=${timeInfo.first}, end=${timeInfo.second}"
+            )
+            return
+        }
+
+        val nowTime = LocalTime.now()
+        val isBlockedNow = isTimeBlockedNow(nowTime, startTime, endTime)
+
+        Log.d(
+            "DetoxBlockService",
+            "시간잠금 판단 package=$blockedPackageName, now=$nowTime, start=$startTime, end=$endTime, isBlockedNow=$isBlockedNow"
+        )
+
+        if (isBlockedNow) {
+            startTimeBlockActivity(blockedPackageName, timeInfo.first, timeInfo.second)
+        } else {
+            scheduleTimeBlockCheck(blockedPackageName, startTime)
+        }
+    }
+
+    private fun isTimeBlockedNow(
+        nowTime: LocalTime,
+        startTime: LocalTime,
+        endTime: LocalTime
+    ): Boolean {
+        return if (endTime.isAfter(startTime)) {
+            nowTime >= startTime && nowTime < endTime
+        } else {
+            nowTime >= startTime || nowTime < endTime
+        }
+    }
+
+    private fun scheduleTimeBlockCheck(
+        blockedPackageName: String,
+        startTime: LocalTime
+    ) {
+        cancelTimeCheck()
+
+        val nowTime = LocalTime.now()
+        var delayMillis = Duration.between(nowTime, startTime).toMillis()
+
+        if (delayMillis < 0L) {
+            delayMillis += 24L * 60L * 60L * 1000L
+        }
+
+        timeCheckRunnable = Runnable {
+            if (currentForegroundPackageName == blockedPackageName) {
+                Log.d("DetoxBlockService", "예약된 시간잠금 검사 실행 package=$blockedPackageName")
+                handleTimeBlockApp(blockedPackageName)
+            }
+        }
+
+        timeHandler.postDelayed(timeCheckRunnable!!, delayMillis + 300L)
+
+        Log.d(
+            "DetoxBlockService",
+            "시간잠금 예약 package=$blockedPackageName, delayMillis=$delayMillis"
+        )
+    }
+
+    private fun cancelTimeCheck() {
+        timeCheckRunnable?.let {
+            timeHandler.removeCallbacks(it)
+        }
+        timeCheckRunnable = null
+    }
+
+    private fun startTimeBlockActivity(
+        blockedPackageName: String,
+        startTime: String,
+        endTime: String
+    ) {
+        val now = System.currentTimeMillis()
+
+        if (
+            lastBlockedPackageName == blockedPackageName &&
+            now - lastBlockedTime < 1500L
+        ) {
+            return
+        }
+
+        lastBlockedPackageName = blockedPackageName
+        lastBlockedTime = now
+
+        val intent = Intent(this, DetoxBlockActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+
+            putExtra("blockedPackageName", blockedPackageName)
+            putExtra("blockType", "TIME")
+            putExtra("startTime", startTime)
+            putExtra("endTime", endTime)
+        }
+
+        startActivity(intent)
     }
 
     private fun handleRepeatBlockApp(blockedPackageName: String) {
@@ -225,35 +367,6 @@ class DetoxBlockService : AccessibilityService() {
         startActivity(intent)
     }
 
-    private fun preventUsingTimeBlockApp(blockedPackageName: String) {
-        val now = System.currentTimeMillis()
-
-        if (
-            lastBlockedPackageName == blockedPackageName &&
-            now - lastBlockedTime < 1500L
-        ) {
-            return
-        }
-
-        lastBlockedPackageName = blockedPackageName
-        lastBlockedTime = now
-
-        val timeInfo = timeBlockInfoMap[blockedPackageName]
-
-        val intent = Intent(this, DetoxBlockActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-            putExtra("blockedPackageName", blockedPackageName)
-            putExtra("blockType", "TIME")
-            putExtra("startTime", timeInfo?.first)
-            putExtra("endTime", timeInfo?.second)
-        }
-
-        startActivity(intent)
-    }
-
     private fun restoreRepeatBlockInfos() {
         val savedInfos = DetoxRepeatLockLocalManager.loadRepeatBlockInfos(this)
 
@@ -318,6 +431,7 @@ class DetoxBlockService : AccessibilityService() {
     override fun onDestroy() {
         super.onDestroy()
         cancelRepeatCheck()
+        cancelTimeCheck()
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
     }
 
