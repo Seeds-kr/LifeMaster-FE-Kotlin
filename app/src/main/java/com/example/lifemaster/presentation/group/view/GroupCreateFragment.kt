@@ -39,6 +39,7 @@ import javax.inject.Inject
 class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
     companion object {
+        private const val ACCESS_TYPE_PUBLIC = "PUBLIC"
         private const val ACCESS_TYPE_PASSWORD = "PASSWORD"
         private const val GOAL_CONDITION_COUNT = "COUNT"
         private const val GOAL_CONDITION_TIME = "TIME"
@@ -51,6 +52,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
     lateinit var networkService: NetworkService
 
     private var isSubmitting = false
+    private var selectedAccessType: String = ACCESS_TYPE_PUBLIC
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -61,27 +63,43 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         val btnPublic = view.findViewById<TextView>(R.id.btn_public)
         val btnPrivate = view.findViewById<TextView>(R.id.btn_private)
 
-        fun applySegmentUiFixedPrivate() {
+        fun applySegmentUi(accessType: String) {
+            selectedAccessType = accessType
+
             val lp = selectedPill.layoutParams as ConstraintLayout.LayoutParams
             lp.startToStart = ConstraintLayout.LayoutParams.UNSET
             lp.endToEnd = ConstraintLayout.LayoutParams.UNSET
             lp.startToEnd = ConstraintLayout.LayoutParams.UNSET
             lp.endToStart = ConstraintLayout.LayoutParams.UNSET
-            lp.startToEnd = guidelineHalf.id
-            lp.endToEnd = segmentRoot.id
+            if (accessType == ACCESS_TYPE_PUBLIC) {
+                lp.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                lp.endToStart = guidelineHalf.id
 
-            btnPublic.setTextColor(requireContext().getColor(R.color.black_30))
-            btnPrivate.setTextColor(requireContext().getColor(R.color.white))
+                btnPublic.setTextColor(requireContext().getColor(R.color.white))
+                btnPrivate.setTextColor(requireContext().getColor(R.color.black_30))
+            } else {
+                lp.startToEnd = guidelineHalf.id
+                lp.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+
+                btnPublic.setTextColor(requireContext().getColor(R.color.black_30))
+                btnPrivate.setTextColor(requireContext().getColor(R.color.white))
+            }
 
             selectedPill.layoutParams = lp
             selectedPill.requestLayout()
-
-            btnPublic.isEnabled = false
-            btnPrivate.isEnabled = false
-            segmentRoot.isEnabled = false
         }
 
-        applySegmentUiFixedPrivate()
+        applySegmentUi(ACCESS_TYPE_PUBLIC)
+
+        btnPublic.setOnClickListener {
+            if (isSubmitting) return@setOnClickListener
+            applySegmentUi(ACCESS_TYPE_PUBLIC)
+        }
+
+        btnPrivate.setOnClickListener {
+            if (isSubmitting) return@setOnClickListener
+            applySegmentUi(ACCESS_TYPE_PASSWORD)
+        }
 
         val rvGoal = view.findViewById<RecyclerView>(R.id.rv_goal_list)
 
@@ -123,26 +141,40 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
             if (!validateGoals(goals)) return@setOnClickListener
 
-            showPrivatePasswordDialog { password ->
-                if (isSubmitting) return@showPrivatePasswordDialog
+            val token = getAuthTokenOrNull()
+            if (token.isNullOrBlank()) {
+                Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
-                val token = getAuthTokenOrNull()
-                if (token.isNullOrBlank()) {
-                    Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
-                    return@showPrivatePasswordDialog
-                }
-
+            if (selectedAccessType == ACCESS_TYPE_PUBLIC) {
                 createGroupAndGoals(
                     token = token,
                     name = name,
                     desc = desc,
                     icon = null,
                     statistics = null,
-                    password = password,
-                    accessType = ACCESS_TYPE_PASSWORD,
+                    password = null,
+                    accessType = ACCESS_TYPE_PUBLIC,
                     goals = goals,
                     btnDone = btnDone
                 )
+            } else {
+                showPrivatePasswordDialog { password ->
+                    if (isSubmitting) return@showPrivatePasswordDialog
+
+                    createGroupAndGoals(
+                        token = token,
+                        name = name,
+                        desc = desc,
+                        icon = null,
+                        statistics = null,
+                        password = password,
+                        accessType = ACCESS_TYPE_PASSWORD,
+                        goals = goals,
+                        btnDone = btnDone
+                    )
+                }
             }
         }
     }
@@ -312,14 +344,20 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                         return@launch
                     }
 
-                    val inviteCode = fetchInviteCodeSafely(token, groupId)
+                    val inviteCode = if (accessType == ACCESS_TYPE_PUBLIC) {
+                        ""
+                    } else {
+                        fetchInviteCodeSafely(token, groupId)
+                    }
+
                     val goalLines = ArrayList(goals.map { buildGoalLine(it) })
 
                     val bundle = Bundle().apply {
                         putLong("groupId", groupId)
                         putString("groupName", created.name ?: name)
                         putString("groupDesc", created.description ?: (desc ?: ""))
-                        putString("inviteCode", created.password ?: inviteCode)
+                        putString("inviteCode", inviteCode.ifBlank { created.password.orEmpty() })
+                        putString("groupAccessType", accessType)
                         putStringArrayList("goalLines", goalLines)
                     }
 

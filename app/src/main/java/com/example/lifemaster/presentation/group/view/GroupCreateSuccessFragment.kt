@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -23,7 +24,14 @@ import kotlinx.coroutines.withContext
 
 class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_success) {
 
+    companion object {
+        private const val ACCESS_TYPE_PUBLIC = "PUBLIC"
+        private const val ACCESS_TYPE_PASSWORD = "PASSWORD"
+        private const val ACCESS_TYPE_PRIVATE = "PRIVATE"
+    }
+
     private var currentInviteCode: String = ""
+    private var isPublicGroup: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -31,7 +39,10 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
         val groupName = arguments?.getString("groupName").orEmpty()
         val groupDesc = arguments?.getString("groupDesc").orEmpty()
         val rawInviteCode = arguments?.getString("inviteCode").orEmpty()
+        val groupAccessType = arguments?.getString("groupAccessType").orEmpty()
         val goalLines = arguments?.getStringArrayList("goalLines") ?: arrayListOf()
+
+        isPublicGroup = groupAccessType.equals(ACCESS_TYPE_PUBLIC, ignoreCase = true)
 
         val groupId = arguments?.getLong("groupId")
             ?: rawInviteCode.substringBefore(":").toLongOrNull()
@@ -41,19 +52,35 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
         val tvDesc = view.findViewById<TextView>(R.id.tv_group_desc)
         val tvInvite = view.findViewById<TextView>(R.id.tv_invite_code)
 
-        currentInviteCode = cleanInviteCode(rawInviteCode)
+        val btnCopy = view.findViewById<ImageButton>(R.id.btn_copy)
+        val btnEtc = view.findViewById<ImageButton>(R.id.btn_etc)
+        val btnInstagram = view.findViewById<ImageButton>(R.id.btn_instagram)
+        val btnX = view.findViewById<ImageButton>(R.id.btn_x)
+
+        currentInviteCode = if (isPublicGroup) "" else cleanInviteCode(rawInviteCode)
 
         tvName.text = groupName
         tvDesc.text = if (groupDesc.isBlank()) " " else groupDesc
         tvInvite.text = if (currentInviteCode.isBlank()) "-" else currentInviteCode
 
+        bindAccessTypeText(view, groupAccessType)
         bindGoals(view, goalLines)
+        bindInviteArea(
+            root = view,
+            tvInvite = tvInvite,
+            btnCopy = btnCopy,
+            btnEtc = btnEtc,
+            btnInstagram = btnInstagram,
+            btnX = btnX
+        )
 
-        if (groupId > 0L) {
+        if (!isPublicGroup && groupId > 0L) {
             fetchInviteCode(groupId, tvInvite)
         }
 
-        view.findViewById<ImageButton>(R.id.btn_copy).setOnClickListener {
+        btnCopy.setOnClickListener {
+            if (isPublicGroup) return@setOnClickListener
+
             if (currentInviteCode.isBlank()) {
                 Toast.makeText(requireContext(), "초대코드가 없습니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -64,15 +91,18 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
             Toast.makeText(requireContext(), "초대코드가 복사되었습니다.", Toast.LENGTH_SHORT).show()
         }
 
-        view.findViewById<ImageButton>(R.id.btn_etc).setOnClickListener {
+        btnEtc.setOnClickListener {
+            if (isPublicGroup) return@setOnClickListener
             shareInviteCode()
         }
 
-        view.findViewById<ImageButton>(R.id.btn_instagram).setOnClickListener {
+        btnInstagram.setOnClickListener {
+            if (isPublicGroup) return@setOnClickListener
             shareInviteCode()
         }
 
-        view.findViewById<ImageButton>(R.id.btn_x).setOnClickListener {
+        btnX.setOnClickListener {
+            if (isPublicGroup) return@setOnClickListener
             shareInviteCode()
         }
 
@@ -83,6 +113,49 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
         view.findViewById<View?>(R.id.includeBackButton)?.setOnClickListener {
             findNavController().popBackStack()
         }
+    }
+
+    private fun bindAccessTypeText(root: View, groupAccessType: String) {
+        val accessText = when (groupAccessType.uppercase()) {
+            ACCESS_TYPE_PUBLIC -> "공개그룹"
+            ACCESS_TYPE_PASSWORD, ACCESS_TYPE_PRIVATE -> "비공개그룹"
+            else -> "비공개그룹"
+        }
+
+        val tvAccessType = findTextViewByText(root, "비공개그룹")
+            ?: findTextViewByText(root, "공개그룹")
+
+        tvAccessType?.text = accessText
+    }
+
+    private fun bindInviteArea(
+        root: View,
+        tvInvite: TextView,
+        btnCopy: ImageButton,
+        btnEtc: ImageButton,
+        btnInstagram: ImageButton,
+        btnX: ImageButton
+    ) {
+        if (!isPublicGroup) {
+            tvInvite.visibility = View.VISIBLE
+            btnCopy.visibility = View.VISIBLE
+            btnEtc.visibility = View.VISIBLE
+            btnInstagram.visibility = View.VISIBLE
+            btnX.visibility = View.VISIBLE
+            return
+        }
+
+        tvInvite.visibility = View.GONE
+        btnCopy.visibility = View.GONE
+        btnEtc.visibility = View.GONE
+        btnInstagram.visibility = View.GONE
+        btnX.visibility = View.GONE
+
+        (tvInvite.parent as? View)?.visibility = View.GONE
+        (btnEtc.parent as? View)?.visibility = View.GONE
+
+        findTextViewByText(root, "초대코드")?.visibility = View.GONE
+        findTextViewByText(root, "친구 초대하기")?.visibility = View.GONE
     }
 
     private fun fetchInviteCode(groupId: Long, tvInvite: TextView) {
@@ -124,6 +197,7 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
     }
 
     private fun shareInviteCode() {
+        if (isPublicGroup) return
         if (currentInviteCode.isBlank()) {
             Toast.makeText(requireContext(), "초대코드가 없습니다.", Toast.LENGTH_SHORT).show()
             return
@@ -179,6 +253,21 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
             putExtra(Intent.EXTRA_TEXT, text)
         }
         startActivity(Intent.createChooser(intent, "공유"))
+    }
+
+    private fun findTextViewByText(root: View, targetText: String): TextView? {
+        if (root is TextView && root.text?.toString() == targetText) {
+            return root
+        }
+
+        if (root is ViewGroup) {
+            for (i in 0 until root.childCount) {
+                val result = findTextViewByText(root.getChildAt(i), targetText)
+                if (result != null) return result
+            }
+        }
+
+        return null
     }
 
     private val Int.dp: Int
