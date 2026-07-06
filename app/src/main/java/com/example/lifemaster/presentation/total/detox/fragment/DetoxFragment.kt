@@ -1,10 +1,14 @@
 package com.example.lifemaster.presentation.total.detox.fragment
 
-import android.app.AlertDialog
+import android.app.Dialog
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.widget.EditText
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
@@ -67,13 +71,9 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     private val repeatLockAdapter by lazy {
         DetoxRepeatLockAdapter { item ->
-            AlertDialog.Builder(requireContext())
-                .setMessage("반복 잠금 설정을 삭제하시겠습니까?")
-                .setNegativeButton("취소", null)
-                .setPositiveButton("삭제") { _, _ ->
-                    detoxRepeatLockViewModel.deleteRepeatLockItem(item.id)
-                }
-                .show()
+            showRepeatLockDeleteDialog {
+                detoxRepeatLockViewModel.deleteRepeatLockItem(item.id)
+            }
         }
     }
 
@@ -543,6 +543,50 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
 
     private fun dpToPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
+    }
+
+    private fun showRepeatLockDeleteDialog(
+        onConfirm: () -> Unit
+    ) {
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_group_delete, null, false)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val tvDesc = dialogView.findViewById<TextView>(R.id.tvDesc)
+        val tvPwLabel = dialogView.findViewById<TextView>(R.id.tvPwLabel)
+        val etPassword = dialogView.findViewById<EditText>(R.id.etPassword)
+        val tvWrong = dialogView.findViewById<TextView>(R.id.tvPwLabel_wrong)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnDelete = dialogView.findViewById<TextView>(R.id.btnDelete)
+
+        tvTitle.text = "반복 잠금 삭제"
+        tvDesc.text = "반복 잠금 설정을 삭제하시겠습니까?"
+
+        tvPwLabel.visibility = View.GONE
+        etPassword.visibility = View.GONE
+        tvWrong.visibility = View.GONE
+
+        btnDelete.text = "삭제하기"
+
+        btnDelete.backgroundTintList = binding.btnAddRepeatLockApp.backgroundTintList
+            ?: ColorStateList.valueOf(Color.parseColor("#6F7F2A"))
+
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(dialogView)
+            setCancelable(true)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnDelete.setOnClickListener {
+            dialog.dismiss()
+            onConfirm()
+        }
+
+        dialog.show()
     }
 
     private fun convertLongFormat(milliseconds: Long): String {
