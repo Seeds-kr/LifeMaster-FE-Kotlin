@@ -650,7 +650,7 @@ interface NetworkService {
     suspend fun getGroupById(
         @Header("Authorization") token: String,
         @Path("id") id: Long
-    ): Response<ResponseBody>
+    ): Response<GroupResponse>
 
     // 그룹 가입
     @POST("/group/{groupId}/join")

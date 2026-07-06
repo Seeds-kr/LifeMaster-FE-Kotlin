@@ -62,6 +62,11 @@ import kotlin.math.max
 
 @AndroidEntryPoint
 class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
+    companion object {
+        private const val ACCESS_TYPE_PUBLIC = "PUBLIC"
+        private const val ACCESS_TYPE_PASSWORD = "PASSWORD"
+        private const val ACCESS_TYPE_PRIVATE = "PRIVATE"
+    }
 
     private val args: GroupStatsFragmentArgs by navArgs()
 
@@ -69,6 +74,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     lateinit var networkService: NetworkService
 
     private lateinit var tvGroupName: TextView
+    private var groupAccessType: String = ""
     private lateinit var tvGroupMemberCount: TextView
     private lateinit var btnJoin: TextView
     private lateinit var btnLeave: TextView
@@ -169,6 +175,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
         tvGroupName.text = args.groupName ?: "Group"
         memberCount = args.memberCount
+        groupAccessType = arguments?.getString("groupAccessType").orEmpty()
         tvGroupMemberCount.text = if (memberCount > 0) "${memberCount}명 참여 중" else ""
 
         btnLeave.visibility = View.GONE
@@ -186,7 +193,25 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 return@setOnClickListener
             }
 
-            showJoinDialog()
+            when {
+                isPublicGroup() -> {
+                    requestJoinGroup(
+                        passwordOrBlank = "",
+                        showPasswordDialogOnNeed = true
+                    )
+                }
+
+                isPasswordGroup() -> {
+                    showJoinDialog()
+                }
+
+                else -> {
+                    requestJoinGroup(
+                        passwordOrBlank = "",
+                        showPasswordDialogOnNeed = true
+                    )
+                }
+            }
         }
 
         btnLeave.setOnClickListener {
@@ -335,12 +360,24 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 runCatching { networkService.getAllGroups(token) }.getOrElse { emptyList() }
             }
 
+            val detailGroup = withContext(Dispatchers.IO) {
+                runCatching {
+                    val response = networkService.getGroupById(token, groupId)
+                    if (response.isSuccessful) response.body() else null
+                }.getOrNull()
+            }
+
             isMember = myGroups.any { it.id == groupId }
             ownerLeaveBlocked = false
             applyMembershipUi()
 
-            val currentGroup = myGroups.find { it.id == groupId }
+            val currentGroup = detailGroup
+                ?: myGroups.find { it.id == groupId }
                 ?: allGroups.find { it.id == groupId }
+
+            if (!currentGroup?.accessType.isNullOrBlank()) {
+                groupAccessType = currentGroup?.accessType.orEmpty()
+            }
 
             memberCount = currentGroup?.memberCount ?: memberCount
             tvGroupMemberCount.text = if (memberCount > 0) "${memberCount}명 참여 중" else ""
@@ -540,6 +577,15 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         layoutRankingList.addView(row)
     }
 
+    private fun isPublicGroup(): Boolean {
+        return groupAccessType.equals(ACCESS_TYPE_PUBLIC, ignoreCase = true)
+    }
+
+    private fun isPasswordGroup(): Boolean {
+        return groupAccessType.equals(ACCESS_TYPE_PASSWORD, ignoreCase = true) ||
+                groupAccessType.equals(ACCESS_TYPE_PRIVATE, ignoreCase = true)
+    }
+
     private fun showJoinDialog() {
         val dialogView = LayoutInflater.from(requireContext())
             .inflate(R.layout.dialog_group_join, null, false)
@@ -560,15 +606,30 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
         btnJoinInDialog.setOnClickListener {
             tvWrong.visibility = View.INVISIBLE
+
             val pw = etPassword.text?.toString()?.trim().orEmpty()
+
+            if (pw.isBlank()) {
+                tvWrong.visibility = View.VISIBLE
+                Toast.makeText(requireContext(), "비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             dialog.dismiss()
-            requestJoinGroup(passwordOrBlank = pw)
+
+            requestJoinGroup(
+                passwordOrBlank = pw,
+                showPasswordDialogOnNeed = false
+            )
         }
 
         dialog.show()
     }
 
-    private fun requestJoinGroup(passwordOrBlank: String) {
+    private fun requestJoinGroup(
+        passwordOrBlank: String,
+        showPasswordDialogOnNeed: Boolean = true
+    ) {
         val token = TokenProvider.getBearerToken(requireContext())
 
         if (token.isNullOrBlank()) {
@@ -596,7 +657,15 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 }
 
                 if (resp.code() == 400 && err.contains("password", ignoreCase = true)) {
-                    Toast.makeText(requireContext(), "비밀번호가 필요하거나 올바르지 않습니다.", Toast.LENGTH_LONG).show()
+                    if (showPasswordDialogOnNeed) {
+                        showJoinDialog()
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "비밀번호가 올바르지 않습니다.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                     return@launch
                 }
 
@@ -613,6 +682,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             }
 
             Toast.makeText(requireContext(), "그룹 가입 완료!", Toast.LENGTH_SHORT).show()
+
             isMember = true
             applyMembershipUi()
             refreshMembershipStateAndLoadStats()
