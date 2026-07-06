@@ -1,5 +1,7 @@
 package com.example.lifemaster.presentation.community.view
 
+import android.app.Dialog
+import android.content.res.ColorStateList
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
@@ -89,17 +91,17 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
                 }
 
                 override fun onDeleteRequest(comment: Comment, position: Int) {
-                    AlertDialog.Builder(requireContext())
-                        .setMessage("댓글을 삭제할까요?")
-                        .setNegativeButton("취소", null)
-                        .setPositiveButton("삭제") { _, _ ->
-                            vm.deleteComment(
-                                authToken,
-                                postId,
-                                comment.id
-                            )
-                        }
-                        .show()
+                    showCommunityDeleteDialog(
+                        title = "댓글 삭제",
+                        message = "댓글을 삭제할까요?",
+                        confirmText = "삭제하기"
+                    ) {
+                        vm.deleteComment(
+                            authToken,
+                            postId,
+                            comment.id
+                        )
+                    }
                 }
 
                 override fun onToggleLike(comment: Comment, position: Int) {
@@ -383,11 +385,13 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
         }
         btnDelete.setOnClickListener {
             popup.dismiss()
-            AlertDialog.Builder(ctx)
-                .setMessage("게시글을 삭제할까요?")
-                .setNegativeButton("취소", null)
-                .setPositiveButton("삭제") { _, _ -> onDelete() }
-                .show()
+            showCommunityDeleteDialog(
+                title = "게시글 삭제",
+                message = "게시글을 삭제할까요?",
+                confirmText = "삭제하기"
+            ) {
+                onDelete()
+            }
         }
 
         content.measure(
@@ -400,41 +404,120 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
         popup.showAsDropDown(anchor, xOff, yOff)
     }
 
-    private fun showReportDialogInline() {
-        val ctx = requireContext()
-        val input = EditText(ctx).apply {
-            hint = "신고 사유(선택)"
-            setPadding(dp(16), dp(12), dp(16), dp(12))
+    private fun showCommunityDeleteDialog(
+        title: String,
+        message: String,
+        confirmText: String = "삭제하기",
+        onConfirm: () -> Unit
+    ) {
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_group_delete, null, false)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val tvDesc = dialogView.findViewById<TextView>(R.id.tvDesc)
+        val tvPwLabel = dialogView.findViewById<TextView>(R.id.tvPwLabel)
+        val etPassword = dialogView.findViewById<EditText>(R.id.etPassword)
+        val tvWrong = dialogView.findViewById<TextView>(R.id.tvPwLabel_wrong)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnDelete = dialogView.findViewById<TextView>(R.id.btnDelete)
+
+        tvTitle.text = title
+        tvDesc.text = message
+
+        tvPwLabel.visibility = View.GONE
+        etPassword.visibility = View.GONE
+        tvWrong.visibility = View.GONE
+
+        btnDelete.text = confirmText
+        btnDelete.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#EA9F95"))
+
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(dialogView)
+            setCancelable(true)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
         }
 
-        AlertDialog.Builder(ctx)
-            .setTitle("게시글 신고")
-            .setView(input)
-            .setNegativeButton("취소", null)
-            .setPositiveButton("신고") { _, _ ->
-                val pid = postId.toLongOrNull()
-                if (pid == null) {
-                    toast("잘못된 게시글 ID")
-                    return@setPositiveButton
-                }
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
 
-                binding.btnReport.isEnabled = false
+        btnDelete.setOnClickListener {
+            dialog.dismiss()
+            onConfirm()
+        }
 
-                vm.reportPost(
-                    token = authToken,
-                    postId = pid,
-                    reason = input.text?.toString().orEmpty(),
-                    onSuccess = {
-                        toast("신고가 접수되었습니다.")
-                        binding.btnReport.isEnabled = true
-                    },
-                    onError = {
-                        toast(it)
-                        binding.btnReport.isEnabled = true
-                    }
-                )
+        dialog.show()
+    }
+
+    private fun showReportDialogInline() {
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_group_delete, null, false)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val tvDesc = dialogView.findViewById<TextView>(R.id.tvDesc)
+        val tvPwLabel = dialogView.findViewById<TextView>(R.id.tvPwLabel)
+        val etPassword = dialogView.findViewById<EditText>(R.id.etPassword)
+        val tvWrong = dialogView.findViewById<TextView>(R.id.tvPwLabel_wrong)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnDelete = dialogView.findViewById<TextView>(R.id.btnDelete)
+
+        tvTitle.text = "게시글 신고"
+        tvDesc.text = "이 게시글을 신고할까요?"
+
+        tvPwLabel.visibility = View.VISIBLE
+        tvPwLabel.text = "신고 사유를 입력해주세요"
+
+        etPassword.visibility = View.VISIBLE
+        etPassword.hint = "신고 사유 입력"
+        etPassword.setText("")
+        etPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        etPassword.maxLines = 3
+
+        tvWrong.visibility = View.GONE
+
+        btnDelete.text = "신고하기"
+        btnDelete.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#EA9F95"))
+
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(dialogView)
+            setCancelable(true)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnDelete.setOnClickListener {
+            val pid = postId.toLongOrNull()
+
+            if (pid == null) {
+                tvWrong.text = "잘못된 게시글 ID입니다."
+                tvWrong.visibility = View.VISIBLE
+                return@setOnClickListener
             }
-            .show()
+
+            binding.btnReport.isEnabled = false
+
+            vm.reportPost(
+                token = authToken,
+                postId = pid,
+                reason = etPassword.text?.toString()?.trim().orEmpty(),
+                onSuccess = {
+                    dialog.dismiss()
+                    toast("신고가 접수되었습니다.")
+                    binding.btnReport.isEnabled = true
+                },
+                onError = {
+                    tvWrong.text = it
+                    tvWrong.visibility = View.VISIBLE
+                    binding.btnReport.isEnabled = true
+                }
+            )
+        }
+
+        dialog.show()
     }
 
     private fun applyHeart(liked: Boolean) {
