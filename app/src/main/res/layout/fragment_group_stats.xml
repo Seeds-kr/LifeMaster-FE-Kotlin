@@ -55,12 +55,12 @@
 
                     <ImageView
                         android:id="@+id/iv_group_icon"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
                         android:layout_gravity="center"
                         android:contentDescription="@null"
                         android:importantForAccessibility="no"
-                        android:src="@drawable/ic_clock_sleep"
+                        android:src="@drawable/ic_group"
                         app:tint="@color/black" />
                 </FrameLayout>
 
@@ -113,6 +113,117 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/black_10" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layout_group_desc_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="12dp">
+
+                    <TextView
+                        android:id="@+id/tv_group_desc_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="그룹 소개"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_group_desc"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:lineSpacingExtra="4dp"
+                        android:textColor="@color/gray"
+                        android:textSize="13sp"
+                        tools:text="그룹 설명입니다." />
+
+                    <TextView
+                        android:id="@+id/tv_group_goal_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="최소목표"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_group_goal_summary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        app:cardBackgroundColor="#F4F6F7"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp">
+
+                        <TextView
+                            android:id="@+id/tv_group_goal_summary"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:lineSpacingExtra="5dp"
+                            android:minHeight="50dp"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="14dp"
+                            android:textColor="@color/gray"
+                            android:textSize="13sp"
+                            tools:text="뽀모도로 1회 이상&#10;디톡스 1시간 이상" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_group_feature_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp"
+                        app:cardBackgroundColor="#FBF7FF"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="#EADDF5"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="15dp">
+
+                            <TextView
+                                android:id="@+id/tv_join_benefit_title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="목표 달성을 함께해요"
+                                android:textColor="@color/black"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tv_join_benefit_desc"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="7dp"
+                                android:lineSpacingExtra="5dp"
+                                android:text="그룹 통계와 랭킹으로 달성 현황을 확인하고&#10;채팅으로 멤버들과 소통할 수 있어요."
+                                android:textColor="@color/gray"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/layout_premium_locked"

@@ -154,6 +154,8 @@ class GroupFragment : Fragment(R.layout.fragment_group) {
             putLong("groupId", group.id)
             putString("groupName", group.name)
             putInt("memberCount", group.memberCount ?: 0)
+            putString("groupAccessType", group.accessType.orEmpty())
+            putString("groupIcon", group.icon.orEmpty())
         }
 
         findNavController().navigate(

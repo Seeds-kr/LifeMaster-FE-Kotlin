@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -17,6 +18,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -62,6 +64,11 @@ import kotlin.math.max
 
 @AndroidEntryPoint
 class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
+    companion object {
+        private const val ACCESS_TYPE_PUBLIC = "PUBLIC"
+        private const val ACCESS_TYPE_PASSWORD = "PASSWORD"
+        private const val ACCESS_TYPE_PRIVATE = "PRIVATE"
+    }
 
     private val args: GroupStatsFragmentArgs by navArgs()
 
@@ -69,7 +76,12 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     lateinit var networkService: NetworkService
 
     private lateinit var tvGroupName: TextView
+    private lateinit var ivGroupIcon: ImageView
+    private var groupAccessType: String = ""
     private lateinit var tvGroupMemberCount: TextView
+    private lateinit var layoutGroupDescCard: View
+    private lateinit var tvGroupDesc: TextView
+    private lateinit var tvGroupGoalSummary: TextView
     private lateinit var btnJoin: TextView
     private lateinit var btnLeave: TextView
     private lateinit var btnChat: View
@@ -110,6 +122,13 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     private var isMember: Boolean = false
     private var ownerLeaveBlocked: Boolean = false
     private var memberCount: Int = 0
+    private var currentMemberId: Long? = null
+    private var creatorId: Long? = null
+    private var isCreator: Boolean = false
+    private var currentGroupName: String = ""
+    private var currentGroupDesc: String = ""
+    private var currentGroupIcon: String = ""
+    private var currentGroupAccessType: String = ACCESS_TYPE_PUBLIC
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -130,7 +149,13 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         tvGroupName = view.findViewById(R.id.tv_group_name)
+        ivGroupIcon = view.findViewById(R.id.iv_group_icon)
         tvGroupMemberCount = view.findViewById(R.id.tv_group_member_count)
+        layoutGroupDescCard = view.findViewById(R.id.layout_group_desc_card)
+        tvGroupDesc = view.findViewById(R.id.tv_group_desc)
+        layoutGroupDescCard.visibility = View.GONE
+        tvGroupGoalSummary = view.findViewById(R.id.tv_group_goal_summary)
+        ivGroupIcon.setImageResource(getGroupIconRes(null))
         btnJoin = view.findViewById(R.id.btn_join)
         btnLeave = view.findViewById(R.id.btn_leave_group)
         btnChat = view.findViewById(R.id.btn_chat)
@@ -169,6 +194,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
         tvGroupName.text = args.groupName ?: "Group"
         memberCount = args.memberCount
+        groupAccessType = arguments?.getString("groupAccessType").orEmpty()
         tvGroupMemberCount.text = if (memberCount > 0) "${memberCount}명 참여 중" else ""
 
         btnLeave.visibility = View.GONE
@@ -181,12 +207,35 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 return@setOnClickListener
             }
 
+            if (isCreator) {
+                navigateToEditGroup()
+                return@setOnClickListener
+            }
+
             if (isMember) {
                 Toast.makeText(requireContext(), "이미 가입된 그룹이에요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            showJoinDialog()
+            when {
+                isPublicGroup() -> {
+                    requestJoinGroup(
+                        passwordOrBlank = "",
+                        showPasswordDialogOnNeed = true
+                    )
+                }
+
+                isPasswordGroup() -> {
+                    showJoinDialog()
+                }
+
+                else -> {
+                    requestJoinGroup(
+                        passwordOrBlank = "",
+                        showPasswordDialogOnNeed = true
+                    )
+                }
+            }
         }
 
         btnLeave.setOnClickListener {
@@ -195,7 +244,11 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 return@setOnClickListener
             }
 
-            showLeaveConfirmDialog()
+            if (isCreator) {
+                showDeleteGroupDialog()
+            } else {
+                showLeaveConfirmDialog()
+            }
         }
 
         btnChat.setOnClickListener {
@@ -278,6 +331,19 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             false
         }
 
+        findNavController().currentBackStackEntry
+            ?.savedStateHandle
+            ?.getLiveData<Boolean>("groupUpdated")
+            ?.observe(viewLifecycleOwner) { updated ->
+                if (updated == true) {
+                    findNavController().currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("groupUpdated", false)
+
+                    refreshMembershipStateAndLoadStats()
+                }
+            }
+
         refreshMembershipStateAndLoadStats()
     }
 
@@ -291,15 +357,61 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         btnJoin.visibility = View.VISIBLE
 
         if (isMember) {
-            btnJoin.text = "가입완료"
-            btnJoin.isEnabled = false
-            btnJoin.alpha = 0.6f
-            btnLeave.visibility = if (ownerLeaveBlocked) View.GONE else View.VISIBLE
+            if (isCreator) {
+                btnJoin.text = "수정하기"
+                btnJoin.isEnabled = true
+                btnJoin.alpha = 1f
+
+                btnLeave.text = "그룹 삭제하기"
+                btnLeave.visibility = View.VISIBLE
+            } else {
+                btnJoin.text = "가입완료"
+                btnJoin.isEnabled = false
+                btnJoin.alpha = 0.6f
+
+                btnLeave.text = "그룹 탈퇴하기"
+                btnLeave.visibility = if (ownerLeaveBlocked) View.GONE else View.VISIBLE
+            }
         } else {
             btnJoin.text = getString(R.string.group_join)
             btnJoin.isEnabled = true
             btnJoin.alpha = 1f
             btnLeave.visibility = View.GONE
+        }
+    }
+
+    private fun applyContentVisibilityByMembership() {
+        if (isPremiumLocked) return
+
+        if (isMember) {
+            layoutGroupDescCard.visibility = View.GONE
+
+            layoutGoalChartContainer.visibility = View.VISIBLE
+            tvRecentAchieveTitle.visibility = View.VISIBLE
+            layoutRecentAchieveRoot.visibility = View.VISIBLE
+
+            layoutRankingHeader.visibility = View.VISIBLE
+            layoutRankingSection.visibility = View.VISIBLE
+
+            btnChat.visibility = View.VISIBLE
+        } else {
+            tvGroupDesc.text = currentGroupDesc.ifBlank { "그룹 설명이 없습니다." }
+            layoutGroupDescCard.visibility = View.VISIBLE
+
+            layoutGoalChartContainer.removeAllViews()
+            layoutGoalChartContainer.visibility = View.GONE
+
+            tvRecentAchieveTitle.visibility = View.GONE
+            layoutRecentAchieveRoot.visibility = View.GONE
+            hideHeatmapTooltip(clearSelection = false)
+
+            layoutRankingHeader.visibility = View.GONE
+            layoutRankingSection.visibility = View.GONE
+            layoutRankingList.removeAllViews()
+            layoutRankingList.visibility = View.GONE
+            layoutMore.visibility = View.GONE
+
+            btnChat.visibility = View.GONE
         }
     }
 
@@ -335,33 +447,61 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 runCatching { networkService.getAllGroups(token) }.getOrElse { emptyList() }
             }
 
-            isMember = myGroups.any { it.id == groupId }
+            val detailGroup = withContext(Dispatchers.IO) {
+                runCatching {
+                    val response = networkService.getGroupById(token, groupId)
+                    if (response.isSuccessful) response.body() else null
+                }.getOrNull()
+            }
+
+            val me = withContext(Dispatchers.IO) {
+                runCatching {
+                    val response = networkService.getMe(token)
+                    if (response.isSuccessful) response.body() else null
+                }.getOrNull()
+            }
+
+            val currentGroup = detailGroup
+                ?: myGroups.find { it.id == groupId }
+                ?: allGroups.find { it.id == groupId }
+
+            currentGroupName = currentGroup?.name ?: args.groupName.orEmpty()
+            currentGroupDesc = currentGroup?.description.orEmpty()
+            currentGroupIcon = currentGroup?.icon.orEmpty()
+            currentGroupDesc = currentGroup?.description.orEmpty()
+
+            if (!currentGroup?.accessType.isNullOrBlank()) {
+                groupAccessType = currentGroup?.accessType.orEmpty()
+            }
+
+            currentGroupAccessType = groupAccessType.ifBlank { ACCESS_TYPE_PUBLIC }
+
+            tvGroupName.text = currentGroupName.ifBlank { "Group" }
+            ivGroupIcon.setImageResource(getGroupIconRes(currentGroupIcon))
+
+            currentMemberId = me?.id
+            creatorId = currentGroup?.creatorId
+            isCreator = currentMemberId != null && creatorId != null && currentMemberId == creatorId
+
+            isMember = myGroups.any { it.id == groupId } || isCreator
             ownerLeaveBlocked = false
             applyMembershipUi()
-
-            val currentGroup = myGroups.find { it.id == groupId }
-                ?: allGroups.find { it.id == groupId }
+            applyContentVisibilityByMembership()
 
             memberCount = currentGroup?.memberCount ?: memberCount
             tvGroupMemberCount.text = if (memberCount > 0) "${memberCount}명 참여 중" else ""
 
-            loadStats(token, groupId)
-
-            if (isMember) {
-                loadRanking()
-            } else {
+            if (!isMember) {
                 rankingAllItems = emptyList()
                 rankingMyItem = null
                 bindRankingList()
-
-                if (!isPremiumLocked) {
-                    Toast.makeText(
-                        requireContext(),
-                        "그룹 가입 후 랭킹을 확인할 수 있어요.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                applyContentVisibilityByMembership()
+                loadGoalSummaryOnly(token, groupId)
+                return@launch
             }
+
+            loadStats(token, groupId)
+            loadRanking()
         }
     }
 
@@ -540,35 +680,112 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         layoutRankingList.addView(row)
     }
 
+    private fun isPublicGroup(): Boolean {
+        return groupAccessType.equals(ACCESS_TYPE_PUBLIC, ignoreCase = true)
+    }
+
+    private fun isPasswordGroup(): Boolean {
+        return groupAccessType.equals(ACCESS_TYPE_PASSWORD, ignoreCase = true) ||
+                groupAccessType.equals(ACCESS_TYPE_PRIVATE, ignoreCase = true)
+    }
+
     private fun showJoinDialog() {
         val dialogView = LayoutInflater.from(requireContext())
             .inflate(R.layout.dialog_group_join, null, false)
 
+        val tvTitleLine1: TextView = dialogView.findViewById(R.id.tvTitleLine1)
+        val tvTitleLine2: TextView = dialogView.findViewById(R.id.tvTitleLine2)
+        val tvPwLabel: TextView = dialogView.findViewById(R.id.tvPwLabel)
         val etPassword: EditText = dialogView.findViewById(R.id.etPassword)
         val tvWrong: TextView = dialogView.findViewById(R.id.tvPwLabel_wrong)
         val btnCancel: TextView = dialogView.findViewById(R.id.btnCancel)
         val btnJoinInDialog: TextView = dialogView.findViewById(R.id.btn_join)
+        val tvJoinByInviteCode: TextView = dialogView.findViewById(R.id.tvJoinByInviteCode)
 
-        tvWrong.visibility = View.INVISIBLE
+        var isInviteCodeMode = false
+
+        fun applyJoinMode() {
+            tvWrong.visibility = View.INVISIBLE
+            etPassword.text?.clear()
+
+            if (isInviteCodeMode) {
+                tvTitleLine1.text = "비공개 그룹 가입을 위해"
+                tvTitleLine2.text = "초대코드를 입력해주세요"
+                tvPwLabel.text = "초대코드를 입력해주세요"
+                etPassword.hint = "초대코드 입력"
+                etPassword.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                tvWrong.text = "초대코드를 확인해주세요."
+                tvJoinByInviteCode.text = "비밀번호로 가입하기"
+            } else {
+                tvTitleLine1.text = getString(R.string.group_join_title1)
+                tvTitleLine2.text = getString(R.string.group_join_title2)
+                tvPwLabel.text = getString(R.string.input_password_please)
+                etPassword.hint = getString(R.string.input_password)
+                etPassword.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                tvWrong.text = getString(R.string.password_wrong)
+                tvJoinByInviteCode.text = "초대코드로 가입하기"
+            }
+
+            etPassword.typeface = Typeface.DEFAULT
+            etPassword.setSelection(etPassword.text?.length ?: 0)
+        }
 
         val dialog = Dialog(requireContext()).apply {
             setContentView(dialogView)
             setCancelable(true)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
         }
 
-        btnCancel.setOnClickListener { dialog.dismiss() }
+        applyJoinMode()
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        tvJoinByInviteCode.setOnClickListener {
+            isInviteCodeMode = !isInviteCodeMode
+            applyJoinMode()
+        }
 
         btnJoinInDialog.setOnClickListener {
             tvWrong.visibility = View.INVISIBLE
-            val pw = etPassword.text?.toString()?.trim().orEmpty()
-            dialog.dismiss()
-            requestJoinGroup(passwordOrBlank = pw)
+
+            val input = etPassword.text?.toString()?.trim().orEmpty()
+
+            if (input.isBlank()) {
+                tvWrong.text = if (isInviteCodeMode) {
+                    "초대코드를 확인해주세요."
+                } else {
+                    "비밀번호가 일치하지 않습니다."
+                }
+                tvWrong.visibility = View.VISIBLE
+                return@setOnClickListener
+            }
+
+            if (isInviteCodeMode) {
+                requestJoinGroupWithInviteCodeFromDialog(
+                    inviteCode = input,
+                    dialog = dialog,
+                    tvWrong = tvWrong
+                )
+            } else {
+                requestJoinGroupFromDialog(
+                    password = input,
+                    dialog = dialog,
+                    tvWrong = tvWrong
+                )
+            }
         }
 
         dialog.show()
     }
 
-    private fun requestJoinGroup(passwordOrBlank: String) {
+    private fun requestJoinGroup(
+        passwordOrBlank: String,
+        showPasswordDialogOnNeed: Boolean = true
+    ) {
         val token = TokenProvider.getBearerToken(requireContext())
 
         if (token.isNullOrBlank()) {
@@ -596,7 +813,15 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 }
 
                 if (resp.code() == 400 && err.contains("password", ignoreCase = true)) {
-                    Toast.makeText(requireContext(), "비밀번호가 필요하거나 올바르지 않습니다.", Toast.LENGTH_LONG).show()
+                    if (showPasswordDialogOnNeed) {
+                        showJoinDialog()
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "비밀번호가 올바르지 않습니다.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                     return@launch
                 }
 
@@ -613,6 +838,124 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             }
 
             Toast.makeText(requireContext(), "그룹 가입 완료!", Toast.LENGTH_SHORT).show()
+
+            isMember = true
+            applyMembershipUi()
+            refreshMembershipStateAndLoadStats()
+        }
+    }
+
+    private fun requestJoinGroupFromDialog(
+        password: String,
+        dialog: Dialog,
+        tvWrong: TextView
+    ) {
+        val token = TokenProvider.getBearerToken(requireContext())
+
+        if (token.isNullOrBlank()) {
+            tvWrong.text = "로그인이 필요합니다."
+            tvWrong.visibility = View.VISIBLE
+            return
+        }
+
+        lifecycleScope.launch {
+            val resp: Response<ResponseBody> = withContext(Dispatchers.IO) {
+                networkService.joinGroup(
+                    token = token,
+                    groupId = args.groupId,
+                    password = password
+                )
+            }
+
+            if (!resp.isSuccessful) {
+                val err = safeBodyString(resp.errorBody())
+
+                when {
+                    resp.code() == 403 -> {
+                        dialog.dismiss()
+                        showPremiumLockedUi()
+                        return@launch
+                    }
+
+                    resp.code() == 409 || err.contains("already", ignoreCase = true) -> {
+                        dialog.dismiss()
+                        isMember = true
+                        applyMembershipUi()
+                        Toast.makeText(requireContext(), "이미 가입된 그룹이에요.", Toast.LENGTH_SHORT).show()
+                        refreshMembershipStateAndLoadStats()
+                        return@launch
+                    }
+
+                    else -> {
+                        tvWrong.text = "비밀번호가 일치하지 않습니다."
+                        tvWrong.visibility = View.VISIBLE
+                        return@launch
+                    }
+                }
+            }
+
+            dialog.dismiss()
+
+            Toast.makeText(requireContext(), "그룹 가입 완료!", Toast.LENGTH_SHORT).show()
+
+            isMember = true
+            applyMembershipUi()
+            refreshMembershipStateAndLoadStats()
+        }
+    }
+
+    private fun requestJoinGroupWithInviteCodeFromDialog(
+        inviteCode: String,
+        dialog: Dialog,
+        tvWrong: TextView
+    ) {
+        val token = TokenProvider.getBearerToken(requireContext())
+
+        if (token.isNullOrBlank()) {
+            tvWrong.text = "로그인이 필요합니다."
+            tvWrong.visibility = View.VISIBLE
+            return
+        }
+
+        lifecycleScope.launch {
+            val resp: Response<ResponseBody> = withContext(Dispatchers.IO) {
+                networkService.joinGroupWithInviteCode(
+                    token = token,
+                    inviteCode = inviteCode
+                )
+            }
+
+            if (!resp.isSuccessful) {
+                val err = safeBodyString(resp.errorBody())
+
+                when {
+                    resp.code() == 403 -> {
+                        dialog.dismiss()
+                        showPremiumLockedUi()
+                        return@launch
+                    }
+
+                    resp.code() == 409 || err.contains("already", ignoreCase = true) -> {
+                        dialog.dismiss()
+                        isMember = true
+                        applyMembershipUi()
+                        Toast.makeText(requireContext(), "이미 가입된 그룹이에요.", Toast.LENGTH_SHORT).show()
+                        refreshMembershipStateAndLoadStats()
+                        return@launch
+                    }
+
+                    else -> {
+                        tvWrong.text = "초대코드를 확인해주세요."
+                        tvWrong.visibility = View.VISIBLE
+                        return@launch
+                    }
+                }
+            }
+
+            dialog.dismiss()
+
+            Toast.makeText(requireContext(), "그룹 가입 완료!", Toast.LENGTH_SHORT).show()
+
             isMember = true
             applyMembershipUi()
             refreshMembershipStateAndLoadStats()
@@ -620,12 +963,168 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     }
 
     private fun showLeaveConfirmDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("그룹 탈퇴")
-            .setMessage("정말 이 그룹에서 탈퇴할까요?")
-            .setNegativeButton("취소", null)
-            .setPositiveButton("탈퇴") { _, _ -> requestLeaveGroup() }
-            .show()
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_group_delete, null, false)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val tvDesc = dialogView.findViewById<TextView>(R.id.tvDesc)
+        val tvPwLabel = dialogView.findViewById<TextView>(R.id.tvPwLabel)
+        val etPassword = dialogView.findViewById<EditText>(R.id.etPassword)
+        val tvWrong = dialogView.findViewById<TextView>(R.id.tvPwLabel_wrong)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnDelete = dialogView.findViewById<TextView>(R.id.btnDelete)
+
+        tvTitle.text = "그룹 탈퇴"
+        tvDesc.text = "정말 이 그룹에서 탈퇴할까요?"
+
+        tvPwLabel.visibility = View.GONE
+        etPassword.visibility = View.GONE
+        tvWrong.visibility = View.GONE
+
+        btnDelete.text = "탈퇴하기"
+
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(dialogView)
+            setCancelable(true)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnDelete.setOnClickListener {
+            dialog.dismiss()
+            requestLeaveGroup()
+        }
+
+        dialog.show()
+    }
+
+    private fun showDeleteGroupDialog() {
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_group_delete, null, false)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val tvDesc = dialogView.findViewById<TextView>(R.id.tvDesc)
+        val tvPwLabel = dialogView.findViewById<TextView>(R.id.tvPwLabel)
+        val etPassword = dialogView.findViewById<EditText>(R.id.etPassword)
+        val tvWrong = dialogView.findViewById<TextView>(R.id.tvPwLabel_wrong)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnDelete = dialogView.findViewById<TextView>(R.id.btnDelete)
+
+        val needsPassword = isPasswordGroup()
+
+        tvTitle.text = "그룹 삭제"
+        tvWrong.visibility = View.GONE
+
+        if (needsPassword) {
+            tvDesc.text = "정말 이 그룹을 삭제할까요?"
+            tvPwLabel.visibility = View.VISIBLE
+            etPassword.visibility = View.VISIBLE
+            tvPwLabel.text = "그룹 비밀번호를 입력해주세요"
+            etPassword.hint = "그룹 비밀번호 입력"
+        } else {
+            tvDesc.text = "정말 이 그룹을 삭제할까요?"
+            tvPwLabel.visibility = View.GONE
+            etPassword.visibility = View.GONE
+        }
+
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(dialogView)
+            setCancelable(true)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+        }
+
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
+        btnDelete.setOnClickListener {
+            tvWrong.visibility = View.GONE
+
+            if (needsPassword) {
+                val password = etPassword.text?.toString()?.trim().orEmpty()
+
+                if (password.isBlank()) {
+                    tvWrong.text = "비밀번호를 입력해주세요."
+                    tvWrong.visibility = View.VISIBLE
+                    return@setOnClickListener
+                }
+
+                dialog.dismiss()
+                requestDeleteGroup(password)
+            } else {
+                dialog.dismiss()
+                requestDeleteGroup("")
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun requestDeleteGroup(password: String) {
+        val token = TokenProvider.getBearerToken(requireContext())
+
+        if (token.isNullOrBlank()) {
+            Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch {
+            val resp: Response<ResponseBody> = withContext(Dispatchers.IO) {
+                networkService.deleteGroup(
+                    token = token,
+                    id = args.groupId,
+                    password = password
+                )
+            }
+
+            if (!resp.isSuccessful) {
+                val err = safeBodyString(resp.errorBody())
+
+                when (resp.code()) {
+                    400, 401 -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "비밀번호가 올바르지 않습니다.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                    403 -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "그룹 삭제 권한이 없습니다.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                    else -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "그룹 삭제 실패: ${resp.code()}\n$err",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+                return@launch
+            }
+
+            Toast.makeText(requireContext(), "그룹이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+            findNavController().popBackStack()
+        }
+    }
+
+    private fun navigateToEditGroup() {
+        val bundle = Bundle().apply {
+            putBoolean("isEditMode", true)
+            putLong("editGroupId", args.groupId)
+            putString("editGroupName", currentGroupName.ifBlank { args.groupName.orEmpty() })
+            putString("editGroupDesc", currentGroupDesc)
+            putString("editGroupIcon", currentGroupIcon)
+            putString("editAccessType", currentGroupAccessType.ifBlank { ACCESS_TYPE_PUBLIC })
+        }
+
+        findNavController().navigate(R.id.groupCreateFragment, bundle)
     }
 
     private fun requestLeaveGroup() {
@@ -664,6 +1163,33 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             ownerLeaveBlocked = false
             applyMembershipUi()
             findNavController().popBackStack()
+        }
+    }
+
+    private fun loadGoalSummaryOnly(token: String, groupId: Long) {
+        tvGroupGoalSummary.text = "최소목표를 불러오는 중이에요."
+
+        lifecycleScope.launch {
+            val resp = withContext(Dispatchers.IO) {
+                runCatching {
+                    networkService.getGroupGoalsProgress(token, groupId)
+                }.getOrNull()
+            }
+
+            if (resp == null || !resp.isSuccessful) {
+                tvGroupGoalSummary.text = "등록된 최소목표가 없습니다."
+                return@launch
+            }
+
+            val goals = resp.body().orEmpty()
+
+            tvGroupGoalSummary.text = if (goals.isEmpty()) {
+                "등록된 최소목표가 없습니다."
+            } else {
+                goals.joinToString("\n") { goal ->
+                    "${goal.goalName} 이상"
+                }
+            }
         }
     }
 
@@ -1193,6 +1719,27 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun dpToPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
+    }
+
+    @DrawableRes
+    private fun getGroupIconRes(icon: String?): Int {
+        val key = icon.orEmpty()
+            .substringBefore("|")
+            .ifBlank { "ic_group" }
+
+        return when (key) {
+            "ic_alarm" -> R.drawable.ic_alarm
+            "ic_book_open" -> R.drawable.ic_book_open
+            "ic_calendar" -> R.drawable.ic_calendar
+            "ic_certificate" -> R.drawable.ic_certificate
+            "ic_chart" -> R.drawable.ic_chart
+            "ic_clock" -> R.drawable.ic_clock
+            "ic_clock_sleep" -> R.drawable.ic_clock_sleep
+            "ic_community" -> R.drawable.ic_community
+            "ic_group" -> R.drawable.ic_group
+            "ic_home" -> R.drawable.ic_home
+            else -> R.drawable.ic_group
+        }
     }
 
     private inner class SleepMarkerView(

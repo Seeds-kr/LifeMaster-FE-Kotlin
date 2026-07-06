@@ -2,6 +2,7 @@ package com.example.lifemaster.presentation.group.view
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -9,9 +10,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.Guideline
@@ -39,10 +44,16 @@ import javax.inject.Inject
 class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
 
     companion object {
+        private const val ACCESS_TYPE_PUBLIC = "PUBLIC"
         private const val ACCESS_TYPE_PASSWORD = "PASSWORD"
+        private const val ACCESS_TYPE_PRIVATE = "PRIVATE"
+
         private const val GOAL_CONDITION_COUNT = "COUNT"
         private const val GOAL_CONDITION_TIME = "TIME"
         private const val GOAL_DURATION_DAILY = "DAILY"
+
+        private const val ICON_DEFAULT = "ic_group"
+        private const val ICON_PAYLOAD_SEPARATOR = "|"
     }
 
     private lateinit var goalAdapter: GoalRowAdapter
@@ -51,39 +62,97 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
     lateinit var networkService: NetworkService
 
     private var isSubmitting = false
+    private var selectedAccessType: String = ACCESS_TYPE_PUBLIC
+    private var selectedIconKey: String = ICON_DEFAULT
+
+    private var isEditMode: Boolean = false
+    private var editGroupId: Long = -1L
+    private var editOriginalAccessType: String = ACCESS_TYPE_PUBLIC
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val segmentRoot = view.findViewById<ConstraintLayout>(R.id.segment_root)
+        isEditMode = arguments?.getBoolean("isEditMode", false) == true
+        editGroupId = arguments?.getLong("editGroupId", -1L) ?: -1L
+
+        val editGroupName = arguments?.getString("editGroupName").orEmpty()
+        val editGroupDesc = arguments?.getString("editGroupDesc").orEmpty()
+        val editGroupIcon = arguments?.getString("editGroupIcon").orEmpty()
+        val editAccessType = arguments?.getString("editAccessType").orEmpty()
+
+        editOriginalAccessType = editAccessType.ifBlank { ACCESS_TYPE_PUBLIC }
+
+        if (isEditMode) {
+            selectedAccessType = when {
+                editAccessType.equals(ACCESS_TYPE_PASSWORD, ignoreCase = true) -> ACCESS_TYPE_PASSWORD
+                editAccessType.equals(ACCESS_TYPE_PRIVATE, ignoreCase = true) -> ACCESS_TYPE_PASSWORD
+                else -> ACCESS_TYPE_PUBLIC
+            }
+
+            selectedIconKey = editGroupIcon
+                .substringBefore(ICON_PAYLOAD_SEPARATOR)
+                .ifBlank { ICON_DEFAULT }
+        }
+
         val guidelineHalf = view.findViewById<Guideline>(R.id.guideline_half)
         val selectedPill = view.findViewById<View>(R.id.view_selected_pill)
         val btnPublic = view.findViewById<TextView>(R.id.btn_public)
         val btnPrivate = view.findViewById<TextView>(R.id.btn_private)
 
-        fun applySegmentUiFixedPrivate() {
+        fun applySegmentUi(accessType: String) {
+            selectedAccessType = accessType
+
             val lp = selectedPill.layoutParams as ConstraintLayout.LayoutParams
             lp.startToStart = ConstraintLayout.LayoutParams.UNSET
             lp.endToEnd = ConstraintLayout.LayoutParams.UNSET
             lp.startToEnd = ConstraintLayout.LayoutParams.UNSET
             lp.endToStart = ConstraintLayout.LayoutParams.UNSET
-            lp.startToEnd = guidelineHalf.id
-            lp.endToEnd = segmentRoot.id
 
-            btnPublic.setTextColor(requireContext().getColor(R.color.black_30))
-            btnPrivate.setTextColor(requireContext().getColor(R.color.white))
+            if (accessType == ACCESS_TYPE_PUBLIC) {
+                lp.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                lp.endToStart = guidelineHalf.id
+
+                btnPublic.setTextColor(requireContext().getColor(R.color.white))
+                btnPrivate.setTextColor(requireContext().getColor(R.color.black_30))
+            } else {
+                lp.startToEnd = guidelineHalf.id
+                lp.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+
+                btnPublic.setTextColor(requireContext().getColor(R.color.black_30))
+                btnPrivate.setTextColor(requireContext().getColor(R.color.white))
+            }
 
             selectedPill.layoutParams = lp
             selectedPill.requestLayout()
-
-            btnPublic.isEnabled = false
-            btnPrivate.isEnabled = false
-            segmentRoot.isEnabled = false
         }
 
-        applySegmentUiFixedPrivate()
+        applySegmentUi(selectedAccessType)
+
+        btnPublic.setOnClickListener {
+            if (isSubmitting) return@setOnClickListener
+            applySegmentUi(ACCESS_TYPE_PUBLIC)
+        }
+
+        btnPrivate.setOnClickListener {
+            if (isSubmitting) return@setOnClickListener
+            applySegmentUi(ACCESS_TYPE_PASSWORD)
+        }
+
+        val boxIcon = view.findViewById<View>(R.id.box_icon)
+        val ivGroupIcon = view.findViewById<ImageView>(R.id.iv_group_icon)
+
+        applySelectedGroupIcon(ivGroupIcon)
+
+        boxIcon.setOnClickListener {
+            if (isSubmitting) return@setOnClickListener
+            showGroupIconPicker(boxIcon, ivGroupIcon)
+        }
 
         val rvGoal = view.findViewById<RecyclerView>(R.id.rv_goal_list)
+        val btnGoalAdd = view.findViewById<View>(R.id.btn_goal_add)
+
+        val tvGoalSectionTitle = view.findViewById<View>(R.id.tv_goal_title)
+        val viewGoalDivider = view.findViewById<View>(R.id.view_goal_divider)
 
         goalAdapter = GoalRowAdapter(
             items = mutableListOf(),
@@ -101,13 +170,30 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         rvGoal.layoutManager = LinearLayoutManager(requireContext())
         rvGoal.adapter = goalAdapter
 
-        view.findViewById<View>(R.id.btn_goal_add).setOnClickListener {
+        btnGoalAdd.setOnClickListener {
             goalAdapter.add(GoalRow(type = "뽀모도로", count = "1회 이상"))
+        }
+
+        if (isEditMode) {
+            // 최소목표 수정 영역 숨김
+            tvGoalSectionTitle.visibility = View.GONE
+            viewGoalDivider.visibility = View.GONE
+            rvGoal.visibility = View.GONE
+            btnGoalAdd.visibility = View.GONE
         }
 
         val etName = view.findViewById<EditText>(R.id.et_group_name)
         val etDesc = view.findViewById<EditText>(R.id.et_group_desc)
         val btnDone = view.findViewById<View>(R.id.btn_done)
+
+        if (isEditMode) {
+            etName.setText(editGroupName)
+            etDesc.setText(editGroupDesc)
+
+            if (btnDone is TextView) {
+                btnDone.text = "수정 완료"
+            }
+        }
 
         btnDone.setOnClickListener {
             if (isSubmitting) return@setOnClickListener
@@ -121,30 +207,325 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                 return@setOnClickListener
             }
 
-            if (!validateGoals(goals)) return@setOnClickListener
+            val token = getAuthTokenOrNull()
+            if (token.isNullOrBlank()) {
+                Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
-            showPrivatePasswordDialog { password ->
-                if (isSubmitting) return@showPrivatePasswordDialog
+            val iconPayload = buildGroupIconPayload()
 
-                val token = getAuthTokenOrNull()
-                if (token.isNullOrBlank()) {
-                    Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
-                    return@showPrivatePasswordDialog
+            if (isEditMode) {
+                if (
+                    selectedAccessType == ACCESS_TYPE_PASSWORD &&
+                    editOriginalAccessType.equals(ACCESS_TYPE_PUBLIC, ignoreCase = true)
+                ) {
+                    showPrivatePasswordDialog { password ->
+                        updateGroupInfo(
+                            token = token,
+                            name = name,
+                            desc = desc,
+                            icon = iconPayload,
+                            statistics = null,
+                            password = password,
+                            accessType = ACCESS_TYPE_PASSWORD,
+                            btnDone = btnDone
+                        )
+                    }
+                } else {
+                    updateGroupInfo(
+                        token = token,
+                        name = name,
+                        desc = desc,
+                        icon = iconPayload,
+                        statistics = null,
+                        password = null,
+                        accessType = selectedAccessType,
+                        btnDone = btnDone
+                    )
                 }
 
+                return@setOnClickListener
+            }
+
+            if (!validateGoals(goals)) return@setOnClickListener
+
+            if (selectedAccessType == ACCESS_TYPE_PUBLIC) {
                 createGroupAndGoals(
                     token = token,
                     name = name,
                     desc = desc,
-                    icon = null,
+                    icon = iconPayload,
                     statistics = null,
-                    password = password,
-                    accessType = ACCESS_TYPE_PASSWORD,
+                    password = null,
+                    accessType = ACCESS_TYPE_PUBLIC,
                     goals = goals,
                     btnDone = btnDone
                 )
+            } else {
+                showPrivatePasswordDialog { password ->
+                    if (isSubmitting) return@showPrivatePasswordDialog
+
+                    createGroupAndGoals(
+                        token = token,
+                        name = name,
+                        desc = desc,
+                        icon = iconPayload,
+                        statistics = null,
+                        password = password,
+                        accessType = ACCESS_TYPE_PASSWORD,
+                        goals = goals,
+                        btnDone = btnDone
+                    )
+                }
             }
         }
+    }
+
+    private fun updateGroupInfo(
+        token: String,
+        name: String,
+        desc: String?,
+        icon: String?,
+        statistics: List<Int>?,
+        password: String?,
+        accessType: String,
+        btnDone: View
+    ) {
+        if (isSubmitting) return
+
+        if (editGroupId <= 0L) {
+            Toast.makeText(requireContext(), "수정할 그룹 정보가 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        isSubmitting = true
+        btnDone.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    networkService.updateGroup(
+                        token = token,
+                        id = editGroupId,
+                        name = name,
+                        description = desc,
+                        icon = icon,
+                        statistics = statistics,
+                        password = password,
+                        accessType = accessType
+                    )
+                }
+
+                if (!isAdded) return@launch
+
+                if (!response.isSuccessful) {
+                    val err = response.errorBody()?.string().orEmpty()
+                    Log.e("GroupEdit", "updateGroup fail code=${response.code()} err=$err")
+
+                    Toast.makeText(
+                        requireContext(),
+                        "그룹 수정에 실패했습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
+
+                Toast.makeText(requireContext(), "그룹이 수정되었습니다.", Toast.LENGTH_SHORT).show()
+
+                findNavController().previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.set("groupUpdated", true)
+
+                findNavController().popBackStack()
+            } catch (e: Exception) {
+                if (isAdded) {
+                    Log.e("GroupEdit", "updateGroup error", e)
+                    Toast.makeText(requireContext(), "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                isSubmitting = false
+                btnDone.isEnabled = true
+            }
+        }
+    }
+
+    private fun showGroupIconPicker(anchor: View, ivGroupIcon: ImageView) {
+        val context = requireContext()
+        lateinit var popup: PopupWindow
+
+        val popupRoot = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.START
+            setPadding(14.dp(), 14.dp(), 14.dp(), 14.dp())
+            background = createRoundRectDrawable(
+                fillColor = Color.WHITE,
+                cornerRadius = 18.dp().toFloat(),
+                strokeColor = Color.parseColor("#D0D0D0"),
+                strokeWidth = 1.dp()
+            )
+        }
+
+        fun createIconCell(option: GroupIconOption): FrameLayout {
+            val cell = FrameLayout(context).apply {
+                background = createIconCellDrawable(option.key == selectedIconKey)
+                isClickable = true
+                isFocusable = true
+            }
+
+            val icon = ImageView(context).apply {
+                setImageResource(option.resId)
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                adjustViewBounds = false
+                setColorFilter(Color.BLACK)
+                contentDescription = option.label
+            }
+
+            val iconLp = FrameLayout.LayoutParams(22.dp(), 22.dp()).apply {
+                gravity = Gravity.CENTER
+            }
+
+            cell.addView(icon, iconLp)
+
+            cell.setOnClickListener {
+                selectedIconKey = option.key
+                applySelectedGroupIcon(ivGroupIcon)
+                popup.dismiss()
+            }
+
+            return cell
+        }
+
+        val options = getGroupIconOptions()
+
+        options.chunked(4).forEach { rowOptions ->
+            val row = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.START
+            }
+
+            rowOptions.forEach { option ->
+                val cell = createIconCell(option)
+
+                val cellLp = LinearLayout.LayoutParams(42.dp(), 42.dp()).apply {
+                    marginStart = 3.dp()
+                    marginEnd = 3.dp()
+                    topMargin = 3.dp()
+                    bottomMargin = 3.dp()
+                }
+
+                row.addView(cell, cellLp)
+            }
+
+            popupRoot.addView(
+                row,
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            )
+        }
+
+        popup = PopupWindow(
+            popupRoot,
+            220.dp(),
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        ).apply {
+            isOutsideTouchable = true
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            elevation = 18f
+        }
+
+        popup.showAsDropDown(anchor, 0, 8.dp(), Gravity.START)
+    }
+
+    private fun applySelectedGroupIcon(ivGroupIcon: ImageView) {
+        ivGroupIcon.setImageResource(getGroupIconRes(selectedIconKey))
+        ivGroupIcon.imageTintList = null
+        ivGroupIcon.clearColorFilter()
+    }
+
+    private fun buildGroupIconPayload(): String {
+        return selectedIconKey
+    }
+
+    private data class GroupIconOption(
+        val key: String,
+        val label: String,
+        @DrawableRes val resId: Int
+    )
+
+    private fun getGroupIconOptions(): List<GroupIconOption> {
+        return listOf(
+            GroupIconOption("ic_alarm", "알람", R.drawable.ic_alarm),
+            GroupIconOption("ic_book_open", "기록", R.drawable.ic_book_open),
+            GroupIconOption("ic_calendar", "일정", R.drawable.ic_calendar),
+            GroupIconOption("ic_certificate", "인증", R.drawable.ic_certificate),
+            GroupIconOption("ic_chart", "통계", R.drawable.ic_chart),
+            GroupIconOption("ic_clock", "시간", R.drawable.ic_clock),
+            GroupIconOption("ic_clock_sleep", "수면", R.drawable.ic_clock_sleep),
+            GroupIconOption("ic_community", "커뮤니티", R.drawable.ic_community),
+            GroupIconOption("ic_group", "그룹", R.drawable.ic_group),
+            GroupIconOption("ic_home", "홈", R.drawable.ic_home)
+        )
+    }
+
+    @DrawableRes
+    private fun getGroupIconRes(icon: String?): Int {
+        val key = icon.orEmpty()
+            .substringBefore(ICON_PAYLOAD_SEPARATOR)
+            .ifBlank { ICON_DEFAULT }
+
+        return when (key) {
+            "ic_alarm" -> R.drawable.ic_alarm
+            "ic_book_open" -> R.drawable.ic_book_open
+            "ic_calendar" -> R.drawable.ic_calendar
+            "ic_certificate" -> R.drawable.ic_certificate
+            "ic_chart" -> R.drawable.ic_chart
+            "ic_clock" -> R.drawable.ic_clock
+            "ic_clock_sleep" -> R.drawable.ic_clock_sleep
+            "ic_community" -> R.drawable.ic_community
+            "ic_group" -> R.drawable.ic_group
+            "ic_home" -> R.drawable.ic_home
+            else -> R.drawable.ic_group
+        }
+    }
+
+    private fun createIconCellDrawable(selected: Boolean): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 22.dp().toFloat()
+            setColor(
+                if (selected) Color.parseColor("#F1F1F1")
+                else Color.TRANSPARENT
+            )
+
+            if (selected) {
+                setStroke(1.dp(), Color.parseColor("#D7D7D7"))
+            }
+        }
+    }
+
+    private fun createRoundRectDrawable(
+        fillColor: Int,
+        cornerRadius: Float,
+        strokeColor: Int? = null,
+        strokeWidth: Int = 0
+    ): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(fillColor)
+            this.cornerRadius = cornerRadius
+
+            if (strokeColor != null && strokeWidth > 0) {
+                setStroke(strokeWidth, strokeColor)
+            }
+        }
+    }
+
+    private fun Int.dp(): Int {
+        return (this * resources.displayMetrics.density).toInt()
     }
 
     private fun showPrivatePasswordDialog(onConfirm: (password: String) -> Unit) {
@@ -154,6 +535,12 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         val etPwConfirm = dialogView.findViewById<EditText>(R.id.etPasswordConfirm)
         val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
         val btnCreate = dialogView.findViewById<TextView>(R.id.btnCreate)
+
+        if (isEditMode) {
+            val title = dialogView.findViewById<TextView?>(R.id.tvTitle)
+            title?.text = "비공개 그룹 설정"
+            btnCreate.text = "확인"
+        }
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
@@ -187,6 +574,15 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
     }
 
     private fun validateGoals(goals: List<GoalRow>): Boolean {
+        if (goals.isEmpty()) {
+            Toast.makeText(
+                requireContext(),
+                "최소목표를 추가해주세요.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return false
+        }
+
         val selectedGoalTypes = mutableSetOf<String>()
 
         for ((index, goal) in goals.withIndex()) {
@@ -312,14 +708,21 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                         return@launch
                     }
 
-                    val inviteCode = fetchInviteCodeSafely(token, groupId)
+                    val inviteCode = if (accessType == ACCESS_TYPE_PUBLIC) {
+                        ""
+                    } else {
+                        fetchInviteCodeSafely(token, groupId)
+                    }
+
                     val goalLines = ArrayList(goals.map { buildGoalLine(it) })
 
                     val bundle = Bundle().apply {
                         putLong("groupId", groupId)
                         putString("groupName", created.name ?: name)
                         putString("groupDesc", created.description ?: (desc ?: ""))
-                        putString("inviteCode", created.password ?: inviteCode)
+                        putString("inviteCode", inviteCode.ifBlank { created.password.orEmpty() })
+                        putString("groupAccessType", accessType)
+                        putString("groupIcon", created.icon ?: icon.orEmpty())
                         putStringArrayList("goalLines", goalLines)
                     }
 

@@ -650,7 +650,7 @@ interface NetworkService {
     suspend fun getGroupById(
         @Header("Authorization") token: String,
         @Path("id") id: Long
-    ): Response<ResponseBody>
+    ): Response<GroupResponse>
 
     // 그룹 가입
     @POST("/group/{groupId}/join")
@@ -660,11 +660,39 @@ interface NetworkService {
         @Query("password") password: String? = null
     ): Response<ResponseBody>
 
+    // 초대코드로 그룹 가입
+    @POST("/group/join")
+    suspend fun joinGroupWithInviteCode(
+        @Header("Authorization") token: String,
+        @Query("inviteCode") inviteCode: String
+    ): Response<ResponseBody>
+
     // 그룹 탈퇴
     @POST("/group/{groupId}/leave")
     suspend fun leaveGroup(
         @Header("Authorization") token: String,
         @Path("groupId") groupId: Long
+    ): Response<ResponseBody>
+
+    // 그룹 삭제
+    @DELETE("/group/{id}")
+    suspend fun deleteGroup(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long,
+        @Query("password") password: String
+    ): Response<ResponseBody>
+
+    // 그룹 수정
+    @PUT("/group/{id}")
+    suspend fun updateGroup(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long,
+        @Query("name") name: String,
+        @Query("description") description: String?,
+        @Query("icon") icon: String?,
+        @Query("statistics") statistics: List<Int>?,
+        @Query("password") password: String?,
+        @Query("accessType") accessType: String
     ): Response<ResponseBody>
 
     @GET("/group/{groupId}/sleep-stats")
