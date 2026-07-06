@@ -106,7 +106,15 @@ class CommunityCommentAdapter(
     private fun showOwnerMenu(anchor: View, onAction: (MenuAction) -> Unit) {
         val ctx = anchor.context
         val content = LayoutInflater.from(ctx)
-            .inflate(R.layout.dialog_community_comment_menu, null)
+            .inflate(R.layout.dialog_community_menu, null)
+
+        val btnReport = content.findViewById<TextView>(R.id.btn_report)
+        val btnEdit = content.findViewById<TextView>(R.id.btn_edit)
+        val btnDelete = content.findViewById<TextView>(R.id.btn_delete)
+
+        btnReport.visibility = View.GONE
+        btnEdit.visibility = View.VISIBLE
+        btnDelete.visibility = View.VISIBLE
 
         val popup = PopupWindow(
             content,
@@ -116,26 +124,35 @@ class CommunityCommentAdapter(
         ).apply {
             isOutsideTouchable = true
             setBackgroundDrawable(android.graphics.Color.TRANSPARENT.toDrawable())
-            elevation = 16f
+
+            // 게시글 메뉴와 동일하게 dp 기준으로 적용
+            elevation = dp(ctx, 8).toFloat()
         }
 
-        content.findViewById<TextView>(R.id.btn_comment_edit).setOnClickListener {
+        btnEdit.setOnClickListener {
             onAction(MenuAction.EDIT)
             popup.dismiss()
         }
 
-        content.findViewById<TextView>(R.id.btn_comment_delete).setOnClickListener {
+        btnDelete.setOnClickListener {
             onAction(MenuAction.DELETE)
             popup.dismiss()
         }
 
         content.measure(
-            View.MeasureSpec.UNSPECIFIED,
-            View.MeasureSpec.UNSPECIFIED
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         )
 
-        val xOff = anchor.width - content.measuredWidth
-        popup.showAsDropDown(anchor, xOff, 0)
+        val popupW = content.measuredWidth
+        val xOff = anchor.width - popupW - dp(ctx, 6)
+        val yOff = dp(ctx, 6)
+
+        popup.showAsDropDown(anchor, xOff, yOff)
+    }
+
+    private fun dp(context: android.content.Context, value: Int): Int {
+        return (value * context.resources.displayMetrics.density).toInt()
     }
 
     private fun toRelativeTime(timeMillis: Long): String {

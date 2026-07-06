@@ -205,10 +205,16 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
             )
         }
 
-        binding.btnMore.isVisible = true
+        binding.btnMore.isVisible = false
         binding.btnMore.setOnClickListener {
+            val isMyPost = vm.postDetail.value?.isMine == true
+
+            if (!isMyPost) {
+                return@setOnClickListener
+            }
+
             showPostMenu(
-                isMine = false,
+                isMine = true,
                 onEdit = {
                     val b = Bundle().apply {
                         putString(CommunityWriteFragment.ARG_MODE, CommunityWriteFragment.MODE_EDIT)
@@ -261,7 +267,7 @@ class CommunityPostFragment : Fragment(R.layout.fragment_community_post) {
 
         val isMyPost = detail.isMine == true
         binding.btnReport.isVisible = !isMyPost
-        binding.btnMore.isVisible = true
+        binding.btnMore.isVisible = isMyPost
 
         // 달력 공유 표시
         val shared = (detail.calendarShared == true)
