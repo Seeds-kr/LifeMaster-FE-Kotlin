@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -118,6 +119,9 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     private var isMember: Boolean = false
     private var ownerLeaveBlocked: Boolean = false
     private var memberCount: Int = 0
+    private var currentMemberId: Long? = null
+    private var creatorId: Long? = null
+    private var isCreator: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -224,7 +228,11 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 return@setOnClickListener
             }
 
-            showLeaveConfirmDialog()
+            if (isCreator) {
+                showDeleteGroupDialog()
+            } else {
+                showLeaveConfirmDialog()
+            }
         }
 
         btnChat.setOnClickListener {
@@ -323,7 +331,9 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             btnJoin.text = "가입완료"
             btnJoin.isEnabled = false
             btnJoin.alpha = 0.6f
-            btnLeave.visibility = if (ownerLeaveBlocked) View.GONE else View.VISIBLE
+
+            btnLeave.text = if (isCreator) "그룹 삭제하기" else "그룹 탈퇴하기"
+            btnLeave.visibility = if (ownerLeaveBlocked && !isCreator) View.GONE else View.VISIBLE
         } else {
             btnJoin.text = getString(R.string.group_join)
             btnJoin.isEnabled = true
@@ -371,13 +381,24 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 }.getOrNull()
             }
 
-            isMember = myGroups.any { it.id == groupId }
-            ownerLeaveBlocked = false
-            applyMembershipUi()
+            val me = withContext(Dispatchers.IO) {
+                runCatching {
+                    val response = networkService.getMe(token)
+                    if (response.isSuccessful) response.body() else null
+                }.getOrNull()
+            }
 
             val currentGroup = detailGroup
                 ?: myGroups.find { it.id == groupId }
                 ?: allGroups.find { it.id == groupId }
+
+            currentMemberId = me?.id
+            creatorId = currentGroup?.creatorId
+            isCreator = currentMemberId != null && creatorId != null && currentMemberId == creatorId
+
+            isMember = myGroups.any { it.id == groupId } || isCreator
+            ownerLeaveBlocked = false
+            applyMembershipUi()
 
             ivGroupIcon.setImageResource(getGroupIconRes(currentGroup?.icon))
 
@@ -702,6 +723,119 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             .setNegativeButton("취소", null)
             .setPositiveButton("탈퇴") { _, _ -> requestLeaveGroup() }
             .show()
+    }
+
+    private fun showDeleteGroupDialog() {
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_group_delete, null, false)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val tvDesc = dialogView.findViewById<TextView>(R.id.tvDesc)
+        val tvPwLabel = dialogView.findViewById<TextView>(R.id.tvPwLabel)
+        val etPassword = dialogView.findViewById<EditText>(R.id.etPassword)
+        val tvWrong = dialogView.findViewById<TextView>(R.id.tvPwLabel_wrong)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnDelete = dialogView.findViewById<TextView>(R.id.btnDelete)
+
+        val needsPassword = isPasswordGroup()
+
+        tvTitle.text = "그룹 삭제"
+        tvWrong.visibility = View.GONE
+
+        if (needsPassword) {
+            tvDesc.text = "정말 이 그룹을 삭제할까요?"
+            tvPwLabel.visibility = View.VISIBLE
+            etPassword.visibility = View.VISIBLE
+            tvPwLabel.text = "그룹 비밀번호를 입력해주세요"
+            etPassword.hint = "그룹 비밀번호 입력"
+        } else {
+            tvDesc.text = "정말 이 그룹을 삭제할까요?"
+            tvPwLabel.visibility = View.GONE
+            etPassword.visibility = View.GONE
+        }
+
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(dialogView)
+            setCancelable(true)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+        }
+
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
+        btnDelete.setOnClickListener {
+            tvWrong.visibility = View.GONE
+
+            if (needsPassword) {
+                val password = etPassword.text?.toString()?.trim().orEmpty()
+
+                if (password.isBlank()) {
+                    tvWrong.text = "비밀번호를 입력해주세요."
+                    tvWrong.visibility = View.VISIBLE
+                    return@setOnClickListener
+                }
+
+                dialog.dismiss()
+                requestDeleteGroup(password)
+            } else {
+                dialog.dismiss()
+                requestDeleteGroup("")
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun requestDeleteGroup(password: String) {
+        val token = TokenProvider.getBearerToken(requireContext())
+
+        if (token.isNullOrBlank()) {
+            Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch {
+            val resp: Response<ResponseBody> = withContext(Dispatchers.IO) {
+                networkService.deleteGroup(
+                    token = token,
+                    id = args.groupId,
+                    password = password
+                )
+            }
+
+            if (!resp.isSuccessful) {
+                val err = safeBodyString(resp.errorBody())
+
+                when (resp.code()) {
+                    400, 401 -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "비밀번호가 올바르지 않습니다.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                    403 -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "그룹 삭제 권한이 없습니다.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                    else -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "그룹 삭제 실패: ${resp.code()}\n$err",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+                return@launch
+            }
+
+            Toast.makeText(requireContext(), "그룹이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+            findNavController().popBackStack()
+        }
     }
 
     private fun requestLeaveGroup() {

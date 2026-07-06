@@ -5,6 +5,7 @@ data class GroupResponse(
     val name: String,
     val description: String?,
     val icon: String?,
+    val creatorId: Long? = null,
     val memberCount: Int? = 0,
     val accessType: String? = null
 )

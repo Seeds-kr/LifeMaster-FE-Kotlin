@@ -667,6 +667,14 @@ interface NetworkService {
         @Path("groupId") groupId: Long
     ): Response<ResponseBody>
 
+    // 그룹 삭제
+    @DELETE("/group/{id}")
+    suspend fun deleteGroup(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long,
+        @Query("password") password: String
+    ): Response<ResponseBody>
+
     @GET("/group/{groupId}/sleep-stats")
     suspend fun getGroupSleepStats(
         @Header("Authorization") token: String,
