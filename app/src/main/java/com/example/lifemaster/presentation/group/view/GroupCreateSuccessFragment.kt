@@ -8,9 +8,11 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -28,6 +30,9 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
         private const val ACCESS_TYPE_PUBLIC = "PUBLIC"
         private const val ACCESS_TYPE_PASSWORD = "PASSWORD"
         private const val ACCESS_TYPE_PRIVATE = "PRIVATE"
+
+        private const val ICON_DEFAULT = "ic_group"
+        private const val ICON_PAYLOAD_SEPARATOR = "|"
     }
 
     private var currentInviteCode: String = ""
@@ -37,10 +42,14 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
         super.onViewCreated(view, savedInstanceState)
 
         val groupName = arguments?.getString("groupName").orEmpty()
+        val groupIcon = arguments?.getString("groupIcon").orEmpty()
         val groupDesc = arguments?.getString("groupDesc").orEmpty()
         val rawInviteCode = arguments?.getString("inviteCode").orEmpty()
         val groupAccessType = arguments?.getString("groupAccessType").orEmpty()
         val goalLines = arguments?.getStringArrayList("goalLines") ?: arrayListOf()
+
+        val ivGroupIcon = view.findViewById<ImageView>(R.id.iv_create_group_icon)
+        ivGroupIcon.setImageResource(getGroupIconRes(groupIcon))
 
         isPublicGroup = groupAccessType.equals(ACCESS_TYPE_PUBLIC, ignoreCase = true)
 
@@ -198,6 +207,7 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
 
     private fun shareInviteCode() {
         if (isPublicGroup) return
+
         if (currentInviteCode.isBlank()) {
             Toast.makeText(requireContext(), "초대코드가 없습니다.", Toast.LENGTH_SHORT).show()
             return
@@ -224,7 +234,11 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
             }
 
             val tvGoalNum = TextView(requireContext()).apply {
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
                 text = "최소목표 ${index + 1}"
                 setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
                 textSize = 12f
@@ -248,10 +262,12 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
 
     private fun shareText(text: String) {
         if (text.isBlank()) return
+
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
         }
+
         startActivity(Intent.createChooser(intent, "공유"))
     }
 
@@ -268,6 +284,27 @@ class GroupCreateSuccessFragment : Fragment(R.layout.fragment_group_create_succe
         }
 
         return null
+    }
+
+    @DrawableRes
+    private fun getGroupIconRes(icon: String?): Int {
+        val key = icon.orEmpty()
+            .substringBefore(ICON_PAYLOAD_SEPARATOR)
+            .ifBlank { ICON_DEFAULT }
+
+        return when (key) {
+            "ic_alarm" -> R.drawable.ic_alarm
+            "ic_book_open" -> R.drawable.ic_book_open
+            "ic_calendar" -> R.drawable.ic_calendar
+            "ic_certificate" -> R.drawable.ic_certificate
+            "ic_chart" -> R.drawable.ic_chart
+            "ic_clock" -> R.drawable.ic_clock
+            "ic_clock_sleep" -> R.drawable.ic_clock_sleep
+            "ic_community" -> R.drawable.ic_community
+            "ic_group" -> R.drawable.ic_group
+            "ic_home" -> R.drawable.ic_home
+            else -> R.drawable.ic_group
+        }
     }
 
     private val Int.dp: Int

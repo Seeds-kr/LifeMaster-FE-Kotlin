@@ -55,12 +55,12 @@
 
                     <ImageView
                         android:id="@+id/iv_group_icon"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
                         android:layout_gravity="center"
                         android:contentDescription="@null"
                         android:importantForAccessibility="no"
-                        android:src="@drawable/ic_clock_sleep"
+                        android:src="@drawable/ic_group"
                         app:tint="@color/black" />
                 </FrameLayout>
 

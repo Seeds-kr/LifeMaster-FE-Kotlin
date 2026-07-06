@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -16,7 +17,8 @@ class GroupListAdapter(
 ) : ListAdapter<GroupResponse, GroupListAdapter.VH>(diff) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val v = LayoutInflater.from(parent.context).inflate(R.layout.item_group_list, parent, false)
+        val v = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_group_list, parent, false)
         return VH(v, onClick)
     }
 
@@ -36,17 +38,51 @@ class GroupListAdapter(
         fun bind(item: GroupResponse) {
             tvTitle.text = item.name
             tvSub.text = "${item.memberCount ?: 0}명 참여 중"
-            itemView.setOnClickListener { onClick(item) }
+
+            ivIcon.setImageResource(getGroupIconRes(item.icon))
+
+            itemView.setOnClickListener {
+                onClick(item)
+            }
+        }
+
+        @DrawableRes
+        private fun getGroupIconRes(icon: String?): Int {
+            val key = icon.orEmpty()
+                .substringBefore("|")
+                .ifBlank { "ic_group" }
+
+            return when (key) {
+                "ic_alarm" -> R.drawable.ic_alarm
+                "ic_book_open" -> R.drawable.ic_book_open
+                "ic_calendar" -> R.drawable.ic_calendar
+                "ic_certificate" -> R.drawable.ic_certificate
+                "ic_chart" -> R.drawable.ic_chart
+                "ic_clock" -> R.drawable.ic_clock
+                "ic_clock_sleep" -> R.drawable.ic_clock_sleep
+                "ic_community" -> R.drawable.ic_community
+                "ic_group" -> R.drawable.ic_group
+                "ic_home" -> R.drawable.ic_home
+                else -> R.drawable.ic_group
+            }
         }
     }
 
     companion object {
         private val diff = object : DiffUtil.ItemCallback<GroupResponse>() {
-            override fun areItemsTheSame(oldItem: GroupResponse, newItem: GroupResponse) =
-                oldItem.id == newItem.id
+            override fun areItemsTheSame(
+                oldItem: GroupResponse,
+                newItem: GroupResponse
+            ): Boolean {
+                return oldItem.id == newItem.id
+            }
 
-            override fun areContentsTheSame(oldItem: GroupResponse, newItem: GroupResponse) =
-                oldItem == newItem
+            override fun areContentsTheSame(
+                oldItem: GroupResponse,
+                newItem: GroupResponse
+            ): Boolean {
+                return oldItem == newItem
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -74,6 +75,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     lateinit var networkService: NetworkService
 
     private lateinit var tvGroupName: TextView
+    private lateinit var ivGroupIcon: ImageView
     private var groupAccessType: String = ""
     private lateinit var tvGroupMemberCount: TextView
     private lateinit var btnJoin: TextView
@@ -136,7 +138,9 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
 
         tvGroupName = view.findViewById(R.id.tv_group_name)
+        ivGroupIcon = view.findViewById(R.id.iv_group_icon)
         tvGroupMemberCount = view.findViewById(R.id.tv_group_member_count)
+        ivGroupIcon.setImageResource(getGroupIconRes(null))
         btnJoin = view.findViewById(R.id.btn_join)
         btnLeave = view.findViewById(R.id.btn_leave_group)
         btnChat = view.findViewById(R.id.btn_chat)
@@ -374,6 +378,8 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             val currentGroup = detailGroup
                 ?: myGroups.find { it.id == groupId }
                 ?: allGroups.find { it.id == groupId }
+
+            ivGroupIcon.setImageResource(getGroupIconRes(currentGroup?.icon))
 
             if (!currentGroup?.accessType.isNullOrBlank()) {
                 groupAccessType = currentGroup?.accessType.orEmpty()
@@ -1263,6 +1269,27 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
     private fun dpToPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
+    }
+
+    @DrawableRes
+    private fun getGroupIconRes(icon: String?): Int {
+        val key = icon.orEmpty()
+            .substringBefore("|")
+            .ifBlank { "ic_group" }
+
+        return when (key) {
+            "ic_alarm" -> R.drawable.ic_alarm
+            "ic_book_open" -> R.drawable.ic_book_open
+            "ic_calendar" -> R.drawable.ic_calendar
+            "ic_certificate" -> R.drawable.ic_certificate
+            "ic_chart" -> R.drawable.ic_chart
+            "ic_clock" -> R.drawable.ic_clock
+            "ic_clock_sleep" -> R.drawable.ic_clock_sleep
+            "ic_community" -> R.drawable.ic_community
+            "ic_group" -> R.drawable.ic_group
+            "ic_home" -> R.drawable.ic_home
+            else -> R.drawable.ic_group
+        }
     }
 
     private inner class SleepMarkerView(
