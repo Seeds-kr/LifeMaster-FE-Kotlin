@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupWindow
@@ -47,6 +46,8 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
     companion object {
         private const val ACCESS_TYPE_PUBLIC = "PUBLIC"
         private const val ACCESS_TYPE_PASSWORD = "PASSWORD"
+        private const val ACCESS_TYPE_PRIVATE = "PRIVATE"
+
         private const val GOAL_CONDITION_COUNT = "COUNT"
         private const val GOAL_CONDITION_TIME = "TIME"
         private const val GOAL_DURATION_DAILY = "DAILY"
@@ -64,8 +65,34 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
     private var selectedAccessType: String = ACCESS_TYPE_PUBLIC
     private var selectedIconKey: String = ICON_DEFAULT
 
+    private var isEditMode: Boolean = false
+    private var editGroupId: Long = -1L
+    private var editOriginalAccessType: String = ACCESS_TYPE_PUBLIC
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        isEditMode = arguments?.getBoolean("isEditMode", false) == true
+        editGroupId = arguments?.getLong("editGroupId", -1L) ?: -1L
+
+        val editGroupName = arguments?.getString("editGroupName").orEmpty()
+        val editGroupDesc = arguments?.getString("editGroupDesc").orEmpty()
+        val editGroupIcon = arguments?.getString("editGroupIcon").orEmpty()
+        val editAccessType = arguments?.getString("editAccessType").orEmpty()
+
+        editOriginalAccessType = editAccessType.ifBlank { ACCESS_TYPE_PUBLIC }
+
+        if (isEditMode) {
+            selectedAccessType = when {
+                editAccessType.equals(ACCESS_TYPE_PASSWORD, ignoreCase = true) -> ACCESS_TYPE_PASSWORD
+                editAccessType.equals(ACCESS_TYPE_PRIVATE, ignoreCase = true) -> ACCESS_TYPE_PASSWORD
+                else -> ACCESS_TYPE_PUBLIC
+            }
+
+            selectedIconKey = editGroupIcon
+                .substringBefore(ICON_PAYLOAD_SEPARATOR)
+                .ifBlank { ICON_DEFAULT }
+        }
 
         val guidelineHalf = view.findViewById<Guideline>(R.id.guideline_half)
         val selectedPill = view.findViewById<View>(R.id.view_selected_pill)
@@ -99,7 +126,7 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
             selectedPill.requestLayout()
         }
 
-        applySegmentUi(ACCESS_TYPE_PUBLIC)
+        applySegmentUi(selectedAccessType)
 
         btnPublic.setOnClickListener {
             if (isSubmitting) return@setOnClickListener
@@ -122,6 +149,10 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         }
 
         val rvGoal = view.findViewById<RecyclerView>(R.id.rv_goal_list)
+        val btnGoalAdd = view.findViewById<View>(R.id.btn_goal_add)
+
+        val tvGoalSectionTitle = view.findViewById<View>(R.id.tv_goal_title)
+        val viewGoalDivider = view.findViewById<View>(R.id.view_goal_divider)
 
         goalAdapter = GoalRowAdapter(
             items = mutableListOf(),
@@ -139,13 +170,30 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         rvGoal.layoutManager = LinearLayoutManager(requireContext())
         rvGoal.adapter = goalAdapter
 
-        view.findViewById<View>(R.id.btn_goal_add).setOnClickListener {
+        btnGoalAdd.setOnClickListener {
             goalAdapter.add(GoalRow(type = "뽀모도로", count = "1회 이상"))
+        }
+
+        if (isEditMode) {
+            // 최소목표 수정 영역 숨김
+            tvGoalSectionTitle.visibility = View.GONE
+            viewGoalDivider.visibility = View.GONE
+            rvGoal.visibility = View.GONE
+            btnGoalAdd.visibility = View.GONE
         }
 
         val etName = view.findViewById<EditText>(R.id.et_group_name)
         val etDesc = view.findViewById<EditText>(R.id.et_group_desc)
         val btnDone = view.findViewById<View>(R.id.btn_done)
+
+        if (isEditMode) {
+            etName.setText(editGroupName)
+            etDesc.setText(editGroupDesc)
+
+            if (btnDone is TextView) {
+                btnDone.text = "수정 완료"
+            }
+        }
 
         btnDone.setOnClickListener {
             if (isSubmitting) return@setOnClickListener
@@ -159,8 +207,6 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                 return@setOnClickListener
             }
 
-            if (!validateGoals(goals)) return@setOnClickListener
-
             val token = getAuthTokenOrNull()
             if (token.isNullOrBlank()) {
                 Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
@@ -168,6 +214,41 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
             }
 
             val iconPayload = buildGroupIconPayload()
+
+            if (isEditMode) {
+                if (
+                    selectedAccessType == ACCESS_TYPE_PASSWORD &&
+                    editOriginalAccessType.equals(ACCESS_TYPE_PUBLIC, ignoreCase = true)
+                ) {
+                    showPrivatePasswordDialog { password ->
+                        updateGroupInfo(
+                            token = token,
+                            name = name,
+                            desc = desc,
+                            icon = iconPayload,
+                            statistics = null,
+                            password = password,
+                            accessType = ACCESS_TYPE_PASSWORD,
+                            btnDone = btnDone
+                        )
+                    }
+                } else {
+                    updateGroupInfo(
+                        token = token,
+                        name = name,
+                        desc = desc,
+                        icon = iconPayload,
+                        statistics = null,
+                        password = null,
+                        accessType = selectedAccessType,
+                        btnDone = btnDone
+                    )
+                }
+
+                return@setOnClickListener
+            }
+
+            if (!validateGoals(goals)) return@setOnClickListener
 
             if (selectedAccessType == ACCESS_TYPE_PUBLIC) {
                 createGroupAndGoals(
@@ -197,6 +278,74 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
                         btnDone = btnDone
                     )
                 }
+            }
+        }
+    }
+
+    private fun updateGroupInfo(
+        token: String,
+        name: String,
+        desc: String?,
+        icon: String?,
+        statistics: List<Int>?,
+        password: String?,
+        accessType: String,
+        btnDone: View
+    ) {
+        if (isSubmitting) return
+
+        if (editGroupId <= 0L) {
+            Toast.makeText(requireContext(), "수정할 그룹 정보가 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        isSubmitting = true
+        btnDone.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    networkService.updateGroup(
+                        token = token,
+                        id = editGroupId,
+                        name = name,
+                        description = desc,
+                        icon = icon,
+                        statistics = statistics,
+                        password = password,
+                        accessType = accessType
+                    )
+                }
+
+                if (!isAdded) return@launch
+
+                if (!response.isSuccessful) {
+                    val err = response.errorBody()?.string().orEmpty()
+                    Log.e("GroupEdit", "updateGroup fail code=${response.code()} err=$err")
+
+                    Toast.makeText(
+                        requireContext(),
+                        "그룹 수정에 실패했습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
+
+                Toast.makeText(requireContext(), "그룹이 수정되었습니다.", Toast.LENGTH_SHORT).show()
+
+                findNavController().previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.set("groupUpdated", true)
+
+                findNavController().popBackStack()
+            } catch (e: Exception) {
+                if (isAdded) {
+                    Log.e("GroupEdit", "updateGroup error", e)
+                    Toast.makeText(requireContext(), "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                isSubmitting = false
+                btnDone.isEnabled = true
             }
         }
     }
@@ -386,6 +535,12 @@ class GroupCreateFragment : Fragment(R.layout.fragment_group_create) {
         val etPwConfirm = dialogView.findViewById<EditText>(R.id.etPasswordConfirm)
         val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
         val btnCreate = dialogView.findViewById<TextView>(R.id.btnCreate)
+
+        if (isEditMode) {
+            val title = dialogView.findViewById<TextView?>(R.id.tvTitle)
+            title?.text = "비공개 그룹 설정"
+            btnCreate.text = "확인"
+        }
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)

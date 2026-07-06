@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
-import android.text.InputType
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -122,6 +121,10 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     private var currentMemberId: Long? = null
     private var creatorId: Long? = null
     private var isCreator: Boolean = false
+    private var currentGroupName: String = ""
+    private var currentGroupDesc: String = ""
+    private var currentGroupIcon: String = ""
+    private var currentGroupAccessType: String = ACCESS_TYPE_PUBLIC
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -193,6 +196,11 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         btnJoin.setOnClickListener {
             if (isPremiumLocked) {
                 showPremiumLockedUi()
+                return@setOnClickListener
+            }
+
+            if (isCreator) {
+                navigateToEditGroup()
                 return@setOnClickListener
             }
 
@@ -315,6 +323,19 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             false
         }
 
+        findNavController().currentBackStackEntry
+            ?.savedStateHandle
+            ?.getLiveData<Boolean>("groupUpdated")
+            ?.observe(viewLifecycleOwner) { updated ->
+                if (updated == true) {
+                    findNavController().currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("groupUpdated", false)
+
+                    refreshMembershipStateAndLoadStats()
+                }
+            }
+
         refreshMembershipStateAndLoadStats()
     }
 
@@ -328,12 +349,21 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         btnJoin.visibility = View.VISIBLE
 
         if (isMember) {
-            btnJoin.text = "가입완료"
-            btnJoin.isEnabled = false
-            btnJoin.alpha = 0.6f
+            if (isCreator) {
+                btnJoin.text = "수정하기"
+                btnJoin.isEnabled = true
+                btnJoin.alpha = 1f
 
-            btnLeave.text = if (isCreator) "그룹 삭제하기" else "그룹 탈퇴하기"
-            btnLeave.visibility = if (ownerLeaveBlocked && !isCreator) View.GONE else View.VISIBLE
+                btnLeave.text = "그룹 삭제하기"
+                btnLeave.visibility = View.VISIBLE
+            } else {
+                btnJoin.text = "가입완료"
+                btnJoin.isEnabled = false
+                btnJoin.alpha = 0.6f
+
+                btnLeave.text = "그룹 탈퇴하기"
+                btnLeave.visibility = if (ownerLeaveBlocked) View.GONE else View.VISIBLE
+            }
         } else {
             btnJoin.text = getString(R.string.group_join)
             btnJoin.isEnabled = true
@@ -392,6 +422,19 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 ?: myGroups.find { it.id == groupId }
                 ?: allGroups.find { it.id == groupId }
 
+            currentGroupName = currentGroup?.name ?: args.groupName.orEmpty()
+            currentGroupDesc = currentGroup?.description.orEmpty()
+            currentGroupIcon = currentGroup?.icon.orEmpty()
+
+            if (!currentGroup?.accessType.isNullOrBlank()) {
+                groupAccessType = currentGroup?.accessType.orEmpty()
+            }
+
+            currentGroupAccessType = groupAccessType.ifBlank { ACCESS_TYPE_PUBLIC }
+
+            tvGroupName.text = currentGroupName.ifBlank { "Group" }
+            ivGroupIcon.setImageResource(getGroupIconRes(currentGroupIcon))
+
             currentMemberId = me?.id
             creatorId = currentGroup?.creatorId
             isCreator = currentMemberId != null && creatorId != null && currentMemberId == creatorId
@@ -399,12 +442,6 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             isMember = myGroups.any { it.id == groupId } || isCreator
             ownerLeaveBlocked = false
             applyMembershipUi()
-
-            ivGroupIcon.setImageResource(getGroupIconRes(currentGroup?.icon))
-
-            if (!currentGroup?.accessType.isNullOrBlank()) {
-                groupAccessType = currentGroup?.accessType.orEmpty()
-            }
 
             memberCount = currentGroup?.memberCount ?: memberCount
             tvGroupMemberCount.text = if (memberCount > 0) "${memberCount}명 참여 중" else ""
@@ -836,6 +873,19 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             Toast.makeText(requireContext(), "그룹이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
             findNavController().popBackStack()
         }
+    }
+
+    private fun navigateToEditGroup() {
+        val bundle = Bundle().apply {
+            putBoolean("isEditMode", true)
+            putLong("editGroupId", args.groupId)
+            putString("editGroupName", currentGroupName.ifBlank { args.groupName.orEmpty() })
+            putString("editGroupDesc", currentGroupDesc)
+            putString("editGroupIcon", currentGroupIcon)
+            putString("editAccessType", currentGroupAccessType.ifBlank { ACCESS_TYPE_PUBLIC })
+        }
+
+        findNavController().navigate(R.id.groupCreateFragment, bundle)
     }
 
     private fun requestLeaveGroup() {

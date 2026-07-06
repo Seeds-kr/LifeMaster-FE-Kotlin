@@ -675,6 +675,19 @@ interface NetworkService {
         @Query("password") password: String
     ): Response<ResponseBody>
 
+    // 그룹 수정
+    @PUT("/group/{id}")
+    suspend fun updateGroup(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long,
+        @Query("name") name: String,
+        @Query("description") description: String?,
+        @Query("icon") icon: String?,
+        @Query("statistics") statistics: List<Int>?,
+        @Query("password") password: String?,
+        @Query("accessType") accessType: String
+    ): Response<ResponseBody>
+
     @GET("/group/{groupId}/sleep-stats")
     suspend fun getGroupSleepStats(
         @Header("Authorization") token: String,
