@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -692,37 +693,90 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         val dialogView = LayoutInflater.from(requireContext())
             .inflate(R.layout.dialog_group_join, null, false)
 
+        val tvTitleLine1: TextView = dialogView.findViewById(R.id.tvTitleLine1)
+        val tvTitleLine2: TextView = dialogView.findViewById(R.id.tvTitleLine2)
+        val tvPwLabel: TextView = dialogView.findViewById(R.id.tvPwLabel)
         val etPassword: EditText = dialogView.findViewById(R.id.etPassword)
         val tvWrong: TextView = dialogView.findViewById(R.id.tvPwLabel_wrong)
         val btnCancel: TextView = dialogView.findViewById(R.id.btnCancel)
         val btnJoinInDialog: TextView = dialogView.findViewById(R.id.btn_join)
+        val tvJoinByInviteCode: TextView = dialogView.findViewById(R.id.tvJoinByInviteCode)
 
-        tvWrong.visibility = View.INVISIBLE
+        var isInviteCodeMode = false
+
+        fun applyJoinMode() {
+            tvWrong.visibility = View.INVISIBLE
+            etPassword.text?.clear()
+
+            if (isInviteCodeMode) {
+                tvTitleLine1.text = "비공개 그룹 가입을 위해"
+                tvTitleLine2.text = "초대코드를 입력해주세요"
+                tvPwLabel.text = "초대코드를 입력해주세요"
+                etPassword.hint = "초대코드 입력"
+                etPassword.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                tvWrong.text = "초대코드를 확인해주세요."
+                tvJoinByInviteCode.text = "비밀번호로 가입하기"
+            } else {
+                tvTitleLine1.text = getString(R.string.group_join_title1)
+                tvTitleLine2.text = getString(R.string.group_join_title2)
+                tvPwLabel.text = getString(R.string.input_password_please)
+                etPassword.hint = getString(R.string.input_password)
+                etPassword.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                tvWrong.text = getString(R.string.password_wrong)
+                tvJoinByInviteCode.text = "초대코드로 가입하기"
+            }
+
+            etPassword.typeface = Typeface.DEFAULT
+            etPassword.setSelection(etPassword.text?.length ?: 0)
+        }
 
         val dialog = Dialog(requireContext()).apply {
             setContentView(dialogView)
             setCancelable(true)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
         }
 
-        btnCancel.setOnClickListener { dialog.dismiss() }
+        applyJoinMode()
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        tvJoinByInviteCode.setOnClickListener {
+            isInviteCodeMode = !isInviteCodeMode
+            applyJoinMode()
+        }
 
         btnJoinInDialog.setOnClickListener {
             tvWrong.visibility = View.INVISIBLE
 
-            val pw = etPassword.text?.toString()?.trim().orEmpty()
+            val input = etPassword.text?.toString()?.trim().orEmpty()
 
-            if (pw.isBlank()) {
+            if (input.isBlank()) {
+                tvWrong.text = if (isInviteCodeMode) {
+                    "초대코드를 확인해주세요."
+                } else {
+                    "비밀번호가 일치하지 않습니다."
+                }
                 tvWrong.visibility = View.VISIBLE
-                Toast.makeText(requireContext(), "비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            dialog.dismiss()
-
-            requestJoinGroup(
-                passwordOrBlank = pw,
-                showPasswordDialogOnNeed = false
-            )
+            if (isInviteCodeMode) {
+                requestJoinGroupWithInviteCodeFromDialog(
+                    inviteCode = input,
+                    dialog = dialog,
+                    tvWrong = tvWrong
+                )
+            } else {
+                requestJoinGroupFromDialog(
+                    password = input,
+                    dialog = dialog,
+                    tvWrong = tvWrong
+                )
+            }
         }
 
         dialog.show()
@@ -791,13 +845,160 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
     }
 
+    private fun requestJoinGroupFromDialog(
+        password: String,
+        dialog: Dialog,
+        tvWrong: TextView
+    ) {
+        val token = TokenProvider.getBearerToken(requireContext())
+
+        if (token.isNullOrBlank()) {
+            tvWrong.text = "로그인이 필요합니다."
+            tvWrong.visibility = View.VISIBLE
+            return
+        }
+
+        lifecycleScope.launch {
+            val resp: Response<ResponseBody> = withContext(Dispatchers.IO) {
+                networkService.joinGroup(
+                    token = token,
+                    groupId = args.groupId,
+                    password = password
+                )
+            }
+
+            if (!resp.isSuccessful) {
+                val err = safeBodyString(resp.errorBody())
+
+                when {
+                    resp.code() == 403 -> {
+                        dialog.dismiss()
+                        showPremiumLockedUi()
+                        return@launch
+                    }
+
+                    resp.code() == 409 || err.contains("already", ignoreCase = true) -> {
+                        dialog.dismiss()
+                        isMember = true
+                        applyMembershipUi()
+                        Toast.makeText(requireContext(), "이미 가입된 그룹이에요.", Toast.LENGTH_SHORT).show()
+                        refreshMembershipStateAndLoadStats()
+                        return@launch
+                    }
+
+                    else -> {
+                        tvWrong.text = "비밀번호가 일치하지 않습니다."
+                        tvWrong.visibility = View.VISIBLE
+                        return@launch
+                    }
+                }
+            }
+
+            dialog.dismiss()
+
+            Toast.makeText(requireContext(), "그룹 가입 완료!", Toast.LENGTH_SHORT).show()
+
+            isMember = true
+            applyMembershipUi()
+            refreshMembershipStateAndLoadStats()
+        }
+    }
+
+    private fun requestJoinGroupWithInviteCodeFromDialog(
+        inviteCode: String,
+        dialog: Dialog,
+        tvWrong: TextView
+    ) {
+        val token = TokenProvider.getBearerToken(requireContext())
+
+        if (token.isNullOrBlank()) {
+            tvWrong.text = "로그인이 필요합니다."
+            tvWrong.visibility = View.VISIBLE
+            return
+        }
+
+        lifecycleScope.launch {
+            val resp: Response<ResponseBody> = withContext(Dispatchers.IO) {
+                networkService.joinGroupWithInviteCode(
+                    token = token,
+                    inviteCode = inviteCode
+                )
+            }
+
+            if (!resp.isSuccessful) {
+                val err = safeBodyString(resp.errorBody())
+
+                when {
+                    resp.code() == 403 -> {
+                        dialog.dismiss()
+                        showPremiumLockedUi()
+                        return@launch
+                    }
+
+                    resp.code() == 409 || err.contains("already", ignoreCase = true) -> {
+                        dialog.dismiss()
+                        isMember = true
+                        applyMembershipUi()
+                        Toast.makeText(requireContext(), "이미 가입된 그룹이에요.", Toast.LENGTH_SHORT).show()
+                        refreshMembershipStateAndLoadStats()
+                        return@launch
+                    }
+
+                    else -> {
+                        tvWrong.text = "초대코드를 확인해주세요."
+                        tvWrong.visibility = View.VISIBLE
+                        return@launch
+                    }
+                }
+            }
+
+            dialog.dismiss()
+
+            Toast.makeText(requireContext(), "그룹 가입 완료!", Toast.LENGTH_SHORT).show()
+
+            isMember = true
+            applyMembershipUi()
+            refreshMembershipStateAndLoadStats()
+        }
+    }
+
     private fun showLeaveConfirmDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("그룹 탈퇴")
-            .setMessage("정말 이 그룹에서 탈퇴할까요?")
-            .setNegativeButton("취소", null)
-            .setPositiveButton("탈퇴") { _, _ -> requestLeaveGroup() }
-            .show()
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_group_delete, null, false)
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val tvDesc = dialogView.findViewById<TextView>(R.id.tvDesc)
+        val tvPwLabel = dialogView.findViewById<TextView>(R.id.tvPwLabel)
+        val etPassword = dialogView.findViewById<EditText>(R.id.etPassword)
+        val tvWrong = dialogView.findViewById<TextView>(R.id.tvPwLabel_wrong)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnDelete = dialogView.findViewById<TextView>(R.id.btnDelete)
+
+        tvTitle.text = "그룹 탈퇴"
+        tvDesc.text = "정말 이 그룹에서 탈퇴할까요?"
+
+        tvPwLabel.visibility = View.GONE
+        etPassword.visibility = View.GONE
+        tvWrong.visibility = View.GONE
+
+        btnDelete.text = "탈퇴하기"
+
+        val dialog = Dialog(requireContext()).apply {
+            setContentView(dialogView)
+            setCancelable(true)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnDelete.setOnClickListener {
+            dialog.dismiss()
+            requestLeaveGroup()
+        }
+
+        dialog.show()
     }
 
     private fun showDeleteGroupDialog() {

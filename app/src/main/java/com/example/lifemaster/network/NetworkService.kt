@@ -660,6 +660,13 @@ interface NetworkService {
         @Query("password") password: String? = null
     ): Response<ResponseBody>
 
+    // 초대코드로 그룹 가입
+    @POST("/group/join")
+    suspend fun joinGroupWithInviteCode(
+        @Header("Authorization") token: String,
+        @Query("inviteCode") inviteCode: String
+    ): Response<ResponseBody>
+
     // 그룹 탈퇴
     @POST("/group/{groupId}/leave")
     suspend fun leaveGroup(
