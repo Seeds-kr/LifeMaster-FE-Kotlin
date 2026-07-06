@@ -78,6 +78,9 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
     private lateinit var ivGroupIcon: ImageView
     private var groupAccessType: String = ""
     private lateinit var tvGroupMemberCount: TextView
+    private lateinit var layoutGroupDescCard: View
+    private lateinit var tvGroupDesc: TextView
+    private lateinit var tvGroupGoalSummary: TextView
     private lateinit var btnJoin: TextView
     private lateinit var btnLeave: TextView
     private lateinit var btnChat: View
@@ -147,6 +150,10 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         tvGroupName = view.findViewById(R.id.tv_group_name)
         ivGroupIcon = view.findViewById(R.id.iv_group_icon)
         tvGroupMemberCount = view.findViewById(R.id.tv_group_member_count)
+        layoutGroupDescCard = view.findViewById(R.id.layout_group_desc_card)
+        tvGroupDesc = view.findViewById(R.id.tv_group_desc)
+        layoutGroupDescCard.visibility = View.GONE
+        tvGroupGoalSummary = view.findViewById(R.id.tv_group_goal_summary)
         ivGroupIcon.setImageResource(getGroupIconRes(null))
         btnJoin = view.findViewById(R.id.btn_join)
         btnLeave = view.findViewById(R.id.btn_leave_group)
@@ -372,6 +379,41 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
     }
 
+    private fun applyContentVisibilityByMembership() {
+        if (isPremiumLocked) return
+
+        if (isMember) {
+            layoutGroupDescCard.visibility = View.GONE
+
+            layoutGoalChartContainer.visibility = View.VISIBLE
+            tvRecentAchieveTitle.visibility = View.VISIBLE
+            layoutRecentAchieveRoot.visibility = View.VISIBLE
+
+            layoutRankingHeader.visibility = View.VISIBLE
+            layoutRankingSection.visibility = View.VISIBLE
+
+            btnChat.visibility = View.VISIBLE
+        } else {
+            tvGroupDesc.text = currentGroupDesc.ifBlank { "그룹 설명이 없습니다." }
+            layoutGroupDescCard.visibility = View.VISIBLE
+
+            layoutGoalChartContainer.removeAllViews()
+            layoutGoalChartContainer.visibility = View.GONE
+
+            tvRecentAchieveTitle.visibility = View.GONE
+            layoutRecentAchieveRoot.visibility = View.GONE
+            hideHeatmapTooltip(clearSelection = false)
+
+            layoutRankingHeader.visibility = View.GONE
+            layoutRankingSection.visibility = View.GONE
+            layoutRankingList.removeAllViews()
+            layoutRankingList.visibility = View.GONE
+            layoutMore.visibility = View.GONE
+
+            btnChat.visibility = View.GONE
+        }
+    }
+
     private fun refreshMembershipStateAndLoadStats() {
         val token = TokenProvider.getBearerToken(requireContext())
 
@@ -425,6 +467,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             currentGroupName = currentGroup?.name ?: args.groupName.orEmpty()
             currentGroupDesc = currentGroup?.description.orEmpty()
             currentGroupIcon = currentGroup?.icon.orEmpty()
+            currentGroupDesc = currentGroup?.description.orEmpty()
 
             if (!currentGroup?.accessType.isNullOrBlank()) {
                 groupAccessType = currentGroup?.accessType.orEmpty()
@@ -442,27 +485,22 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             isMember = myGroups.any { it.id == groupId } || isCreator
             ownerLeaveBlocked = false
             applyMembershipUi()
+            applyContentVisibilityByMembership()
 
             memberCount = currentGroup?.memberCount ?: memberCount
             tvGroupMemberCount.text = if (memberCount > 0) "${memberCount}명 참여 중" else ""
 
-            loadStats(token, groupId)
-
-            if (isMember) {
-                loadRanking()
-            } else {
+            if (!isMember) {
                 rankingAllItems = emptyList()
                 rankingMyItem = null
                 bindRankingList()
-
-                if (!isPremiumLocked) {
-                    Toast.makeText(
-                        requireContext(),
-                        "그룹 가입 후 랭킹을 확인할 수 있어요.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                applyContentVisibilityByMembership()
+                loadGoalSummaryOnly(token, groupId)
+                return@launch
             }
+
+            loadStats(token, groupId)
+            loadRanking()
         }
     }
 
@@ -924,6 +962,33 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             ownerLeaveBlocked = false
             applyMembershipUi()
             findNavController().popBackStack()
+        }
+    }
+
+    private fun loadGoalSummaryOnly(token: String, groupId: Long) {
+        tvGroupGoalSummary.text = "최소목표를 불러오는 중이에요."
+
+        lifecycleScope.launch {
+            val resp = withContext(Dispatchers.IO) {
+                runCatching {
+                    networkService.getGroupGoalsProgress(token, groupId)
+                }.getOrNull()
+            }
+
+            if (resp == null || !resp.isSuccessful) {
+                tvGroupGoalSummary.text = "등록된 최소목표가 없습니다."
+                return@launch
+            }
+
+            val goals = resp.body().orEmpty()
+
+            tvGroupGoalSummary.text = if (goals.isEmpty()) {
+                "등록된 최소목표가 없습니다."
+            } else {
+                goals.joinToString("\n") { goal ->
+                    "${goal.goalName} 이상"
+                }
+            }
         }
     }
 
