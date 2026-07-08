@@ -68,7 +68,7 @@ object ChartStyle {
             isEnabled = true
             position = XAxis.XAxisPosition.BOTTOM
 
-            setDrawLabels(true)
+            setDrawLabels(false)
             textColor = AXIS_TEXT
             textSize = 11f
             yOffset = 4f
