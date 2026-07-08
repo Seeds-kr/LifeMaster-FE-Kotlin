@@ -130,7 +130,7 @@ class PomodoroRecentFocusGraphView @JvmOverloads constructor(
             val y = rawY.toInt().toFloat() + 0.5f
 
             canvas.drawLine(left, y, right, y, gridPaint)
-            canvas.drawText(value.toString(), left - 20f, y + 5f, yAxisTextPaint)
+            canvas.drawText(formatYAxisHourLabel(value), left - 20f, y + 5f, yAxisTextPaint)
         }
 
         val path = Path()
@@ -170,7 +170,7 @@ class PomodoroRecentFocusGraphView @JvmOverloads constructor(
         lastX: Float,
         lastY: Float
     ) {
-        val cardWidth = dp(140f)
+        val cardWidth = dp(148f)
         val cardHeight = dp(72f)
 
         var cardRight = lastX - dp(12f)
@@ -188,7 +188,7 @@ class PomodoroRecentFocusGraphView @JvmOverloads constructor(
         canvas.drawRoundRect(rect, dp(6f), dp(6f), tooltipPaint)
 
         canvas.drawText(
-            "${item.totalFocusMinutes}분 집중",
+            "${formatMinutes(item.totalFocusMinutes)} 집중",
             cardRight - dp(12f),
             cardTop + dp(20f),
             tooltipTitlePaint
@@ -216,7 +216,7 @@ class PomodoroRecentFocusGraphView @JvmOverloads constructor(
         )
 
         canvas.drawText(
-            "${item.averageFocusMinutes}분",
+            formatMinutes(item.averageFocusMinutes),
             cardRight - dp(12f),
             cardTop + dp(61f),
             tooltipValuePaint
@@ -231,7 +231,7 @@ class PomodoroRecentFocusGraphView @JvmOverloads constructor(
             val date = today.minusDays(diff.toLong())
             val dateText = date.format(DateTimeFormatter.ISO_DATE)
             val serverItem = itemMap[dateText]
-
+2
             GraphItem(
                 date = date,
                 dayText = date.dayOfMonth.toString(),
@@ -258,14 +258,30 @@ class PomodoroRecentFocusGraphView @JvmOverloads constructor(
     }
 
     private fun getNiceMaxValue(maxMinute: Int): Int {
-        if (maxMinute <= 0) return 60
+        if (maxMinute <= 0) return 240
+        val hour = ceil(maxMinute / 60f).toInt()
+
+        val evenHour = if (hour % 2 == 0) {
+            hour
+        } else {
+            hour + 1
+        }
+        return max(evenHour, 4) * 60
+    }
+
+    private fun formatMinutes(minutes: Int): String {
+        val hour = minutes / 60
+        val min = minutes % 60
 
         return when {
-            maxMinute <= 60 -> 60
-            maxMinute <= 120 -> 120
-            maxMinute <= 180 -> 180
-            else -> ceil(maxMinute / 60f).toInt() * 60
-        }.let { max(it, 60) }
+            hour > 0 && min > 0 -> "${hour}시간 ${min}분"
+            hour > 0 -> "${hour}시간"
+            else -> "${min}분"
+        }
+    }
+
+    private fun formatYAxisHourLabel(minutes: Int): String {
+        return (minutes / 60).toString()
     }
 
     private fun sp(value: Float): Float {

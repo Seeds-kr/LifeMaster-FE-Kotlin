@@ -1378,11 +1378,12 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         tvGoalTitle.text = "수면시간 통계"
 
         val xLabels = buildLast6DayLabels()
-        val userValues = normalizeToSix(stat.userValues)
-        val groupValues = normalizeToSix(stat.groupAverageValues)
+        val userVisibleValues = normalizeToVisibleSix(stat.userValues)
+        val groupVisibleValues = normalizeToVisibleSix(stat.groupAverageValues)
+        val groupChartValues = normalizeToSevenWithLeadingDay(stat.groupAverageValues)
 
-        val todayUserHour = userValues.lastOrNull() ?: 0f
-        val todayGroupHour = groupValues.lastOrNull() ?: 0f
+        val todayUserHour = userVisibleValues.lastOrNull() ?: 0f
+        val todayGroupHour = groupVisibleValues.lastOrNull() ?: 0f
 
         tvGoalDesc.text = makeSleepCompareText(
             todayUserHour = todayUserHour,
@@ -1391,7 +1392,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
         renderSleepChart(
             chart = lineChart,
-            groupValues = groupValues,
+            groupValues = groupChartValues,
             xLabels = xLabels,
             goalY = goal.goalValue.toFloat(),
             todayGroupHour = todayGroupHour,
@@ -1457,8 +1458,8 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         tvGoalDesc.text = "달성 횟수 통계"
 
         val xLabels = buildLast6DayLabels()
-        val myValues = normalizeToSix(stat.userValues)
-        val groupValues = normalizeToSix(stat.groupAverageValues)
+        val myValues = normalizeToSevenWithLeadingDay(stat.userValues)
+        val groupValues = normalizeToSevenWithLeadingDay(stat.groupAverageValues)
 
         renderPomodoroChart(
             chart = barChart,
@@ -1481,12 +1482,21 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         }
     }
 
-    private fun normalizeToSix(values: List<Float>): List<Float> {
+    private fun normalizeToVisibleSix(values: List<Float>): List<Float> {
         val lastSix = values.takeLast(6)
         return if (lastSix.size >= 6) {
             lastSix
         } else {
             List(6 - lastSix.size) { 0f } + lastSix
+        }
+    }
+
+    private fun normalizeToSevenWithLeadingDay(values: List<Float>): List<Float> {
+        val lastSeven = values.takeLast(7)
+        return if (lastSeven.size >= 7) {
+            lastSeven
+        } else {
+            List(7 - lastSeven.size) { 0f } + lastSeven
         }
     }
 
@@ -1520,11 +1530,12 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         todayGroupHour: Float,
         participantCount: Int
     ) {
-        val groupEntries = groupValues.mapIndexed { index, value ->
-            Entry(index.toFloat(), value)
+        val chartValues = normalizeToSevenWithLeadingDay(groupValues)
+        val groupEntries = chartValues.mapIndexed { index, value ->
+            Entry((index - 1).toFloat(), value)
         }
 
-        val maxValue = max(groupValues.maxOrNull() ?: 0f, goalY)
+        val maxValue = max(chartValues.maxOrNull() ?: 0f, goalY)
         val yMax = max(12f, ceil(maxValue + 2f))
 
         ChartStyle.applySleep(chart, xLabels, goalY, 0f, yMax)
@@ -1553,10 +1564,9 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
                 setDrawValues(false)
                 setDrawFilled(false)
                 setDrawCircles(true)
-                circleRadius = 7f
-                circleHoleRadius = 3.6f
+                setDrawCircleHole(true)
+                circleRadius = 3.8f
                 setCircleColor(ChartStyle.lineColor())
-                circleHoleColor = ChartStyle.circleHoleColor()
                 setDrawHighlightIndicators(false)
             }
         }
@@ -1570,8 +1580,6 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         chart.xAxis.axisMinimum = -0.5f
         chart.xAxis.axisMaximum = 5.5f
         chart.marker = SleepMarkerView(requireContext(), todayGroupHour)
-        //chart.marker = SleepMarkerView(requireContext(), participantCount, todayGroupHour)
-
         lastGroupEntry?.let {
             chart.highlightValue(it.x, it.y, 1)
         }
@@ -1587,10 +1595,20 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
         xLabels: List<String>,
         goalY: Float
     ) {
-        val barEntries = groupValues.mapIndexed { index, value -> BarEntry(index.toFloat(), value) }
-        val lineEntries = myValues.mapIndexed { index, value -> Entry(index.toFloat(), value) }
+        val safeGroupValues = normalizeToSevenWithLeadingDay(groupValues)
+        val safeMyValues = normalizeToSevenWithLeadingDay(myValues)
+        val barEntries = safeGroupValues.mapIndexed { index, value ->
+            BarEntry((index - 1).toFloat(), value)
+        }
 
-        val maxValue = max(max(groupValues.maxOrNull() ?: 0f, myValues.maxOrNull() ?: 0f), goalY)
+        val lineEntries = safeMyValues.mapIndexed { index, value ->
+            Entry((index - 1).toFloat(), value)
+        }
+
+        val maxValue = max(
+            max(safeGroupValues.maxOrNull() ?: 0f, safeMyValues.maxOrNull() ?: 0f),
+            goalY
+        )
         val yMax = ceil(maxValue + 1f).coerceAtLeast(goalY + 1f)
 
         ChartStyle.applyPomodoro(chart, xLabels, goalY, 0f, yMax)
@@ -1612,17 +1630,24 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
             setDrawHighlightIndicators(false)
         }
 
-        val pointSet = LineDataSet(listOf(lineEntries.last()), "").apply {
-            color = ChartStyle.lineColor()
-            lineWidth = 0f
-            setDrawValues(false)
-            setDrawFilled(false)
-            setDrawCircles(true)
-            circleRadius = 5.5f
-            circleHoleRadius = 3f
-            setCircleColor(ChartStyle.lineColor())
-            circleHoleColor = ChartStyle.circleHoleColor()
-            setDrawHighlightIndicators(false)
+        val lastLineEntry = lineEntries.lastOrNull()
+
+        val lineData = if (lastLineEntry != null) {
+            val pointSet = LineDataSet(listOf(lastLineEntry), "").apply {
+                color = ChartStyle.lineColor()
+                lineWidth = 0f
+                setDrawValues(false)
+                setDrawFilled(false)
+                setDrawCircles(true)
+                setDrawCircleHole(true)
+                circleRadius = 3.8f
+                setCircleColor(ChartStyle.lineColor())
+                setDrawHighlightIndicators(false)
+            }
+
+            LineData(lineDataSet, pointSet)
+        } else {
+            LineData(lineDataSet)
         }
 
         val barData = BarData(barDataSet).apply {
@@ -1631,7 +1656,7 @@ class GroupStatsFragment : Fragment(R.layout.fragment_group_stats) {
 
         chart.data = CombinedData().apply {
             setData(barData)
-            setData(LineData(lineDataSet, pointSet))
+            setData(lineData)
         }
 
         chart.xAxis.axisMinimum = -0.5f
