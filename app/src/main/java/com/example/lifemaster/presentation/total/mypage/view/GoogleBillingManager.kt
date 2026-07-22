@@ -82,13 +82,13 @@ class GoogleBillingManager(
             .setProductList(productList)
             .build()
 
-        billingClient.queryProductDetailsAsync(queryParams) { billingResult, productDetailsList ->
+        billingClient.queryProductDetailsAsync(queryParams) { billingResult, queryProductDetailsResult ->
             if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
                 listener.onError(billingResult.debugMessage.ifBlank { "상품 정보를 불러오지 못했습니다." })
                 return@queryProductDetailsAsync
             }
 
-            val targetProduct = productDetailsList.firstOrNull()
+            val targetProduct = queryProductDetailsResult.productDetailsList.firstOrNull()
             if (targetProduct == null) {
                 listener.onError("구매 가능한 상품이 없습니다. 콘솔 상품 설정을 확인해 주세요.")
                 return@queryProductDetailsAsync
