@@ -53,6 +53,7 @@ import com.example.lifemaster.presentation.total.detox.model.DetoxRepeatLock
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockRequest
 import com.example.lifemaster.presentation.total.detox.model.DetoxTimeLockResponse
 import com.example.lifemaster.presentation.login.model.VerifyCodeRequest
+import com.example.lifemaster.presentation.total.mypage.model.GooglePayVerifyRequest
 import com.example.lifemaster.presentation.total.mypage.model.MeResponse
 import com.example.lifemaster.presentation.total.mypage.model.PayPalCreateOrderResponse
 import okhttp3.MultipartBody
@@ -687,6 +688,15 @@ interface NetworkService {
         @Header("Authorization") token: String,
         @Path("orderId") orderId: String
     ): Response<ResponseBody>
+
+    /**
+     * Google Play 구독 영수증 검증 & 저장 API
+     */
+    @POST("/payments/googlePay/verify")
+    suspend fun verifyGooglePayReceipt(
+        @Header("Authorization") token: String,
+        @Body request: GooglePayVerifyRequest
+    ): Response<String>
 
     // 결제 내역 조회
     @GET("/user/{id}/payments")
