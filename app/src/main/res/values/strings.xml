@@ -199,6 +199,8 @@
     <string name="detox">디톡스</string>
     <string name="challenge">챌린지</string>
     <string name="challenge_feature_in_development">개발 중입니다.</string>
+    <string name="tutorial_close">튜토리얼 닫기</string>
+    <string name="tutorial_confirm">확인했어요</string>
     <string name="thank_diary">감사일기</string>
     <string name="introspection">자아성찰</string>
     <string name="sleep">수면</string>

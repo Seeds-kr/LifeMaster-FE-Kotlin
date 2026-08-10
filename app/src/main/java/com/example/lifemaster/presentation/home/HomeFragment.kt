@@ -50,6 +50,8 @@ import com.example.lifemaster.presentation.home.todo.view.ToDoDialog
 import com.example.lifemaster.presentation.home.todo.viewmodel.ToDoViewModel
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.presentation.total.challenge.model.toPresentation as toChallengePresentation
+import com.example.lifemaster.presentation.tutorial.TutorialDialogFragment
+import com.example.lifemaster.presentation.tutorial.TutorialPrefs
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -166,6 +168,15 @@ class HomeFragment : Fragment() {
         loadAlarmPreviewForDate(today)
         loadSleepPreviewForDate(today)
         showDetoxPreview()
+
+        showHomeTodoTutorialIfNeeded()
+    }
+
+    private fun showHomeTodoTutorialIfNeeded() {
+        if (TutorialPrefs.hasSeenHomeTodoTutorial(requireContext())) return
+        TutorialPrefs.markHomeTodoTutorialSeen(requireContext())
+        TutorialDialogFragment.newInstance(R.drawable.tutorial_home_todo)
+            .show(childFragmentManager, TutorialDialogFragment.TAG)
     }
 
     override fun onResume() {
