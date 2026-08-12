@@ -26,6 +26,8 @@ import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.total.challenge.fragment.adapter.ChallengeAdapter
 import com.example.lifemaster.presentation.total.challenge.model.ChallengeItem
 import com.example.lifemaster.presentation.total.challenge.viewmodel.ChallengeViewModel
+import com.example.lifemaster.presentation.tutorial.TutorialDialogFragment
+import com.example.lifemaster.presentation.tutorial.TutorialPrefs
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -59,6 +61,14 @@ class ChallengeFragment : Fragment() {
         setupRecyclerView()
         observeViewModel()
         setupClickListeners()
+        showChallengeTutorialIfNeeded()
+    }
+
+    private fun showChallengeTutorialIfNeeded() {
+        if (TutorialPrefs.hasSeenChallengeTutorial(requireContext())) return
+        TutorialPrefs.markChallengeTutorialSeen(requireContext())
+        TutorialDialogFragment.newInstance(R.drawable.tutorial_challenge)
+            .show(childFragmentManager, TutorialDialogFragment.TAG)
     }
 
     private fun observeViewModel() {
