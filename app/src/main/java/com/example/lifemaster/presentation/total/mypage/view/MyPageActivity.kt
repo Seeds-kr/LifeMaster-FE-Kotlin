@@ -161,7 +161,7 @@ class MyPageActivity : AppCompatActivity() {
         // 2. 결제 내역 로컬 기록 (서버 반영 전 임시)
         val typeLabel = if (isAnnual) "연간권" else "30일권"
         val desc = "프리미엄 결제 (PayPal) · $typeLabel"
-        val price = if (isAnnual) "₩41,200" else "₩4,900"
+        val price = if (isAnnual) "₩55,000" else "₩5,500"
         MyPageLocalStore.appendPayment(this, desc, price)
         
         // 3. 서버 데이터 동기화
@@ -339,7 +339,9 @@ class MyPageActivity : AppCompatActivity() {
                 if (latestPaid != null) {
                     val cal = java.util.Calendar.getInstance()
                     cal.timeInMillis = latestPaid.atMillis
-                    val isAnnual = latestPaid.description.contains("연간") || latestPaid.amountLabel.contains("41,200")
+                    val isAnnual = latestPaid.description.contains("연간") || 
+                                   latestPaid.amountLabel.contains("55,000") || 
+                                   latestPaid.amountLabel.contains("41,200")
                     cal.add(java.util.Calendar.DAY_OF_YEAR, if (isAnnual) 365 else 30)
                     expDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.KOREA).format(cal.time)
                 }
@@ -399,11 +401,13 @@ class MyPageActivity : AppCompatActivity() {
             val isAnnual = rawDesc.contains("ANNUAL", ignoreCase = true) || 
                            rawDesc.contains("YEAR", ignoreCase = true) || 
                            rawDesc.contains("연간", ignoreCase = true) || 
+                           amt.contains("55000") || amt.contains("55,000") ||
                            amt.contains("41200") || amt.contains("41,200")
 
             val isMonthly = rawDesc.contains("MONTH", ignoreCase = true) || 
                             rawDesc.contains("월간", ignoreCase = true) ||
                             rawDesc.contains("30일", ignoreCase = true) ||
+                            amt.contains("5500") || amt.contains("5,500") ||
                             amt.contains("4900") || amt.contains("4,900") ||
                             rawDesc.contains("PREMIUM", ignoreCase = true)
 
@@ -418,7 +422,7 @@ class MyPageActivity : AppCompatActivity() {
                 finalDesc = "$finalDesc$typeSuffix"
             }
 
-            combinedList.add(MyPageLocalStore.PaymentLine(at, finalDesc, s.amount ?: "₩4,900"))
+            combinedList.add(MyPageLocalStore.PaymentLine(at, finalDesc, s.amount ?: "₩5,500"))
         }
         
         serverCoupons?.forEach { c ->

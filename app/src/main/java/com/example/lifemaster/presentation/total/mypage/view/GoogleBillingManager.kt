@@ -11,16 +11,29 @@ import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
+import com.example.lifemaster.network.NetworkService
+import com.example.lifemaster.presentation.total.mypage.model.GooglePayVerifyRequest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class GoogleBillingManager(
     private val activity: Activity,
+    private val coroutineScope: CoroutineScope,
+    private val networkService: NetworkService,
+    private val authTokenProvider: () -> String?,
     private val listener: Listener
 ) {
     private var isConnected = false
 
+    // queryProductDetailsAsync 콜백 이후 결제 완료 시점까지 상품 가격/이름 정보를 들고 있어야
+    // 서버 검증 요청(amount, currency, productName)을 만들 수 있음
+    private var pendingProductDetails: ProductDetails? = null
+
     interface Listener {
         fun onConnected()
-        fun onPurchaseSuccess()
+        fun onPurchaseVerified()
         fun onError(message: String)
     }
 
@@ -100,6 +113,7 @@ class GoogleBillingManager(
                 return@queryProductDetailsAsync
             }
 
+            pendingProductDetails = targetProduct
             launchBillingFlow(targetProduct, offerToken)
         }
     }
@@ -128,20 +142,67 @@ class GoogleBillingManager(
 
         purchases.forEach { purchase ->
             if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                if (!purchase.isAcknowledged) {
-                    val acknowledgeParams = AcknowledgePurchaseParams.newBuilder()
-                        .setPurchaseToken(purchase.purchaseToken)
-                        .build()
-                    billingClient.acknowledgePurchase(acknowledgeParams) { ackResult ->
-                        if (ackResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                            listener.onPurchaseSuccess()
-                        } else {
-                            listener.onError(ackResult.debugMessage.ifBlank { "결제 승인 처리에 실패했습니다." })
-                        }
-                    }
-                } else {
-                    listener.onPurchaseSuccess()
+                verifyWithServer(purchase)
+            }
+        }
+    }
+
+    // Google은 결제 성공만으로 구매를 완료 처리하지만, 위·변조된 영수증으로 프리미엄이
+    // 활성화되지 않도록 서버 검증(/payments/googlePay/verify)을 통과한 뒤에만 acknowledge한다.
+    private fun verifyWithServer(purchase: Purchase) {
+        val token = authTokenProvider()
+        if (token.isNullOrBlank()) {
+            listener.onError("로그인이 필요합니다.")
+            return
+        }
+
+        val productDetails = pendingProductDetails
+        val pricingPhase = productDetails?.subscriptionOfferDetails
+            ?.firstOrNull()
+            ?.pricingPhases
+            ?.pricingPhaseList
+            ?.firstOrNull()
+
+        val request = GooglePayVerifyRequest(
+            subscriptionId = purchase.products.firstOrNull().orEmpty().ifBlank { productDetails?.productId.orEmpty() },
+            purchaseToken = purchase.purchaseToken,
+            productName = productDetails?.name ?: productDetails?.productId.orEmpty(),
+            amount = pricingPhase?.priceAmountMicros?.let { (it / 1_000_000L).toInt() } ?: 0,
+            currency = pricingPhase?.priceCurrencyCode.orEmpty()
+        )
+
+        coroutineScope.launch {
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    networkService.verifyGooglePayReceipt(token, request)
                 }
+                if (response.isSuccessful) {
+                    acknowledgePurchase(purchase)
+                } else {
+                    val message = response.errorBody()?.string()?.takeIf { it.isNotBlank() }
+                        ?: "구독 검증에 실패했습니다. (${response.code()})"
+                    listener.onError(message)
+                }
+            } catch (e: Exception) {
+                listener.onError("구독 검증 중 오류가 발생했습니다: ${e.message}")
+            }
+        }
+    }
+
+    private fun acknowledgePurchase(purchase: Purchase) {
+        if (purchase.isAcknowledged) {
+            listener.onPurchaseVerified()
+            return
+        }
+
+        val acknowledgeParams = AcknowledgePurchaseParams.newBuilder()
+            .setPurchaseToken(purchase.purchaseToken)
+            .build()
+        billingClient.acknowledgePurchase(acknowledgeParams) { ackResult ->
+            if (ackResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                listener.onPurchaseVerified()
+            } else {
+                listener.onError(ackResult.debugMessage.ifBlank { "결제 승인 처리에 실패했습니다." })
             }
         }
     }
