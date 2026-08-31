@@ -145,7 +145,7 @@
             android:name=".presentation.total.detox.DetoxBlockActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:launchMode="singleTask" />\
+            android:launchMode="singleTask" />
         <activity
             android:name=".presentation.total.detox.DetoxEscapeActivity"
             android:exported="false" />
