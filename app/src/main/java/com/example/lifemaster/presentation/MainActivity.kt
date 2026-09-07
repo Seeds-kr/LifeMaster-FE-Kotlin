@@ -399,6 +399,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 setNegativeButton("취소") { dialog, _ ->
                     dialog.dismiss()
+                    binding.bottomNavigation.selectedItemId = R.id.action_home
                 }
                 setPositiveButton("동의하고 설정하기") { _, _ ->
                     startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
