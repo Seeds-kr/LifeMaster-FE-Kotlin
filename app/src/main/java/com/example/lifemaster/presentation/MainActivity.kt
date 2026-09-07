@@ -148,8 +148,6 @@ class MainActivity : AppCompatActivity() {
 
         getUserSleepInfo()
         fetchMe()
-
-        requestAccessibilityPermission(this)
     }
 
     private fun fetchMe() {
@@ -387,12 +385,22 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
-    private fun requestAccessibilityPermission(context: Context) {
+    fun requestAccessibilityPermission(context: Context) {
         if (!isAccessibilityPermitted(context)) {
             AlertDialog.Builder(context).apply {
-                setTitle("접근성 권한 허용 필요")
-                setMessage("앱을 사용하기 위해서는 접근성 권한이 필요합니다.")
-                setPositiveButton("허용") { _, _ ->
+                setTitle("접근성 서비스 사용 안내")
+                setMessage(
+                    """
+                LifeMaster는 디지털 디톡스 기능을 제공하기 위해 Android 접근성 서비스를 사용합니다.
+                접근성 서비스를 통해 현재 실행 중인 앱의 식별 정보(앱 패키지명)를 확인하여 사용자가 직접 설정한 차단 대상 앱이 실행되었는지 판단합니다.
+                이 정보는 시간 잠금, 반복 잠금, 영구 잠금 기능을 적용하기 위해서만 사용됩니다.
+                접근성 서비스를 통해 확인한 앱 정보는 기기 내에서만 처리되며 서버로 전송하거나 제3자에게 공유되지 않습니다.
+                """.trimIndent()
+                )
+                setNegativeButton("취소") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                setPositiveButton("동의하고 설정하기") { _, _ ->
                     startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                 }
                 setCancelable(false)

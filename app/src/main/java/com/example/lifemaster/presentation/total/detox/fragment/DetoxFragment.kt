@@ -28,6 +28,7 @@ import com.example.lifemaster.databinding.FragmentDetoxBinding
 import com.example.lifemaster.network.NetworkService
 import com.example.lifemaster.network.TokenProvider
 import com.example.lifemaster.presentation.home.alarm.model.DataResource
+import com.example.lifemaster.presentation.MainActivity
 import com.example.lifemaster.presentation.total.detox.DetoxRepeatLockLocalManager
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxPermanentLockAdapter
 import com.example.lifemaster.presentation.total.detox.adapter.DetoxRepeatLockAdapter
@@ -86,6 +87,8 @@ class DetoxFragment : Fragment(R.layout.fragment_detox) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentDetoxBinding.bind(view)
+
+        (requireActivity() as? MainActivity)?.requestAccessibilityPermission(requireContext())
 
         initViews()
         initListeners()
